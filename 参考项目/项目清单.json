@@ -682,5 +682,13 @@
       "checked_on": "2026-11-12"
     }
   ],
-  "source_footprint_mib": 406.2
+  "source_footprint_mib": 406.2,
+  "automatic_sync_review": {
+    "checked_on": "2026-11-12",
+    "feat": "FEAT-T06",
+    "change": "CHG-T06-002",
+    "index": "自动同步/README.md",
+    "source_manifest": "自动同步/sources.json",
+    "runtime_tested": false
+  }
 }
