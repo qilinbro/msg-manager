@@ -15,6 +15,6 @@ SQLCipher 原型在 Windows/GCC 实际验证后，才建立加密库迁移并接
 
 本地消息可用状态由 /inbox 的 storage_enabled 声明；/health/ready 继续表示无人值守全链路就绪，两者不能混淆。列表采用手动刷新与显式分页；全局版本改变时旧游标拒绝，界面重载第一页。SSE 待持续事件与恢复底座完成。
 
-本轮不宣称完成所有平台的实时接收。正式代码审查、真实授权、用户验收与原生打包仍保留；原计划保留为基线，由谢麒麟确认统一消息优先后的修订排期。
+本轮不宣称完成所有平台的实时接收。正式代码审查、真实授权、用户验收与原生打包仍保留；原计划保留为基线，由kirinbao确认统一消息优先后的修订排期。
 
 依据：[SQLCipher Go 驱动固定版本](https://github.com/mutecomm/go-sqlcipher/tree/v4.4.2)、[SQLCipher 设计](https://www.zetetic.net/sqlcipher/design/)、[Telegram 导出](https://telegram.org/blog/export-and-more)。
