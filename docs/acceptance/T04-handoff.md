@@ -1,7 +1,7 @@
 # T04 本地交付与待办
 
 - 日期：2026-11-12（Asia/Shanghai）
-- 变更：CHG-T04-002；任务仍为进行中，实际完成日期为空。
+- 最新变更：CHG-T04-004；任务仍为进行中，实际完成日期为空。
 
 ## 当前交付
 
@@ -9,7 +9,11 @@
 
 使用 **PowerShell 7.2+** 执行 `pwsh -File scripts/package-handoff.ps1`，可在 `.runtime/handoff/` 生成带 SHA256 清单的源码 ZIP。包内保留项目代码、任务文档与参考项目索引；排除工具、缓存、构建输出、真实环境变量、数据库/WAL、私钥、证书、数据目录和上游源码克隆。当前项目没有真实聊天数据；后续源文件或样例如加入业务数据，仍须先审阅脱敏再打包。输出路径及既有项目内祖先拒绝链接或 junction。ZIP 内的 `HANDOFF-MANIFEST.json` 可逐文件核对大小和哈希，旁边的 `.sha256` 核对整个包。
 
-## 最新同步进展（CHG-T04-003）
+## 最新同步进展（CHG-T04-004）
+
+用户已授权把全部已实现功能整合main，必要检查通过后直接更新远端。整合提交[d3615f3](https://github.com/qilinbro/msg-manager/commit/d3615f3acb92fbcabe55c30ca32c7c1e61484e9d)已包含QQ、统一消息、邮箱和手动AI四个功能分支的全部提交；原PR #2已自动标记合并，没有新建PR。详见[main整合记录](main-integration.md)。功能审查与验收状态不因合并改变。
+
+## 前次同步进展（CHG-T04-003）
 
 用户于 2026-11-12 再次明确授权上传。已重新读取远端 main，基线为 ff10ea483ba190e6448b368892b6938ab188f2c3，完整项目检查重新通过。独立分支 [feat/t02-qq-adapter](https://github.com/qilinbro/msg-manager/tree/feat/t02-qq-adapter) 已上传 T04 工程、T02 QQ 适配、最新文档和脱敏证据；通过 ls-remote 核对远端为 [35ecadef2e52b6cbf4471d88338d8f600cf75f4f](https://github.com/qilinbro/msg-manager/commit/35ecadef2e52b6cbf4471d88338d8f600cf75f4f)。未合并 main，也没有创建 PR。
 
