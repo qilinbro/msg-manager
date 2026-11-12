@@ -10,7 +10,7 @@
 - **整体 AI 消息处理：** [LangBot](项目卡片/langbot.md)，再对照 [AstrBot](项目卡片/astrbot.md) 的平台与限频抽象。
 - **联系人与关系档案：** [Monica](项目卡片/monica.md) 的信息模型；[Bonds](项目卡片/bonds.md) 的 Go + React 结构很贴近，但 BSL 许可限制必须单独确认。
 - **joey 的前端 / UI 阅读：** [Chatwoot](项目卡片/chatwoot.md) 的消息与联系人侧栏、[Twenty](项目卡片/twenty.md) 的记录与组件、Bonds 的联系人详情。
-- **吕佳航的首个连接器：** [go-telegram/bot](项目卡片/go-telegram-bot.md)，特别看游标与落库先后，不能直接沿用默认轮询循环。
+- **angjustinl的首个连接器：** [go-telegram/bot](项目卡片/go-telegram-bot.md)，特别看游标与落库先后，不能直接沿用默认轮询循环。
 - **长期记忆：** [Mem0](项目卡片/mem0.md)；事实时间与关系冲突的后续方案看 [Graphiti](项目卡片/graphiti.md)。
 - **常驻运行：** [OpenClaw](项目卡片/openclaw.md)、[Letta Code](项目卡片/letta-code.md)；任务恢复与重试结构补看 [Temporal](项目卡片/temporal.md)。
 
