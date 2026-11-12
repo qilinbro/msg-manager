@@ -1,0 +1,1017 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Social Intelligence OS — scaffold API",
+    "version": "0.1.0",
+    "description": "T04 initial contract. API resources are not persisted; no real connector or mutation is implemented. OPTIONS preflight without credentials is allowed only for approved local origins and methods, contains no business data, and does not bypass authentication of actual requests. This file uses JSON syntax, which is valid YAML 1.2. QQ personal-account adapter: the authenticated verification endpoint only checks the operator-configured local OneBot service; no continuous reception, persistence, or sending is enabled."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:17890"
+    }
+  ],
+  "security": [
+    {
+      "localBearer": []
+    }
+  ],
+  "paths": {
+    "/health/live": {
+      "get": {
+        "operationId": "getLiveness",
+        "summary": "HTTP process liveness, not product readiness.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process running. Response contains no credentials."
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "getReadiness",
+        "summary": "Unavailable until durable storage is implemented.",
+        "security": [],
+        "responses": {
+          "503": {
+            "description": "NOT_READY: durable storage is not configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events": {
+      "get": {
+        "operationId": "subscribeEvents",
+        "summary": "Reserved authenticated event stream; not implemented in this scaffold.",
+        "description": "Currently returns JSON 501 after authentication. No stream, heartbeat, replay cursor, or delivery guarantee exists. Future event payload and recovery decisions are documented in ADR 0002.",
+        "x-implementation-status": "planned",
+        "x-future-content-type": "text/event-stream",
+        "x-future-event-schema": {
+          "$ref": "#/components/schemas/PlannedEvent"
+        },
+        "responses": {
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host, Origin, or workspace.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: event streaming and persistent replay are unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system": {
+      "get": {
+        "operationId": "getSystem",
+        "summary": "Current scaffold and disabled automation state.",
+        "responses": {
+          "200": {
+            "description": "Scaffold status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/System"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections": {
+      "get": {
+        "operationId": "listConnections",
+        "summary": "Planned connector declarations, not connected accounts.",
+        "responses": {
+          "200": {
+            "description": "No live connection exists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createConnection",
+        "summary": "Reserved; no mutation implemented.",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: no action performed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/messages": {
+      "get": {
+        "operationId": "listMessages",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/contacts": {
+      "get": {
+        "operationId": "listContacts",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/drafts": {
+      "get": {
+        "operationId": "listDrafts",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/approvals": {
+      "get": {
+        "operationId": "listApprovals",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "operationId": "listJobs",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit": {
+      "get": {
+        "operationId": "listAudit",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "operationId": "listReports",
+        "summary": "Empty scaffold collection; not a persisted resource implementation.",
+        "responses": {
+          "200": {
+            "description": "Empty list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmptyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/automation/pause": {
+      "post": {
+        "operationId": "pauseAutomation",
+        "summary": "Reserved; no mutation implemented.",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: no action performed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/automation/resume": {
+      "post": {
+        "operationId": "resumeAutomation",
+        "summary": "Reserved; no mutation implemented.",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: no action performed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/approvals/{id}/approve": {
+      "post": {
+        "operationId": "approveDraft",
+        "summary": "Reserved; no mutation implemented.",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: no action performed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/approvals/{id}/reject": {
+      "post": {
+        "operationId": "rejectDraft",
+        "summary": "Reserved; no mutation implemented.",
+        "responses": {
+          "401": {
+            "description": "Missing or invalid bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rejected Host or Origin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: no action performed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/connections/qq-onebot/verify": {
+      "get": {
+        "operationId": "verifyQQAccount",
+        "summary": "Verify the existing personal QQ login through configured OneBot v11.",
+        "description": "Read-only diagnostic. Endpoint and credentials come exclusively from local backend environment; request parameters cannot select a provider. A successful check is a past observation, not a live account subscription. Auto-send and message ingestion remain disabled.",
+        "responses": {
+          "200": {
+            "description": "Identity and online state verified.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QQVerification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid product API bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host, Origin, or workspace rejected.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "QQ_NOT_CONFIGURED, QQ_UNREACHABLE, QQ_AUTH_FAILED, QQ_IDENTITY_MISMATCH, QQ_LOGGED_OUT, QQ_PROTOCOL_ERROR or QQ_BUSY.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "localBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Random local pairing token, at least 32 characters; provided by SOCIALD_API_TOKEN."
+      }
+    },
+    "schemas": {
+      "PlannedEvent": {
+        "type": "object",
+        "description": "Design-only notification payload. No endpoint emits this schema yet. Events will reference resources instead of including chat bodies or credentials.",
+        "required": [
+          "id",
+          "type",
+          "occurred_at",
+          "workspace_id",
+          "resource_id",
+          "resource_version"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Future persistent event cursor, assigned by the server."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "message.updated",
+              "connection.updated",
+              "approval.updated",
+              "job.updated",
+              "report.updated"
+            ]
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "workspace_id": {
+            "type": "string"
+          },
+          "resource_id": {
+            "type": "string"
+          },
+          "resource_version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "trace_id"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "trace_id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Capabilities": {
+        "type": "object",
+        "required": [
+          "receive_text",
+          "send_text",
+          "history_import"
+        ],
+        "properties": {
+          "receive_text": {
+            "type": "boolean",
+            "const": false
+          },
+          "send_text": {
+            "type": "boolean",
+            "const": false
+          },
+          "history_import": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "Connector": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "platform",
+          "status",
+          "implementation_status",
+          "capabilities",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "qq-onebot",
+              "weixin-clawbot",
+              "telegram-bot"
+            ]
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "qq",
+              "weixin",
+              "telegram"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "not_configured",
+              "configured",
+              "identity_verified",
+              "unreachable",
+              "auth_failed",
+              "identity_mismatch",
+              "logged_out",
+              "protocol_error"
+            ]
+          },
+          "implementation_status": {
+            "type": "string",
+            "enum": [
+              "planned",
+              "probe_ready"
+            ]
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/Capabilities"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "System": {
+        "type": "object",
+        "required": [
+          "version",
+          "stage",
+          "workspace_id",
+          "automation",
+          "storage",
+          "connectors"
+        ],
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "const": "scaffold"
+          },
+          "workspace_id": {
+            "type": "string",
+            "const": "local-default"
+          },
+          "automation": {
+            "type": "object",
+            "required": [
+              "paused",
+              "auto_send_enabled"
+            ],
+            "properties": {
+              "paused": {
+                "type": "boolean",
+                "const": true
+              },
+              "auto_send_enabled": {
+                "type": "boolean",
+                "const": false
+              }
+            }
+          },
+          "storage": {
+            "type": "object",
+            "required": [
+              "configured",
+              "driver"
+            ],
+            "properties": {
+              "configured": {
+                "type": "boolean",
+                "const": false
+              },
+              "driver": {
+                "type": "string",
+                "const": "sqlite"
+              }
+            }
+          },
+          "connectors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Connector"
+            }
+          }
+        }
+      },
+      "EmptyList": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 0,
+            "items": {
+              "type": "object"
+            }
+          },
+          "next_cursor": {
+            "type": "null"
+          }
+        }
+      },
+      "ConnectorList": {
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Connector"
+            }
+          },
+          "next_cursor": {
+            "type": "null"
+          }
+        },
+        "description": "One personal QQ adapter with identity verification plus planned Weixin/Telegram adapters. Identity verification never enables messaging."
+      },
+      "OutboxState": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "sending",
+          "sent",
+          "retry_wait",
+          "failed",
+          "unknown",
+          "cancelled"
+        ],
+        "description": "Reserved domain state; no outbox persistence or send operation is implemented."
+      },
+      "QQVerification": {
+        "type": "object",
+        "required": [
+          "connection_id",
+          "state",
+          "account_id",
+          "nickname",
+          "online",
+          "checked_at",
+          "receiving_enabled",
+          "sending_enabled"
+        ],
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "const": "qq-onebot"
+          },
+          "state": {
+            "type": "string",
+            "const": "identity_verified"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "online": {
+            "type": "boolean",
+            "const": true
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "receiving_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      }
+    }
+  }
+}
