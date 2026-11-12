@@ -33,6 +33,9 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if closer, ok := handler.(interface{ Close() error }); ok {
+		defer closer.Close()
+	}
 	listener, err := net.Listen("tcp", cfg.Addr)
 	if err != nil {
 		return err
@@ -44,7 +47,7 @@ func run(ctx context.Context) error {
 	}
 	serveErrors := make(chan error, 1)
 	go func() { serveErrors <- server.Serve(listener) }()
-	slog.Info("sociald scaffold listening", "address", listener.Addr().String(), "storage_configured", false, "sending_enabled", false)
+	slog.Info("sociald listening", "address", listener.Addr().String(), "storage_configured", cfg.DatabasePath != "", "sending_enabled", false)
 	select {
 	case err := <-serveErrors:
 		if errors.Is(err, http.ErrServerClosed) {

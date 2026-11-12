@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-12",
+  "environment": "Windows x64; local standalone service; synthetic records only",
+  "platforms": [
+    "qq",
+    "weixin",
+    "telegram",
+    "shanliao"
+  ],
+  "imported": 1000,
+  "duplicates": 1000,
+  "conversations": 8,
+  "chinese_platform_search": "passed",
+  "conversation_paging": "passed",
+  "message_paging_and_order": "passed",
+  "read_pin_archive_restore": "passed",
+  "sending_disabled": true,
+  "browser_interaction": "not verified: CUA could not establish browser URL",
+  "real_platform_accounts": "not used"
+}

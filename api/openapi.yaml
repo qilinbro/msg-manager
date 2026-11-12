@@ -238,7 +238,8 @@
               }
             }
           }
-        }
+        },
+        "description": "兼容旧骨架的空列表；真实统一消息管理使用conversations和其messages子资源。"
       }
     },
     "/api/v1/contacts": {
@@ -689,6 +690,611 @@
           }
         }
       }
+    },
+    "/api/v1/inbox": {
+      "get": {
+        "description": "四个平台的导入管理能力和实际消息数；不表示平台已在线。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/inbox/connections": {
+      "get": {
+        "description": "本机加密存储中的导入账号；不同平台或账号不会自动合并。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxConnectionList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations": {
+      "get": {
+        "description": "按平台、关键字和未读状态检索会话；默认未归档，置顶优先。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "qq",
+                "weixin",
+                "telegram",
+                "shanliao"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "unread",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "pinned",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/messages": {
+      "get": {
+        "description": "取会话最新一页历史；页内按时间升序，next_cursor用于读取更早历史。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxMessageList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "会话不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/conversations/{conversation_id}": {
+      "patch": {
+        "description": "仅改变本地会话已读、置顶或归档状态，不调用任何平台发送。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxMutationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "会话不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationPatch"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/messages": {
+      "post": {
+        "description": "用户主动导入本机文件，8MiB/1000条上限，原子去重；同ID不同内容整批回滚。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "稳定消息ID存在内容冲突，整批未导入",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "文件或批次超过限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageImport"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/imports/telegram": {
+      "post": {
+        "description": "用户主动导入本机文件，8MiB/1000条上限，原子去重；同ID不同内容整批回滚。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数、格式或游标不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "访问令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不被允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "稳定消息ID存在内容冲突，整批未导入",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "文件或批次超过限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "加密存储未配置或暂时不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramImport"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -867,7 +1473,10 @@
           },
           "stage": {
             "type": "string",
-            "const": "scaffold"
+            "enum": [
+              "scaffold",
+              "unified_inbox"
+            ]
           },
           "workspace_id": {
             "type": "string",
@@ -898,12 +1507,14 @@
             ],
             "properties": {
               "configured": {
-                "type": "boolean",
-                "const": false
+                "type": "boolean"
               },
               "driver": {
                 "type": "string",
-                "const": "sqlite"
+                "enum": [
+                  "sqlite",
+                  "sqlcipher"
+                ]
               }
             }
           },
@@ -1009,6 +1620,464 @@
           "sending_enabled": {
             "type": "boolean",
             "const": false
+          }
+        }
+      },
+      "InboxStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "storage_enabled",
+          "source_mode",
+          "platforms",
+          "import_limit"
+        ],
+        "properties": {
+          "storage_enabled": {
+            "type": "boolean"
+          },
+          "source_mode": {
+            "type": "string",
+            "const": "import"
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "name",
+                "live_status",
+                "message_count"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "enum": [
+                    "qq",
+                    "weixin",
+                    "telegram",
+                    "shanliao"
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "live_status": {
+                  "type": "string",
+                  "enum": [
+                    "not_connected",
+                    "probe_only",
+                    "unsupported"
+                  ]
+                },
+                "message_count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "import_limit": {
+            "type": "integer",
+            "const": 1000
+          }
+        }
+      },
+      "InboxConnection": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "platform",
+          "account_id",
+          "display_name",
+          "source",
+          "message_count"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "qq",
+              "weixin",
+              "telegram",
+              "shanliao"
+            ]
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "const": "import"
+          },
+          "message_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "Conversation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "connection_id",
+          "platform",
+          "account_id",
+          "peer_id",
+          "title",
+          "last_message",
+          "last_message_at",
+          "unread_count",
+          "pinned",
+          "archived"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "connection_id": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "qq",
+              "weixin",
+              "telegram",
+              "shanliao"
+            ]
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "peer_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "last_message": {
+            "type": "string"
+          },
+          "last_message_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unread_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        }
+      },
+      "InboxMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "conversation_id",
+          "external_id",
+          "direction",
+          "body",
+          "occurred_at",
+          "read"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "conversation_id": {
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "incoming",
+              "outgoing"
+            ]
+          },
+          "body": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "read": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ImportMessage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "external_id",
+          "peer_id",
+          "peer_name",
+          "direction",
+          "body",
+          "occurred_at"
+        ],
+        "properties": {
+          "external_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "peer_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "peer_name": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "incoming",
+              "outgoing"
+            ]
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000,
+            "description": "最多16000 UTF-8字节"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "MessageImport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "platform",
+          "account_id",
+          "account_name",
+          "messages"
+        ],
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "qq",
+              "weixin",
+              "telegram",
+              "shanliao"
+            ]
+          },
+          "account_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "account_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImportMessage"
+            },
+            "minItems": 1,
+            "maxItems": 1000
+          }
+        }
+      },
+      "TelegramImport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "account_id",
+          "account_name",
+          "export"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "account_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "export": {
+            "type": "object",
+            "description": "Telegram Desktop导出的单个personal_chat JSON对象；不支持全账号/群聊导出"
+          }
+        }
+      },
+      "ImportResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "TelegramImportResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations",
+          "skipped"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "ConversationPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "read": {
+            "type": "boolean"
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        }
+      },
+      "InboxMutationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "ConversationList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Conversation"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "InboxMessageList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InboxMessage"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "InboxConnectionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InboxConnection"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       }

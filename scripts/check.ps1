@@ -7,6 +7,11 @@ if (-not (Test-Path -LiteralPath $goBinary)) { throw 'Go 1.26+ is required.' }
 $env:GOCACHE = Join-Path $projectRoot '.cache/go-build'
 $env:GOPATH = Join-Path $projectRoot '.cache/go'
 $env:GOTOOLCHAIN = 'local'
+$env:CGO_ENABLED = '1'
+$inboxCompiler = Get-Command gcc -ErrorAction SilentlyContinue
+if (-not $inboxCompiler) { throw 'GCC is required for the encrypted SQLCipher inbox.' }
+$env:CC = $inboxCompiler.Source
+$env:PATH = (Split-Path -Parent $inboxCompiler.Source) + [IO.Path]::PathSeparator + $env:PATH
 Push-Location $projectRoot
 try {
     $goFiles = @(Get-ChildItem -LiteralPath cmd,internal,tests -Recurse -Filter '*.go' -File -ErrorAction SilentlyContinue | ForEach-Object FullName)
@@ -14,9 +19,9 @@ try {
     $unformatted = @(& $gofmtBinary -l $goFiles)
     if ($LASTEXITCODE -ne 0) { throw 'Go formatting check failed.' }
     if ($unformatted.Count -gt 0) { throw 'Go files need formatting. Run gofmt and review the changes.' }
-    & $goBinary test ./...
+    & $goBinary test -tags sqlite_fts5 ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go tests failed.' }
-    & $goBinary vet ./...
+    & $goBinary vet -tags sqlite_fts5 ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
     node scripts/check-contract.mjs
     if ($LASTEXITCODE -ne 0) { throw 'API contract checks failed.' }

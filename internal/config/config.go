@@ -2,10 +2,13 @@
 package config
 
 import (
+	"encoding/hex"
 	"errors"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/qilinbro/msg-manager/internal/connector/onebot"
 )
@@ -13,10 +16,14 @@ import (
 const DefaultAddr = "127.0.0.1:17890"
 
 type Config struct {
-	Addr     string
-	APIToken string
-	QQOneBot onebot.Config
+	Addr         string
+	APIToken     string
+	QQOneBot     onebot.Config
+	DatabasePath string
+	DatabaseKey  string
 }
+
+func (Config) String() string { return "sociald configuration (redacted)" }
 
 func LoadFromEnv() (Config, error) {
 	addr := os.Getenv("SOCIALD_ADDR")
@@ -25,6 +32,7 @@ func LoadFromEnv() (Config, error) {
 	}
 	cfg := Config{
 		Addr: addr, APIToken: os.Getenv("SOCIALD_API_TOKEN"),
+		DatabasePath: os.Getenv("SOCIALD_DATABASE_PATH"), DatabaseKey: os.Getenv("SOCIALD_DATABASE_KEY"),
 		QQOneBot: onebot.Config{
 			URL:            os.Getenv("QQ_ONEBOT_URL"),
 			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
@@ -35,6 +43,12 @@ func LoadFromEnv() (Config, error) {
 }
 
 func (c Config) Validate() error {
+	if c.DatabasePath != "" || c.DatabaseKey != "" {
+		key, keyErr := hex.DecodeString(c.DatabaseKey)
+		if !filepath.IsAbs(c.DatabasePath) || strings.HasPrefix(c.DatabasePath, `\\`) || len(key) != 32 || keyErr != nil {
+			return errors.New("SOCIALD_DATABASE_PATH must be an absolute local path and SOCIALD_DATABASE_KEY must contain 64 hex characters")
+		}
+	}
 	if len(c.APIToken) < 32 || len(c.APIToken) > 4096 {
 		return errors.New("SOCIALD_API_TOKEN must contain 32 to 4096 printable ASCII characters")
 	}

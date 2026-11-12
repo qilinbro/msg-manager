@@ -33,6 +33,8 @@ func TestConfigRejectsUnsafeListenersAndTokens(t *testing.T) {
 }
 
 func TestLoadFromEnvRequiresTokenAndUsesDefaultAddress(t *testing.T) {
+	t.Setenv("SOCIALD_DATABASE_PATH", "")
+	t.Setenv("SOCIALD_DATABASE_KEY", "")
 	t.Setenv("SOCIALD_ADDR", "")
 	t.Setenv("SOCIALD_API_TOKEN", "")
 	if _, err := config.LoadFromEnv(); err == nil {
@@ -42,5 +44,17 @@ func TestLoadFromEnvRequiresTokenAndUsesDefaultAddress(t *testing.T) {
 	cfg, err := config.LoadFromEnv()
 	if err != nil || cfg.Addr != config.DefaultAddr {
 		t.Fatalf("default config: addr=%q, error=%v", cfg.Addr, err)
+	}
+}
+
+func TestDatabaseConfigurationRequiresPairedAbsolutePathAndRawKey(t *testing.T) {
+	valid := config.Config{Addr: config.DefaultAddr, APIToken: strings.Repeat("t", 32)}
+	for _, pair := range [][2]string{{"relative.db", strings.Repeat("a", 64)}, {`\\remote\share\messages.db`, strings.Repeat("a", 64)}, {"", strings.Repeat("a", 64)}, {`D:\local\messages.db`, ""}, {`D:\local\messages.db`, strings.Repeat("z", 64)}} {
+		cfg := valid
+		cfg.DatabasePath = pair[0]
+		cfg.DatabaseKey = pair[1]
+		if err := cfg.Validate(); err == nil {
+			t.Fatal("unsafe database config accepted")
+		}
 	}
 }

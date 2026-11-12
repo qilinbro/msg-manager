@@ -34,7 +34,12 @@ function checkRefs(value) {
 checkRefs(spec);
 for (const path of Object.values(spec.paths)) {
   for (const method of ['post', 'patch', 'put', 'delete']) {
-    if (path[method]) assert.ok(path[method].responses['501'], 'Scaffold mutations must remain unavailable');
+    if (path[method] && path[method]['x-implementation-status'] !== 'implemented') assert.ok(path[method].responses['501'], 'Unimplemented mutations must remain unavailable');
   }
 }
-console.log('API contract references and scaffold boundaries verified.');
+const implementedMutations = Object.entries(spec.paths).flatMap(([path, operations]) =>
+  Object.entries(operations).filter(([method, op]) => ['post', 'patch', 'put', 'delete'].includes(method) && op['x-implementation-status'] === 'implemented').map(([method]) => `${method} ${path}`));
+assert.deepEqual(implementedMutations.sort(), ['patch /api/v1/conversations/{conversation_id}', 'post /api/v1/imports/messages', 'post /api/v1/imports/telegram'].sort());
+assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
+assert.equal(spec.components.schemas.InboxStatus.properties.source_mode.const, 'import');
+console.log('API contract references, inbox routes and disabled sender boundaries verified.');
