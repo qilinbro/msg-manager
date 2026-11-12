@@ -51,3 +51,7 @@
 - 后端正式审查人 joey、前端正式审查人吕佳航、最终验收谢麒麟均待进行；本轮代理检查只作辅助。T05/T06/T08/E04 保持进行中，实际完成日期“—”，已完成统计不增加。
 
 使用方法见 [邮箱接入说明](../email-setup.md)，设计决定见 [ADR 0005](../adr/0005-readonly-email.md)。
+
+## 源码同步
+
+代码、任务进度与验证记录已上传 [feat/email-imap](https://github.com/qilinbro/msg-manager/tree/feat/email-imap)，远端核对为 [151765b](https://github.com/qilinbro/msg-manager/commit/151765b5f01a74e182fce7bae478a391aabd4776)。密钥、数据库、本机运行文件与第三方源码克隆未上传；未合并 main 或创建 PR。

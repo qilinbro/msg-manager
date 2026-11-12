@@ -77,7 +77,8 @@
 - 检查：Go格式/全部测试/vet、API契约、前端导入回归/格式/类型/构建通过；旧库升级保留ID/seq/管理状态/FTS，独立进程状态验证通过；协议包合成TLS/MIME测试覆盖率85.3%。
 - 辅助复核：修复跨literal嵌套限制、同步状态迟到与列表刷新、邮箱导入字段丢失、小屏焦点返回；针对性静态复核已通过，不宣称浏览器视觉或点击通过。
 - 证据：docs/acceptance/E04-email-validation.md、email-runtime-validation.json、docs/email-setup.md。
-- 正式非作者审查、真实账号验证与谢麒麟验收均待进行，实际完成日期—、完成统计不变；准备独立分支上传，真实远端结果待补记。
+- 正式非作者审查、真实账号验证与谢麒麟验收均待进行，实际完成日期—、完成统计不变。
+- 上传：已推送独立分支 [feat/email-imap](https://github.com/qilinbro/msg-manager/tree/feat/email-imap)，远端核对提交 [151765b](https://github.com/qilinbro/msg-manager/commit/151765b5f01a74e182fce7bae478a391aabd4776)。136个源码/资料文件，较统一消息分支变更50个文件；凭据、数据库、运行库和上游源码未上传，未合并main或创建PR。
 
 
 ### CHG-T08-001｜优先统一消息管理
