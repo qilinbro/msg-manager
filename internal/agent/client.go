@@ -100,19 +100,31 @@ func (c *Client) Analyze(ctx context.Context, input Input) (Result, error) {
 	if ValidateInput(input) != nil {
 		return Result{}, failure(InvalidInput)
 	}
-	ctx, cancel := context.WithTimeout(ctx, operationTimeout)
-	defer cancel()
-	if ctx.Err() != nil {
-		return Result{}, failure(Timeout)
-	}
 	if input.Tone == "" {
 		input.Tone = "natural"
 	}
+	content, usage, err := c.complete(ctx, systemPrompt+"\n"+toneInstruction(input.Tone), input)
+	if err != nil {
+		return Result{}, err
+	}
+	var output Output
+	if decodeJSON([]byte(content), &output, true) != nil || ValidateOutput(input, output) != nil {
+		return Result{}, failure(InvalidOutput)
+	}
+	return Result{Output: output, Usage: usage}, nil
+}
+
+func (c *Client) complete(ctx context.Context, prompt string, input any) (string, Usage, error) {
+	ctx, cancel := context.WithTimeout(ctx, operationTimeout)
+	defer cancel()
+	if ctx.Err() != nil {
+		return "", Usage{}, failure(Timeout)
+	}
 	userJSON, err := json.Marshal(input)
 	if err != nil || len(userJSON) > MaxInputBytes {
-		return Result{}, failure(InvalidInput)
+		return "", Usage{}, failure(InvalidInput)
 	}
-	body := completionRequest{Model: c.cfg.model, Messages: []chatMessage{{Role: "system", Content: systemPrompt + "\n" + toneInstruction(input.Tone)}, {Role: "user", Content: string(userJSON)}}, Temperature: 0.2, MaxTokens: 1600, Stream: false}
+	body := completionRequest{Model: c.cfg.model, Messages: []chatMessage{{Role: "system", Content: prompt}, {Role: "user", Content: string(userJSON)}}, Temperature: 0.2, MaxTokens: 1600, Stream: false}
 	body.ResponseFormat.Type = "json_object"
 	// DeepSeek's current models otherwise default to thinking mode. This
 	// provider-specific option is never sent to another compatible endpoint.
@@ -123,14 +135,14 @@ func (c *Client) Analyze(ctx context.Context, input Input) (Result, error) {
 	}
 	encoded, err := json.Marshal(body)
 	if err != nil {
-		return Result{}, failure(InvalidInput)
+		return "", Usage{}, failure(InvalidInput)
 	}
 	destination, err := c.destination(ctx)
 	if err != nil {
 		if ctx.Err() != nil {
-			return Result{}, failure(Timeout)
+			return "", Usage{}, failure(Timeout)
 		}
-		return Result{}, err
+		return "", Usage{}, err
 	}
 	transport := &http.Transport{Proxy: nil, DialContext: func(ctx context.Context, network, _ string) (net.Conn, error) {
 		return c.dialContext(ctx, network, destination)
@@ -139,7 +151,7 @@ func (c *Client) Analyze(ctx context.Context, input Input) (Result, error) {
 	client := &http.Client{Transport: transport, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.cfg.endpoint.String(), bytes.NewReader(encoded))
 	if err != nil {
-		return Result{}, failure(InvalidConfig)
+		return "", Usage{}, failure(InvalidConfig)
 	}
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Accept", "application/json")
@@ -149,55 +161,51 @@ func (c *Client) Analyze(ctx context.Context, input Input) (Result, error) {
 	response, err := client.Do(request)
 	if err != nil {
 		if ctx.Err() != nil {
-			return Result{}, failure(Timeout)
+			return "", Usage{}, failure(Timeout)
 		}
 		var timeout net.Error
 		if errors.As(err, &timeout) && timeout.Timeout() {
-			return Result{}, failure(Timeout)
+			return "", Usage{}, failure(Timeout)
 		}
-		return Result{}, failure(Unavailable)
+		return "", Usage{}, failure(Unavailable)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
 		switch response.StatusCode {
 		case 401, 403:
-			return Result{}, failure(AuthFailed)
+			return "", Usage{}, failure(AuthFailed)
 		case 402, 429:
-			return Result{}, failure(QuotaExceeded)
+			return "", Usage{}, failure(QuotaExceeded)
 		default:
-			return Result{}, failure(Unavailable)
+			return "", Usage{}, failure(Unavailable)
 		}
 	}
 	raw, err := io.ReadAll(io.LimitReader(response.Body, maxResponseBytes+1))
 	if err != nil {
 		if ctx.Err() != nil {
-			return Result{}, failure(Timeout)
+			return "", Usage{}, failure(Timeout)
 		}
-		return Result{}, failure(Unavailable)
+		return "", Usage{}, failure(Unavailable)
 	}
 	var envelope completionResponse
 	if decodeJSON(raw, &envelope, false) != nil || len(envelope.Choices) != 1 {
-		return Result{}, failure(InvalidOutput)
+		return "", Usage{}, failure(InvalidOutput)
 	}
 	choice := envelope.Choices[0]
 	if choice.FinishReason != "stop" || choice.Message.Role != "assistant" || choice.Message.Content == nil || len(choice.Message.ToolCalls) != 0 || choice.Message.Refusal != nil && *choice.Message.Refusal != "" || len(choice.Message.FunctionCall) > 0 && string(choice.Message.FunctionCall) != "null" {
-		return Result{}, failure(InvalidOutput)
+		return "", Usage{}, failure(InvalidOutput)
 	}
 	content := *choice.Message.Content
 	// A provider echo must not turn our own auth credential into saved text.
 	if c.cfg.key != "" && len(c.cfg.key) >= 8 && strings.Contains(content, c.cfg.key) {
-		return Result{}, failure(InvalidOutput)
-	}
-	var output Output
-	if decodeJSON([]byte(content), &output, true) != nil || ValidateOutput(input, output) != nil {
-		return Result{}, failure(InvalidOutput)
+		return "", Usage{}, failure(InvalidOutput)
 	}
 	usage := Usage{}
 	if envelope.Usage != nil {
 		if envelope.Usage.PromptTokens == nil || envelope.Usage.CompletionTokens == nil || *envelope.Usage.PromptTokens < 0 || *envelope.Usage.CompletionTokens < 0 || *envelope.Usage.PromptTokens > 1000000 || *envelope.Usage.CompletionTokens > 1000000 {
-			return Result{}, failure(InvalidOutput)
+			return "", Usage{}, failure(InvalidOutput)
 		}
 		usage = Usage{PromptTokens: *envelope.Usage.PromptTokens, CompletionTokens: *envelope.Usage.CompletionTokens}
 	}
-	return Result{Output: output, Usage: usage}, nil
+	return content, usage, nil
 }

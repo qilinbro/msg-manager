@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -145,7 +146,7 @@ func serveMockMailbox(conn net.Conn, opts testServerOptions, commands *[]string,
 			if opts.writable {
 				mode = "READ-WRITE"
 			}
-			fmt.Fprintf(conn, "* FLAGS (\\Seen)\r\n* %d EXISTS\r\n* OK [UIDVALIDITY %d] stable\r\n%s OK [%s] examined\r\n", opts.count, validity, tag, mode)
+			fmt.Fprintf(conn, "* FLAGS (\\Seen)\r\n* %d EXISTS\r\n* OK [UIDVALIDITY %d] stable\r\n* OK [UIDNEXT 78] next message\r\n%s OK [%s] examined\r\n", opts.count, validity, tag, mode)
 		case "FETCH":
 			size := len(raw)
 			if opts.oversized {
@@ -260,5 +261,33 @@ func TestFetchLimitsAndNoFalseCompleteness(t *testing.T) {
 	batch, err = cl.Fetch(context.Background())
 	if err != nil || len(batch.Mails) != 0 || batch.Skipped != 0 {
 		t.Fatal("empty mailbox incorrectly reported")
+	}
+}
+
+func TestAwayUIDCheckpointSkipsOldBodiesAndChangedMailboxes(t *testing.T) {
+	cl, commands, mu := mockMailbox(t, testServerOptions{count: 1})
+	info, err := cl.Probe(context.Background())
+	if err != nil || info.UIDNext != 78 || !info.ReadOnly {
+		t.Fatalf("bad start checkpoint: %+v %v", info, err)
+	}
+	batch, err := cl.FetchSince(context.Background(), info.UIDValidity, info.UIDNext)
+	if err != nil || len(batch.Mails) != 0 {
+		t.Fatalf("old mail crossed checkpoint: %v %v", batch, err)
+	}
+	_, err = cl.FetchSince(context.Background(), info.UIDValidity+1, 77)
+	var mailboxErr *Error
+	if !errors.As(err, &mailboxErr) || mailboxErr.Kind != MailboxChanged {
+		t.Fatalf("changed mailbox accepted: %v", err)
+	}
+	mu.Lock()
+	for _, command := range *commands {
+		if strings.Contains(command, "FETCH") {
+			t.Error("attempted to fetch pre-checkpoint or out-of-scope messages")
+		}
+	}
+	mu.Unlock()
+	batch, err = cl.FetchSince(context.Background(), info.UIDValidity, 77)
+	if err != nil || len(batch.Mails) != 1 || batch.Mails[0].InternalDate.IsZero() {
+		t.Fatalf("new mail was not fetched with server receipt time: %v %v", batch, err)
 	}
 }

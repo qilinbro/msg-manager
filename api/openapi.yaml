@@ -2648,6 +2648,203 @@
           }
         }
       }
+    },
+    "/api/v1/away-sessions": {
+      "get": {
+        "summary": "Read the latest Away Desk handover",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwaySnapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local bearer token required"
+          },
+          "503": {
+            "description": "Local storage or required configuration unavailable"
+          }
+        }
+      },
+      "post": {
+        "summary": "Authorize and start one bounded email handover",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwaySnapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local bearer token required"
+          },
+          "503": {
+            "description": "Local storage or required configuration unavailable"
+          },
+          "400": {
+            "description": "Invalid scope or consent"
+          },
+          "409": {
+            "description": "Another handover or mailbox operation is active"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AwayStart"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/away-sessions/{session_id}/stop": {
+      "post": {
+        "summary": "Stop polling and cancel in-flight analysis for this session",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwaySnapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local bearer token required"
+          },
+          "503": {
+            "description": "Local storage or required configuration unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/away-sessions/{session_id}/tasks/{task_id}": {
+      "patch": {
+        "summary": "Edit a local reply draft or mark a task done",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwaySnapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local bearer token required"
+          },
+          "503": {
+            "description": "Local storage or required configuration unavailable"
+          },
+          "400": {
+            "description": "Invalid edit"
+          },
+          "404": {
+            "description": "Task not found"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AwayTaskPatch"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          {
+            "in": "path",
+            "name": "task_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/away-sessions/finfold": {
+      "post": {
+        "summary": "Issue a short-lived Finfold import link for confirmed public fields",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwayFinfoldLink"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local bearer token required"
+          },
+          "503": {
+            "description": "Local storage or required configuration unavailable"
+          },
+          "400": {
+            "description": "Invalid public fields"
+          },
+          "502": {
+            "description": "Unable to issue the import link"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AwayFinfoldRequest"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4057,6 +4254,270 @@
             ]
           }
         }
+      },
+      "AwayStart": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "minutes": {
+            "type": "integer",
+            "enum": [
+              15,
+              30,
+              60,
+              120
+            ]
+          },
+          "sender": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "consent": {
+            "const": true
+          }
+        },
+        "required": [
+          "minutes",
+          "sender",
+          "consent"
+        ]
+      },
+      "AwayTaskPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "draft": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "done": {
+            "type": "boolean"
+          }
+        },
+        "minProperties": 1
+      },
+      "AwaySession": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "stopped",
+              "ended"
+            ]
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stopped_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "started_at",
+          "ends_at",
+          "sender"
+        ]
+      },
+      "AwayTask": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "draft": {
+            "type": "string"
+          },
+          "draft_failed": {
+            "type": "boolean"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "requirements",
+          "subject",
+          "sender",
+          "received_at",
+          "body"
+        ]
+      },
+      "AwayEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "started",
+              "received",
+              "task",
+              "draft",
+              "sync_error",
+              "draft_error",
+              "stopped",
+              "ended"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "kind"
+        ]
+      },
+      "AwaySnapshot": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/AwaySession"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AwayTask"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AwayEvent"
+            }
+          },
+          "account": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "handoff_enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tasks",
+          "events",
+          "handoff_enabled"
+        ]
+      },
+      "AwayPublicBrief": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "product": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "selling_points": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1200
+          },
+          "cta": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "event",
+          "product",
+          "selling_points",
+          "cta"
+        ]
+      },
+      "AwayFinfoldRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "brief": {
+            "$ref": "#/components/schemas/AwayPublicBrief"
+          },
+          "confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "brief",
+          "confirmed"
+        ]
+      },
+      "AwayFinfoldLink": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "url"
+        ]
       }
     }
   }

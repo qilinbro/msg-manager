@@ -35,6 +35,17 @@ func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, err
 		return ImportResult{}, ErrUnavailable
 	}
 	defer tx.Rollback()
+	result, err := importIntoTx(tx, req, source)
+	if err != nil {
+		return ImportResult{}, err
+	}
+	if tx.Commit() != nil {
+		return ImportResult{}, ErrUnavailable
+	}
+	return result, nil
+}
+
+func importIntoTx(tx *sql.Tx, req ImportRequest, source string) (ImportResult, error) {
 	connectionID := stableID("connection", req.Platform, req.AccountID)
 	if _, err := tx.Exec(`INSERT INTO connections(id,workspace_id,platform,account_id,display_name,source) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET source=CASE WHEN source=excluded.source THEN source ELSE 'mixed' END`, connectionID, workspaceID, req.Platform, req.AccountID, req.AccountName, source); err != nil {
 		return ImportResult{}, ErrUnavailable
@@ -82,9 +93,6 @@ func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, err
 		if _, err := tx.Exec(`UPDATE workspaces SET revision=revision+1 WHERE id=?`, workspaceID); err != nil {
 			return ImportResult{}, ErrUnavailable
 		}
-	}
-	if tx.Commit() != nil {
-		return ImportResult{}, ErrUnavailable
 	}
 	result.Conversations = len(touched)
 	return result, nil

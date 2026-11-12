@@ -1,0 +1,923 @@
+.away-shell {
+  --ink: #1b252c;
+  --muted: #536571;
+  --line: #dce6eb;
+  --teal: #176e61;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 194px minmax(0, 1fr);
+  gap: 27px;
+  padding: 14px;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse at 95% 0%, #f7f7f1, transparent 60%),
+    radial-gradient(ellipse at 0% 0%, #ccdce7, transparent 66%), #e7eef3;
+  font:
+    400 14px/1.55 'Geist',
+    'Inter',
+    'PingFang SC',
+    'Microsoft YaHei',
+    system-ui,
+    sans-serif;
+}
+.away-shell,
+.away-shell *,
+.away-modal,
+.away-modal * {
+  box-sizing: border-box;
+}
+.away-shell button,
+.away-modal button,
+.away-form input,
+.away-form select,
+.away-form textarea {
+  font: inherit;
+}
+.away-shell button,
+.away-modal button {
+  cursor: pointer;
+}
+.away-shell button:disabled,
+.away-modal button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.away-shell :focus-visible,
+.away-modal :focus-visible {
+  outline: 2px solid #137769;
+  outline-offset: 3px;
+}
+.away-shell :is(h1, h2, h3, p),
+.away-modal :is(h2, h3, p) {
+  margin: 0;
+}
+.away-nav {
+  position: sticky;
+  top: 14px;
+  align-self: start;
+  min-height: calc(100vh - 28px);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 11px 11px;
+  border: 1px solid white;
+  border-radius: 24px;
+  background: #f8fcff9e;
+  box-shadow: 0 15px 34px -30px #3b5971;
+}
+.away-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 31px;
+}
+.away-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #1e2b32;
+  color: #f5faff;
+  flex-shrink: 0;
+  box-shadow: 0 5px 11px #1e2b3224;
+}
+.away-brand-mark svg {
+  width: 30px;
+  height: 30px;
+}
+.away-brand strong,
+.away-brand > div > span {
+  display: block;
+}
+.away-brand strong {
+  font-size: 17px;
+  font-weight: 720;
+  line-height: 1.2;
+}
+.away-brand > div > span {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.away-nav nav {
+  display: grid;
+  gap: 5px;
+}
+.away-nav nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 43px;
+  padding: 0 10px;
+  color: #425562;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-weight: 570;
+  text-align: left;
+}
+.away-nav nav button:hover {
+  background: #ffffff84;
+}
+.away-nav nav button[aria-current] {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 2px 10px #233d4710;
+  font-weight: 680;
+}
+.away-nav-count,
+.away-count {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 7px;
+  padding: 1px 6px;
+  font-size: 11px;
+  background: #e8f0f3;
+  color: #375d69;
+}
+.away-nav-count {
+  margin-left: auto;
+}
+.away-nav-foot {
+  margin-top: auto;
+  padding: 12px 5px 2px;
+  border-top: 1px solid #d4e0e8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 12px;
+}
+.away-nav-foot > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.away-reset,
+.away-icon-button {
+  display: inline-grid;
+  place-items: center;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+}
+.away-reset:hover,
+.away-icon-button:hover {
+  background: #e3ebf0;
+}
+.away-main {
+  width: 100%;
+  max-width: 1260px;
+  padding: 19px 14px 22px 0;
+  margin-inline: auto;
+  min-width: 0;
+}
+.away-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 13px;
+  margin: 0 0 24px;
+}
+.away-head h1 {
+  font-size: clamp(28px, 3.2vw, 39px);
+  font-weight: 750;
+  letter-spacing: -0.055em;
+  line-height: 1.17;
+}
+.away-head p {
+  color: var(--muted);
+  margin-top: 7px;
+}
+.away-head-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 9px;
+}
+.away-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid white;
+  border-radius: 999px;
+  background: #f9fcfdba;
+  color: #425661;
+  padding: 7px 11px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.away-status > span,
+.away-chip > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #82939e;
+}
+.away-status .is-active {
+  background: #178371;
+  box-shadow: 0 0 0 3px #17837120;
+}
+.away-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #d8e2e8;
+  min-height: 40px;
+  border-radius: 11px;
+  padding: 0 13px;
+  background: white;
+  color: #1b252c;
+  font-weight: 650 !important;
+  white-space: nowrap;
+}
+.away-button:hover:not(:disabled) {
+  border-color: #9fadb9;
+  background: #f4f8fa;
+}
+.away-button.primary {
+  color: white;
+  border-color: #202b33;
+  background: #202b33;
+  box-shadow: 0 5px 14px -7px #0f202d8c;
+}
+.away-button.primary:hover:not(:disabled) {
+  color: white;
+  border-color: #3a505d;
+  background: #3a505d;
+}
+.away-text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 6px;
+  color: #3a5361;
+  font-size: 12px !important;
+  font-weight: 660 !important;
+}
+.away-text-button:hover {
+  background: #e9f0f4;
+  color: #172f3d;
+}
+.away-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 17px;
+  padding: 8px 13px;
+  border: 1px solid white;
+  background: #f9fcfeb3;
+  border-radius: 15px;
+  min-height: 53px;
+}
+.away-summary > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+.away-summary-time {
+  color: var(--muted);
+  font-size: 12px;
+  padding-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.away-summary-icon,
+.away-mail-icon,
+.away-reply-icon {
+  width: 35px;
+  height: 35px;
+  flex: 0 0 35px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #e2f0ed;
+  color: #216e62;
+}
+.away-grid {
+  display: grid;
+  grid-template-columns: minmax(215px, 0.67fr) minmax(0, 1.5fr);
+  gap: 17px;
+  align-items: stretch;
+}
+.away-card {
+  background: #fcfdfe;
+  border: 1px solid white;
+  border-radius: 21px;
+  box-shadow: 0 13px 37px -25px #4b6a7d57;
+  min-width: 0;
+}
+.away-queue {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.away-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.away-card-heading h2 {
+  font-size: 16px;
+  font-weight: 720;
+}
+.away-queue .away-card-heading {
+  padding: 21px 17px 14px;
+}
+.away-queue ul,
+.away-requirements ul {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.away-queue ul {
+  padding: 0 9px;
+}
+.away-task-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 9px;
+  padding: 11px 8px;
+  min-height: 63px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #415864;
+}
+.away-task-row:hover {
+  background: #f1f6f8;
+}
+.away-task-row.is-selected {
+  background: #ecf3f6;
+  border-color: #dfeaf0;
+  color: var(--teal);
+}
+.away-row-body {
+  flex: 1;
+  min-width: 0;
+}
+.away-row-body strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 690;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.away-row-body small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.away-queue-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  border-top: 1px solid #edf1f3;
+  padding: 15px 16px;
+}
+.away-queue-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 12px 17px 24px;
+}
+.away-task-detail {
+  padding: 24px 26px 16px;
+}
+.away-task-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 9px;
+}
+.away-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #edf1f4;
+  border: 1px solid #e3eaed;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: #53636c;
+  font-weight: 650;
+}
+.away-chip.urgent {
+  color: #854122;
+  background: #fbefe5;
+  border-color: #f4e4d6;
+}
+.away-chip.urgent > span {
+  background: #ba6335;
+}
+.away-chip.done {
+  color: #146257;
+  background: #e8f3ee;
+  border-color: #dceee4;
+}
+.away-chip.done > span {
+  background: #23806b;
+}
+.away-task-detail h2 {
+  margin-top: 13px;
+  font-size: clamp(22px, 3.1vw, 34px);
+  letter-spacing: -0.045em;
+  font-weight: 740;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.away-due-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 13px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.away-due {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: #eaf4f1;
+  color: #145f56;
+  border: 1px solid #d8ebe6;
+  border-radius: 11px;
+  min-height: 48px;
+  padding: 4px 11px;
+}
+.away-due:hover {
+  background: #dcefe9;
+  border-color: #b5d9ce;
+}
+.away-due strong {
+  font-size: 27px;
+  font-weight: 720;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+}
+.away-due .away-due-unknown {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+.away-due span {
+  font-size: 12px;
+  font-weight: 650;
+}
+.away-requirements {
+  padding: 19px 0 19px;
+  margin-top: 19px;
+  border-top: 1px solid var(--line);
+}
+.away-requirements h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.away-requirements ul {
+  display: grid;
+  gap: 7px;
+}
+.away-requirements li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  overflow-wrap: anywhere;
+}
+.away-requirements svg {
+  color: #167a69;
+  flex: 0 0 16px;
+  margin-top: 3px;
+}
+.away-reply {
+  border-radius: 14px;
+  border: 1px solid #e4ebef;
+  background: #f2f6f8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 9px;
+  padding: 12px;
+}
+.away-reply > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.away-reply-icon {
+  background: white;
+  color: #3e6271;
+  border: 1px solid #e2eaf0;
+}
+.away-reply strong,
+.away-reply small {
+  display: block;
+}
+.away-reply small {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
+.away-detail-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 11px;
+}
+.away-empty {
+  display: grid;
+  min-height: 285px;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 26px;
+  text-align: center;
+  color: #435965;
+}
+.away-empty h2 {
+  color: var(--ink);
+  font-size: 19px;
+}
+.away-muted,
+.away-empty p {
+  color: #536571;
+}
+.away-message {
+  border: 1px solid #c8e4dc;
+  border-radius: 11px;
+  background: #eff9f5;
+  color: #145d54;
+  padding: 9px 12px;
+  margin-bottom: 12px;
+}
+.away-message.warning {
+  background: #fff3e9;
+  border-color: #f1dfd1;
+  color: #813d23;
+}
+.away-form-card {
+  max-width: 740px;
+  padding: 23px 25px;
+}
+.away-form-card > .away-muted {
+  margin-top: 7px;
+}
+.away-form {
+  display: grid;
+  justify-items: start;
+  gap: 15px;
+  width: 100%;
+  margin-top: 17px;
+}
+.away-form label {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  font-weight: 650;
+}
+.away-form :is(input:not([type='checkbox']), select, textarea) {
+  width: 100%;
+  border: 1px solid #d8e3eb;
+  border-radius: 10px;
+  padding: 10px 11px;
+  color: #1b252c;
+  background: white;
+  font-weight: 420;
+}
+.away-form input[readonly] {
+  background: #f1f5f7;
+  color: #536571;
+}
+.away-form textarea {
+  resize: vertical;
+}
+.away-fields {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 12px;
+}
+.away-permissions {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dde9ee;
+  background: #f1f6f8;
+  border-radius: 13px;
+}
+.away-permissions p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 4px 0 10px;
+}
+.away-form .away-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.away-checkbox input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #147466;
+}
+.away-timeline {
+  list-style: none;
+  margin: 18px 0 20px;
+  padding: 0;
+}
+.away-timeline li {
+  display: grid;
+  grid-template-columns: 50px 12px minmax(0, 1fr);
+  gap: 9px;
+  padding: 0 0 15px;
+}
+.away-timeline time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.away-timeline-dot {
+  position: relative;
+  align-self: start;
+  width: 8px;
+  height: 8px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: #228273;
+}
+.away-timeline-dot.is-warning {
+  background: #c57139;
+}
+.away-timeline li:not(:last-child) .away-timeline-dot::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 3px;
+  height: 22px;
+  border-left: 1px solid #c6ded9;
+}
+.away-timeline p {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.away-demo-delivery {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 15px;
+  color: var(--muted);
+}
+.away-modal {
+  color: #1b252c;
+  background: #fcfdfe;
+  border: 1px solid white;
+  border-radius: 19px;
+  box-shadow: 0 22px 60px #233c5540;
+  padding: 0;
+  width: min(525px, calc(100vw - 24px));
+  max-height: calc(100dvh - 26px);
+}
+.away-modal::backdrop {
+  background: #152d4360;
+}
+.away-modal.away-drawer {
+  margin: 10px 10px 10px auto;
+  width: min(480px, calc(100vw - 20px));
+  height: calc(100dvh - 20px);
+  max-height: none;
+}
+.away-modal-inner {
+  padding: 22px;
+  font:
+    400 14px/1.55 'Geist',
+    'Inter',
+    'PingFang SC',
+    'Microsoft YaHei',
+    system-ui,
+    sans-serif;
+}
+.away-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.away-modal-head h2 {
+  font-size: 21px;
+  letter-spacing: -0.04em;
+  font-weight: 740;
+}
+.away-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 8px;
+}
+.away-source {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 19px 0 15px;
+}
+.away-source h3 {
+  font-size: 15px;
+  font-weight: 690;
+  overflow-wrap: anywhere;
+}
+.away-source p {
+  font-size: 12px;
+  color: #536571;
+  overflow-wrap: anywhere;
+}
+.away-source-body,
+.away-preview-brief {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid #dfe9ee;
+  border-radius: 12px;
+  background: #f7fafb;
+  padding: 15px;
+  line-height: 1.68;
+}
+.away-source-body mark {
+  background: #d9f0e9;
+  color: #064f44;
+  box-decoration-break: clone;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+.away-platforms {
+  display: flex;
+  gap: 8px;
+}
+.away-platforms > span {
+  border-radius: 8px;
+  color: #1c645c;
+  background: #e5f2ee;
+  padding: 4px 8px;
+}
+@media (max-width: 1040px) {
+  .away-shell {
+    gap: 14px;
+    grid-template-columns: 153px minmax(0, 1fr);
+  }
+  .away-grid {
+    grid-template-columns: minmax(168px, 0.65fr) minmax(0, 1.45fr);
+    gap: 11px;
+  }
+  .away-task-detail {
+    padding-inline: 16px;
+  }
+}
+@media (max-width: 790px) {
+  .away-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .away-nav {
+    position: static;
+    min-height: 0;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+    border-radius: 14px;
+  }
+  .away-brand {
+    padding: 0;
+  }
+  .away-brand > div {
+    display: none;
+  }
+  .away-nav nav {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+  }
+  .away-nav nav button {
+    padding: 0 7px;
+    gap: 4px;
+    height: 36px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .away-nav nav button svg {
+    width: 15px;
+  }
+  .away-nav-count {
+    display: none;
+  }
+  .away-nav-foot {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .away-nav-foot > span {
+    font-size: 10px;
+  }
+  .away-nav-foot > span svg {
+    display: none;
+  }
+  .away-main {
+    padding: 0 0 12px;
+  }
+  .away-head {
+    margin-bottom: 17px;
+  }
+}
+@media (max-width: 520px) {
+  .away-shell {
+    padding: 9px;
+    gap: 13px;
+  }
+  .away-head {
+    align-items: flex-start;
+    gap: 7px;
+  }
+  .away-head p {
+    font-size: 12px;
+  }
+  .away-head-actions .away-status {
+    display: none;
+  }
+  .away-grid,
+  .away-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .away-queue .away-card-heading {
+    padding-top: 12px;
+  }
+  .away-queue-foot {
+    display: none;
+  }
+  .away-queue {
+    padding-bottom: 8px;
+  }
+  .away-summary-time {
+    padding-left: 0;
+  }
+  .away-summary-icon {
+    display: none;
+  }
+  .away-summary .away-text-button {
+    white-space: nowrap;
+  }
+  .away-task-detail,
+  .away-form-card {
+    padding-inline: 13px;
+  }
+  .away-button {
+    padding-inline: 9px;
+    min-height: 37px;
+  }
+}
+
+.away-queue-activity {
+  display: grid;
+  gap: 6px;
+  margin: 18px 17px;
+  padding-top: 14px;
+  border-top: 1px solid #e8eef1;
+  color: var(--muted);
+  font-size: 12px;
+}
+.away-queue-activity h3 {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.away-queue-activity span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.away-queue-activity svg {
+  color: var(--teal);
+}
+@media (max-width: 520px) {
+  .away-queue-activity {
+    display: none;
+  }
+}
+
+.away-return svg {
+  transform: rotate(180deg);
+}

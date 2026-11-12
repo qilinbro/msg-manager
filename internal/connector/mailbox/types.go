@@ -5,6 +5,7 @@ package mailbox
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 const (
@@ -26,21 +27,23 @@ func (Config) String() string { return "mailbox configuration (redacted)" }
 type Info struct {
 	AccountID   string `json:"account_id"`
 	Folder      string `json:"folder"`
+	UIDNext     uint32 `json:"uid_next"`
 	UIDValidity uint32 `json:"uid_validity"`
 	Messages    uint32 `json:"messages"`
 	ReadOnly    bool   `json:"read_only"`
 }
 
 type Mail struct {
-	ExternalID  string   `json:"external_id"`
-	FromName    string   `json:"from_name"`
-	FromAddress string   `json:"from_address"`
-	To          []string `json:"to"`
-	Subject     string   `json:"subject"`
-	Body        string   `json:"body"`
-	OccurredAt  string   `json:"occurred_at"`
-	Seen        bool     `json:"seen"`
-	UID         uint32   `json:"uid"`
+	ExternalID   string    `json:"external_id"`
+	FromName     string    `json:"from_name"`
+	FromAddress  string    `json:"from_address"`
+	To           []string  `json:"to"`
+	Subject      string    `json:"subject"`
+	Body         string    `json:"body"`
+	OccurredAt   string    `json:"occurred_at"`
+	Seen         bool      `json:"seen"`
+	InternalDate time.Time `json:"-"`
+	UID          uint32    `json:"uid"`
 }
 
 type Batch struct {
@@ -53,14 +56,15 @@ type Batch struct {
 type Kind string
 
 const (
-	NotConfigured Kind = "not_configured"
-	InvalidConfig Kind = "invalid_config"
-	AddressDenied Kind = "address_denied"
-	Unreachable   Kind = "unreachable"
-	TLSFailed     Kind = "tls_failed"
-	AuthFailed    Kind = "auth_failed"
-	MailboxFailed Kind = "mailbox_failed"
-	ProtocolError Kind = "protocol_error"
+	NotConfigured  Kind = "not_configured"
+	InvalidConfig  Kind = "invalid_config"
+	AddressDenied  Kind = "address_denied"
+	Unreachable    Kind = "unreachable"
+	TLSFailed      Kind = "tls_failed"
+	AuthFailed     Kind = "auth_failed"
+	MailboxChanged Kind = "mailbox_changed"
+	MailboxFailed  Kind = "mailbox_failed"
+	ProtocolError  Kind = "protocol_error"
 )
 
 type Error struct{ Kind Kind }

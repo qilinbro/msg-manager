@@ -9,9 +9,11 @@ import {
 } from './api';
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
+import AwayDesk from './AwayDesk';
 import type { AIDraftBuffer } from './ai-api';
 
-type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
+type Page =
+  'away' | 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
 type IconName =
   | 'overview'
   | 'messages'
@@ -37,12 +39,14 @@ const INITIAL_SESSION: Session = {
   checkedAt: null,
 };
 const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
+  { page: 'away', label: '接班', icon: 'overview' },
   { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'messages', label: '消息', icon: 'messages' },
   { page: 'contacts', label: '联系人', icon: 'contacts' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
 ];
 const PAGE_TITLES: Record<Page, string> = {
+  away: '接班',
   overview: '概览',
   messages: '消息',
   contacts: '联系人',
@@ -1004,6 +1008,17 @@ export default function App() {
       if (pending.current === controller) pending.current = null;
     }
   };
+  if (page === 'away') {
+    return (
+      <AwayDesk
+        key={activeToken}
+        token={activeToken}
+        onSettings={onSettings}
+        onAuthFailure={onAuthFailure}
+        onBack={() => setPage('overview')}
+      />
+    );
+  }
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">

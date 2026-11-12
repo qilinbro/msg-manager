@@ -134,23 +134,7 @@ func (h *handler) syncEmail(w http.ResponseWriter, r *http.Request, traceID stri
 			skipped++
 			continue
 		}
-		identity := folder + "\x00" + strconv.FormatUint(uint64(batch.Info.UIDValidity), 10) + "\x00" + strconv.FormatUint(uint64(item.UID), 10)
-		key := sha256.Sum256([]byte(identity))
-		externalID := hex.EncodeToString(key[:])
-		title := mailLabel(item.Subject, 128)
-		if title == "" {
-			title = "（无主题）"
-		}
-		seen := item.Seen
-		body := item.Body
-		if body == "" {
-			body = "（无可显示的纯文本正文）"
-		}
-		to := item.To
-		if to == nil {
-			to = []string{}
-		}
-		req.Messages = append(req.Messages, store.ImportMessage{ExternalID: externalID, PeerID: externalID, PeerName: title, Direction: "incoming", Body: body, OccurredAt: item.OccurredAt, Read: &seen, Email: &store.EmailHeaders{Subject: mailLabel(item.Subject, 1024), FromName: mailLabel(item.FromName, 128), FromAddress: item.FromAddress, To: to, Folder: folder}})
+		req.Messages = append(req.Messages, emailImportMessage(item, folder, batch.Info.UIDValidity))
 	}
 	if ctx.Err() != nil {
 		c.mu.Lock()
@@ -178,6 +162,26 @@ func (h *handler) syncEmail(w http.ResponseWriter, r *http.Request, traceID stri
 	c.status.LastResult = &response
 	c.mu.Unlock()
 	writeJSON(w, http.StatusOK, response)
+}
+
+func emailImportMessage(item mailbox.Mail, folder string, validity uint32) store.ImportMessage {
+	identity := folder + "\x00" + strconv.FormatUint(uint64(validity), 10) + "\x00" + strconv.FormatUint(uint64(item.UID), 10)
+	key := sha256.Sum256([]byte(identity))
+	externalID := hex.EncodeToString(key[:])
+	title := mailLabel(item.Subject, 128)
+	if title == "" {
+		title = "（无主题）"
+	}
+	seen := item.Seen
+	body := item.Body
+	if body == "" {
+		body = "（无可显示的纯文本正文）"
+	}
+	to := item.To
+	if to == nil {
+		to = []string{}
+	}
+	return store.ImportMessage{ExternalID: externalID, PeerID: externalID, PeerName: title, Direction: "incoming", Body: body, OccurredAt: item.OccurredAt, Read: &seen, Email: &store.EmailHeaders{Subject: mailLabel(item.Subject, 1024), FromName: mailLabel(item.FromName, 128), FromAddress: item.FromAddress, To: to, Folder: folder}}
 }
 
 func mailLabel(value string, limit int) string {
