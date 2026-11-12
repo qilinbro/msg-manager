@@ -49,3 +49,7 @@ Windows x64，项目内 Go 1.27.4、GCC、Node.js 24.12.0。SQLCipher 驱动锁�
 - 未实现平台持续收件、SSE、完整联系人编辑、任务/发件箱迁移、模型、发送、全量备份恢复或原生 Tauri 构建。
 - QQ 真实服务地址未提供；微信、Telegram、闪聊本轮均未建立在线个人账号连接。导入只能代表用户主动提供的本地记录。
 - joey 的后端审查、吕佳航的前端审查和谢麒麟的独立验收均待进行。T03 交付原型后待审查；T05/T07/T08 尚有整项范围未完，保持进行中；实际完成日期均为“—”。
+
+## 源码同步
+
+实现、进度和验证记录已上传独立分支 [feat/unified-inbox](https://github.com/qilinbro/msg-manager/tree/feat/unified-inbox)，通过远端引用核对为提交 [6c32c78](https://github.com/qilinbro/msg-manager/commit/6c32c78204de835fcdc9530034ccdbf41da65993)。未合并 main，未创建 PR；密钥、数据库、合成运行库、缓存、工具和第三方源码克隆均未上传。
