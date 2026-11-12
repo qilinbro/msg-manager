@@ -19,19 +19,19 @@
 
 ### 自动验收三轮
 
-准备一个可向自己投递邮件的专用测试邮箱。后台仍按上方步骤启动，保持 Go 服务和前端运行。使用 Gmail 时，先开两步验证，再在支持应用专用密码的账号创建一个测试密码。Gmail 配置为 `imap.gmail.com:993` 和 `smtp.gmail.com:465`，应用专用密码输入时去掉分组空格。企业邮箱使用管理员给出的 IMAP TLS 与 SMTP TLS 参数。[Google 应用专用密码说明](https://support.google.com/accounts/answer/185833?hl=en)
+使用专用 QQ 测试邮箱。登录 QQ 邮箱网页版，进入「设置 → 账号与安全 → 安全设置」，开启 IMAP/SMTP 并生成授权码。按[邮箱配置说明](email-setup.md#本机配置)使用 `imap.qq.com:993` 启动后台，保持 Go 服务和前端运行。测试脚本通过 `smtp.qq.com:465` 向同一个邮箱投递虚构来信。企业邮箱使用管理员给出的 IMAP TLS 与 SMTP TLS 参数。[QQ 邮箱授权码说明](https://help.mail.qq.com/detail/106/985)
 
 在项目根目录运行以下命令，将示例地址换成后台配置的专用测试邮箱。
 
 ```sh
 python3 -m pip install playwright
 python3 -m playwright install chromium
-python3 scripts/verify-away-live.py --mailbox your-test-address@gmail.com --smtp-host smtp.gmail.com
+python3 scripts/verify-away-live.py --mailbox your-test-address@qq.com --smtp-host smtp.qq.com
 ```
 
-按提示隐藏输入本机服务令牌和 SMTP 应用专用密码。脚本从正常工作台开始接班，关闭 Chromium 后向同一邮箱投递一封虚构邀请。后台备稿后重开 Chromium，核对截止时间高亮和草稿。脚本每轮显示耗时和结果，任一轮失败即停止。验收使用浏览器工作台，Tauri 原生桌面运行仍需实机验证。
+按提示隐藏输入本机服务令牌和 QQ 邮箱授权码。脚本从正常工作台开始接班，关闭 Chromium 后向同一邮箱投递一封虚构邀请。后台备稿后重开 Chromium，核对截止时间高亮和草稿。脚本每轮显示耗时和结果，任一轮失败即停止。验收使用浏览器工作台，Tauri 原生桌面运行仍需实机验证。
 
-本机 SMTP 无法连接时，命令改用 `--manual-delivery` 代替 `--smtp-host smtp.gmail.com`。每轮在 Chromium 关闭后，从 Gmail 网页按终端显示的主题和正文发给自己，再按回车。后台仍通过真实邮箱收件，余下步骤由脚本检查。
+本机 SMTP 无法连接时，命令改用 `--manual-delivery` 代替 `--smtp-host smtp.qq.com`。每轮在 Chromium 关闭后，从 QQ 邮箱网页版按终端显示的主题和正文发给自己，再按回车。后台仍通过真实邮箱收件，余下步骤由脚本检查。
 
 ## Finfold 赛后接入
 
