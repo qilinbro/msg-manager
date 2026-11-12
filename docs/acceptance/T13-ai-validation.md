@@ -51,3 +51,7 @@
 - T09—T14整项保持进行中，手动子项待正式审查；实际完成日期“—”，已完成统计不增加。
 
 使用方法见 [AI接入说明](../ai-setup.md)，设计见 [ADR0006](../adr/0006-manual-ai-management.md)。源码同步结果仅在实际上传成功后追加。
+
+## 源码同步
+
+实现、测试与同次任务进度已上传独立分支 [feat/ai-management](https://github.com/qilinbro/msg-manager/tree/feat/ai-management)，远端核对为 [6b8825c](https://github.com/qilinbro/msg-manager/commit/6b8825c579e299a484c9e231f8de59ff7da73594)。以已更名的邮箱分支为基线；没有合并主分支或创建PR。凭据、数据库、运行文件、构建产物和第三方源码克隆未上传。上传不改变待审查/未验收状态。
