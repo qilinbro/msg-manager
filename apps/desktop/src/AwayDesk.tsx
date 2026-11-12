@@ -11,7 +11,9 @@ import type {
 import {
   demoClient,
   demoSender,
-  resetAwayDemo,
+  finishDemoReplay,
+  isDemoReplay,
+  startDemoReplay,
   scheduleDemoMail,
 } from './away-demo';
 import type { DemoScenario } from './away-demo';
@@ -61,11 +63,7 @@ const paths = {
   ),
   activity: <path d="M2 12h5l3-7 4 14 3-7h5" />,
   close: <path d="m6 6 12 12M18 6 6 18" />,
-  refresh: (
-    <>
-      <path d="M20 9a8 8 0 1 0 0 6m0-11v5h-5" />
-    </>
-  ),
+  play: <path d="m9 5 11 7-11 7Z" />,
   brief: (
     <>
       <rect x="4" y="6" width="16" height="14" rx="3" />
@@ -182,6 +180,7 @@ function Modal({
     const dialog = ref.current;
     dialog?.showModal();
     dialog?.querySelector<HTMLElement>('[data-away-focus]')?.focus();
+    dialog?.querySelector('mark')?.scrollIntoView({ block: 'nearest' });
     return () => {
       dialog?.close();
       if (opener instanceof HTMLElement && opener.isConnected) {
@@ -240,6 +239,249 @@ function Timeline({ events }: { events: AwayEvent[] }) {
   );
 }
 
+const replaySteps = [
+  {
+    kind: 'started',
+    title: '你离开了',
+    detail: '14:00 · 窗口关闭，接班开始。',
+    icon: 'clock',
+  },
+  {
+    kind: 'received',
+    title: '收到活动邀约',
+    detail: '14:12 · Makers Week 发来产品展示邀请。',
+    icon: 'mail',
+  },
+  {
+    kind: 'task',
+    title: '提取截止时间和交付要求',
+    detail: '识别出 18:00 截止，并列好两项交付要求。',
+    icon: 'file',
+  },
+  {
+    kind: 'draft',
+    title: '准备好英文回信',
+    detail: '14:13 · 回信留在草稿，等你回来审阅。',
+    icon: 'edit',
+  },
+] as const;
+
+function Replay({ events }: { events: AwayEvent[] }) {
+  const active = Math.max(0, events.length - 1);
+  return (
+    <section className="away-priority away-replay" aria-label="离席演示">
+      <div>
+        <span className="away-priority-label">
+          <span />
+          30 分钟离席 · 7 秒回放
+        </span>
+        <h2>
+          你离开后，
+          <br />
+          接班开始工作。
+        </h2>
+        <p role="status">{replaySteps[active]?.detail}</p>
+      </div>
+      <ol>
+        {replaySteps.map(({ kind, title, icon }, i) => (
+          <li
+            key={kind}
+            className={
+              i === active ? 'is-current' : i < active ? 'is-complete' : ''
+            }
+          >
+            <span>
+              <Icon name={i < active ? 'check' : icon} size={17} />
+            </span>
+            {title}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function ActivitySummary({
+  events,
+  showLog,
+}: {
+  events: AwayEvent[];
+  showLog: () => void;
+}) {
+  if (!events.length) return null;
+  const recent = events
+    .filter(({ kind }) => kind !== 'ended' && kind !== 'stopped')
+    .slice(-4);
+  return (
+    <section className="away-activity-summary" aria-label="离席期间">
+      <div className="away-activity-head">
+        <h2>离席期间</h2>
+        <button className="away-text-button" onClick={showLog}>
+          完整记录
+          <Icon name="chevron" size={14} />
+        </button>
+      </div>
+      <ol>
+        {recent.map(({ at, kind }, i) => (
+          <li key={at + kind + i}>
+            <span className={kind.endsWith('_error') ? 'is-warning' : ''} />
+            <time dateTime={at}>{fmt(at)}</time>
+            <strong>{eventNames[kind]}</strong>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function Handover({
+  task,
+  tasks,
+  selectTask,
+  openEvidence,
+  reviewDraft,
+  makeBrief,
+  toggleDone,
+  busy,
+}: {
+  task: AwayTask;
+  tasks: AwayTask[];
+  selectTask: (id: string) => void;
+  openEvidence: () => void;
+  reviewDraft: () => void;
+  makeBrief?: () => void;
+  toggleDone?: () => void;
+  busy: boolean;
+}) {
+  const deadline = task.deadline;
+  const today =
+    deadline && day.format(new Date(deadline)) === day.format(new Date());
+  const draftPreview =
+    task.draft
+      ?.trim()
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .find((line, i) => i > 0 && line) ?? task.draft?.trim();
+  return (
+    <>
+      {tasks.length > 1 && (
+        <label className="away-task-picker">
+          跟进事项
+          <select
+            value={task.id}
+            onChange={(event) => selectTask(event.target.value)}
+          >
+            {tasks.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.done ? '已完成 · ' : ''}
+                {item.title}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      <section
+        className="away-priority away-reveal"
+        key={task.id}
+        aria-label="任务详情"
+      >
+        <div className="away-priority-copy">
+          <span className="away-priority-label">
+            <span />
+            {task.done ? '已完成' : '待跟进'}
+          </span>
+          <h2>{task.title}</h2>
+          {task.requirements.length > 0 ? (
+            <ul className="away-deliverables" aria-label="交付要求">
+              {task.requirements.map((item, i) => (
+                <li key={i}>
+                  <Icon name="file" size={16} />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="away-priority-note">
+              请查看原文，确认需要交付的内容。
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          className="away-deadline"
+          onClick={openEvidence}
+          aria-label={
+            deadline ? `核对截止时间 ${fmt(deadline)} 原文` : '查看截止时间原文'
+          }
+        >
+          <span className="away-deadline-label">
+            <Icon name="clock" size={15} />
+            {deadline
+              ? `${today ? '今天' : fmt(deadline, calendar)}截止`
+              : '截止时间'}
+          </span>
+          <strong className={deadline ? undefined : 'is-unknown'}>
+            {deadline ? fmt(deadline) : '待确认'}
+          </strong>
+          <span className="away-deadline-link">
+            {deadline ? '北京时间 · 查看原文' : '查看邮件原文'}
+            <Icon name="diagonal" size={13} />
+          </span>
+        </button>
+      </section>
+      <section className="away-next away-reveal" aria-label="下一步">
+        <span className="away-next-icon">
+          <Icon name="edit" size={20} />
+        </span>
+        <div className="away-next-copy">
+          <h2>
+            {task.draft
+              ? '英文回信已备好'
+              : task.draft_failed
+                ? '回信需手动补写'
+                : '英文回信'}
+          </h2>
+          <p lang={draftPreview ? 'en' : undefined}>
+            {draftPreview ??
+              (task.draft_failed
+                ? '任务和原文已保留。'
+                : '可以根据原文撰写回信。')}
+          </p>
+        </div>
+        <button
+          className="away-button primary away-review"
+          onClick={reviewDraft}
+        >
+          {task.draft ? '审阅回信' : '撰写回信'}
+          <Icon name="arrow" size={17} />
+        </button>
+      </section>
+      <div className="away-task-actions">
+        <span>
+          <Icon name="shield" size={15} />
+          仅保存草稿
+        </span>
+        {makeBrief && (
+          <button className="away-text-button" onClick={makeBrief}>
+            <Icon name="brief" size={15} />
+            制作推广 Brief
+          </button>
+        )}
+        {toggleDone && (
+          <button
+            className="away-text-button"
+            onClick={toggleDone}
+            disabled={busy}
+          >
+            <Icon name="check" size={15} />
+            {task.done ? '恢复待办' : '标记完成'}
+          </button>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default function AwayDesk({
   demo = false,
   token = '',
@@ -262,9 +504,11 @@ export default function AwayDesk({
   const [overlay, setOverlay] = useState<Overlay>(null);
   const [selection, setSelection] = useState('');
   const [minutes, setMinutes] = useState(30);
-  const [sender, setSender] = useState(demo ? demoSender : '');
+  const [sender, setSender] = useState<string>();
   const [consent, setConsent] = useState(false);
   const [draft, setDraft] = useState('');
+  const [copyNotice, setCopyNotice] = useState('');
+  const draftInput = useRef<HTMLTextAreaElement>(null);
   const draftEdits = useRef(new Map<string, string>());
   const [demoScenario, setDemoScenario] = useState<DemoScenario>('standard');
   const [brief, setBrief] = useState<PublicBrief>(blankBrief);
@@ -304,7 +548,7 @@ export default function AwayDesk({
       }
     }
     void refresh();
-    const timer = window.setInterval(refresh, demo ? 800 : 3500);
+    const timer = window.setInterval(refresh, demo ? 325 : 3500);
     return () => {
       controller.abort();
       clearInterval(timer);
@@ -331,6 +575,7 @@ export default function AwayDesk({
   }
 
   const session = snapshot?.session;
+  const senderInput = sender ?? (demo ? demoSender : (session?.sender ?? ''));
   const running = session?.status === 'running';
   const tasks = [...(snapshot?.tasks ?? [])].sort(
     (a, b) =>
@@ -341,17 +586,10 @@ export default function AwayDesk({
   );
   const task = tasks.find((item) => item.id === selection) ?? tasks[0];
   const pending = tasks.filter((item) => !item.done).length;
-  const hasDeadline = Boolean(task?.deadline);
-  const today =
-    task?.deadline &&
-    day.format(new Date(task.deadline)) === day.format(new Date());
-  const status = running
-    ? '接班中'
-    : session
-      ? session.status === 'stopped'
-        ? '已停止'
-        : '已交接'
-      : '待开始';
+  const replaying = demo && isDemoReplay(snapshot);
+  const sessionWindow =
+    session &&
+    `${fmt(session.started_at)}–${fmt(session.stopped_at ?? session.ends_at)}`;
   const connected = demo || Boolean(token);
 
   function show(next: Panel) {
@@ -368,19 +606,20 @@ export default function AwayDesk({
   async function start(event: FormEvent) {
     event.preventDefault();
     const next = await change(() =>
-      client.start({ minutes, sender: sender.trim(), consent }),
+      client.start({ minutes, sender: senderInput.trim(), consent }),
     );
     if (next) {
       setSelection('');
       draftEdits.current.clear();
       setConsent(false);
       setDelivery(false);
-      show('log');
+      show(demo ? 'log' : 'desk');
     }
   }
   function editDraft(item: AwayTask) {
     setSelection(item.id);
     setDraft(draftEdits.current.get(item.id) ?? item.draft ?? '');
+    setCopyNotice('');
     open('draft');
   }
   function makeBrief() {
@@ -440,7 +679,7 @@ export default function AwayDesk({
       <a className="skip-link" href="#away-main">
         跳到主要内容
       </a>
-      <aside className="away-nav">
+      <header className="away-nav">
         <div className="away-brand">
           <BrandMark />
           <div>
@@ -453,92 +692,96 @@ export default function AwayDesk({
             aria-current={panel === 'desk' ? 'page' : undefined}
             onClick={() => show('desk')}
           >
-            <Icon name="desk" />
+            <Icon name="desk" size={17} />
             交接台
-            {pending > 0 && <span className="away-nav-count">{pending}</span>}
           </button>
           <button
             aria-current={panel === 'setup' ? 'page' : undefined}
             onClick={() => show('setup')}
           >
-            <Icon name="clock" />
+            <Icon name="clock" size={17} />
             离席授权
           </button>
           <button
             aria-current={panel === 'log' ? 'page' : undefined}
             onClick={() => show('log')}
           >
-            <Icon name="activity" />
+            <Icon name="activity" size={17} />
             运行记录
           </button>
         </nav>
         <div className="away-nav-foot">
-          <span>
-            <Icon name="shield" size={16} />
-            {demo ? '演示数据' : '本地工作空间'}
-          </span>
-          {demo && (
-            <button
-              className="away-reset"
-              onClick={() => {
-                setSnapshot(resetAwayDemo());
-                setSelection('');
-                draftEdits.current.clear();
-                setDelivery(false);
-                show('desk');
-              }}
-              aria-label="重置演示"
-              title="重置演示"
-            >
-              <Icon name="refresh" size={16} />
-            </button>
-          )}
+          {demo && <span className="away-demo-label">演示数据</span>}
           {onBack && (
             <button
-              className="away-reset away-return"
+              className="away-icon-button away-return"
               onClick={onBack}
               aria-label="返回关系工作台"
               title="返回关系工作台"
             >
-              <Icon name="arrow" size={16} />
+              <Icon name="arrow" size={18} />
             </button>
           )}
         </div>
-      </aside>
+      </header>
 
       <main className="away-main" id="away-main" tabIndex={-1}>
         <header className="away-head">
           <div>
-            <h1>
-              {panel === 'desk'
-                ? '交接台'
-                : panel === 'setup'
-                  ? '离席授权'
-                  : '运行记录'}
-            </h1>
-            <p>
-              {panel === 'desk'
-                ? '离席期间的重要来信和下一步。'
-                : panel === 'setup'
-                  ? '选择接班时段和允许处理的邮件。'
-                  : '查看后台收到邮件、创建任务和备稿的时间。'}
+            <p className="away-context">
+              <span className={running ? 'is-live' : ''} />
+              {replaying
+                ? '离席回放'
+                : running
+                  ? '接班中'
+                  : session?.status === 'stopped'
+                    ? '已停止'
+                    : session
+                      ? '本次离席'
+                      : '接班'}
+              {sessionWindow && <time>{sessionWindow}</time>}
             </p>
+            <h1>
+              {panel === 'setup'
+                ? '离席授权'
+                : panel === 'log'
+                  ? '运行记录'
+                  : replaying
+                    ? '离席回放'
+                    : pending > 0
+                      ? `有 ${pending} 件事等你跟进`
+                      : task
+                        ? '待办已处理'
+                        : '交接台'}
+            </h1>
           </div>
           <div className="away-head-actions">
-            <span className="away-status">
-              <span className={session ? 'is-active' : ''} />
-              {status}
-            </span>
-            {connected && panel !== 'setup' && !running && (
+            {demo && (replaying || !running) && (
               <button
-                className="away-button primary"
-                onClick={() => show('setup')}
+                className="away-button away-play"
+                disabled={busy}
+                onClick={() => {
+                  operation.current += 1;
+                  setSelection('');
+                  draftEdits.current.clear();
+                  setDelivery(false);
+                  setSnapshot(
+                    replaying ? finishDemoReplay() : startDemoReplay(),
+                  );
+                  show('desk');
+                }}
               >
+                <Icon name={replaying ? 'arrow' : 'play'} size={16} />
+                {replaying ? '跳到结果' : '一键演示'}
+              </button>
+            )}
+            {connected && !demo && panel !== 'setup' && !running && (
+              <button className="away-button" onClick={() => show('setup')}>
                 <Icon name="clock" size={16} />
                 开始接班
               </button>
             )}
-            {running && session && (
+            {running && session && !replaying && (
               <button
                 className="away-button"
                 disabled={busy}
@@ -573,196 +816,21 @@ export default function AwayDesk({
             </button>
           </div>
         ) : panel === 'desk' ? (
-          <>
-            <div className="away-summary">
-              <div>
-                <span className="away-summary-icon">
-                  <Icon name="activity" />
-                </span>
-                <strong>
-                  {session
-                    ? running
-                      ? '后台正在接班'
-                      : '本次接班'
-                    : '还没有接班记录'}
-                </strong>
-                {session && (
-                  <span className="away-summary-time">
-                    {fmt(session.started_at)} –{' '}
-                    {fmt(session.stopped_at ?? session.ends_at)} · 北京时间
-                  </span>
-                )}
-              </div>
-              <button className="away-text-button" onClick={() => show('log')}>
-                查看运行记录
-                <Icon name="chevron" size={15} />
-              </button>
-            </div>
-
-            <div className="away-grid">
-              <section className="away-card away-queue" aria-label="待办">
-                <div className="away-card-heading">
-                  <h2>待办</h2>
-                  <span className="away-count">{pending}</span>
-                </div>
-                {tasks.length ? (
-                  <ul>
-                    {tasks.map((item) => (
-                      <li key={item.id}>
-                        <button
-                          className={`away-task-row ${task?.id === item.id ? 'is-selected' : ''}`}
-                          aria-pressed={task?.id === item.id}
-                          onClick={() => setSelection(item.id)}
-                        >
-                          <span className="away-mail-icon">
-                            <Icon
-                              name={item.done ? 'check' : 'mail'}
-                              size={17}
-                            />
-                          </span>
-                          <span className="away-row-body">
-                            <strong>{item.title}</strong>
-                            <small>
-                              {item.done
-                                ? '已完成'
-                                : item.deadline
-                                  ? `截止 ${fmt(item.deadline)}`
-                                  : '截止时间待确认'}
-                            </small>
-                          </span>
-                          <Icon name="chevron" size={15} />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="away-queue-empty">暂无需要跟进的邮件。</p>
-                )}
-                {tasks.length > 0 &&
-                  snapshot?.events.some((event) => event.kind === 'draft') && (
-                    <div className="away-queue-activity">
-                      <h3>后台已完成</h3>
-                      <span>
-                        <Icon name="check" size={15} />
-                        已创建跟进任务
-                      </span>
-                      <span>
-                        <Icon name="check" size={15} />
-                        已保存回信草稿
-                      </span>
-                    </div>
-                  )}
-                {session && (
-                  <div className="away-queue-foot">
-                    <Icon name="shield" size={16} />
-                    <span>邮箱只读 · 回信仅保存为草稿</span>
-                  </div>
-                )}
-              </section>
-
+          replaying ? (
+            <Replay events={snapshot?.events ?? []} />
+          ) : (
+            <>
               {task ? (
-                <section
-                  className="away-card away-task-detail"
-                  aria-label="任务详情"
-                >
-                  <div className="away-task-top">
-                    <span
-                      className={`away-chip ${task.done ? 'done' : hasDeadline ? 'urgent' : ''}`}
-                    >
-                      <span />
-                      {task.done
-                        ? '已完成'
-                        : hasDeadline
-                          ? '有截止时间'
-                          : '待确认'}
-                    </span>
-                    <button
-                      className="away-text-button"
-                      onClick={() => open('evidence')}
-                    >
-                      <Icon name="file" size={16} />
-                      查看原文
-                    </button>
-                  </div>
-                  <h2>{task.title}</h2>
-                  <div className="away-due-row">
-                    <button
-                      className="away-due"
-                      onClick={() => open('evidence')}
-                      aria-label={
-                        task.deadline
-                          ? `核对截止时间 ${fmt(task.deadline)} 原文`
-                          : '查看截止时间原文'
-                      }
-                    >
-                      <Icon name="clock" size={20} />
-                      {task.deadline ? (
-                        <>
-                          <span>
-                            {today ? '今天' : fmt(task.deadline, calendar)}
-                          </span>
-                          <strong>{fmt(task.deadline)}</strong>
-                        </>
-                      ) : (
-                        <strong className="away-due-unknown">
-                          截止时间待确认
-                        </strong>
-                      )}
-                      <Icon name="diagonal" size={14} />
-                    </button>
-                    {task.deadline && <span>北京时间</span>}
-                  </div>
-                  <div className="away-requirements">
-                    <h3>交付要求</h3>
-                    {task.requirements.length ? (
-                      <ul>
-                        {task.requirements.map((item, i) => (
-                          <li key={i}>
-                            <Icon name="check" size={16} />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="away-muted">请查看原文确认交付内容。</p>
-                    )}
-                  </div>
-                  <div className="away-reply">
-                    <div>
-                      <span className="away-reply-icon">
-                        <Icon name="edit" size={19} />
-                      </span>
-                      <span>
-                        <strong>英文回信</strong>
-                        <small>
-                          {task.draft
-                            ? '草稿已就绪，等你确认'
-                            : task.draft_failed
-                              ? '生成失败，可以手动补写'
-                              : '可以在此撰写草稿'}
-                        </small>
-                      </span>
-                    </div>
-                    <button
-                      className="away-button primary"
-                      onClick={() => editDraft(task)}
-                    >
-                      编辑回信
-                      <Icon name="arrow" size={16} />
-                    </button>
-                  </div>
-                  <div className="away-detail-foot">
-                    {snapshot?.handoff_enabled && (
-                      <button className="away-text-button" onClick={makeBrief}>
-                        <Icon name="brief" size={16} />
-                        制作推广 Brief
-                      </button>
-                    )}
-                    {session && (
-                      <button
-                        className="away-text-button"
-                        disabled={busy}
-                        onClick={() =>
+                <Handover
+                  task={task}
+                  tasks={tasks}
+                  selectTask={setSelection}
+                  openEvidence={() => open('evidence')}
+                  reviewDraft={() => editDraft(task)}
+                  makeBrief={snapshot?.handoff_enabled ? makeBrief : undefined}
+                  toggleDone={
+                    session
+                      ? () =>
                           void change(
                             () =>
                               client.updateTask(session.id, task.id, {
@@ -770,27 +838,41 @@ export default function AwayDesk({
                               }),
                             task.done ? '已恢复待办。' : '已标记完成。',
                           )
-                        }
-                      >
-                        <Icon name="check" size={16} />
-                        {task.done ? '恢复待办' : '标记完成'}
-                      </button>
-                    )}
-                  </div>
-                </section>
+                      : undefined
+                  }
+                  busy={busy}
+                />
               ) : (
                 <section className="away-card away-empty">
                   <Icon name="mail" size={32} />
-                  <h2>{running ? '正在等候新邮件' : '离席结果会出现在这里'}</h2>
-                  <p>
-                    {running
-                      ? '关闭界面后，后台仍会在授权时间内检查邮箱。'
-                      : '开启接班后，系统会将符合条件的新邮件整理为待办。'}
-                  </p>
+                  <h2>
+                    {!snapshot && !syncError
+                      ? '正在读取交接'
+                      : running
+                        ? '正在等候新邮件'
+                        : session
+                          ? '这次没有需要跟进的邮件'
+                          : '还没有接班记录'}
+                  </h2>
+                  {running ? (
+                    <p>可以关闭窗口，后台会在授权时间内继续检查邮箱。</p>
+                  ) : snapshot && !session ? (
+                    <button
+                      className="away-button primary"
+                      onClick={() => show('setup')}
+                    >
+                      设置离席授权
+                      <Icon name="arrow" size={16} />
+                    </button>
+                  ) : null}
                 </section>
               )}
-            </div>
-          </>
+              <ActivitySummary
+                events={snapshot?.events ?? []}
+                showLog={() => show('log')}
+              />
+            </>
+          )
         ) : panel === 'setup' ? (
           <section className="away-card away-form-card">
             <div className="away-card-heading">
@@ -799,7 +881,9 @@ export default function AwayDesk({
             </div>
             {running ? (
               <p className="away-muted">
-                当前有一次接班正在运行。请先停止，再修改授权。
+                {replaying
+                  ? '回放结束后可以设置离席授权。'
+                  : '接班正在运行，停止后可以修改授权。'}
               </p>
             ) : (
               <form className="away-form" onSubmit={start}>
@@ -825,7 +909,7 @@ export default function AwayDesk({
                   关注的发件人
                   <input
                     type="email"
-                    value={sender}
+                    value={senderInput}
                     onChange={(e) => setSender(e.target.value)}
                     placeholder="name@example.com"
                     required
@@ -894,7 +978,7 @@ export default function AwayDesk({
                 {fmt(session.stopped_at ?? session.ends_at)} · 北京时间
               </p>
             )}
-            {demo && running && (
+            {demo && running && !replaying && (
               <div className="away-demo-delivery">
                 <button
                   className="away-button"
@@ -976,6 +1060,7 @@ export default function AwayDesk({
             <label>
               回信草稿
               <textarea
+                ref={draftInput}
                 value={draft}
                 data-away-focus
                 onChange={(e) => {
@@ -992,13 +1077,28 @@ export default function AwayDesk({
                 {error}
               </div>
             )}
+            {copyNotice && (
+              <p className="away-muted" role="status">
+                {copyNotice}
+              </p>
+            )}
             <div className="away-modal-actions">
               <button
                 type="button"
                 className="away-button"
-                onClick={() => open(null)}
+                disabled={!draft.trim()}
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(draft.trim());
+                    setCopyNotice('已复制回信。');
+                  } catch {
+                    draftInput.current?.focus();
+                    draftInput.current?.select();
+                    setCopyNotice('已选中回信，可手动复制。');
+                  }
+                }}
               >
-                暂不保存
+                复制回信
               </button>
               <button
                 className="away-button primary"

@@ -31,6 +31,7 @@ export type DemoScenario =
 type DemoState = {
   snapshot: AwaySnapshot;
   deliveryAt?: number;
+  replayAt?: number;
   scenario?: DemoScenario;
 };
 let memory: DemoState | undefined;
@@ -50,31 +51,28 @@ function makeTask(time: number): AwayTask {
   };
 }
 
-function initialState(): DemoState {
-  const date = shanghaiDay(Date.now());
+function exampleSnapshot(date = shanghaiDay(Date.now())): AwaySnapshot {
   const at = (time: string) => `${date}T${time}:00+08:00`;
   const task = makeTask(Date.parse(at('14:12')));
   return {
-    snapshot: {
-      account,
-      model: 'DeepSeek · 演示配置',
-      handoff_enabled: true,
-      session: {
-        id: 'demo-first',
-        status: 'ended',
-        started_at: at('14:00'),
-        ends_at: at('14:30'),
-        sender: sampleSender,
-      },
-      tasks: [task],
-      events: [
-        { at: at('14:00'), kind: 'started' },
-        { at: at('14:12'), kind: 'received', detail: task.subject },
-        { at: at('14:12'), kind: 'task', detail: task.title },
-        { at: at('14:13'), kind: 'draft', detail: '英文回信已保存' },
-        { at: at('14:30'), kind: 'ended' },
-      ],
+    account,
+    model: 'DeepSeek · 演示配置',
+    handoff_enabled: true,
+    session: {
+      id: 'demo-first',
+      status: 'ended',
+      started_at: at('14:00'),
+      ends_at: at('14:30'),
+      sender: sampleSender,
     },
+    tasks: [task],
+    events: [
+      { at: at('14:00'), kind: 'started' },
+      { at: at('14:12'), kind: 'received', detail: task.subject },
+      { at: at('14:12'), kind: 'task', detail: task.title },
+      { at: at('14:13'), kind: 'draft', detail: '英文回信已保存' },
+      { at: at('14:30'), kind: 'ended' },
+    ],
   };
 }
 
@@ -95,12 +93,22 @@ function read(): DemoState {
   } catch {
     /* The session can still run in memory. */
   }
-  return memory ?? initialState();
+  return memory ?? { snapshot: exampleSnapshot() };
 }
 
 function advance() {
   const state = read();
-  const { snapshot, deliveryAt, scenario } = state;
+  const { snapshot, deliveryAt, replayAt, scenario } = state;
+  if (replayAt !== undefined) {
+    const elapsed = Date.now() - replayAt;
+    if (elapsed >= 7000) return finishDemoReplay();
+    const shown =
+      elapsed < 1400 ? 1 : elapsed < 3150 ? 2 : elapsed < 4950 ? 3 : 4;
+    return {
+      ...snapshot,
+      events: replayResult(snapshot).events.slice(0, shown),
+    };
+  }
   const session = snapshot.session;
   if (session?.status !== 'running') return snapshot;
   const now = Date.now();
@@ -212,6 +220,36 @@ export function scheduleDemoMail(scenario: DemoScenario) {
   }
 }
 
-export function resetAwayDemo() {
-  return save(initialState());
+function replayResult(snapshot: AwaySnapshot): AwaySnapshot {
+  const session = snapshot.session;
+  if (!session) return exampleSnapshot();
+  return {
+    ...exampleSnapshot(shanghaiDay(Date.parse(session.started_at))),
+    session: { ...session, status: 'ended' },
+  };
+}
+
+export function startDemoReplay() {
+  const replayAt = Date.now();
+  const snapshot = exampleSnapshot();
+  const session = snapshot.session!;
+  snapshot.session = {
+    ...session,
+    id: `demo-replay-${replayAt}`,
+    status: 'running',
+  };
+  snapshot.tasks = [];
+  snapshot.events = snapshot.events.slice(0, 1);
+  return save({ snapshot, replayAt });
+}
+
+export function finishDemoReplay() {
+  return save({ snapshot: replayResult(read().snapshot) });
+}
+
+export function isDemoReplay(snapshot: AwaySnapshot | null) {
+  return (
+    snapshot?.session?.status === 'running' &&
+    snapshot.session.id.startsWith('demo-replay-')
+  );
 }
