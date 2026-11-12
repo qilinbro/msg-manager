@@ -1,27 +1,9 @@
-// Package agent describes model suggestions, without granting any sending tool.
+// Package agent produces bounded, evidence-linked model suggestions. It never
+// receives platform credentials or exposes a tool for sending a message.
 package agent
 
-import (
-	"context"
-
-	"github.com/qilinbro/msg-manager/internal/domain"
-	"github.com/qilinbro/msg-manager/internal/memory"
-)
-
-type Input struct {
-	Scope    domain.ConversationScope
-	Message  domain.Message
-	Evidence []memory.Fact
-}
-
-type Suggestion struct {
-	Intent          string
-	RiskFlags       []string
-	DraftText       string
-	Evidence        []domain.EvidenceRef
-	SuggestedAction string
-}
+import "context"
 
 type Provider interface {
-	Suggest(context.Context, Input) (Suggestion, error)
+	Analyze(context.Context, Input) (Result, error)
 }

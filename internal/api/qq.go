@@ -51,6 +51,15 @@ func (h *handler) connections() []connector.Descriptor {
 			}
 		}
 	}
+	h.email.mu.RLock()
+	emailConfigured := h.email.status.Configured
+	h.email.mu.RUnlock()
+	for i := range items {
+		if items[i].ID == "email-imap" && emailConfigured {
+			items[i].Status = "configured"
+			items[i].Capabilities.ReceiveText = h.inbox != nil
+		}
+	}
 	return items
 }
 

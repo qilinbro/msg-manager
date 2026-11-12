@@ -30,6 +30,7 @@ func Planned() []Descriptor {
 		{ID: "qq-onebot", DisplayName: "QQ 个人号（OneBot）", Platform: "qq", Status: "not_configured", ImplementationStatus: "probe_ready", Description: "通过已有 OneBot v11 服务核验自己的 QQ 账号；消息持久化与自动发送尚未启用。"},
 		{ID: "weixin-clawbot", DisplayName: "微信 Clawbot", Platform: "weixin", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划验证微信 Clawbot 授权能力；不代表接管个人微信全部现有好友或聊天。"},
 		{ID: "telegram-bot", DisplayName: "Telegram 机器人", Platform: "telegram", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划通过 Bot API 处理机器人实际可见的授权会话，不读取个人账号全部私聊。"},
+		{ID: "email-imap", DisplayName: "邮箱（IMAP只读）", Platform: "email", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "支持本机配置邮箱后手动收取最近邮件；未启用后台自动收件或发信。"},
 	}
 }
 

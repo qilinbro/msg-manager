@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-12",
+  "environment": "Windows x64 standalone sociald; synthetic configuration only",
+  "database": "encrypted schema v2",
+  "status_unauthenticated": "401",
+  "status_disabled": "not_configured",
+  "unconfigured_sync": "503 EMAIL_NOT_CONFIGURED",
+  "configured_status": "ready; INBOX normalized",
+  "inbox_platforms": 5,
+  "source_mode": "mixed",
+  "sync_preflight": "204",
+  "sending": "501 disabled",
+  "live_mailbox_requests": 0,
+  "real_accounts_used": false,
+  "browser_interaction": "not verified"
+}

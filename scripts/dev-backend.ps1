@@ -11,9 +11,14 @@ if ([string]::IsNullOrWhiteSpace($env:SOCIALD_API_TOKEN)) {
 $env:GOCACHE = Join-Path $projectRoot '.cache/go-build'
 $env:GOPATH = Join-Path $projectRoot '.cache/go'
 $env:GOTOOLCHAIN = 'local'
+$env:CGO_ENABLED = '1'
+$inboxCompiler = Get-Command gcc -ErrorAction SilentlyContinue
+if (-not $inboxCompiler) { throw 'GCC is required for the encrypted SQLCipher inbox.' }
+$env:CC = $inboxCompiler.Source
+$env:PATH = (Split-Path -Parent $inboxCompiler.Source) + [IO.Path]::PathSeparator + $env:PATH
 Push-Location $projectRoot
 try {
-    & $goBinary run ./cmd/sociald
+    & $goBinary run -tags sqlite_fts5 ./cmd/sociald
     if ($LASTEXITCODE -ne 0) { throw 'sociald exited with an error.' }
 }
 finally { Pop-Location }

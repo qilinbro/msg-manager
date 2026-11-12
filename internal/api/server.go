@@ -1,5 +1,5 @@
-// Package api exposes read-only scaffold status. It does not install a sender,
-// model provider, database or any executable mutation route.
+// Package api exposes the local inbox, identity probes and explicitly requested
+// AI analysis. Model output is saved as local suggestions; no sender is installed.
 package api
 
 import (
@@ -14,6 +14,7 @@ import (
 
 	"github.com/qilinbro/msg-manager/internal/config"
 	"github.com/qilinbro/msg-manager/internal/connector"
+	"github.com/qilinbro/msg-manager/internal/store"
 )
 
 type handler struct {
@@ -21,6 +22,9 @@ type handler struct {
 	port      string
 	sequence  atomic.Uint64
 	qq        *qqConnection
+	inbox     *store.Store
+	email     *emailConnection
+	ai        *aiConnection
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -32,7 +36,29 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq}, nil
+	email, err := newEmailConnection(cfg.Email)
+	if err != nil {
+		return nil, err
+	}
+	ai, err := newAIConnection(cfg.AI, cfg.AIDailyLimit)
+	if err != nil {
+		return nil, err
+	}
+	var inbox *store.Store
+	if cfg.DatabasePath != "" {
+		inbox, err = store.Open(cfg.DatabasePath, cfg.DatabaseKey)
+		if err != nil {
+			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
+		}
+	}
+	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai}, nil
+}
+
+func (h *handler) Close() error {
+	if h.inbox != nil {
+		return h.inbox.Close()
+	}
+	return nil
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -57,15 +83,17 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	apiPath := r.URL.Path == "/api/v1" || strings.HasPrefix(r.URL.Path, "/api/v1/")
 	// Browsers omit credentials in CORS preflight. This exception returns no
-	// business data and permits only GET; actual requests must authenticate.
+	// business data. Only exact inbox/AI mutation routes are permitted in addition
+	// to GET, and every actual request must authenticate.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
-		if r.Header.Get("Access-Control-Request-Method") != http.MethodGet || !validPreflightHeaders(r) {
-			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "只允许已授权界面的只读请求预检。", traceID)
+		requestedMethod := r.Header.Get("Access-Control-Request-Method")
+		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
+			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
 		w.Header().Add("Vary", "Access-Control-Request-Method")
 		w.Header().Add("Vary", "Access-Control-Request-Headers")
-		w.Header().Set("Access-Control-Allow-Methods", "GET")
+		w.Header().Set("Access-Control-Allow-Methods", requestedMethod)
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 		w.WriteHeader(http.StatusNoContent)
 		return
@@ -82,7 +110,19 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method != http.MethodGet {
-			writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "当前为只读工程骨架；写入、审批和消息发送尚未实现。", traceID)
+			if aiMutation(r.Method, r.URL.Path) {
+				h.serveAI(w, r, traceID)
+				return
+			}
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/email-imap/sync" {
+				h.syncEmail(w, r, traceID)
+				return
+			}
+			if inboxMutation(r.Method, r.URL.Path) {
+				h.serveInbox(w, r, traceID)
+				return
+			}
+			writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "该操作尚未实现；已开放消息管理与手动AI分析，平台发送保持关闭。", traceID)
 			return
 		}
 		h.serveRead(w, r, traceID)
@@ -91,10 +131,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		switch r.URL.Path {
 		case "/health/live":
-			writeJSON(w, http.StatusOK, map[string]string{"status": "live", "version": Version, "stage": "scaffold"})
+			stage := "scaffold"
+			if h.inbox != nil {
+				stage = "unified_inbox"
+			}
+			writeJSON(w, http.StatusOK, map[string]string{"status": "live", "version": Version, "stage": stage})
 			return
 		case "/health/ready":
-			writeError(w, http.StatusServiceUnavailable, "NOT_READY", "持久化存储与平台连接尚未配置；服务仅提供骨架状态。", traceID)
+			writeError(w, http.StatusServiceUnavailable, "NOT_READY", "无人值守处理所需的实时接收、任务与发送链路尚未就绪；本接口不代表本地消息管理可用状态。", traceID)
 			return
 		}
 	}
@@ -104,20 +148,34 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID string) {
 	switch r.URL.Path {
 	case "/api/v1/system":
+		stage, driver := "scaffold", "sqlite"
+		if h.inbox != nil {
+			stage, driver = "unified_inbox", "sqlcipher"
+		}
 		writeJSON(w, http.StatusOK, SystemResponse{
-			Version: Version, Stage: "scaffold", WorkspaceID: authenticatedWorkspace(r.Context()),
+			Version: Version, Stage: stage, WorkspaceID: authenticatedWorkspace(r.Context()),
 			Automation: AutomationStatus{Paused: true, AutoSendEnabled: false},
-			Storage:    StorageStatus{Configured: false, Driver: "sqlite"}, Connectors: h.connections(),
+			Storage:    StorageStatus{Configured: h.inbox != nil, Driver: driver}, Connectors: h.connections(),
 		})
 	case "/api/v1/connections":
 		writeJSON(w, http.StatusOK, ListResponse[connector.Descriptor]{Items: h.connections()})
 	case "/api/v1/connections/qq-onebot/verify":
 		h.verifyQQ(w, r, traceID)
+	case "/api/v1/connections/email-imap/status":
+		h.emailStatus(w)
 	case "/api/v1/events":
 		writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "事件流与恢复游标尚未实现；当前不提供实时事件订阅。", traceID)
 	case "/api/v1/messages", "/api/v1/contacts", "/api/v1/drafts", "/api/v1/approvals", "/api/v1/jobs", "/api/v1/audit", "/api/v1/reports":
 		writeJSON(w, http.StatusOK, ListResponse[any]{Items: []any{}})
 	default:
+		if aiRead(r.URL.Path) {
+			h.serveAI(w, r, traceID)
+			return
+		}
+		if isInboxRead(r.URL.Path) {
+			h.serveInbox(w, r, traceID)
+			return
+		}
 		writeError(w, http.StatusNotFound, "NOT_FOUND", "请求的接口不存在或尚未实现。", traceID)
 	}
 }

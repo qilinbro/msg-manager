@@ -8,6 +8,8 @@ import {
   ServiceError,
 } from './api';
 import type { Connector, QQVerification, SystemStatus } from './api';
+import Inbox from './Inbox';
+import type { AIDraftBuffer } from './ai-api';
 
 type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
 type IconName =
@@ -239,9 +241,11 @@ function ConnectorCard({
 function Overview({
   session,
   onSettings,
+  onMessages,
 }: {
   session: Session;
   onSettings: () => void;
+  onMessages: () => void;
 }) {
   const system = session.system;
   const connectors = system?.connectors ?? PLANNED_CONNECTORS;
@@ -266,7 +270,9 @@ function Overview({
               <>
                 服务已连接，
                 <br />
-                下一步接入平台。
+                {system.storage.configured
+                  ? '开始整理消息。'
+                  : '下一步配置消息存储。'}
               </>
             ) : (
               <>
@@ -279,9 +285,13 @@ function Overview({
           <p>
             {system ? (
               <>
-                当前还没有可用的平台消息。
+                {system.storage.configured
+                  ? '统一消息中心已准备好。'
+                  : '消息存储尚未配置。'}
                 <br className="desktop-break" />
-                接入能力完成后，再连接你的授权账号。
+                {system.storage.configured
+                  ? '导入已有记录，按平台查看和整理会话。'
+                  : '启用加密存储后，即可导入已有记录。'}
               </>
             ) : (
               <>
@@ -291,8 +301,15 @@ function Overview({
               </>
             )}
           </p>
-          <button className="button button-primary" onClick={onSettings}>
-            {system ? '查看连接状态' : '连接本地服务'}{' '}
+          <button
+            className="button button-primary"
+            onClick={system?.storage.configured ? onMessages : onSettings}
+          >
+            {system?.storage.configured
+              ? '打开消息中心'
+              : system
+                ? '查看配置状态'
+                : '连接本地服务'}{' '}
             <Icon name="arrow" size={17} />
           </button>
         </div>
@@ -365,7 +382,7 @@ function Overview({
             ))}
           </div>
           <p className="section-footnote">
-            平台接入完成后，消息才会出现在工作台。
+            已导入记录可在消息中心统一管理；平台在线连接单独验证。
           </p>
         </section>
         <aside className="principle-panel">
@@ -868,7 +885,7 @@ function Settings({
           </div>
           <div>
             <dt>工作台版本</dt>
-            <dd>0.1.0 · 架构骨架</dd>
+            <dd>0.1.0 · 统一消息中心</dd>
           </div>
           <div>
             <dt>后台版本</dt>
@@ -886,7 +903,8 @@ function Settings({
           </div>
         </dl>
         <p>
-          当前支持本地服务连接与 QQ 身份核验。数据存储、持续收件、AI
+          当前支持本地加密消息管理、记录导入、邮箱手动收取与 QQ
+          身份核验。持续收件、AI
           回复和发送尚未实现；账号核验成功不代表已接入消息。个人微信 ClawBot
           仍仅针对 Bot
           联系人，不接管已有好友或聊天。关闭工作台后是否继续处理，取决于独立后台服务的后续部署。
@@ -901,19 +919,30 @@ export default function App() {
   const [session, setSession] = useState<Session>(INITIAL_SESSION);
   const [tokenDraft, setTokenDraft] = useState('');
   const [activeToken, setActiveToken] = useState('');
+  const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
   const pending = useRef<AbortController | null>(null);
   useEffect(() => () => pending.current?.abort(), []);
+  useEffect(() => {
+    const warnUnsaved = (event: BeforeUnloadEvent) => {
+      if (!aiDrafts.size) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnUnsaved);
+    return () => window.removeEventListener('beforeunload', warnUnsaved);
+  }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
   const onAuthFailure = useCallback(() => {
     pending.current?.abort();
     pending.current = null;
+    aiDrafts.clear();
     setActiveToken('');
     setSession({
       ...INITIAL_SESSION,
       status: 'error',
       error: '令牌无效或已失效，请在设置中重新连接。',
     });
-  }, []);
+  }, [aiDrafts]);
   const onSystemUpdate = useCallback((system: SystemStatus) => {
     setSession((previous) =>
       previous.status === 'connected'
@@ -931,6 +960,7 @@ export default function App() {
   const clear = () => {
     pending.current?.abort();
     pending.current = null;
+    aiDrafts.clear();
     setTokenDraft('');
     setActiveToken('');
     setSession(INITIAL_SESSION);
@@ -944,6 +974,7 @@ export default function App() {
     event.preventDefault();
     const token = tokenDraft.trim();
     if (!token || SERVICE.error) return;
+    aiDrafts.clear();
     pending.current?.abort();
     const controller = new AbortController();
     pending.current = controller;
@@ -1050,7 +1081,11 @@ export default function App() {
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
           {page === 'overview' ? (
-            <Overview session={session} onSettings={onSettings} />
+            <Overview
+              session={session}
+              onSettings={onSettings}
+              onMessages={() => setPage('messages')}
+            />
           ) : page === 'settings' ? (
             <Settings
               session={session}
@@ -1062,6 +1097,14 @@ export default function App() {
               onClear={clear}
               onCancel={cancel}
               onSystemUpdate={onSystemUpdate}
+              onAuthFailure={onAuthFailure}
+            />
+          ) : page === 'messages' ? (
+            <Inbox
+              key={activeToken}
+              token={activeToken}
+              aiDrafts={aiDrafts}
+              onSettings={onSettings}
               onAuthFailure={onAuthFailure}
             />
           ) : (
