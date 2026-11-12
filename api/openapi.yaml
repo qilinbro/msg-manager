@@ -3,7 +3,7 @@
   "info": {
     "title": "Social Intelligence OS — scaffold API",
     "version": "0.1.0",
-    "description": "T04 initial contract. API resources are not persisted; no real connector or mutation is implemented. OPTIONS preflight without credentials is allowed only for approved local origins and methods, contains no business data, and does not bypass authentication of actual requests. This file uses JSON syntax, which is valid YAML 1.2. QQ personal-account adapter: the authenticated verification endpoint only checks the operator-configured local OneBot service; no continuous reception, persistence, or sending is enabled."
+    "description": "本机 Bearer API：加密消息管理、只读 IMAP 手动同步、QQ 身份核验和用户确认后发起的会话 AI 分析。模型只生成本地建议，不开放平台发送。后台实时接收、任务队列、审批、发送和 SSE 仍待实现。JSON 语法是有效的 YAML 1.2；预检仅放行明确来源和方法，实际业务请求始终鉴权。"
   },
   "servers": [
     {
@@ -1444,6 +1444,1210 @@
           }
         }
       }
+    },
+    "/api/v1/ai/status": {
+      "get": {
+        "summary": "只读当前后台配置与上海自然日的请求尝试数；不探测或调用模型",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/ai-context": {
+      "get": {
+        "summary": "只读预览当前会话近期20条/20KB消息和8条/4KB已确认记忆；不调用模型；未确认候选不进入输入",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/analysis": {
+      "get": {
+        "summary": "当前会话最近一次摘要和可编辑草稿；过时结果标stale，记忆最多200条",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/analyze": {
+      "post": {
+        "summary": "明确确认预览指纹后单次调用固定模型；全局单并发，25秒模型超时，无工具和发送；调用尝试先计数、失败不自动重试",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIAnalyzeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIAnalysis"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/draft": {
+      "patch": {
+        "summary": "仅编辑当前作用域且未失效的分析草稿；不发信或平台消息",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIDraftPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxMutationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/ai-settings": {
+      "get": {
+        "summary": "当前会话分析/暂停模式与语气；自动发送无可用选项",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "修改当前会话模式/语气，立即使旧预览和草稿失效",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AISettingsPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AISettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/memories/{memory_id}": {
+      "patch": {
+        "summary": "用户核对后确认或退回待核实；不接收模型端的事实批准",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "name": "memory_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIMemoryPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxMutationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "只删除当前会话记忆与其证据关联，原消息保留；使旧预览和草稿失效",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          },
+          {
+            "name": "memory_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxMutationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_REQUEST / AI_CONFIRMATION_REQUIRED / AI_CONTEXT_INVALID：格式、确认或内容限制不满足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED：令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源、主机或工作区不允许",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CONVERSATION_NOT_FOUND：当前会话或记录不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "STALE_CONTEXT / AI_PAUSED：消息、记忆、偏好、模型地址或模型已变化，或会话暂停",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：本地尝试上限或提供商额度/速率限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：JSON、证据或模型输出不符合契约，未保存新结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / STORE_UNAVAILABLE / AI_NOT_CONFIGURED / AI_BUSY / AI_AUTH_FAILED / AI_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "AI_TIMEOUT：取消或超时；不自动重试，先刷新确认结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2397,6 +3601,460 @@
           "sending_enabled": {
             "type": "boolean",
             "const": false
+          }
+        }
+      },
+      "AISettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "tone"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "draft_only",
+              "paused"
+            ]
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "natural",
+              "casual",
+              "professional"
+            ]
+          }
+        }
+      },
+      "AISettingsPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "draft_only",
+              "paused"
+            ]
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "natural",
+              "casual",
+              "professional"
+            ]
+          }
+        }
+      },
+      "AIEvidence": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "body",
+          "direction",
+          "occurred_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "body": {
+            "type": "string",
+            "description": "当前会话纯文本消息；长度预算按UTF-8字节计算"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "incoming",
+              "outgoing"
+            ]
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AIMemory": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "conversation_id",
+          "content",
+          "verification_state",
+          "evidence_ids",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "conversation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "content": {
+            "type": "string"
+          },
+          "verification_state": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "unverified"
+            ]
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AIStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "provider",
+          "model",
+          "endpoint_host",
+          "sending_enabled",
+          "daily_limit",
+          "used_today"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endpoint_host": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sending_enabled": {
+            "const": false
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "used_today": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "AIContext": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "context_hash",
+          "model",
+          "endpoint_host",
+          "external",
+          "message_count",
+          "memory_count",
+          "truncated",
+          "messages",
+          "memories",
+          "mode",
+          "tone"
+        ],
+        "properties": {
+          "context_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "绑定消息/已确认记忆/偏好版本以及服务端模型和目标地址的确认指纹"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "endpoint_host": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "external": {
+            "type": "boolean"
+          },
+          "message_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          },
+          "memory_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 8
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIEvidence"
+            },
+            "maxItems": 20
+          },
+          "memories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIMemory"
+            },
+            "maxItems": 8
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "draft_only",
+              "paused"
+            ]
+          },
+          "tone": {
+            "type": "string",
+            "enum": [
+              "natural",
+              "casual",
+              "professional"
+            ]
+          }
+        }
+      },
+      "AIAnalysis": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "conversation_id",
+          "context_hash",
+          "model",
+          "created_at",
+          "updated_at",
+          "draft_edited",
+          "stale",
+          "intent",
+          "summary",
+          "draft",
+          "risk_flags",
+          "evidence_ids",
+          "usage",
+          "sending_enabled"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "conversation_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "context_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "draft_edited": {
+            "type": "boolean"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "greeting",
+              "information_request",
+              "scheduling",
+              "commitment",
+              "payment",
+              "emotional_conflict",
+              "other"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "draft": {
+            "type": "string"
+          },
+          "risk_flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "payment",
+                "commitment",
+                "sensitive",
+                "emotional_conflict",
+                "uncertain"
+              ]
+            },
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "usage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "prompt_tokens",
+              "completion_tokens"
+            ],
+            "properties": {
+              "prompt_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "completion_tokens": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "sending_enabled": {
+            "const": false
+          }
+        }
+      },
+      "AIEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "analysis",
+          "memories"
+        ],
+        "properties": {
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AIAnalysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "memories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AIMemory"
+            },
+            "maxItems": 200,
+            "description": "按更新时间返回最近200条本地记忆；并非全量导出"
+          }
+        }
+      },
+      "AIAnalyzeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "context_hash",
+          "confirmed"
+        ],
+        "properties": {
+          "context_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "confirmed": {
+            "const": true
+          }
+        }
+      },
+      "AIDraftPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "analysis_id",
+          "body"
+        ],
+        "properties": {
+          "analysis_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "description": "非空；最多6000个UTF-8字节，仅编辑本地草稿"
+          }
+        }
+      },
+      "AIMemoryPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "verification_state"
+        ],
+        "properties": {
+          "verification_state": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "unverified"
+            ]
           }
         }
       }

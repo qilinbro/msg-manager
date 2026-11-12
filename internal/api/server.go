@@ -1,5 +1,5 @@
-// Package api exposes the local inbox and platform identity probes. It never
-// installs a sender or model provider; inbox mutations only manage local data.
+// Package api exposes the local inbox, identity probes and explicitly requested
+// AI analysis. Model output is saved as local suggestions; no sender is installed.
 package api
 
 import (
@@ -24,6 +24,7 @@ type handler struct {
 	qq        *qqConnection
 	inbox     *store.Store
 	email     *emailConnection
+	ai        *aiConnection
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -39,6 +40,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	ai, err := newAIConnection(cfg.AI, cfg.AIDailyLimit)
+	if err != nil {
+		return nil, err
+	}
 	var inbox *store.Store
 	if cfg.DatabasePath != "" {
 		inbox, err = store.Open(cfg.DatabasePath, cfg.DatabaseKey)
@@ -46,7 +51,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email}, nil
+	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai}, nil
 }
 
 func (h *handler) Close() error {
@@ -78,11 +83,11 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	apiPath := r.URL.Path == "/api/v1" || strings.HasPrefix(r.URL.Path, "/api/v1/")
 	// Browsers omit credentials in CORS preflight. This exception returns no
-	// business data. Only exact inbox mutation routes are permitted in addition
+	// business data. Only exact inbox/AI mutation routes are permitted in addition
 	// to GET, and every actual request must authenticate.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -105,6 +110,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method != http.MethodGet {
+			if aiMutation(r.Method, r.URL.Path) {
+				h.serveAI(w, r, traceID)
+				return
+			}
 			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/email-imap/sync" {
 				h.syncEmail(w, r, traceID)
 				return
@@ -113,7 +122,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.serveInbox(w, r, traceID)
 				return
 			}
-			writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "该操作尚未实现；当前仅允许本地消息导入和会话管理，平台发送保持关闭。", traceID)
+			writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "该操作尚未实现；已开放消息管理与手动AI分析，平台发送保持关闭。", traceID)
 			return
 		}
 		h.serveRead(w, r, traceID)
@@ -159,6 +168,10 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 	case "/api/v1/messages", "/api/v1/contacts", "/api/v1/drafts", "/api/v1/approvals", "/api/v1/jobs", "/api/v1/audit", "/api/v1/reports":
 		writeJSON(w, http.StatusOK, ListResponse[any]{Items: []any{}})
 	default:
+		if aiRead(r.URL.Path) {
+			h.serveAI(w, r, traceID)
+			return
+		}
 		if isInboxRead(r.URL.Path) {
 			h.serveInbox(w, r, traceID)
 			return

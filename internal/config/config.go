@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/qilinbro/msg-manager/internal/agent"
 	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
 	"github.com/qilinbro/msg-manager/internal/connector/onebot"
 )
@@ -23,9 +24,12 @@ type Config struct {
 	Email        mailbox.Config
 	DatabasePath string
 	DatabaseKey  string
+	AI           agent.Config
+	AIDailyLimit int
 }
 
-func (Config) String() string { return "sociald configuration (redacted)" }
+func (Config) String() string   { return "sociald configuration (redacted)" }
+func (Config) GoString() string { return "sociald configuration (redacted)" }
 
 func LoadFromEnv() (Config, error) {
 	addr := os.Getenv("SOCIALD_ADDR")
@@ -41,6 +45,7 @@ func LoadFromEnv() (Config, error) {
 			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
 		},
 		Email: mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
+		AI:    agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
 	}
 	if value := os.Getenv("EMAIL_IMAP_PORT"); value != "" {
 		port, err := strconv.Atoi(value)
@@ -55,6 +60,13 @@ func LoadFromEnv() (Config, error) {
 			return Config{}, errors.New("EMAIL_IMAP_LIMIT must be between 1 and 100")
 		}
 		cfg.Email.Limit = limit
+	}
+	if value := os.Getenv("AI_DAILY_LIMIT"); value != "" {
+		limit, err := strconv.Atoi(value)
+		if err != nil || limit < 1 || limit > 1000 {
+			return Config{}, errors.New("AI_DAILY_LIMIT must be between 1 and 1000")
+		}
+		cfg.AIDailyLimit = limit
 	}
 	return cfg, cfg.Validate()
 }

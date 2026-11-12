@@ -39,9 +39,23 @@ for (const path of Object.values(spec.paths)) {
 }
 const implementedMutations = Object.entries(spec.paths).flatMap(([path, operations]) =>
   Object.entries(operations).filter(([method, op]) => ['post', 'patch', 'put', 'delete'].includes(method) && op['x-implementation-status'] === 'implemented').map(([method]) => `${method} ${path}`));
-assert.deepEqual(implementedMutations.sort(), ['patch /api/v1/conversations/{conversation_id}', 'post /api/v1/imports/messages', 'post /api/v1/imports/telegram','post /api/v1/connections/email-imap/sync'].sort());
+assert.deepEqual(implementedMutations.sort(), [
+  'patch /api/v1/conversations/{conversation_id}',
+  'post /api/v1/imports/messages',
+  'post /api/v1/imports/telegram',
+  'post /api/v1/connections/email-imap/sync',
+  'post /api/v1/conversations/{conversation_id}/analyze',
+  'patch /api/v1/conversations/{conversation_id}/draft',
+  'patch /api/v1/conversations/{conversation_id}/ai-settings',
+  'patch /api/v1/conversations/{conversation_id}/memories/{memory_id}',
+  'delete /api/v1/conversations/{conversation_id}/memories/{memory_id}',
+].sort());
 assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
 assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);
 assert.equal(spec.components.schemas.EmailStatus.properties.sending_enabled.const,false);
 assert.equal(spec.components.schemas.EmailSyncResult.properties.sending_enabled.const,false);
+assert.equal(spec.components.schemas.AIStatus.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.AIAnalysis.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.AIAnalyzeRequest.properties.confirmed.const, true);
+assert.deepEqual(spec.components.schemas.AISettings.properties.mode.enum, ['draft_only','paused']);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');

@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -28,6 +29,32 @@ func TestConfigRejectsUnsafeListenersAndTokens(t *testing.T) {
 		}
 		if bad != "" && strings.Contains(err.Error(), bad) {
 			t.Fatal("validation error exposed the token")
+		}
+	}
+}
+
+func TestAIEnvironmentLimitAndSecretRedaction(t *testing.T) {
+	for _, key := range []string{"SOCIALD_DATABASE_PATH", "SOCIALD_DATABASE_KEY", "SOCIALD_ADDR", "EMAIL_IMAP_PORT", "EMAIL_IMAP_LIMIT"} {
+		t.Setenv(key, "")
+	}
+	t.Setenv("SOCIALD_API_TOKEN", strings.Repeat("t", 32))
+	t.Setenv("AI_BASE_URL", "https://api.deepseek.com")
+	t.Setenv("AI_MODEL", "configured-model-id")
+	t.Setenv("AI_API_KEY", "synthetic-private-key-for-redaction")
+	t.Setenv("AI_DAILY_LIMIT", "20")
+	cfg, err := config.LoadFromEnv()
+	if err != nil || cfg.AIDailyLimit != 20 || cfg.AI.Model != "configured-model-id" || cfg.AI.APIKey == "" {
+		t.Fatal("AI environment not loaded")
+	}
+	for _, format := range []string{"%v", "%+v", "%#v"} {
+		if strings.Contains(fmt.Sprintf(format, cfg), cfg.AI.APIKey) {
+			t.Fatal("AI secret exposed through configuration formatting")
+		}
+	}
+	for _, invalid := range []string{"0", "1001", "abc"} {
+		t.Setenv("AI_DAILY_LIMIT", invalid)
+		if _, err := config.LoadFromEnv(); err == nil {
+			t.Fatal("invalid AI call limit accepted")
 		}
 	}
 }

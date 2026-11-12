@@ -1,6 +1,6 @@
 # Social Intelligence OS
 
-多平台社交关系助手。当前实现为 **统一消息中心 + 邮箱只读同步 + QQ 账号核验**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
+多平台社交关系助手。当前实现为 **统一消息中心 + 邮箱只读同步 + QQ 账号核验 + 手动 AI 管理**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
 
 ## 当前能运行的内容
 
@@ -8,7 +8,8 @@
 - 读取真实服务状态，优先展示 QQ 个人号 OneBot 适配；微信 Clawbot / Telegram 保留待接入声明。
 - QQ、微信、Telegram、闪聊的导入文本在同一消息中心管理：平台筛选、搜索、未读、置顶、归档、会话详情与历史分页。
 - 用户确认后导入统一 JSON，支持 Telegram Desktop 单个个人私聊导出；稳定标识去重、冲突整批回滚，SQLCipher 加密保存。
-- QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换；模型、记忆与持续接收仍未实现。
+- QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换；持续接收仍未实现。
+- 当前会话可先预览确认，再调用 DeepSeek/兼容接口整理摘要、风险、草稿和待核实记忆；用户确认记忆后才进入后续上下文。真实模型与界面验收待进行。
 - 邮箱支持本机配置 IMAP TLS 授权码后手动同步最近邮件，显示主题与地址；不改原邮箱已读，不发信。先支持 QQ/163/授权码企业邮箱的协议能力，真实账号尚待核验。
 
 自动发送始终关闭。后台持续收件、微信/Telegram在线授权、Windows服务安装和真实消息发送均未实现。四个聊天平台当前管理导入记录，邮箱按需手动同步，不表示都已持续在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
@@ -85,13 +86,17 @@ flowchart LR
     INBOX --> STORE[SQLCipher / SQLite]
     API -->|手动只读同步| EMAIL[IMAP TLS 邮箱]
     EMAIL --> INBOX
+    API -->|预览确认后单次分析| AI[固定 DeepSeek / 兼容模型]
+    AI -->|校验结果| MEMORY[限域记忆 / 摘要 / 本地草稿]
+    MEMORY --> STORE
     DOMAIN -. 后续实现 .-> CONNECTOR[微信 Clawbot / Telegram]
-    DOMAIN -. 后续实现 .-> AGENT[记忆 / 模型 / 规则 / 发件箱]
+    DOMAIN -. 后续实现 .-> AGENT[持久化任务 / 审批 / 发件箱]
 ```
 
-- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；仅本地导入、会话管理与只读邮箱同步开放，发送/审批继续拒绝。
+- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、只读邮箱同步及手动 AI 分析开放，发送/审批继续拒绝。
 - [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
 - [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
+- [AI 管理接入](docs/ai-setup.md)：DeepSeek/兼容服务本机配置、预览确认、记忆核对与草稿。
 - [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
 - [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：自有服务与 OneBot 连接层分离，优先 QQ 个人号。
 - [技术文档](技术文档.md)、[逐项任务](任务规划.md)、[feat 进度](feat.md)。

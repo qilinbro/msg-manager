@@ -9,6 +9,7 @@ import {
 } from './api';
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
+import type { AIDraftBuffer } from './ai-api';
 
 type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
 type IconName =
@@ -918,19 +919,30 @@ export default function App() {
   const [session, setSession] = useState<Session>(INITIAL_SESSION);
   const [tokenDraft, setTokenDraft] = useState('');
   const [activeToken, setActiveToken] = useState('');
+  const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
   const pending = useRef<AbortController | null>(null);
   useEffect(() => () => pending.current?.abort(), []);
+  useEffect(() => {
+    const warnUnsaved = (event: BeforeUnloadEvent) => {
+      if (!aiDrafts.size) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warnUnsaved);
+    return () => window.removeEventListener('beforeunload', warnUnsaved);
+  }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
   const onAuthFailure = useCallback(() => {
     pending.current?.abort();
     pending.current = null;
+    aiDrafts.clear();
     setActiveToken('');
     setSession({
       ...INITIAL_SESSION,
       status: 'error',
       error: '令牌无效或已失效，请在设置中重新连接。',
     });
-  }, []);
+  }, [aiDrafts]);
   const onSystemUpdate = useCallback((system: SystemStatus) => {
     setSession((previous) =>
       previous.status === 'connected'
@@ -948,6 +960,7 @@ export default function App() {
   const clear = () => {
     pending.current?.abort();
     pending.current = null;
+    aiDrafts.clear();
     setTokenDraft('');
     setActiveToken('');
     setSession(INITIAL_SESSION);
@@ -961,6 +974,7 @@ export default function App() {
     event.preventDefault();
     const token = tokenDraft.trim();
     if (!token || SERVICE.error) return;
+    aiDrafts.clear();
     pending.current?.abort();
     const controller = new AbortController();
     pending.current = controller;
@@ -1089,6 +1103,7 @@ export default function App() {
             <Inbox
               key={activeToken}
               token={activeToken}
+              aiDrafts={aiDrafts}
               onSettings={onSettings}
               onAuthFailure={onAuthFailure}
             />

@@ -22,6 +22,8 @@ import type {
 } from './inbox-api';
 import './inbox.css';
 import EmailPanel from './EmailPanel';
+import AIPanel from './AIPanel';
+import type { AIDraftBuffer } from './ai-api';
 
 type View = 'all' | 'unread' | 'pinned' | 'archived';
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -517,10 +519,12 @@ function ImportPanel({
 
 export default function Inbox({
   token,
+  aiDrafts,
   onSettings,
   onAuthFailure,
 }: {
   token: string;
+  aiDrafts: Map<string, AIDraftBuffer>;
   onSettings: () => void;
   onAuthFailure: () => void;
 }) {
@@ -537,6 +541,7 @@ export default function Inbox({
   const [listCursor, setListCursor] = useState<string | null>(null);
   const [listMore, setListMore] = useState(false);
   const [selected, setSelected] = useState<Conversation | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [messageState, setMessageState] = useState<LoadState>('idle');
   const [messageError, setMessageError] = useState<string | null>(null);
@@ -1092,6 +1097,7 @@ export default function Inbox({
                         className={`inbox-conversation ${selected?.id === item.id ? 'selected' : ''}`}
                         onClick={(event) => {
                           selectedTrigger.current = event.currentTarget;
+                          setAiOpen(false);
                           setSelected(item);
                           setNotice(null);
                         }}
@@ -1223,6 +1229,13 @@ export default function Inbox({
                     <Symbol name="archive" size={15} />
                     {selected.archived ? '移回收件箱' : '归档'}
                   </button>
+                  <button
+                    onClick={() => setAiOpen((value) => !value)}
+                    aria-expanded={aiOpen}
+                    aria-controls={`ai-management-${selected.id}`}
+                  >
+                    AI 管理
+                  </button>
                 </div>
                 <div
                   className="inbox-history"
@@ -1306,6 +1319,18 @@ export default function Inbox({
                         <p className="inbox-inline-error" role="alert">
                           {messageError}
                         </p>
+                      ) : null}
+                      {aiOpen ? (
+                        <div id={`ai-management-${selected.id}`}>
+                          <AIPanel
+                            key={`${token}:${selected.id}`}
+                            token={token}
+                            conversationId={selected.id}
+                            draftCache={aiDrafts}
+                            messages={messages}
+                            onAuthFailure={onAuthFailure}
+                          />
+                        </div>
                       ) : null}
                     </>
                   )}

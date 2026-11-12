@@ -5,7 +5,6 @@
 ## 当前人员分工
 
 - 项目文档只使用公开协作标识 angjustinl、joey、kirinbao，不记录其与真实姓名的对应关系。
-
 - angjustinl：后端与 AI（TL/AI）；joey：前端、桌面与 UI（FE/UI）；kirinbao（用户本人）：产品、测试验收与最终交付（PL/QA）。
 - 后端由 joey 审，前端由angjustinl审；联合任务只审非本人模块，同人兼岗不能视为独立审批。
 - kirinbao组织验收和交付；本人编写的测试/交付脚本由非作者技术成员审查。
