@@ -1,0 +1,38 @@
+param([switch]$SkipFrontend, [switch]$IncludeDesktop)
+$ErrorActionPreference = 'Stop'
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$goCommand = Get-Command go -ErrorAction SilentlyContinue
+$goBinary = if ($goCommand) { $goCommand.Source } else { Join-Path $projectRoot '.tools/go/bin/go.exe' }
+if (-not (Test-Path -LiteralPath $goBinary)) { throw 'Go 1.26+ is required.' }
+$env:GOCACHE = Join-Path $projectRoot '.cache/go-build'
+$env:GOPATH = Join-Path $projectRoot '.cache/go'
+$env:GOTOOLCHAIN = 'local'
+Push-Location $projectRoot
+try {
+    $goFiles = @(Get-ChildItem -LiteralPath cmd,internal,tests -Recurse -Filter '*.go' -File -ErrorAction SilentlyContinue | ForEach-Object FullName)
+    $gofmtBinary = Join-Path (Split-Path -Parent $goBinary) 'gofmt.exe'
+    $unformatted = @(& $gofmtBinary -l $goFiles)
+    if ($LASTEXITCODE -ne 0) { throw 'Go formatting check failed.' }
+    if ($unformatted.Count -gt 0) { throw 'Go files need formatting. Run gofmt and review the changes.' }
+    & $goBinary test ./...
+    if ($LASTEXITCODE -ne 0) { throw 'Go tests failed.' }
+    & $goBinary vet ./...
+    if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
+    node scripts/check-contract.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'API contract checks failed.' }
+    if (-not $SkipFrontend) {
+        npm.cmd --prefix apps/desktop run format:check
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend formatting check failed.' }
+        npm.cmd --prefix apps/desktop run check
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend type check failed.' }
+        npm.cmd --prefix apps/desktop run build
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed.' }
+    }
+    if ($IncludeDesktop) {
+        $cargo = Get-Command cargo -ErrorAction SilentlyContinue
+        if (-not $cargo) { throw 'Rust/Cargo with Windows build prerequisites is required for desktop checks.' }
+        cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml
+        if ($LASTEXITCODE -ne 0) { throw 'Desktop cargo check failed.' }
+    }
+}
+finally { Pop-Location }
