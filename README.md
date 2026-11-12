@@ -1,119 +1,59 @@
-# Social Intelligence OS
+# 接班 / Away Desk
 
-多平台社交关系助手。当前实现为 **统一消息中心 + 邮箱只读同步 + QQ 账号核验 + 手动 AI 管理**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
+**去开个会。回来就知道哪件事要先做。**
 
-全部已实现功能按用户授权整合至 main，检查与同步记录见 [main整合记录](docs/acceptance/main-integration.md)。各项真实服务、正式审查和产品验收状态继续单独记录。
+你离开工作台后，活动主办方来信，要求今天 18:00 前提交素材。回来时，交接台已经列好要交什么，备好英文回信。点一下 **18:00**，邮件里写着截止时间的那句话就亮了。
 
-## 当前能运行的内容
+![接班交接台。首屏显示今天 18:00 的截止时间、两项提交材料，以及审阅回信按钮。](docs/media/away-desk.png)
 
-- 本机 HTTP 服务、配对令牌鉴权、来源校验、健康检查和统一错误结构。
-- 读取真实服务状态，优先展示 QQ 个人号 OneBot 适配；微信 Clawbot / Telegram 保留待接入声明。
-- QQ、微信、Telegram、闪聊的导入文本在同一消息中心管理：平台筛选、搜索、未读、置顶、归档、会话详情与历史分页。
-- 用户确认后导入统一 JSON，支持 Telegram Desktop 单个个人私聊导出；稳定标识去重、冲突整批回滚，SQLCipher 加密保存。
-- QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换；持续接收仍未实现。
-- 当前会话可先预览确认，再调用 DeepSeek/兼容接口整理摘要、风险、草稿和待核实记忆；用户确认记忆后才进入后续上下文。真实模型与界面验收待进行。
-- 邮箱支持本机配置 IMAP TLS 授权码后手动同步最近邮件，显示主题与地址；不改原邮箱已读，不发信。先支持 QQ/163/授权码企业邮箱的协议能力，真实账号尚待核验。
+[7 秒体验](#7-秒体验) · [真实邮箱演示](docs/away-desk.md#90-秒实机演示) · [技术文档](技术文档.md)
 
-自动发送始终关闭。接班仅在授权时段读取一个配置邮箱。跨平台持续收件、微信/Telegram在线授权、Windows服务安装和真实消息发送仍待推进。四个聊天平台当前管理导入记录，邮箱按需手动同步，不表示都已持续在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
+## 离席前选一个人，回来先看一件事
 
-推荐先按[统一消息中心使用说明](docs/unified-inbox.md)运行 `scripts/start-inbox.ps1`，自动准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录。源码不含预置消息或真人聊天数据。
+| 你在做什么 | 接班在做什么 |
+| --- | --- |
+| **准备去开会** | 你选发件人和离席时长，确认这段时间可以交给模型处理的内容。 |
+| **窗口已经关了** | 独立后台检查授权邮箱。匹配的来信会变成带截止时间和原文的任务，另附一封待审的英文回信。 |
+| **回来打开交接台** | 截止时间就在首屏。点开核对原句，再编辑、保存或复制回信。含糊的时间标为「待确认」。 |
 
-## 「接班」比赛演示
+回信由你审阅。会话到期或手动停止后，后台结束本次接班。运行记录保留收件、建任务和备稿的时间。
 
-浏览器原型入口是 `http://127.0.0.1:1420/?demo=away`。正常工作台的「接班」使用真实本地后台，在授权的离席时间内只读检查一个配置邮箱，保存带原文的本地跟进任务和回信草稿。运行与验收步骤见[接班演示与复核](docs/away-desk.md)。
+## 7 秒体验
 
-## 本地启动
+有 Node.js 24 或更新版本即可启动网页演示。
 
-需要 Node.js 24、Go 1.26+、GCC（SQLCipher CGO 构建）和 PowerShell 7.2+。当前开发环境可使用项目内 `.tools/go` 的便携 Go，工具本身不进入仓库。
-
-### 1. 启动独立后台
-
-统一消息管理在项目根目录打开 PowerShell 7：
-
-```powershell
-.\scripts\start-inbox.ps1
-```
-
-如果只查看骨架与 QQ 核验，可不配置数据库，以原入口启动（消息中心会提示先配置加密存储）：
-
-```powershell
-$env:SOCIALD_API_TOKEN = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-$env:SOCIALD_ADDR = '127.0.0.1:17890'
-$env:SOCIALD_API_TOKEN | Set-Clipboard
-.\scripts\dev-backend.ps1
-```
-
-保持终端运行。上述命令已将本次令牌复制到剪贴板，在工作台设置页粘贴即可。设置页只在内存保存，刷新后需重新填写；令牌不进入 URL 或仓库。
-
-### 2. 启动前端
-
-另开终端：
-
-```powershell
+```sh
 cd apps/desktop
 npm ci
 npm run dev
 ```
 
-打开 `http://127.0.0.1:1420`，在设置页填写后台令牌并连接。健康检查地址是 `http://127.0.0.1:17890/health/live`。
+打开 [演示交接台](http://127.0.0.1:1420/?demo=away)，点 **一键演示**。等它回到交接台，依次点 **18:00** 和 **审阅回信**。演示使用合成邮件，启动时无需邮箱或模型凭据。
 
-`/health/ready` 当前仍返回 **503 NOT_READY**，因为无人值守所需实时接收、任务与发送链路尚未完成；本地导入管理能力由 `/api/v1/inbox` 的 `storage_enabled` 单独声明。
+## 90 秒实机演示
 
-### 3. 桌面外壳
+1. 在普通工作台打开 **接班 → 离席授权**，开始接班，关闭窗口。
+2. 从授权测试邮箱投递一封虚构邀请。
+3. 重开工作台，核对截止时间对应的邮件原句，打开回信和运行记录。
 
-Tauri 源码位于 `apps/desktop/src-tauri`。原生启动还需要 Rust/Cargo、Windows C++ 构建工具与 WebView2；本轮未在缺少这些环境的机器上验证原生编译。
+网页原型已走查。合成邮箱与本机 Qwen 模型已连续通过三轮浏览器关窗验收。真实邮箱三轮验收、Tauri 原生桌面验收仍待完成。测试配置和逐步操作见[实机演示与复核](docs/away-desk.md)。
 
-```powershell
-cd apps/desktop
-npm run tauri dev
-```
+## 从一封邀请到 Finfold 推广素材
 
-Go 后台需独立启动。Tauri 不以 sidecar 启停它；Windows 服务注册与自动恢复由 T19 后续实现。
+收到活动邀约后，可以把公开活动信息、产品卖点和 CTA 整理成一份 Brief。你核对公开字段，再交给 Finfold 创作台，准备 LinkedIn 和 X 的推广内容。交接台可以预览 Brief，Finfold 导入入口默认关闭。[Finfold 接入说明](docs/away-desk.md#finfold-赛后接入)
 
-## 检查
+## 本机工作台
 
-安装前端依赖后，在根目录运行：
+接班由 React 工作台、Tauri 桌面外壳和独立 Go 后台组成。后台用 IMAP TLS 只读收件，任务与草稿存入本地 SQLCipher 加密库。项目也包含统一消息中心、QQ OneBot 账号核验和手动 AI 管理。QQ、微信、Telegram 和闪聊的导入记录可统一管理，持续同步选型见[自动获取聊天记录](参考项目/自动同步/README.md)。
 
-```powershell
-.\scripts\check.ps1
-```
+- [工作台启动、统一导入与检查](docs/unified-inbox.md)
+- [邮箱授权](docs/email-setup.md) · [模型接入](docs/ai-setup.md) · [接口契约](api/openapi.yaml)
+- [功能进度](feat.md) · [任务与验收](任务规划.md) · [架构与实现](技术文档.md) · [工程交付](docs/acceptance/T04-handoff.md)
 
-检查 Go 格式、测试、静态检查、API 引用、前端类型与构建；不自动声称桌面编译通过。已有 Rust 环境时可加 `-IncludeDesktop` 验证 Cargo 构建检查。
+## 团队
 
-## 架构与文件
+- **angjustinl** · 后端、AI、数据与后台服务
+- **joey** · 前端、UI、桌面与 Tauri
+- **kirinbao** · 产品、测试验收与交付
 
-```mermaid
-flowchart LR
-    UI[React / Tauri 工作台] -->|本机 Bearer API| API[Go sociald]
-    API -->|只读账号核验| QQ[QQ OneBot v11 适配器]
-    QQ -->|HTTP / 正向 WS| PROVIDER[用户已有的个人 QQ 协议端]
-    API --> DOMAIN[领域 Scope / 消息 / 决策接口]
-    API --> INBOX[统一导入 / 会话 / 本地状态]
-    INBOX --> STORE[SQLCipher / SQLite]
-    API -->|手动只读同步| EMAIL[IMAP TLS 邮箱]
-    EMAIL --> INBOX
-    API -->|预览确认后单次分析| AI[固定 DeepSeek / 兼容模型]
-    AI -->|校验结果| MEMORY[限域记忆 / 摘要 / 本地草稿]
-    MEMORY --> STORE
-    DOMAIN -. 后续实现 .-> CONNECTOR[微信 Clawbot / Telegram]
-    DOMAIN -. 后续实现 .-> AGENT[持久化任务 / 审批 / 发件箱]
-```
-
-- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、只读邮箱同步及手动 AI 分析开放，发送/审批继续拒绝。
-- [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
-- [自动获取聊天记录选型](参考项目/自动同步/README.md)：减少手工导入的QCE、Telegram个人账号及微信方案核验；目前为调研与待实施步骤。
-- [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
-- [AI 管理接入](docs/ai-setup.md)：DeepSeek/兼容服务本机配置、预览确认、记忆核对与草稿。
-- [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
-- [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：自有服务与 OneBot 连接层分离，优先 QQ 个人号。
-- [技术文档](技术文档.md)、[逐项任务](任务规划.md)、[feat 进度](feat.md)。
-- [参考项目](参考项目/README.md)：上游源码仅用于静态参考。
-- [本地交付与待办](docs/acceptance/T04-handoff.md)：源码包生成方式、GitHub 同步状态和剩余验收条件。
-
-## 三人分工
-
-- angjustinl：后端、AI、数据与后台服务。
-- joey：前端、UI、桌面与 Tauri。
-- kirinbao：产品、测试验收与交付。
-
-前后端由非作者交叉审查；辅助审查和构建通过不替代指定成员的正式审查与验收。
+前后端由团队成员交叉审查，产品验收见[任务规划](任务规划.md)。

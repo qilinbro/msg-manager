@@ -17,6 +17,22 @@
 
 离席状态、邮箱收件位置、任务、草稿和记录存于加密库。只提交匹配发件地址的纯文本主题与正文给已授权模型。发件地址用于筛选。修改邮箱范围或模型配置后需要重新授权。重启后恢复未结束的会话和待处理项，中断时已提交模型的任务保留为待手写草稿，避免重复计费。格式不明确的日期、时区或时间会留待确认。邮箱轮询沿用最近一批的读取上限，遇到跳过或可能缺口会记录提示。
 
+### 自动验收三轮
+
+准备一个可向自己投递邮件的专用测试邮箱。后台仍按上方步骤启动，保持 Go 服务和前端运行。使用 Gmail 时，先开两步验证，再在支持应用专用密码的账号创建一个测试密码。Gmail 配置为 `imap.gmail.com:993` 和 `smtp.gmail.com:465`，应用专用密码输入时去掉分组空格。企业邮箱使用管理员给出的 IMAP TLS 与 SMTP TLS 参数。[Google 应用专用密码说明](https://support.google.com/accounts/answer/185833?hl=en)
+
+在项目根目录运行以下命令，将示例地址换成后台配置的专用测试邮箱。
+
+```sh
+python3 -m pip install playwright
+python3 -m playwright install chromium
+python3 scripts/verify-away-live.py --mailbox your-test-address@gmail.com --smtp-host smtp.gmail.com
+```
+
+按提示隐藏输入本机服务令牌和 SMTP 应用专用密码。脚本从正常工作台开始接班，关闭 Chromium 后向同一邮箱投递一封虚构邀请。后台备稿后重开 Chromium，核对截止时间高亮和草稿。脚本每轮显示耗时和结果，任一轮失败即停止。验收使用浏览器工作台，Tauri 原生桌面运行仍需实机验证。
+
+本机 SMTP 无法连接时，命令改用 `--manual-delivery` 代替 `--smtp-host smtp.gmail.com`。每轮在 Chromium 关闭后，从 Gmail 网页按终端显示的主题和正文发给自己，再按回车。后台仍通过真实邮箱收件，余下步骤由脚本检查。
+
 ## Finfold 赛后接入
 
 默认关闭。先在 Finfold 测试环境应用迁移 131，启用 `FINFOLD_AWAY_HANDOFF_ENABLED=true`，在两端后台配置同一份仅服务端使用的试点凭据 `FINFOLD_AWAY_HANDOFF_SECRET`，在 sociald 设置 `FINFOLD_AWAY_ORIGIN=https://staging.finfold.app`。测试确认后可为生产另行配置对应域名和独立凭据。凭据留在服务端环境。
@@ -26,6 +42,6 @@
 ## 验证状态
 
 - 本机 Chromium 在 1280 × 720 和 390 像素宽度走查通过，覆盖原文、键盘焦点、草稿、Brief 确认、关窗再开和三类异常。
-- Go 后台以合成来信和本地兼容模型验证三次自动生成。另验只读 IMAP TLS 的新邮件检查、加密库重启恢复、截止时间判定和停止后迟到结果。
+- 使用合成邮箱和本机 Qwen2.5-3B-Instruct 连续完成三轮 Chromium 关窗、后台收信、建任务、备稿和重开复核。各轮都核对了 18:00、北京时间、两项要求、原文高亮及英文草稿。另验只读 IMAP TLS 的新邮件检查、加密库重启恢复、截止时间判定和停止后迟到结果。
 - Finfold 本地 API 测试及隔离 PostgreSQL 验证了凭证字段、账号隔离、幂等、权限和到期。
-- 仍需真实授权邮箱与模型、Windows 原生运行、3 位首次使用者计时、Finfold 测试站端到端及非作者审查。比赛录像须从真实验收运行录制。
+- 仍需在真实授权邮箱连续完成三轮、Windows 原生运行、3 位首次使用者计时、Finfold 测试站端到端及非作者审查。比赛录像须从真实验收运行录制。

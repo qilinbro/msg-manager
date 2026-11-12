@@ -24,3 +24,24 @@ func TestAwayDeadlineNeedsExplicitClockDateAndZone(t *testing.T) {
 		}
 	}
 }
+
+func TestAwayEvidenceUsesLiteralUnambiguousSource(t *testing.T) {
+	received := time.Date(2026, 11, 12, 14, 0, 0, 0, time.UTC)
+	deadline := "Please send the description and demo video by 2026-11-13 at 18:00 Beijing time."
+	for _, test := range []struct{ name, body, modelQuote, want string }{
+		{"omitted", "Hi!\r\n" + deadline + "\r\nThanks.", "", deadline},
+		{"paraphrased", deadline, "Submit both by 18:00 tomorrow.", deadline},
+		{"inline", "Hi! " + deadline + " Please acknowledge receipt.", "", deadline},
+		{"conflicting", deadline + "\nThe deadline might instead be tomorrow afternoon.", deadline, ""},
+		{"ambiguous", "Please send the demo video by tomorrow afternoon.", "", ""},
+		{"tentative", "Tentative deadline is 18:00 Beijing time tomorrow.", "", ""},
+		{"unrelated", "The opening ceremony starts at 18:00 Beijing time tomorrow.", "", ""},
+		{"chinese", "你好！请在明日北京时间 18:00 提交。谢谢。", "", "请在明日北京时间 18:00 提交。"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := awayEvidence(test.body, test.modelQuote, received); got != test.want {
+				t.Fatalf("evidence = %q, want %q", got, test.want)
+			}
+		})
+	}
+}
