@@ -1,0 +1,686 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-11-12",
+  "timezone": "Asia/Shanghai",
+  "scope": "公开仓库与精简源码阅读；未安装依赖、未运行上游项目",
+  "feature": "FEAT-T01",
+  "change": "CHG-T01-002",
+  "projects": [
+    {
+      "slug": "bonds",
+      "repository": "naiba/bonds",
+      "branch": "main",
+      "commit": "69df488cb55885097612d9908670058d75bf2b8d",
+      "commit_date": "2026-11-08T14:36:23+08:00",
+      "local_path": "源码/bonds",
+      "sparse_directories": [
+        "server/internal",
+        "web/src"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 1106,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Bonds",
+      "category": "联系人与关系管理",
+      "stack": "Go + React + TypeScript + SQLite",
+      "priority": "P1：概念与同栈结构，复制前先确认许可",
+      "license_summary": "Business Source License 1.1（BSL，非开放源码许可证）",
+      "archived": false,
+      "repository_url": "https://github.com/naiba/bonds",
+      "official_site": "https://naiba.github.io/bonds/",
+      "task_ids": [
+        "T05",
+        "T07",
+        "T14",
+        "E02"
+      ],
+      "read_paths": [
+        {
+          "path": "server/internal/models/contact.go",
+          "label": "联系人模型",
+          "url": "https://github.com/naiba/bonds/blob/69df488cb55885097612d9908670058d75bf2b8d/server/internal/models/contact.go"
+        },
+        {
+          "path": "server/internal/services/contact_merge.go",
+          "label": "联系人合并服务",
+          "url": "https://github.com/naiba/bonds/blob/69df488cb55885097612d9908670058d75bf2b8d/server/internal/services/contact_merge.go"
+        },
+        {
+          "path": "web/src/pages/contact/ContactDetail.tsx",
+          "label": "联系人详情 UI",
+          "url": "https://github.com/naiba/bonds/blob/69df488cb55885097612d9908670058d75bf2b8d/web/src/pages/contact/ContactDetail.tsx"
+        }
+      ],
+      "license_url": "https://github.com/naiba/bonds/blob/69df488cb55885097612d9908670058d75bf2b8d/LICENSE",
+      "card": "项目卡片/bonds.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "monica",
+      "repository": "monicahq/monica",
+      "branch": "main",
+      "commit": "dab74273acc5c9e0ba713a9f7c2c71c24ab16993",
+      "commit_date": "2026-10-28T23:30:10+01:00",
+      "local_path": "源码/monica",
+      "sparse_directories": [
+        "app/Models",
+        "app/Services",
+        "resources/js/Pages/Vault/Contact"
+      ],
+      "license_files": [
+        "LICENSE.md"
+      ],
+      "checked_out_files": 125,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Monica",
+      "category": "联系人与关系管理",
+      "stack": "PHP / Laravel + Vue",
+      "priority": "P1：个人关系信息架构",
+      "license_summary": "AGPL-3.0",
+      "archived": false,
+      "repository_url": "https://github.com/monicahq/monica",
+      "official_site": "https://www.monicahq.com/",
+      "task_ids": [
+        "T07",
+        "T09",
+        "T14"
+      ],
+      "read_paths": [
+        {
+          "path": "app/Models/Contact.php",
+          "label": "联系人模型",
+          "url": "https://github.com/monicahq/monica/blob/dab74273acc5c9e0ba713a9f7c2c71c24ab16993/app/Models/Contact.php"
+        },
+        {
+          "path": "app/Models/TimelineEvent.php",
+          "label": "时间线事件",
+          "url": "https://github.com/monicahq/monica/blob/dab74273acc5c9e0ba713a9f7c2c71c24ab16993/app/Models/TimelineEvent.php"
+        },
+        {
+          "path": "resources/js/Pages/Vault/Contact",
+          "label": "联系人界面",
+          "url": "https://github.com/monicahq/monica/tree/dab74273acc5c9e0ba713a9f7c2c71c24ab16993/resources/js/Pages/Vault/Contact"
+        }
+      ],
+      "license_url": "https://github.com/monicahq/monica/blob/dab74273acc5c9e0ba713a9f7c2c71c24ab16993/LICENSE.md",
+      "card": "项目卡片/monica.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "twenty",
+      "repository": "twentyhq/twenty",
+      "branch": "main",
+      "commit": "0b4daad6f27ea5d15146a2fc071ef19476dde16f",
+      "commit_date": "2026-11-12T07:14:08Z",
+      "local_path": "源码/twenty",
+      "sparse_directories": [
+        "packages/twenty-ui/src",
+        "packages/twenty-front/src/modules/object-record",
+        "packages/twenty-front/src/modules/activities/timeline-activities"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 4111,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Twenty",
+      "category": "CRM 与 UI",
+      "stack": "React + TypeScript；NestJS / PostgreSQL",
+      "priority": "P1：React 组件与记录交互",
+      "license_summary": "混合许可：主体 AGPLv3 + Application Exception；Enterprise 文件商业许可；twenty-ui 等指定包 MIT",
+      "archived": false,
+      "repository_url": "https://github.com/twentyhq/twenty",
+      "official_site": "https://twenty.com/",
+      "task_ids": [
+        "T08",
+        "T14",
+        "T21"
+      ],
+      "read_paths": [
+        {
+          "path": "packages/twenty-front/src/modules/object-record",
+          "label": "记录交互模块",
+          "url": "https://github.com/twentyhq/twenty/tree/0b4daad6f27ea5d15146a2fc071ef19476dde16f/packages/twenty-front/src/modules/object-record"
+        },
+        {
+          "path": "packages/twenty-front/src/modules/activities/timeline-activities",
+          "label": "活动时间线",
+          "url": "https://github.com/twentyhq/twenty/tree/0b4daad6f27ea5d15146a2fc071ef19476dde16f/packages/twenty-front/src/modules/activities/timeline-activities"
+        },
+        {
+          "path": "packages/twenty-ui",
+          "label": "组件库与独立 LICENSE",
+          "url": "https://github.com/twentyhq/twenty/tree/0b4daad6f27ea5d15146a2fc071ef19476dde16f/packages/twenty-ui"
+        }
+      ],
+      "license_url": "https://github.com/twentyhq/twenty/blob/0b4daad6f27ea5d15146a2fc071ef19476dde16f/LICENSE",
+      "card": "项目卡片/twenty.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "chatwoot",
+      "repository": "chatwoot/chatwoot",
+      "branch": "develop",
+      "commit": "bf541372d1e75d7b65a17169e7057a24e7af44ad",
+      "commit_date": "2026-11-12T12:41:17+05:30",
+      "local_path": "源码/chatwoot",
+      "sparse_directories": [
+        "app/models",
+        "app/services/telegram",
+        "app/jobs",
+        "app/javascript/dashboard/routes/dashboard/conversation"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 333,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Chatwoot",
+      "category": "统一消息与 UI",
+      "stack": "Ruby on Rails + Vue",
+      "priority": "P1：消息收件箱与联系人侧栏",
+      "license_summary": "普通目录 MIT Expat；enterprise/ 独立许可；第三方各自许可",
+      "archived": false,
+      "repository_url": "https://github.com/chatwoot/chatwoot",
+      "official_site": "https://www.chatwoot.com/",
+      "task_ids": [
+        "T06",
+        "T07",
+        "T08",
+        "T17",
+        "T21"
+      ],
+      "read_paths": [
+        {
+          "path": "app/services/telegram/incoming_message_service.rb",
+          "label": "Telegram 入站消息",
+          "url": "https://github.com/chatwoot/chatwoot/blob/bf541372d1e75d7b65a17169e7057a24e7af44ad/app/services/telegram/incoming_message_service.rb"
+        },
+        {
+          "path": "app/jobs/send_reply_job.rb",
+          "label": "发送任务",
+          "url": "https://github.com/chatwoot/chatwoot/blob/bf541372d1e75d7b65a17169e7057a24e7af44ad/app/jobs/send_reply_job.rb"
+        },
+        {
+          "path": "app/javascript/dashboard/routes/dashboard/conversation/ConversationView.vue",
+          "label": "会话界面",
+          "url": "https://github.com/chatwoot/chatwoot/blob/bf541372d1e75d7b65a17169e7057a24e7af44ad/app/javascript/dashboard/routes/dashboard/conversation/ConversationView.vue"
+        },
+        {
+          "path": "app/javascript/dashboard/routes/dashboard/conversation/ContactPanel.vue",
+          "label": "联系人侧栏",
+          "url": "https://github.com/chatwoot/chatwoot/blob/bf541372d1e75d7b65a17169e7057a24e7af44ad/app/javascript/dashboard/routes/dashboard/conversation/ContactPanel.vue"
+        }
+      ],
+      "license_url": "https://github.com/chatwoot/chatwoot/blob/bf541372d1e75d7b65a17169e7057a24e7af44ad/LICENSE",
+      "card": "项目卡片/chatwoot.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "langbot",
+      "repository": "langbot-app/LangBot",
+      "branch": "master",
+      "commit": "9e31f971e5a2500d605f731928d85aa7f5fc867f",
+      "commit_date": "2026-11-12T15:47:19+08:00",
+      "local_path": "源码/langbot",
+      "sparse_directories": [
+        "src/langbot/pkg/platform",
+        "src/langbot/pkg/pipeline",
+        "plugins/KnowledgeEngine/LongTermMemory",
+        "plugins/misc/HumanTakeover"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 426,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "LangBot",
+      "category": "多平台 AI 机器人",
+      "stack": "Python；多平台适配与 Web 管理",
+      "priority": "P0：整体能力拆分优先参考",
+      "license_summary": "Apache-2.0",
+      "archived": false,
+      "repository_url": "https://github.com/langbot-app/LangBot",
+      "official_site": "https://langbot.app/docs/en/insight/features/",
+      "task_ids": [
+        "T02",
+        "T06",
+        "T09",
+        "T10",
+        "T13",
+        "T15",
+        "T17"
+      ],
+      "read_paths": [
+        {
+          "path": "src/langbot/pkg/platform/adapters/telegram/adapter.py",
+          "label": "Telegram 适配器",
+          "url": "https://github.com/langbot-app/LangBot/blob/9e31f971e5a2500d605f731928d85aa7f5fc867f/src/langbot/pkg/platform/adapters/telegram/adapter.py"
+        },
+        {
+          "path": "src/langbot/pkg/pipeline/controller.py",
+          "label": "处理流水线",
+          "url": "https://github.com/langbot-app/LangBot/blob/9e31f971e5a2500d605f731928d85aa7f5fc867f/src/langbot/pkg/pipeline/controller.py"
+        },
+        {
+          "path": "plugins/KnowledgeEngine/LongTermMemory/components/knowledge_engine/memory_engine.py",
+          "label": "长期记忆插件",
+          "url": "https://github.com/langbot-app/LangBot/blob/9e31f971e5a2500d605f731928d85aa7f5fc867f/plugins/KnowledgeEngine/LongTermMemory/components/knowledge_engine/memory_engine.py"
+        },
+        {
+          "path": "plugins/misc/HumanTakeover",
+          "label": "人工接管插件",
+          "url": "https://github.com/langbot-app/LangBot/tree/9e31f971e5a2500d605f731928d85aa7f5fc867f/plugins/misc/HumanTakeover"
+        }
+      ],
+      "license_url": "https://github.com/langbot-app/LangBot/blob/9e31f971e5a2500d605f731928d85aa7f5fc867f/LICENSE",
+      "card": "项目卡片/langbot.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "astrbot",
+      "repository": "AstrBotDevs/AstrBot",
+      "branch": "master",
+      "commit": "2c3ee62b15eb0d329f608481002bed5fc45e84e7",
+      "commit_date": "2026-11-12T12:51:26+08:00",
+      "local_path": "源码/astrbot",
+      "sparse_directories": [
+        "astrbot/core/platform",
+        "astrbot/core/pipeline"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 175,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "AstrBot",
+      "category": "多平台 AI 机器人",
+      "stack": "Python",
+      "priority": "P1：平台抽象与会话限频",
+      "license_summary": "AGPL-3.0",
+      "archived": false,
+      "repository_url": "https://github.com/AstrBotDevs/AstrBot",
+      "official_site": "https://docs.astrbot.app/",
+      "task_ids": [
+        "T02",
+        "T06",
+        "T12",
+        "T13",
+        "T17"
+      ],
+      "read_paths": [
+        {
+          "path": "astrbot/core/platform/platform.py",
+          "label": "平台抽象",
+          "url": "https://github.com/AstrBotDevs/AstrBot/blob/2c3ee62b15eb0d329f608481002bed5fc45e84e7/astrbot/core/platform/platform.py"
+        },
+        {
+          "path": "astrbot/core/platform/sources/telegram/tg_adapter.py",
+          "label": "Telegram 适配器",
+          "url": "https://github.com/AstrBotDevs/AstrBot/blob/2c3ee62b15eb0d329f608481002bed5fc45e84e7/astrbot/core/platform/sources/telegram/tg_adapter.py"
+        },
+        {
+          "path": "astrbot/core/pipeline/rate_limit_check/stage.py",
+          "label": "限频阶段",
+          "url": "https://github.com/AstrBotDevs/AstrBot/blob/2c3ee62b15eb0d329f608481002bed5fc45e84e7/astrbot/core/pipeline/rate_limit_check/stage.py"
+        }
+      ],
+      "license_url": "https://github.com/AstrBotDevs/AstrBot/blob/2c3ee62b15eb0d329f608481002bed5fc45e84e7/LICENSE",
+      "card": "项目卡片/astrbot.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "go-telegram-bot",
+      "repository": "go-telegram/bot",
+      "branch": "main",
+      "commit": "f061396531935982a05fcb1e09d2e5e7c2742a7c",
+      "commit_date": "2026-11-09T20:12:14+03:00",
+      "local_path": "源码/go-telegram-bot",
+      "sparse_directories": [
+        "models",
+        "examples"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 155,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "go-telegram/bot",
+      "category": "Go 平台连接",
+      "stack": "Go",
+      "priority": "P0：首个 Go 连接器候选，接收语义必须改造",
+      "license_summary": "MIT",
+      "archived": false,
+      "repository_url": "https://github.com/go-telegram/bot",
+      "official_site": "https://core.telegram.org/bots/api",
+      "task_ids": [
+        "T02",
+        "T06",
+        "T17"
+      ],
+      "read_paths": [
+        {
+          "path": "get_updates.go",
+          "label": "内存游标与接收循环",
+          "url": "https://github.com/go-telegram/bot/blob/f061396531935982a05fcb1e09d2e5e7c2742a7c/get_updates.go"
+        },
+        {
+          "path": "raw_request.go",
+          "label": "HTTP 请求和错误处理",
+          "url": "https://github.com/go-telegram/bot/blob/f061396531935982a05fcb1e09d2e5e7c2742a7c/raw_request.go"
+        },
+        {
+          "path": "process_update.go",
+          "label": "处理函数调度",
+          "url": "https://github.com/go-telegram/bot/blob/f061396531935982a05fcb1e09d2e5e7c2742a7c/process_update.go"
+        },
+        {
+          "path": "examples",
+          "label": "使用示例",
+          "url": "https://github.com/go-telegram/bot/tree/f061396531935982a05fcb1e09d2e5e7c2742a7c/examples"
+        }
+      ],
+      "license_url": "https://github.com/go-telegram/bot/blob/f061396531935982a05fcb1e09d2e5e7c2742a7c/LICENSE",
+      "card": "项目卡片/go-telegram-bot.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "mem0",
+      "repository": "mem0ai/mem0",
+      "branch": "main",
+      "commit": "f1791daa86d469249c9b002f62644d58a1eb96a0",
+      "commit_date": "2026-11-06T22:23:06+05:30",
+      "local_path": "源码/mem0",
+      "sparse_directories": [
+        "mem0/memory",
+        "mem0/configs",
+        "mem0/vector_stores"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 110,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Mem0",
+      "category": "长期记忆",
+      "stack": "Python；另有 TypeScript SDK",
+      "priority": "P1：记忆 API 与检索过滤；MVP 保留接口",
+      "license_summary": "Apache-2.0",
+      "archived": false,
+      "repository_url": "https://github.com/mem0ai/mem0",
+      "official_site": "https://docs.mem0.ai/open-source/overview",
+      "task_ids": [
+        "T09",
+        "T10",
+        "T11",
+        "E03"
+      ],
+      "read_paths": [
+        {
+          "path": "mem0/memory/main.py",
+          "label": "记忆实现及过滤构造",
+          "url": "https://github.com/mem0ai/mem0/blob/f1791daa86d469249c9b002f62644d58a1eb96a0/mem0/memory/main.py"
+        },
+        {
+          "path": "mem0/memory/storage.py",
+          "label": "记忆存储",
+          "url": "https://github.com/mem0ai/mem0/blob/f1791daa86d469249c9b002f62644d58a1eb96a0/mem0/memory/storage.py"
+        },
+        {
+          "path": "mem0/vector_stores",
+          "label": "向量存储适配",
+          "url": "https://github.com/mem0ai/mem0/tree/f1791daa86d469249c9b002f62644d58a1eb96a0/mem0/vector_stores"
+        }
+      ],
+      "license_url": "https://github.com/mem0ai/mem0/blob/f1791daa86d469249c9b002f62644d58a1eb96a0/LICENSE",
+      "card": "项目卡片/mem0.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "graphiti",
+      "repository": "getzep/graphiti",
+      "branch": "main",
+      "commit": "ebef986a0b2360211b65751c111cacb4a7d790eb",
+      "commit_date": "2026-11-11T01:25:27Z",
+      "local_path": "源码/graphiti",
+      "sparse_directories": [
+        "graphiti_core"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 188,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Graphiti",
+      "category": "关系与时间记忆",
+      "stack": "Python；图数据库适配",
+      "priority": "P2：第二阶段事实时间与关系模型",
+      "license_summary": "Apache-2.0",
+      "archived": false,
+      "repository_url": "https://github.com/getzep/graphiti",
+      "official_site": "https://github.com/getzep/graphiti",
+      "task_ids": [
+        "T09",
+        "T10",
+        "E03"
+      ],
+      "read_paths": [
+        {
+          "path": "graphiti_core/graphiti.py",
+          "label": "事件与图更新入口",
+          "url": "https://github.com/getzep/graphiti/blob/ebef986a0b2360211b65751c111cacb4a7d790eb/graphiti_core/graphiti.py"
+        },
+        {
+          "path": "graphiti_core/edges.py",
+          "label": "关系边与有效时间",
+          "url": "https://github.com/getzep/graphiti/blob/ebef986a0b2360211b65751c111cacb4a7d790eb/graphiti_core/edges.py"
+        },
+        {
+          "path": "graphiti_core/search/search_filters.py",
+          "label": "检索过滤",
+          "url": "https://github.com/getzep/graphiti/blob/ebef986a0b2360211b65751c111cacb4a7d790eb/graphiti_core/search/search_filters.py"
+        }
+      ],
+      "license_url": "https://github.com/getzep/graphiti/blob/ebef986a0b2360211b65751c111cacb4a7d790eb/LICENSE",
+      "card": "项目卡片/graphiti.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "openclaw",
+      "repository": "openclaw/openclaw",
+      "branch": "main",
+      "commit": "9fe59d5e7ef063a15c39523386c15c0b68b733f3",
+      "commit_date": "2026-11-12T16:26:31+08:00",
+      "local_path": "源码/openclaw",
+      "sparse_directories": [
+        "src/gateway",
+        "src/memory",
+        "src/cron",
+        "src/daemon",
+        "src/pairing",
+        "src/security",
+        "ui/src"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 14200,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "OpenClaw",
+      "category": "常驻个人 Agent",
+      "stack": "TypeScript / Node.js",
+      "priority": "P1：后台网关、定时任务及授权交互",
+      "license_summary": "MIT",
+      "archived": false,
+      "repository_url": "https://github.com/openclaw/openclaw",
+      "official_site": "https://docs.openclaw.ai/",
+      "task_ids": [
+        "T12",
+        "T15",
+        "T16",
+        "T19",
+        "T20",
+        "T21"
+      ],
+      "read_paths": [
+        {
+          "path": "src/gateway",
+          "label": "常驻网关",
+          "url": "https://github.com/openclaw/openclaw/tree/9fe59d5e7ef063a15c39523386c15c0b68b733f3/src/gateway"
+        },
+        {
+          "path": "src/cron",
+          "label": "定时任务",
+          "url": "https://github.com/openclaw/openclaw/tree/9fe59d5e7ef063a15c39523386c15c0b68b733f3/src/cron"
+        },
+        {
+          "path": "src/memory",
+          "label": "记忆模块",
+          "url": "https://github.com/openclaw/openclaw/tree/9fe59d5e7ef063a15c39523386c15c0b68b733f3/src/memory"
+        },
+        {
+          "path": "src/pairing",
+          "label": "配对",
+          "url": "https://github.com/openclaw/openclaw/tree/9fe59d5e7ef063a15c39523386c15c0b68b733f3/src/pairing"
+        },
+        {
+          "path": "ui/src",
+          "label": "管理界面",
+          "url": "https://github.com/openclaw/openclaw/tree/9fe59d5e7ef063a15c39523386c15c0b68b733f3/ui/src"
+        }
+      ],
+      "license_url": "https://github.com/openclaw/openclaw/blob/9fe59d5e7ef063a15c39523386c15c0b68b733f3/LICENSE",
+      "card": "项目卡片/openclaw.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "letta-code",
+      "repository": "letta-ai/letta-code",
+      "branch": "main",
+      "commit": "ed08ddcb8e109f5e64076073294a832955ffc23e",
+      "commit_date": "2026-11-11T22:55:46-08:00",
+      "local_path": "源码/letta-code",
+      "sparse_directories": [
+        "src"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 2693,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Letta Code",
+      "category": "有状态 Agent",
+      "stack": "TypeScript",
+      "priority": "P2：Agent 服务与审批、队列结构",
+      "license_summary": "Apache-2.0",
+      "archived": false,
+      "repository_url": "https://github.com/letta-ai/letta-code",
+      "official_site": "https://docs.letta.com/letta-code/channels",
+      "task_ids": [
+        "T11",
+        "T12",
+        "T15",
+        "T16",
+        "T19"
+      ],
+      "read_paths": [
+        {
+          "path": "src/agent",
+          "label": "Agent 模块",
+          "url": "https://github.com/letta-ai/letta-code/tree/ed08ddcb8e109f5e64076073294a832955ffc23e/src/agent"
+        },
+        {
+          "path": "src/permissions",
+          "label": "权限模块",
+          "url": "https://github.com/letta-ai/letta-code/tree/ed08ddcb8e109f5e64076073294a832955ffc23e/src/permissions"
+        },
+        {
+          "path": "src/channels",
+          "label": "渠道模块",
+          "url": "https://github.com/letta-ai/letta-code/tree/ed08ddcb8e109f5e64076073294a832955ffc23e/src/channels"
+        },
+        {
+          "path": "src/queue",
+          "label": "队列模块",
+          "url": "https://github.com/letta-ai/letta-code/tree/ed08ddcb8e109f5e64076073294a832955ffc23e/src/queue"
+        }
+      ],
+      "license_url": "https://github.com/letta-ai/letta-code/blob/ed08ddcb8e109f5e64076073294a832955ffc23e/LICENSE",
+      "card": "项目卡片/letta-code.md",
+      "checked_on": "2026-11-12"
+    },
+    {
+      "slug": "temporal",
+      "repository": "temporalio/temporal",
+      "branch": "main",
+      "commit": "03ecd1d228d2b8d9d433da55785afc9aeeead918",
+      "commit_date": "2026-11-11T03:39:18Z",
+      "local_path": "源码/temporal",
+      "sparse_directories": [
+        "common/backoff",
+        "common/tasks",
+        "service/history/queues",
+        "docs/architecture"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "checked_out_files": 209,
+      "working_tree_clean": true,
+      "runtime_tested": false,
+      "title": "Temporal",
+      "category": "持久化执行",
+      "stack": "Go 服务",
+      "priority": "P2：任务恢复设计参考，不作为 MVP 新依赖",
+      "license_summary": "MIT",
+      "archived": false,
+      "repository_url": "https://github.com/temporalio/temporal",
+      "official_site": "https://docs.temporal.io/",
+      "task_ids": [
+        "T15",
+        "T19",
+        "T23",
+        "T26"
+      ],
+      "read_paths": [
+        {
+          "path": "common/backoff",
+          "label": "退避机制",
+          "url": "https://github.com/temporalio/temporal/tree/03ecd1d228d2b8d9d433da55785afc9aeeead918/common/backoff"
+        },
+        {
+          "path": "common/tasks",
+          "label": "任务抽象",
+          "url": "https://github.com/temporalio/temporal/tree/03ecd1d228d2b8d9d433da55785afc9aeeead918/common/tasks"
+        },
+        {
+          "path": "service/history/queues",
+          "label": "历史任务队列",
+          "url": "https://github.com/temporalio/temporal/tree/03ecd1d228d2b8d9d433da55785afc9aeeead918/service/history/queues"
+        },
+        {
+          "path": "docs/architecture",
+          "label": "架构文档",
+          "url": "https://github.com/temporalio/temporal/tree/03ecd1d228d2b8d9d433da55785afc9aeeead918/docs/architecture"
+        }
+      ],
+      "license_url": "https://github.com/temporalio/temporal/blob/03ecd1d228d2b8d9d433da55785afc9aeeead918/LICENSE",
+      "card": "项目卡片/temporal.md",
+      "checked_on": "2026-11-12"
+    }
+  ],
+  "source_footprint_mib": 406.2
+}
