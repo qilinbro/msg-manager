@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"net/mail"
 	"strings"
 	"time"
 	"unicode"
@@ -37,7 +38,7 @@ func validResourceID(id string) bool {
 }
 
 func validPlatform(value string) bool {
-	return value == "qq" || value == "weixin" || value == "telegram" || value == "shanliao"
+	return value == "qq" || value == "weixin" || value == "telegram" || value == "shanliao" || value == "email"
 }
 func validLabel(value string, required bool) bool {
 	if !utf8.ValidString(value) || utf8.RuneCountInString(value) > 128 || strings.TrimSpace(value) != value || required && value == "" {
@@ -73,8 +74,26 @@ func normalizeImport(req ImportRequest) (ImportRequest, error) {
 		if m.PeerName == "" {
 			m.PeerName = m.PeerID
 		}
+		if m.Email != nil {
+			if req.Platform != "email" || !validEmailHeaders(m.Email) {
+				return ImportRequest{}, ErrInvalidInput
+			}
+		}
 	}
 	return result, nil
+}
+
+func validEmailHeaders(e *EmailHeaders) bool {
+	if !utf8.ValidString(e.Subject) || len(e.Subject) > 4096 || strings.ContainsAny(e.Subject, "\x00\r\n") || !validLabel(e.FromName, false) || !validLabel(e.Folder, true) || len(e.To) > 100 {
+		return false
+	}
+	for _, address := range append([]string{e.FromAddress}, e.To...) {
+		parsed, err := mail.ParseAddress(address)
+		if err != nil || parsed.Address != address || len(address) > 320 || strings.ContainsAny(address, "\r\n\x00") {
+			return false
+		}
+	}
+	return true
 }
 
 func normalizedLimit(limit int) (int, error) {

@@ -21,6 +21,7 @@ import type {
   TelegramImportRequest,
 } from './inbox-api';
 import './inbox.css';
+import EmailPanel from './EmailPanel';
 
 type View = 'all' | 'unread' | 'pinned' | 'archived';
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -35,7 +36,7 @@ type Glyph =
   | 'check'
   | 'close'
   | 'refresh';
-const PLATFORMS: Platform[] = ['qq', 'weixin', 'telegram', 'shanliao'];
+const PLATFORMS: Platform[] = ['qq', 'weixin', 'telegram', 'shanliao', 'email'];
 const VIEWS: { value: View; name: string; icon: Glyph }[] = [
   { value: 'all', name: '全部会话', icon: 'mail' },
   { value: 'unread', name: '未读', icon: 'mail' },
@@ -549,11 +550,26 @@ export default function Inbox({
   const historyRequest = useRef<AbortController | null>(null);
   const actionRequest = useRef<AbortController | null>(null);
   const messageViewport = useRef<HTMLDivElement | null>(null);
+  const detailHeader = useRef<HTMLElement | null>(null);
+  const selectedTrigger = useRef<HTMLButtonElement | null>(null);
+  const searchField = useRef<HTMLInputElement | null>(null);
+  const previousSelectedId = useRef<string | undefined>(undefined);
+  const restoreListFocus = useRef(false);
   const scrollMode = useRef<
     { kind: 'bottom' } | { kind: 'prepend'; height: number }
   >({ kind: 'bottom' });
   const enabled = Boolean(token && info?.storage_enabled);
   const selectedId = selected?.id;
+  useLayoutEffect(() => {
+    if (selectedId) detailHeader.current?.focus({ preventScroll: true });
+    else if (previousSelectedId.current && restoreListFocus.current) {
+      if (selectedTrigger.current?.isConnected)
+        selectedTrigger.current.focus({ preventScroll: true });
+      else searchField.current?.focus({ preventScroll: true });
+    }
+    previousSelectedId.current = selectedId;
+    restoreListFocus.current = false;
+  }, [selectedId]);
   useEffect(
     () => () => {
       listRequest.current?.abort();
@@ -837,9 +853,19 @@ export default function Inbox({
       <div className="inbox-source-note">
         <span className="inbox-status-dot" />
         <span>
-          当前使用本地导入记录。平台实时接收与发送尚未启用，导入不会发出消息。
+          这里汇集导入记录与按需同步的邮件。工作台不会自动发送消息或邮件。
         </span>
       </div>
+      {token ? (
+        <EmailPanel
+          key={token}
+          token={token}
+          storageEnabled={enabled}
+          revision={revision}
+          onSynced={refresh}
+          onAuthFailure={onAuthFailure}
+        />
+      ) : null}
       {notice ? (
         <div className="inbox-notice" role="status">
           <p>{notice}</p>
@@ -870,7 +896,7 @@ export default function Inbox({
         <section className="inbox-start">
           <Symbol name="mail" size={34} />
           <h2>先连接你的消息工作台</h2>
-          <p>连接本地服务后，就能导入和整理来自四个平台的消息。</p>
+          <p>连接本地服务后，就能导入社交记录，并按需同步和整理邮件。</p>
           <button className="button button-secondary" onClick={onSettings}>
             前往连接设置
             <Symbol name="arrow" size={16} />
@@ -950,7 +976,7 @@ export default function Inbox({
               );
             })}
             <p className="inbox-filter-footnote">
-              消息来自已导入记录；账号核验与实时接入状态分别显示。
+              社交记录来自导入，邮箱按需同步；各来源接入状态单独显示。
             </p>
             <div className="inbox-live-states">
               {info.platforms.map((item) => (
@@ -961,7 +987,9 @@ export default function Inbox({
                       ? '仅账号核验'
                       : item.live_status === 'unsupported'
                         ? '暂不支持实时接入'
-                        : '实时未连接'}
+                        : item.live_status === 'configured'
+                          ? '已配置·手动同步'
+                          : '实时未连接'}
                   </span>
                 </span>
               ))}
@@ -974,6 +1002,7 @@ export default function Inbox({
                 <span className="inbox-sr-only">搜索会话或消息</span>
                 <input
                   type="search"
+                  ref={searchField}
                   placeholder="搜索联系人、消息内容"
                   value={search}
                   onChange={(event) => {
@@ -990,7 +1019,9 @@ export default function Inbox({
                 </strong>
                 <span>
                   {listState === 'ready'
-                    ? `${conversations.length} 个会话`
+                    ? platform === 'email'
+                      ? `${conversations.length} 封邮件`
+                      : `${conversations.length} 个会话`
                     : '正在读取'}
                 </span>
               </div>
@@ -1059,7 +1090,8 @@ export default function Inbox({
                     <li key={item.id}>
                       <button
                         className={`inbox-conversation ${selected?.id === item.id ? 'selected' : ''}`}
-                        onClick={() => {
+                        onClick={(event) => {
+                          selectedTrigger.current = event.currentTarget;
                           setSelected(item);
                           setNotice(null);
                         }}
@@ -1088,7 +1120,9 @@ export default function Inbox({
                           <span className="inbox-conversation-meta">
                             <span>
                               {PLATFORM_NAMES[item.platform]} ·{' '}
-                              {item.account_id}
+                              {item.platform === 'email'
+                                ? item.account_name || '邮箱账号'
+                                : item.account_id}
                             </span>
                             {item.pinned ? (
                               <span className="inbox-pin-label">
@@ -1132,10 +1166,17 @@ export default function Inbox({
           <section className="inbox-detail" aria-label="会话详情">
             {selected ? (
               <>
-                <header className="inbox-detail-header">
+                <header
+                  className="inbox-detail-header"
+                  ref={detailHeader}
+                  tabIndex={-1}
+                >
                   <button
                     className="inbox-icon-button inbox-back"
-                    onClick={() => setSelected(null)}
+                    onClick={() => {
+                      restoreListFocus.current = true;
+                      setSelected(null);
+                    }}
                     aria-label="返回会话列表"
                     title="返回会话列表"
                   >
@@ -1146,7 +1187,13 @@ export default function Inbox({
                     <h2>{selected.title || selected.peer_id}</h2>
                     <p>
                       {PLATFORM_NAMES[selected.platform]} ·{' '}
-                      {selected.account_id} · 导入记录
+                      {selected.platform === 'email'
+                        ? selected.account_name || '邮箱账号'
+                        : selected.account_id}{' '}
+                      ·{' '}
+                      {selected.platform === 'email'
+                        ? '本地邮件记录'
+                        : '导入记录'}
                     </p>
                   </div>
                 </header>
@@ -1219,12 +1266,39 @@ export default function Inbox({
                             <span>
                               {item.direction === 'outgoing'
                                 ? '我 · 历史记录'
-                                : selected.title || selected.peer_id}
+                                : selected.platform === 'email'
+                                  ? item.email?.from_name ||
+                                    item.email?.from_address ||
+                                    '邮件记录'
+                                  : selected.title || selected.peer_id}
                             </span>
                             <time dateTime={item.occurred_at}>
                               {dateText(item.occurred_at, true)}
                             </time>
                           </div>
+                          {item.email ? (
+                            <dl className="email-message-metadata">
+                              <div>
+                                <dt>主题</dt>
+                                <dd>{item.email.subject || '无主题'}</dd>
+                              </div>
+                              <div>
+                                <dt>发件人</dt>
+                                <dd>
+                                  {item.email.from_name
+                                    ? `${item.email.from_name} · `
+                                    : ''}
+                                  {item.email.from_address || '未提供'}
+                                </dd>
+                              </div>
+                              {item.email.to.length > 0 ? (
+                                <div>
+                                  <dt>收件人</dt>
+                                  <dd>{item.email.to.join('、')}</dd>
+                                </div>
+                              ) : null}
+                            </dl>
+                          ) : null}
                           <p>{item.body}</p>
                         </article>
                       ))}
@@ -1238,7 +1312,11 @@ export default function Inbox({
                 </div>
                 <footer className="inbox-detail-footer">
                   <Symbol name="archive" size={15} />
-                  <span>这是本地导入的历史记录，当前不提供消息发送。</span>
+                  <span>
+                    {selected.platform === 'email'
+                      ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
+                      : '这是本地导入的历史记录，当前不提供消息发送。'}
+                  </span>
                 </footer>
               </>
             ) : (
@@ -1256,7 +1334,7 @@ export default function Inbox({
                   <br />
                   不同平台统一整理，账号依然各自清楚。
                 </p>
-                <span>QQ · 微信 · Telegram · 闪聊</span>
+                <span>QQ · 微信 · Telegram · 闪聊 · 邮箱</span>
               </div>
             )}
           </section>

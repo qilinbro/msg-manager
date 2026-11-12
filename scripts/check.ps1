@@ -26,6 +26,8 @@ try {
     node scripts/check-contract.mjs
     if ($LASTEXITCODE -ne 0) { throw 'API contract checks failed.' }
     if (-not $SkipFrontend) {
+        node scripts/test-inbox-import.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Inbox import regression checks failed.' }
         npm.cmd --prefix apps/desktop run format:check
         if ($LASTEXITCODE -ne 0) { throw 'Frontend formatting check failed.' }
         npm.cmd --prefix apps/desktop run check

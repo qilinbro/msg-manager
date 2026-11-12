@@ -1,6 +1,6 @@
 # Social Intelligence OS
 
-多平台社交关系助手。当前实现为 **统一消息中心 + QQ 只读适配**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
+多平台社交关系助手。当前实现为 **统一消息中心 + 邮箱只读同步 + QQ 账号核验**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
 
 ## 当前能运行的内容
 
@@ -9,8 +9,9 @@
 - QQ、微信、Telegram、闪聊的导入文本在同一消息中心管理：平台筛选、搜索、未读、置顶、归档、会话详情与历史分页。
 - 用户确认后导入统一 JSON，支持 Telegram Desktop 单个个人私聊导出；稳定标识去重、冲突整批回滚，SQLCipher 加密保存。
 - QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换；模型、记忆与持续接收仍未实现。
+- 邮箱支持本机配置 IMAP TLS 授权码后手动同步最近邮件，显示主题与地址；不改原邮箱已读，不发信。先支持 QQ/163/授权码企业邮箱的协议能力，真实账号尚待核验。
 
-自动发送始终关闭。平台实时收件、微信/Telegram在线授权、Windows服务安装和真实消息发送均未实现。四个平台当前管理导入记录，不表示都已在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)；已有服务地址与令牌仅在后台配置，不需要安装AstrBot。
+自动发送始终关闭。后台持续收件、微信/Telegram在线授权、Windows服务安装和真实消息发送均未实现。四个聊天平台当前管理导入记录，邮箱按需手动同步，不表示都已持续在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
 
 推荐先按[统一消息中心使用说明](docs/unified-inbox.md)运行 `scripts/start-inbox.ps1`，自动准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录。源码不含预置消息或真人聊天数据。
 
@@ -82,12 +83,15 @@ flowchart LR
     API --> DOMAIN[领域 Scope / 消息 / 决策接口]
     API --> INBOX[统一导入 / 会话 / 本地状态]
     INBOX --> STORE[SQLCipher / SQLite]
+    API -->|手动只读同步| EMAIL[IMAP TLS 邮箱]
+    EMAIL --> INBOX
     DOMAIN -. 后续实现 .-> CONNECTOR[微信 Clawbot / Telegram]
     DOMAIN -. 后续实现 .-> AGENT[记忆 / 模型 / 规则 / 发件箱]
 ```
 
-- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；仅本地导入与会话管理允许写入，发送/审批继续拒绝。
+- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；仅本地导入、会话管理与只读邮箱同步开放，发送/审批继续拒绝。
 - [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
+- [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
 - [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
 - [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：自有服务与 OneBot 连接层分离，优先 QQ 个人号。
 - [技术文档](技术文档.md)、[逐项任务](任务规划.md)、[feat 进度](feat.md)。

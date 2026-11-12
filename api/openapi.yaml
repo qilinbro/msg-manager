@@ -874,7 +874,8 @@
                 "qq",
                 "weixin",
                 "telegram",
-                "shanliao"
+                "shanliao",
+                "email"
               ]
             }
           },
@@ -1295,6 +1296,154 @@
           }
         }
       }
+    },
+    "/api/v1/connections/email-imap/status": {
+      "get": {
+        "description": "仅读取本进程邮箱配置与最近成功同步状态；不联网、不返回授权码；重启后最近同步统计重置。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式无效；不接受邮箱地址、主机或授权码参数",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "请求来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、存储不可用、同步繁忙、认证/网络/TLS/协议失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/email-imap/sync": {
+      "post": {
+        "description": "使用后台环境固定配置，单并发IMAP TLS只读收取最近N封，原子保存加密库；无发信、不改远端Seen。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailSyncResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式无效；不接受邮箱地址、主机或授权码参数",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "请求来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "相同稳定标识内容冲突，整批不保存",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超过限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、存储不可用、同步繁忙、认证/网络/TLS/协议失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1386,7 +1535,7 @@
         "properties": {
           "receive_text": {
             "type": "boolean",
-            "const": false
+            "description": "当前仅已配置邮箱且加密存储可用时提供手动只读收取；不表示持续监听。"
           },
           "send_text": {
             "type": "boolean",
@@ -1426,7 +1575,8 @@
             "enum": [
               "qq",
               "weixin",
-              "telegram"
+              "telegram",
+              "email"
             ]
           },
           "status": {
@@ -1446,7 +1596,8 @@
             "type": "string",
             "enum": [
               "planned",
-              "probe_ready"
+              "probe_ready",
+              "manual_sync_ready"
             ]
           },
           "capabilities": {
@@ -1638,7 +1789,10 @@
           },
           "source_mode": {
             "type": "string",
-            "const": "import"
+            "enum": [
+              "import",
+              "mixed"
+            ]
           },
           "platforms": {
             "type": "array",
@@ -1658,7 +1812,8 @@
                     "qq",
                     "weixin",
                     "telegram",
-                    "shanliao"
+                    "shanliao",
+                    "email"
                   ]
                 },
                 "name": {
@@ -1669,7 +1824,8 @@
                   "enum": [
                     "not_connected",
                     "probe_only",
-                    "unsupported"
+                    "unsupported",
+                    "configured"
                   ]
                 },
                 "message_count": {
@@ -1706,7 +1862,8 @@
               "qq",
               "weixin",
               "telegram",
-              "shanliao"
+              "shanliao",
+              "email"
             ]
           },
           "account_id": {
@@ -1717,7 +1874,11 @@
           },
           "source": {
             "type": "string",
-            "const": "import"
+            "enum": [
+              "import",
+              "imap",
+              "mixed"
+            ]
           },
           "message_count": {
             "type": "integer",
@@ -1754,7 +1915,8 @@
               "qq",
               "weixin",
               "telegram",
-              "shanliao"
+              "shanliao",
+              "email"
             ]
           },
           "account_id": {
@@ -1782,6 +1944,9 @@
           },
           "archived": {
             "type": "boolean"
+          },
+          "account_name": {
+            "type": "string"
           }
         }
       },
@@ -1795,7 +1960,8 @@
           "direction",
           "body",
           "occurred_at",
-          "read"
+          "read",
+          "source"
         ],
         "properties": {
           "id": {
@@ -1823,6 +1989,16 @@
           },
           "read": {
             "type": "boolean"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "import",
+              "imap"
+            ]
+          },
+          "email": {
+            "$ref": "#/components/schemas/EmailHeaders"
           }
         }
       },
@@ -1869,6 +2045,12 @@
           "occurred_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "email": {
+            "$ref": "#/components/schemas/EmailHeaders"
+          },
+          "read": {
+            "type": "boolean"
           }
         }
       },
@@ -1888,7 +2070,8 @@
               "qq",
               "weixin",
               "telegram",
-              "shanliao"
+              "shanliao",
+              "email"
             ]
           },
           "account_id": {
@@ -2078,6 +2261,142 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "EmailHeaders": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "subject",
+          "from_name",
+          "from_address",
+          "to",
+          "folder"
+        ],
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "from_name": {
+            "type": "string"
+          },
+          "from_address": {
+            "type": "string"
+          },
+          "to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "folder": {
+            "type": "string"
+          }
+        }
+      },
+      "EmailSyncResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations",
+          "skipped",
+          "limited",
+          "synced_at",
+          "sending_enabled"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "synced_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "EmailStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "state",
+          "account",
+          "folder",
+          "last_synced_at",
+          "last_result",
+          "sending_enabled"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "not_configured",
+              "ready",
+              "syncing",
+              "synced",
+              "auth_failed",
+              "unreachable",
+              "protocol_error"
+            ]
+          },
+          "account": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "folder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_synced_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmailSyncResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
           }
         }
       }

@@ -42,7 +42,7 @@ func run(ctx context.Context) error {
 	}
 	server := &http.Server{
 		Handler: handler, ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second,
+		ReadTimeout: 10 * time.Second, WriteTimeout: 40 * time.Second,
 		IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10,
 	}
 	serveErrors := make(chan error, 1)

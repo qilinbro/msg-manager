@@ -62,8 +62,8 @@ New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 $createdAt = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, 'China Standard Time')
 $archivePath = Join-Path $outputPath ('msg-manager-' + $createdAt.ToString('yyyyMMdd-HHmmss-fff') + '.zip')
 $manifest = [ordered]@{
-    changes = @('CHG-T03-001','CHG-T05-001','CHG-T07-001','CHG-T08-001','CHG-T04-003','CHG-T02-001')
-    feats = @('FEAT-T03','FEAT-T05','FEAT-T07','FEAT-T08','FEAT-T04','FEAT-T02')
+    changes = @('CHG-E04-001','CHG-T06-001','CHG-T05-002','CHG-T08-002','CHG-T03-001','CHG-T05-001','CHG-T07-001','CHG-T08-001','CHG-T04-003','CHG-T02-001')
+    feats = @('FEAT-E04','FEAT-T06','FEAT-T03','FEAT-T05','FEAT-T07','FEAT-T08','FEAT-T04','FEAT-T02')
     task_status = 'in_progress'
     created_at = $createdAt.ToString('o')
     timezone = 'Asia/Shanghai'

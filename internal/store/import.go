@@ -1,8 +1,29 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 func (s *Store) Import(req ImportRequest) (ImportResult, error) {
+	return s.importBatch(req, "import")
+}
+
+// ImportIMAP is used only by the server-configured read-only mailbox adapter.
+// Browser imports cannot promote their source to a live protocol sync.
+func (s *Store) ImportIMAP(req ImportRequest) (ImportResult, error) {
+	if req.Platform != "email" {
+		return ImportResult{}, ErrInvalidInput
+	}
+	for _, message := range req.Messages {
+		if message.Email == nil {
+			return ImportResult{}, ErrInvalidInput
+		}
+	}
+	return s.importBatch(req, "imap")
+}
+
+func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, error) {
 	req, err := normalizeImport(req)
 	if err != nil {
 		return ImportResult{}, err
@@ -15,7 +36,7 @@ func (s *Store) Import(req ImportRequest) (ImportResult, error) {
 	}
 	defer tx.Rollback()
 	connectionID := stableID("connection", req.Platform, req.AccountID)
-	if _, err := tx.Exec(`INSERT INTO connections(id,workspace_id,platform,account_id,display_name,source) VALUES (?,?,?,?,?,'import') ON CONFLICT(id) DO NOTHING`, connectionID, workspaceID, req.Platform, req.AccountID, req.AccountName); err != nil {
+	if _, err := tx.Exec(`INSERT INTO connections(id,workspace_id,platform,account_id,display_name,source) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET source=CASE WHEN source=excluded.source THEN source ELSE 'mixed' END`, connectionID, workspaceID, req.Platform, req.AccountID, req.AccountName, source); err != nil {
 		return ImportResult{}, ErrUnavailable
 	}
 	result := ImportResult{}
@@ -31,9 +52,15 @@ func (s *Store) Import(req ImportRequest) (ImportResult, error) {
 			return ImportResult{}, ErrUnavailable
 		}
 		var body, direction, occurredAt string
-		err := tx.QueryRow(`SELECT body,direction,occurred_at FROM messages WHERE workspace_id=? AND conversation_id=? AND external_id=?`, workspaceID, conversationID, m.ExternalID).Scan(&body, &direction, &occurredAt)
+		var existingEmail sql.NullString
+		var emailJSON any
+		if m.Email != nil {
+			encoded, _ := json.Marshal(m.Email)
+			emailJSON = string(encoded)
+		}
+		err := tx.QueryRow(`SELECT body,direction,occurred_at,email_json FROM messages WHERE workspace_id=? AND conversation_id=? AND external_id=?`, workspaceID, conversationID, m.ExternalID).Scan(&body, &direction, &occurredAt, &existingEmail)
 		if err == nil {
-			if body != m.Body || direction != m.Direction || occurredAt != m.OccurredAt {
+			if body != m.Body || direction != m.Direction || occurredAt != m.OccurredAt || existingEmail.Valid != (m.Email != nil) || (m.Email != nil && existingEmail.String != emailJSON) {
 				return ImportResult{}, ErrConflict
 			}
 			result.Duplicates++
@@ -43,7 +70,10 @@ func (s *Store) Import(req ImportRequest) (ImportResult, error) {
 			return ImportResult{}, ErrUnavailable
 		}
 		read := m.Direction == "outgoing"
-		if _, err := tx.Exec(`INSERT INTO messages(id,workspace_id,conversation_id,external_id,direction,body,occurred_at,is_read) VALUES (?,?,?,?,?,?,?,?)`, stableID("message", conversationID, m.ExternalID), workspaceID, conversationID, m.ExternalID, m.Direction, m.Body, m.OccurredAt, read); err != nil {
+		if m.Read != nil {
+			read = *m.Read
+		}
+		if _, err := tx.Exec(`INSERT INTO messages(id,workspace_id,conversation_id,external_id,direction,body,occurred_at,is_read,source,email_json) VALUES (?,?,?,?,?,?,?,?,?,?)`, stableID("message", conversationID, m.ExternalID), workspaceID, conversationID, m.ExternalID, m.Direction, m.Body, m.OccurredAt, read, source, emailJSON); err != nil {
 			return ImportResult{}, ErrUnavailable
 		}
 		result.Inserted++

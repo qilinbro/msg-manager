@@ -77,7 +77,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 		return ConversationPage{}, err
 	}
 	defer tx.Rollback()
-	query := `SELECT v.id,v.connection_id,c.platform,c.account_id,v.peer_id,v.title,
+	query := `SELECT v.id,v.connection_id,c.platform,c.account_id,c.display_name,v.peer_id,v.title,
  (SELECT m.body FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message,
  (SELECT m.occurred_at FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message_at,
  (SELECT count(*) FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND m.direction='incoming' AND m.is_read=0) AS unread_count,
@@ -97,8 +97,8 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 		// Literal substring matching supports Chinese short terms and treats SQL
 		// wildcard/FTS syntax as text. Scope/platform/archive predicates remain
 		// mandatory, including in the correlated message evidence lookup.
-		query += ` AND (instr(lower(v.title),lower(?))>0 OR instr(lower(v.peer_id),lower(?))>0 OR instr(lower(c.account_id),lower(?))>0 OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND instr(lower(m.body),lower(?))>0))`
-		args = append(args, filter.Q, filter.Q, filter.Q, filter.Q)
+		query += ` AND (instr(lower(v.title),lower(?))>0 OR instr(lower(v.peer_id),lower(?))>0 OR instr(lower(c.account_id),lower(?))>0 OR instr(lower(c.display_name),lower(?))>0 OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND (instr(lower(m.body),lower(?))>0 OR instr(lower(coalesce(m.email_json,'')),lower(?))>0)))`
+		args = append(args, filter.Q, filter.Q, filter.Q, filter.Q, filter.Q, filter.Q)
 	}
 	fp := fingerprint("conversations", workspaceID, filter.Q, filter.Platform, filter.Unread, filter.Archived, filter.Pinned)
 	query = `SELECT * FROM (` + query + `) result WHERE last_message_at IS NOT NULL`
@@ -122,7 +122,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 	items := []Conversation{}
 	for rows.Next() {
 		var item Conversation
-		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived) != nil {
+		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived) != nil {
 			_ = rows.Close()
 			return ConversationPage{}, ErrUnavailable
 		}
@@ -173,7 +173,7 @@ func (s *Store) Messages(conversationID, cursor string, limit int) (MessagePage,
 	if err != nil {
 		return MessagePage{}, ErrUnavailable
 	}
-	query := `SELECT id,conversation_id,external_id,direction,body,occurred_at,is_read,seq FROM messages WHERE workspace_id=? AND conversation_id=?`
+	query := `SELECT id,conversation_id,external_id,direction,body,occurred_at,is_read,seq,source,email_json FROM messages WHERE workspace_id=? AND conversation_id=?`
 	args := []any{workspaceID, conversationID}
 	fp := fingerprint("messages", workspaceID, conversationID)
 	if cursor != "" {
@@ -198,9 +198,18 @@ func (s *Store) Messages(conversationID, cursor string, limit int) (MessagePage,
 	for rows.Next() {
 		var item Message
 		var seq int64
-		if rows.Scan(&item.ID, &item.ConversationID, &item.ExternalID, &item.Direction, &item.Body, &item.OccurredAt, &item.Read, &seq) != nil {
+		var emailJSON sql.NullString
+		if rows.Scan(&item.ID, &item.ConversationID, &item.ExternalID, &item.Direction, &item.Body, &item.OccurredAt, &item.Read, &seq, &item.Source, &emailJSON) != nil {
 			_ = rows.Close()
 			return MessagePage{}, ErrUnavailable
+		}
+		if emailJSON.Valid {
+			var email EmailHeaders
+			if json.Unmarshal([]byte(emailJSON.String), &email) != nil {
+				_ = rows.Close()
+				return MessagePage{}, ErrUnavailable
+			}
+			item.Email = &email
 		}
 		items = append(items, item)
 		sequences = append(sequences, seq)

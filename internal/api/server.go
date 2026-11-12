@@ -23,6 +23,7 @@ type handler struct {
 	sequence  atomic.Uint64
 	qq        *qqConnection
 	inbox     *store.Store
+	email     *emailConnection
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -34,6 +35,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	email, err := newEmailConnection(cfg.Email)
+	if err != nil {
+		return nil, err
+	}
 	var inbox *store.Store
 	if cfg.DatabasePath != "" {
 		inbox, err = store.Open(cfg.DatabasePath, cfg.DatabaseKey)
@@ -41,7 +46,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox}, nil
+	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email}, nil
 }
 
 func (h *handler) Close() error {
@@ -100,6 +105,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method != http.MethodGet {
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/email-imap/sync" {
+				h.syncEmail(w, r, traceID)
+				return
+			}
 			if inboxMutation(r.Method, r.URL.Path) {
 				h.serveInbox(w, r, traceID)
 				return
@@ -143,6 +152,8 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 		writeJSON(w, http.StatusOK, ListResponse[connector.Descriptor]{Items: h.connections()})
 	case "/api/v1/connections/qq-onebot/verify":
 		h.verifyQQ(w, r, traceID)
+	case "/api/v1/connections/email-imap/status":
+		h.emailStatus(w)
 	case "/api/v1/events":
 		writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "事件流与恢复游标尚未实现；当前不提供实时事件订阅。", traceID)
 	case "/api/v1/messages", "/api/v1/contacts", "/api/v1/drafts", "/api/v1/approvals", "/api/v1/jobs", "/api/v1/audit", "/api/v1/reports":

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
 	"github.com/qilinbro/msg-manager/internal/connector/onebot"
 )
 
@@ -19,6 +20,7 @@ type Config struct {
 	Addr         string
 	APIToken     string
 	QQOneBot     onebot.Config
+	Email        mailbox.Config
 	DatabasePath string
 	DatabaseKey  string
 }
@@ -38,6 +40,21 @@ func LoadFromEnv() (Config, error) {
 			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
 			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
 		},
+		Email: mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
+	}
+	if value := os.Getenv("EMAIL_IMAP_PORT"); value != "" {
+		port, err := strconv.Atoi(value)
+		if err != nil {
+			return Config{}, errors.New("EMAIL_IMAP_PORT must be a valid TLS port")
+		}
+		cfg.Email.Port = port
+	}
+	if value := os.Getenv("EMAIL_IMAP_LIMIT"); value != "" {
+		limit, err := strconv.Atoi(value)
+		if err != nil {
+			return Config{}, errors.New("EMAIL_IMAP_LIMIT must be between 1 and 100")
+		}
+		cfg.Email.Limit = limit
 	}
 	return cfg, cfg.Validate()
 }

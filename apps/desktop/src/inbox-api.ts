@@ -1,19 +1,20 @@
 import { SERVICE, ServiceError } from './api';
 
-export type Platform = 'qq' | 'weixin' | 'telegram' | 'shanliao';
+export type Platform = 'qq' | 'weixin' | 'telegram' | 'shanliao' | 'email';
 export const PLATFORM_NAMES: Record<Platform, string> = {
   qq: 'QQ',
   weixin: '微信',
   telegram: 'Telegram',
   shanliao: '闪聊',
+  email: '邮箱',
 };
 export interface InboxInfo {
   storage_enabled: boolean;
-  source_mode: 'import';
+  source_mode: 'import' | 'mixed';
   platforms: {
     id: Platform;
     name: string;
-    live_status: 'not_connected' | 'probe_only' | 'unsupported';
+    live_status: 'not_connected' | 'probe_only' | 'unsupported' | 'configured';
     message_count: number;
   }[];
   import_limit: number;
@@ -23,6 +24,7 @@ export interface Conversation {
   connection_id: string;
   platform: Platform;
   account_id: string;
+  account_name?: string;
   peer_id: string;
   title: string;
   last_message: string;
@@ -39,6 +41,15 @@ export interface InboxMessage {
   body: string;
   occurred_at: string;
   read: boolean;
+  source?: 'import' | 'imap';
+  email?: EmailHeaders;
+}
+export interface EmailHeaders {
+  subject: string;
+  from_name: string;
+  from_address: string;
+  to: string[];
+  folder: string;
 }
 export interface PageResult<T> {
   items: T[];
@@ -51,6 +62,8 @@ export interface ImportMessage {
   direction: 'incoming' | 'outgoing';
   body: string;
   occurred_at: string;
+  read?: boolean;
+  email?: EmailHeaders;
 }
 export interface ImportRequest {
   platform: Platform;
@@ -186,6 +199,7 @@ function conversation(value: unknown): value is Conversation {
       'last_message_at',
     ].every((key) => isString(value[key])) &&
     isPlatform(value.platform) &&
+    (value.account_name === undefined || isString(value.account_name)) &&
     isCount(value.unread_count) &&
     typeof value.pinned === 'boolean' &&
     typeof value.archived === 'boolean'
@@ -198,7 +212,22 @@ function message(value: unknown): value is InboxMessage {
       (key) => isString(value[key]),
     ) &&
     ['incoming', 'outgoing'].includes(String(value.direction)) &&
-    typeof value.read === 'boolean'
+    typeof value.read === 'boolean' &&
+    (value.source === undefined ||
+      value.source === 'import' ||
+      value.source === 'imap') &&
+    (value.email === undefined || validEmail(value.email))
+  );
+}
+
+function validEmail(value: unknown): value is EmailHeaders {
+  return (
+    isRecord(value) &&
+    ['subject', 'from_name', 'from_address', 'folder'].every((key) =>
+      isString(value[key]),
+    ) &&
+    Array.isArray(value.to) &&
+    value.to.every(isString)
   );
 }
 function page<T>(
@@ -223,7 +252,7 @@ export async function getInboxInfo(
   if (
     !isRecord(value) ||
     typeof value.storage_enabled !== 'boolean' ||
-    value.source_mode !== 'import' ||
+    !['import', 'mixed'].includes(String(value.source_mode)) ||
     !isCount(value.import_limit) ||
     !Array.isArray(value.platforms) ||
     !value.platforms.every(
@@ -231,7 +260,7 @@ export async function getInboxInfo(
         isRecord(item) &&
         isPlatform(item.id) &&
         isString(item.name) &&
-        ['not_connected', 'probe_only', 'unsupported'].includes(
+        ['not_connected', 'probe_only', 'unsupported', 'configured'].includes(
           String(item.live_status),
         ) &&
         isCount(item.message_count),
@@ -388,6 +417,13 @@ export function parseImport(
         throw new Error(
           `第 ${index + 1} 条消息字段不完整或超过限制。请检查标识、方向、正文和含时区的 ISO 时间。`,
         );
+      if (
+        (item.read !== undefined && typeof item.read !== 'boolean') ||
+        (item.email !== undefined &&
+          (source.platform !== 'email' || !validEmail(item.email)))
+      ) {
+        throw new Error(`第 ${index + 1} 条邮件的元数据或已读状态格式不正确。`);
+      }
       return {
         external_id: item.external_id as string,
         peer_id: item.peer_id as string,
@@ -395,6 +431,10 @@ export function parseImport(
         direction: item.direction as ImportMessage['direction'],
         body: item.body,
         occurred_at: item.occurred_at,
+        ...(item.read === undefined ? {} : { read: item.read as boolean }),
+        ...(item.email === undefined
+          ? {}
+          : { email: item.email as EmailHeaders }),
       };
     },
   );

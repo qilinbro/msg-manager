@@ -40,7 +40,7 @@ func conversationRoute(path string) (string, bool, bool) {
 
 func inboxMutation(method, path string) bool {
 	if method == http.MethodPost {
-		return path == "/api/v1/imports/messages" || path == "/api/v1/imports/telegram"
+		return path == "/api/v1/imports/messages" || path == "/api/v1/imports/telegram" || path == "/api/v1/connections/email-imap/sync"
 	}
 	_, messages, ok := conversationRoute(path)
 	return method == http.MethodPatch && ok && !messages
@@ -63,7 +63,12 @@ type inboxPlatform struct {
 
 func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID string) {
 	if r.Method == http.MethodGet && r.URL.Path == "/api/v1/inbox" {
-		platforms := []inboxPlatform{{ID: "qq", Name: "QQ", LiveStatus: "probe_only"}, {ID: "weixin", Name: "微信", LiveStatus: "not_connected"}, {ID: "telegram", Name: "Telegram", LiveStatus: "not_connected"}, {ID: "shanliao", Name: "闪聊", LiveStatus: "unsupported"}}
+		platforms := []inboxPlatform{{ID: "qq", Name: "QQ", LiveStatus: "probe_only"}, {ID: "weixin", Name: "微信", LiveStatus: "not_connected"}, {ID: "telegram", Name: "Telegram", LiveStatus: "not_connected"}, {ID: "shanliao", Name: "闪聊", LiveStatus: "unsupported"}, {ID: "email", Name: "邮箱", LiveStatus: "not_connected"}}
+		sourceMode := "import"
+		if h.email.client != nil {
+			platforms[4].LiveStatus = "configured"
+			sourceMode = "mixed"
+		}
 		if h.inbox != nil {
 			connections, err := h.inbox.Connections()
 			if err != nil {
@@ -72,6 +77,9 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 			}
 			for i := range platforms {
 				for _, connection := range connections {
+					if connection.Source != "import" {
+						sourceMode = "mixed"
+					}
 					if connection.Platform == platforms[i].ID {
 						platforms[i].MessageCount += connection.MessageCount
 					}
@@ -83,7 +91,7 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 			SourceMode     string          `json:"source_mode"`
 			Platforms      []inboxPlatform `json:"platforms"`
 			ImportLimit    int             `json:"import_limit"`
-		}{h.inbox != nil, "import", platforms, 1000})
+		}{h.inbox != nil, sourceMode, platforms, 1000})
 		return
 	}
 	if h.inbox == nil {
@@ -203,7 +211,7 @@ func readInboxFilter(r *http.Request) (store.Filter, error) {
 		return store.Filter{}, err
 	}
 	f := store.Filter{Q: values.Get("q"), Platform: values.Get("platform"), Cursor: values.Get("cursor"), Limit: 50}
-	if len(f.Q) > 256 || !utf8.ValidString(f.Q) || len(f.Cursor) > 2048 || (f.Platform != "" && f.Platform != "qq" && f.Platform != "weixin" && f.Platform != "telegram" && f.Platform != "shanliao") {
+	if len(f.Q) > 256 || !utf8.ValidString(f.Q) || len(f.Cursor) > 2048 || (f.Platform != "" && f.Platform != "qq" && f.Platform != "weixin" && f.Platform != "telegram" && f.Platform != "shanliao" && f.Platform != "email") {
 		return f, store.ErrInvalidInput
 	}
 	for _, field := range []struct {
@@ -275,7 +283,8 @@ func readInboxJSON(w http.ResponseWriter, r *http.Request, target any, traceID s
 		writeError(w, http.StatusRequestEntityTooLarge, "PAYLOAD_TOO_LARGE", "导入文件不能超过 8 MiB，请分批导入。", traceID)
 		return false
 	}
-	if !utf8.Valid(body) || !uniqueJSON(body) {
+	trimmed := bytes.TrimSpace(body)
+	if len(trimmed) == 0 || trimmed[0] != '{' || !utf8.Valid(body) || !uniqueJSON(body) {
 		writeInboxError(w, store.ErrInvalidInput, traceID)
 		return false
 	}

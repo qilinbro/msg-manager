@@ -39,7 +39,9 @@ for (const path of Object.values(spec.paths)) {
 }
 const implementedMutations = Object.entries(spec.paths).flatMap(([path, operations]) =>
   Object.entries(operations).filter(([method, op]) => ['post', 'patch', 'put', 'delete'].includes(method) && op['x-implementation-status'] === 'implemented').map(([method]) => `${method} ${path}`));
-assert.deepEqual(implementedMutations.sort(), ['patch /api/v1/conversations/{conversation_id}', 'post /api/v1/imports/messages', 'post /api/v1/imports/telegram'].sort());
+assert.deepEqual(implementedMutations.sort(), ['patch /api/v1/conversations/{conversation_id}', 'post /api/v1/imports/messages', 'post /api/v1/imports/telegram','post /api/v1/connections/email-imap/sync'].sort());
 assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
-assert.equal(spec.components.schemas.InboxStatus.properties.source_mode.const, 'import');
+assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);
+assert.equal(spec.components.schemas.EmailStatus.properties.sending_enabled.const,false);
+assert.equal(spec.components.schemas.EmailSyncResult.properties.sending_enabled.const,false);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');
