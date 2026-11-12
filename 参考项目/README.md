@@ -3,14 +3,15 @@
 > 核验日期：2026-11-12（Asia/Shanghai）  
 > 关联：FEAT-T01 / CHG-T01-002 · 只作为调研资料，不代表任何开发任务验收完成。
 
-已从 GitHub、项目官网与实际代码筛选 **12 个公开实现项目**，并在本地保存对应分支的精简源码副本。目录内同时包含开放源码许可项目和受限源码许可项目，不能笼统视为可自由商用。
+初轮从 GitHub、项目官网与实际代码筛选 **12 个公开实现项目**，并在本地保存精简源码副本。新增[自动获取聊天记录专题](自动同步/README.md)，核验QCE、Telegram个人账号及微信候选，并新增QCE固定版本参考源码。目录内许可条件各异，不能笼统视为可自由商用。
 
 ## 先看哪些
 
+- **减少手工导入：** 优先[自动同步专题](自动同步/README.md)，QQ历史看QCE HTTP读取，Telegram本人账号看gotd；该专题的当前维护状态优先于旧搜索页面。
 - **整体 AI 消息处理：** [LangBot](项目卡片/langbot.md)，再对照 [AstrBot](项目卡片/astrbot.md) 的平台与限频抽象。
 - **联系人与关系档案：** [Monica](项目卡片/monica.md) 的信息模型；[Bonds](项目卡片/bonds.md) 的 Go + React 结构很贴近，但 BSL 许可限制必须单独确认。
 - **joey 的前端 / UI 阅读：** [Chatwoot](项目卡片/chatwoot.md) 的消息与联系人侧栏、[Twenty](项目卡片/twenty.md) 的记录与组件、Bonds 的联系人详情。
-- **angjustinl的首个连接器：** [go-telegram/bot](项目卡片/go-telegram-bot.md)，特别看游标与落库先后，不能直接沿用默认轮询循环。
+- **angjustinl的连接器：** QQ优先QCE/现有OneBot，Telegram个人账号看gotd；[go-telegram/bot](项目卡片/go-telegram-bot.md)只作Bot通道及游标落库顺序参考。
 - **长期记忆：** [Mem0](项目卡片/mem0.md)；事实时间与关系冲突的后续方案看 [Graphiti](项目卡片/graphiti.md)。
 - **常驻运行：** [OpenClaw](项目卡片/openclaw.md)、[Letta Code](项目卡片/letta-code.md)；任务恢复与重试结构补看 [Temporal](项目卡片/temporal.md)。
 

@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "checked_on": "2026-11-12",
+  "timezone": "Asia/Shanghai",
+  "feat": "FEAT-T06",
+  "change": "CHG-T06-002",
+  "verification": "official_docs_and_source_static_only",
+  "runtime_tested": false,
+  "real_accounts_accessed": false,
+  "product_auto_sync_implemented": false,
+  "projects": [
+    {
+      "repository": "shuakami/qq-chat-exporter",
+      "commit": "07113d8ebb2be829db9b9c58865a43629cad1a57",
+      "license": "GPL-3.0",
+      "decision": "priority_readonly_qq_history_adapter_candidate",
+      "local_source": "参考项目/源码/qq-chat-exporter",
+      "files": [
+        {
+          "path": "README.md",
+          "bytes": 4953,
+          "sha256_local_bytes": "cddbd39e0b22d47e33eba5d177abc3404f0fc5e10ff662207b062ee6671f5a7b",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/README.md"
+        },
+        {
+          "path": "LICENSE",
+          "bytes": 35821,
+          "sha256_local_bytes": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/LICENSE"
+        },
+        {
+          "path": "docs/guide.md",
+          "bytes": 13375,
+          "sha256_local_bytes": "d5ccbea9f7049dfb40ac266986c39fec529524045bfc0eafab2c2e4564928e94",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/docs/guide.md"
+        },
+        {
+          "path": "docs/roaming-api.md",
+          "bytes": 17439,
+          "sha256_local_bytes": "0b5380da4a2181a3bad34e396f350d5461d8e82d5f9990241397d32b3e281b2e",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/docs/roaming-api.md"
+        },
+        {
+          "path": "plugins/qq-chat-exporter/runtime/rustBridge.mjs",
+          "bytes": 20851,
+          "sha256_local_bytes": "05b1d360bc4d6b12e61df15bc2f4f9d3a5ff1421009fa70fdf54212d8d88d7b0",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/plugins/qq-chat-exporter/runtime/rustBridge.mjs"
+        },
+        {
+          "path": "qq-chat-export-server/src/api/middleware.rs",
+          "bytes": 9989,
+          "sha256_local_bytes": "326da3eec81519160d084936c453e42e56551728927a8242915265e1daa09083",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/api/middleware.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/api/response.rs",
+          "bytes": 4899,
+          "sha256_local_bytes": "c6b594ce97ada734021a9e851878fe4d6cc64e6681a153328615fe8b23f40f4f",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/api/response.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/api/routes/messages.rs",
+          "bytes": 143699,
+          "sha256_local_bytes": "2c8be7edc547ad7ca1a84dcc7fcbb726b8a9cfe1e8220982892b86f991abc8b5",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/api/routes/messages.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/api/routes/scheduled.rs",
+          "bytes": 23211,
+          "sha256_local_bytes": "a67ae165abf6bda443a19d62a83899520c18d111b2aa38c1d3dee73e7f28489e",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/api/routes/scheduled.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/api/routes/system.rs",
+          "bytes": 23996,
+          "sha256_local_bytes": "ad9be30f5bda13ad8ae76d405dd9fce6365202832c291c4dcd31671ca7dbd942",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/api/routes/system.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/napcat/client.rs",
+          "bytes": 25514,
+          "sha256_local_bytes": "86c70be3322c1d6c390b31234dcafb51490c05664e287fe5bc6a4938d42c408e",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/napcat/client.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/scheduled_executor.rs",
+          "bytes": 28587,
+          "sha256_local_bytes": "5fd137a3ac44fcecd4ccce34a5cff059a47f2ee64b2ee6dd8ed54cb518db2e76",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/scheduled_executor.rs"
+        },
+        {
+          "path": "qq-chat-export-server/src/scheduler/manager.rs",
+          "bytes": 35961,
+          "sha256_local_bytes": "e4de1afc37fff5b57a30f3e05058201aaa6b7c1928d1b3bc6be87db1c8f0389a",
+          "url": "https://github.com/shuakami/qq-chat-exporter/blob/07113d8ebb2be829db9b9c58865a43629cad1a57/qq-chat-export-server/src/scheduler/manager.rs"
+        }
+      ]
+    },
+    {
+      "repository": "gotd/td",
+      "commit": "112718adf863b47ffb1ec81aff34955d7d360633",
+      "license": "MIT",
+      "decision": "telegram_personal_account_candidate",
+      "sources": [
+        "https://github.com/gotd/td/blob/112718adf863b47ffb1ec81aff34955d7d360633/README.md",
+        "https://github.com/gotd/td/blob/112718adf863b47ffb1ec81aff34955d7d360633/LICENSE",
+        "https://gotd.dev/docs/helpers/query-iterators/",
+        "https://core.telegram.org/api/updates"
+      ]
+    },
+    {
+      "repository": "ChatLab/ChatLab",
+      "commit": "c258a139d323e0743ff06d82d915a726d1c2a733",
+      "license": "AGPL-3.0",
+      "decision": "pull_protocol_reference_not_wechat_collector",
+      "sources": [
+        "https://github.com/ChatLab/ChatLab/blob/c258a139d323e0743ff06d82d915a726d1c2a733/docs/cn/usage/how-to-export.md",
+        "https://github.com/ChatLab/ChatLab/blob/c258a139d323e0743ff06d82d915a726d1c2a733/docs/cn/standard/chatlab-pull.md"
+      ]
+    },
+    {
+      "repository": "Tencent/openclaw-weixin",
+      "commit": "0ad1ae91347a938f52f1e4e2abd6dcda51e05f9e",
+      "license": "MIT",
+      "decision": "official_bot_channel_not_personal_friend_history",
+      "sources": [
+        "https://github.com/Tencent/openclaw-weixin/blob/0ad1ae91347a938f52f1e4e2abd6dcda51e05f9e/docs/protocol_zh_CN.md"
+      ]
+    },
+    {
+      "repository": "NapNeko/NapCatQQ",
+      "commit": "105f38e3ecb1428c147e0f9165f65f854233d988",
+      "license": "not_determined_from_current_main",
+      "decision": "current_main_ending_probe_existing_instance_do_not_assume_latest_build",
+      "sources": [
+        "https://github.com/NapNeko/NapCatQQ/blob/105f38e3ecb1428c147e0f9165f65f854233d988/README.md"
+      ],
+      "historical_reference_commit": "5bfbf92c215f2c83d9b672a1b296ca2ce37c055d"
+    },
+    {
+      "repository": "sjzar/chatlog",
+      "commit": "7dad93d7b55a1f801bad3be16620083d2f998599",
+      "license": "not_determined_from_current_main",
+      "decision": "exclude_removed_code_and_support",
+      "sources": [
+        "https://github.com/sjzar/chatlog/blob/7dad93d7b55a1f801bad3be16620083d2f998599/README.md"
+      ]
+    },
+    {
+      "repository": "cluic/wxauto-restful-api",
+      "commit": null,
+      "license": "requires_specific_upstream_terms_and_distribution_review",
+      "decision": "uia_candidate_not_embedded_or_runtime_tested",
+      "sources": [
+        "https://github.com/cluic/wxauto-restful-api",
+        "https://docs.wxauto.org/docs/install.html",
+        "https://docs.wxauto.org/legal/commercial-license.html"
+      ]
+    }
+  ]
+}

@@ -101,6 +101,7 @@ flowchart LR
 
 - [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、只读邮箱同步及手动 AI 分析开放，发送/审批继续拒绝。
 - [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
+- [自动获取聊天记录选型](参考项目/自动同步/README.md)：减少手工导入的QCE、Telegram个人账号及微信方案核验；目前为调研与待实施步骤。
 - [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
 - [AI 管理接入](docs/ai-setup.md)：DeepSeek/兼容服务本机配置、预览确认、记忆核对与草稿。
 - [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
