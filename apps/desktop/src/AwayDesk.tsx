@@ -167,11 +167,13 @@ function Modal({
   title,
   close,
   drawer = false,
+  wide = false,
   children,
 }: {
   title: string;
   close: () => void;
   drawer?: boolean;
+  wide?: boolean;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -191,7 +193,7 @@ function Modal({
   return (
     <dialog
       ref={ref}
-      className={`away-modal ${drawer ? 'away-drawer' : ''}`}
+      className={`away-modal ${drawer ? 'away-drawer' : wide ? 'away-modal-wide' : ''}`}
       onCancel={(event) => {
         event.preventDefault();
         close();
@@ -1038,7 +1040,7 @@ export default function AwayDesk({
       )}
 
       {overlay === 'draft' && task && session && (
-        <Modal title="编辑英文回信" close={() => open(null)}>
+        <Modal title="编辑英文回信" close={() => open(null)} wide>
           <form
             className="away-form"
             onSubmit={async (event) => {
@@ -1067,7 +1069,7 @@ export default function AwayDesk({
                   setDraft(e.target.value);
                   draftEdits.current.set(task.id, e.target.value);
                 }}
-                rows={9}
+                rows={10}
                 maxLength={8000}
                 required
               />

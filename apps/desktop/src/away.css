@@ -762,6 +762,12 @@
 .away-modal::backdrop {
   background: #152d4360;
 }
+.away-modal.away-modal-wide {
+  width: min(640px, calc(100vw - 24px));
+}
+.away-modal-wide textarea {
+  max-height: 50dvh;
+}
 .away-modal.away-drawer {
   margin: 10px 10px 10px auto;
   width: min(480px, calc(100vw - 20px));

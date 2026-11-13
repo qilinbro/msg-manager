@@ -6,7 +6,7 @@
 
 ![接班交接台。首屏显示今天 18:00 的截止时间、两项提交材料，以及审阅回信按钮。](docs/media/away-desk.png)
 
-[7 秒体验](#7-秒体验) · [真实邮箱演示](docs/away-desk.md#90-秒实机演示) · [技术文档](技术文档.md)
+[截止时间原文](docs/media/away-deadline-evidence.png) · [英文回信草稿](docs/media/away-reply-draft.png) · [7 秒体验](#7-秒体验) · [真实邮箱演示](docs/away-desk.md#90-秒实机演示) · [技术文档](技术文档.md)
 
 ## 离席前选一个人，回来先看一件事
 
