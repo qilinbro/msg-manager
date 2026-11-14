@@ -5,12 +5,22 @@ import {
   getWechatSessions,
   getWechatStatus,
   readWechatMessages,
+  saveWechatMonitor,
+  wechatMonitorError,
 } from './wechat-api';
 import type {
   WechatReadResult,
   WechatSession,
   WechatStatus,
 } from './wechat-api';
+
+const MONITOR_NAMES = {
+  disabled: '后台读取已暂停',
+  waiting: '后台定时读取中',
+  reading: '后台正在保存消息',
+  error: '本轮读取未完成',
+  not_configured: '等待本机配置',
+};
 
 const STATE_NAMES: Record<WechatStatus['state'], string> = {
   not_configured: '尚未配置',
@@ -54,12 +64,14 @@ export default function WechatPanel({
   storageEnabled,
   revision,
   onSynced,
+  onBackgroundSynced,
   onAuthFailure,
 }: {
   token: string;
   storageEnabled: boolean;
   revision: number;
   onSynced: () => void;
+  onBackgroundSynced: () => void;
   onAuthFailure: () => void;
 }) {
   const [status, setStatus] = useState<WechatStatus | null>(null);
@@ -68,7 +80,13 @@ export default function WechatPanel({
   const [statusRevision, setStatusRevision] = useState(0);
   const [sessions, setSessions] = useState<WechatSession[] | null>(null);
   const [peerID, setPeerID] = useState('');
-  const [busy, setBusy] = useState<'sessions' | 'read' | null>(null);
+  const [busy, setBusy] = useState<'sessions' | 'read' | 'monitor' | null>(
+    null,
+  );
+  const [monitorPeers, setMonitorPeers] = useState<string[]>([]);
+  const [monitorInterval, setMonitorInterval] = useState('30');
+  const [monitorDirty, setMonitorDirty] = useState(false);
+  const monitorDirtyRef = useRef(false);
   const [uncertain, setUncertain] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -78,8 +96,11 @@ export default function WechatPanel({
   const mounted = useRef(false);
   const sessionsAccount = useRef<string | null>(null);
   const lastResultDigest = useRef<string | null>(null);
+  const lastMonitorDigest = useRef<string | null>(null);
   const onSyncedRef = useRef(onSynced);
   onSyncedRef.current = onSynced;
+  const onBackgroundSyncedRef = useRef(onBackgroundSynced);
+  onBackgroundSyncedRef.current = onBackgroundSynced;
 
   useEffect(() => {
     mounted.current = true;
@@ -91,8 +112,13 @@ export default function WechatPanel({
     setUncertain(false);
     setError(null);
     setNotice(null);
+    setMonitorPeers([]);
+    setMonitorInterval('30');
+    setMonitorDirty(false);
+    monitorDirtyRef.current = false;
     sessionsAccount.current = null;
     lastResultDigest.current = null;
+    lastMonitorDigest.current = null;
     return () => {
       mounted.current = false;
       statusRequest.current?.abort();
@@ -103,43 +129,77 @@ export default function WechatPanel({
   }, [token]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    statusRequest.current = controller;
-    const epoch = ++statusEpoch.current;
-    setStatusLoading(true);
-    getWechatStatus(token, controller.signal)
-      .then((value) => {
+    let active = true;
+    const refreshStatus = async (quiet: boolean) => {
+      if (!active || operation.current || statusRequest.current) return;
+      const controller = new AbortController();
+      statusRequest.current = controller;
+      const epoch = ++statusEpoch.current;
+      if (!quiet) setStatusLoading(true);
+      try {
+        const value = await getWechatStatus(token, controller.signal);
         if (controller.signal.aborted || epoch !== statusEpoch.current) return;
         setStatus(value);
         setStatusError(null);
         if (value.state !== 'reading') setUncertain(false);
-        if (value.account_id !== sessionsAccount.current || !value.configured) {
+        const changedAccount = value.account_id !== sessionsAccount.current;
+        if (changedAccount || !value.configured) {
           setSessions(null);
           setPeerID('');
           sessionsAccount.current = value.account_id;
         }
-        const digest = resultDigest(value.last_result);
-        if (digest && digest !== lastResultDigest.current) {
-          lastResultDigest.current = digest;
-          onSyncedRef.current();
+        if (changedAccount || !monitorDirtyRef.current) {
+          setMonitorPeers(value.monitor?.peer_ids ?? []);
+          setMonitorInterval(String(value.monitor?.interval_seconds ?? 30));
+          setMonitorDirty(false);
+          monitorDirtyRef.current = false;
         }
-      })
-      .catch((failure: unknown) => {
+        const digest = resultDigest(value.last_result);
+        const monitorDigest = resultDigest(value.monitor?.last_result ?? null);
+        const changedMessages =
+          (digest !== lastResultDigest.current &&
+            (value.last_result?.inserted ?? 0) > 0) ||
+          (monitorDigest !== lastMonitorDigest.current &&
+            (value.monitor?.last_result?.inserted ?? 0) > 0);
+        lastResultDigest.current = digest;
+        lastMonitorDigest.current = monitorDigest;
+        if (changedMessages) onBackgroundSyncedRef.current();
+      } catch (failure: unknown) {
         if (controller.signal.aborted || epoch !== statusEpoch.current) return;
         if (failure instanceof ServiceError && failure.status === 401) {
           onAuthFailure();
           return;
         }
         setStatusError(messageOf(failure));
-      })
-      .finally(() => {
+      } finally {
         if (epoch === statusEpoch.current) {
           statusRequest.current = null;
           setStatusLoading(false);
         }
-      });
-    return () => controller.abort();
-  }, [token, revision, statusRevision, onAuthFailure]);
+      }
+    };
+    void refreshStatus(false);
+    // Only cached metadata is polled. Reads are owned by the backend worker.
+    const timer = window.setInterval(() => void refreshStatus(true), 5_000);
+    const resume = () => {
+      if (document.visibilityState === 'hidden') return;
+      void refreshStatus(true);
+      // Inactive tabs may miss a cycle with inserts. Reconcile product storage
+      // once on return even if the latest cycle only reports duplicates.
+      if (storageEnabled) onBackgroundSyncedRef.current();
+    };
+    window.addEventListener('focus', resume);
+    document.addEventListener('visibilitychange', resume);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener('focus', resume);
+      document.removeEventListener('visibilitychange', resume);
+      statusRequest.current?.abort();
+      statusRequest.current = null;
+      statusEpoch.current++;
+    };
+  }, [token, revision, statusRevision, storageEnabled, onAuthFailure]);
 
   const invalidateStatus = () => {
     statusRequest.current?.abort();
@@ -182,6 +242,57 @@ export default function WechatPanel({
     if (operation.current === controller) {
       operation.current = null;
       if (mounted.current) setBusy(null);
+    }
+  };
+
+  const editMonitorPeers = (peers: string[]) => {
+    setMonitorPeers(peers);
+    setMonitorDirty(true);
+    monitorDirtyRef.current = true;
+  };
+
+  const changeMonitor = async (enabled: boolean) => {
+    const monitor = status?.monitor;
+    if (!monitor || operation.current) return;
+    invalidateStatus();
+    const controller = new AbortController();
+    operation.current = controller;
+    setBusy('monitor');
+    setError(null);
+    setNotice(null);
+    try {
+      const value = await saveWechatMonitor(token, controller.signal, {
+        enabled,
+        peer_ids: enabled ? monitorPeers : monitor.peer_ids,
+        interval_seconds: enabled
+          ? Number(monitorInterval)
+          : monitor.interval_seconds,
+      });
+      if (controller.signal.aborted || !mounted.current) return;
+      setStatus((previous) =>
+        previous ? { ...previous, monitor: value } : previous,
+      );
+      setMonitorPeers(value.peer_ids);
+      setMonitorInterval(String(value.interval_seconds));
+      setMonitorDirty(false);
+      monitorDirtyRef.current = false;
+      setUncertain(false);
+      setNotice(
+        enabled
+          ? `已开启 ${value.peer_ids.length} 个私聊的后台读取。关闭页面后，后台服务仍按设置继续读取。`
+          : '后台读取已暂停，已保存的消息会继续保留。',
+      );
+    } catch (failure: unknown) {
+      if (controller.signal.aborted || !mounted.current) return;
+      if (failure instanceof ServiceError && failure.status === 401) {
+        onAuthFailure();
+        return;
+      }
+      setError(messageOf(failure));
+      if (uncertainFailure(failure)) setUncertain(true);
+    } finally {
+      finishOperation(controller);
+      if (mounted.current) setStatusRevision((value) => value + 1);
     }
   };
 
@@ -266,6 +377,11 @@ export default function WechatPanel({
     status?.state === 'read' && !busy && !uncertain && !error && !statusError
       ? status.last_result
       : null;
+  const monitor = status?.monitor;
+  const validInterval =
+    Number.isInteger(Number(monitorInterval)) &&
+    Number(monitorInterval) >= 10 &&
+    Number(monitorInterval) <= 300;
 
   return (
     <section
@@ -289,7 +405,7 @@ export default function WechatPanel({
           </svg>
           <div>
             <h2 id="wechat-panel-title">读取本机微信消息</h2>
-            <p>选择一个私聊，将最近一批文本保存到本地消息中心。</p>
+            <p>按需保存私聊，也可以交给后台定时读取。</p>
           </div>
         </div>
         <div className="email-panel-actions">
@@ -301,7 +417,7 @@ export default function WechatPanel({
           >
             {busy === 'sessions' ? '正在读取会话…' : '读取会话列表'}
           </button>
-          {busy ? (
+          {busy && busy !== 'monitor' ? (
             <button
               type="button"
               className="email-text-button"
@@ -331,15 +447,17 @@ export default function WechatPanel({
             ? '正在读取会话'
             : busy === 'read'
               ? '正在读取消息'
-              : statusError
-                ? '微信状态未确认'
-                : error
-                  ? '此次读取未完成'
-                  : status
-                    ? STATE_NAMES[status.state]
-                    : statusLoading
-                      ? '正在读取微信状态'
-                      : '微信状态未读取'}
+              : busy === 'monitor'
+                ? '正在保存后台读取设置'
+                : statusError
+                  ? '微信状态未确认'
+                  : error
+                    ? '此次读取未完成'
+                    : status
+                      ? STATE_NAMES[status.state]
+                      : statusLoading
+                        ? '正在读取微信状态'
+                        : '微信状态未读取'}
         </span>
         {status?.account_id ? (
           <span className="email-account">本地账号：{status.account_id}</span>
@@ -386,15 +504,160 @@ export default function WechatPanel({
           >
             {busy === 'read' ? '正在读取并保存…' : '读取并保存消息'}
           </button>
+          <button
+            className="email-text-button"
+            type="button"
+            disabled={
+              !monitor ||
+              Boolean(busy) ||
+              !peerID ||
+              monitorPeers.includes(peerID) ||
+              monitorPeers.length >= 20
+            }
+            onClick={() => editMonitorPeers([...monitorPeers, peerID])}
+          >
+            加入后台读取
+          </button>
         </form>
       ) : sessions ? (
         <p className="email-panel-note" role="status">
           当前数据库没有可读取的私聊。首版不读取群聊或媒体消息。
         </p>
       ) : null}
+      <section
+        className="wechat-monitor"
+        aria-labelledby="wechat-monitor-title"
+      >
+        <div className="wechat-monitor-heading">
+          <h3 id="wechat-monitor-title">后台自动读取</h3>
+          <span
+            className={`email-state-label ${monitor?.enabled ? 'is-synced' : ''}`}
+          >
+            {monitor ? MONITOR_NAMES[monitor.state] : '后台需要更新'}
+          </span>
+        </div>
+        {!monitor ? (
+          <p className="email-panel-note">
+            {statusLoading && !status
+              ? '正在确认后台能力…'
+              : '更新后重启后台，再开启自动读取。已有的手动读取可继续使用。'}
+          </p>
+        ) : (
+          <>
+            <p className="email-panel-note">
+              {monitor.enabled
+                ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊。`
+                : '先读取会话列表，选择私聊并点击“加入后台读取”，再开启。最多选择20个私聊。'}
+              关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。
+            </p>
+            {monitorPeers.length ? (
+              <ul
+                className="wechat-monitor-peers"
+                aria-label="已选择的后台读取私聊"
+              >
+                {monitorPeers.map((id) => (
+                  <li key={id}>
+                    <span>
+                      {sessions?.find((item) => item.peer_id === id)?.name ??
+                        id}
+                    </span>
+                    <button
+                      type="button"
+                      className="email-text-button"
+                      aria-label={`移除私聊 ${id}`}
+                      disabled={Boolean(busy)}
+                      onClick={() =>
+                        editMonitorPeers(
+                          monitorPeers.filter((item) => item !== id),
+                        )
+                      }
+                    >
+                      移除
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="wechat-monitor-controls">
+              <label htmlFor="wechat-monitor-interval">
+                读取间隔（秒）
+                <input
+                  id="wechat-monitor-interval"
+                  type="number"
+                  min="10"
+                  max="300"
+                  step="1"
+                  value={monitorInterval}
+                  disabled={Boolean(busy)}
+                  aria-describedby="wechat-monitor-help"
+                  onChange={(event) => {
+                    setMonitorInterval(event.target.value);
+                    setMonitorDirty(true);
+                    monitorDirtyRef.current = true;
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                className="button button-primary"
+                disabled={
+                  Boolean(busy) ||
+                  !storageEnabled ||
+                  !status?.configured ||
+                  Boolean(statusError) ||
+                  uncertain ||
+                  !monitorPeers.length ||
+                  !validInterval ||
+                  (monitor.enabled && !monitorDirty)
+                }
+                onClick={() => void changeMonitor(true)}
+              >
+                {busy === 'monitor'
+                  ? '正在保存…'
+                  : monitor.enabled
+                    ? '保存并继续读取'
+                    : '开启后台读取'}
+              </button>
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled={Boolean(busy) || !monitor.enabled}
+                onClick={() => void changeMonitor(false)}
+              >
+                暂停后台读取
+              </button>
+            </div>
+            <p className="email-panel-note" id="wechat-monitor-help">
+              间隔10至300秒。
+              {monitorDirty
+                ? '选择或频率已修改，保存后才会生效。'
+                : '设置保存在本机，重启后台后恢复已开启的读取。'}
+            </p>
+            {monitor.last_cycle_at ? (
+              <p className="email-last-result">
+                上次后台检查{' '}
+                <time dateTime={monitor.last_cycle_at}>
+                  {dateText(monitor.last_cycle_at)}
+                </time>
+                {monitor.last_result
+                  ? ` · 新增 ${monitor.last_result.inserted} 条 · 重复 ${monitor.last_result.duplicates} 条`
+                  : ''}
+                {monitor.last_result?.limited
+                  ? ' · 已达到读取窗口上限，可能存在未读取记录'
+                  : ''}
+              </p>
+            ) : null}
+            {monitor.last_error_code ? (
+              <p className="email-feedback is-error" role="status">
+                {wechatMonitorError(monitor.last_error_code)}
+              </p>
+            ) : null}
+          </>
+        )}
+      </section>
       <p className="email-panel-note" id="wechat-read-help">
-        按需读取微信 Windows 4.x 的本地私聊文本，不会持续监听。
-        只包含本机已有、当前支持的记录，不代表完整聊天历史。
+        读取微信 Windows 4.x 本机已有的私聊文本，不发送消息、不调用AI。
+        每次读取最近一批记录；暂停、离线或消息量超过读取窗口时，可能无法补齐全部历史。
       </p>
       {visibleResult ? (
         <p className="email-last-result">

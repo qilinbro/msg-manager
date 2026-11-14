@@ -40,7 +40,7 @@ func conversationRoute(path string) (string, bool, bool) {
 
 func inboxMutation(method, path string) bool {
 	if method == http.MethodPost {
-		return path == "/api/v1/imports/messages" || path == "/api/v1/imports/telegram" || path == "/api/v1/connections/email-imap/sync" || path == "/api/v1/connections/wechat-db/read"
+		return path == "/api/v1/imports/messages" || path == "/api/v1/imports/telegram" || path == "/api/v1/connections/email-imap/sync" || path == "/api/v1/connections/wechat-db/read" || path == "/api/v1/connections/wechat-db/monitor"
 	}
 	_, messages, ok := conversationRoute(path)
 	return method == http.MethodPatch && ok && !messages

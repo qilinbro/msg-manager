@@ -73,7 +73,7 @@ func TestV1MigrationPreservesMessagesManagementAndIndexes(t *testing.T) {
 	if s.db.QueryRow(`SELECT count(*) FROM messages_fts WHERE messages_fts MATCH '保留旧正文'`).Scan(&found) != nil || found != 1 {
 		t.Fatal("FTS rebuild lost evidence")
 	}
-	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 4 {
+	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 5 {
 		t.Fatal("schema version not recorded")
 	}
 	result, err := s.ImportIMAP(emailBatch("imap-account", "INBOX", 1, "邮件主题", false))

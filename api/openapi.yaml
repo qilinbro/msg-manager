@@ -2651,7 +2651,7 @@
     },
     "/api/v1/connections/wechat-db/status": {
       "get": {
-        "description": "仅返回缓存状态及配置账号；不打开微信库，不返回路径或密钥。ready表示配置通过启动校验，不证明平台在线。",
+        "description": "返回缓存配置/手动读取及monitor后台轮询状态；不打开微信库，不返回路径或密钥。monitor仅在用户明确启用后由独立服务读取，ready不证明平台在线。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -2833,6 +2833,75 @@
           },
           "503": {
             "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/wechat-db/monitor": {
+      "post": {
+        "operationId": "configureWechatMonitor",
+        "x-implementation-status": "implemented",
+        "description": "明确配置后台只读轮询私聊（默认关闭，10—300秒、最多20个）。设置按本机固定账号保存于产品加密库。启用校验账号与可读私聊，暂停取消并等待旧轮结束；HTTP/页面退出不停止已启用的服务轮询。不是全历史/掉线补漏或通用持久任务，发送关闭。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WechatMonitorSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "已保存并应用设置；返回缓存后台状态。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatMonitorStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT / INVALID_REQUEST",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "微信/存储未配置、忙、校验失败或存储不可用；状态需重新确认。",
             "content": {
               "application/json": {
                 "schema": {
@@ -4310,7 +4379,8 @@
           "read_only",
           "last_read_at",
           "last_result",
-          "sending_enabled"
+          "sending_enabled",
+          "monitor"
         ],
         "properties": {
           "configured": {
@@ -4356,6 +4426,9 @@
           },
           "sending_enabled": {
             "const": false
+          },
+          "monitor": {
+            "$ref": "#/components/schemas/WechatMonitorStatus"
           }
         }
       },
@@ -4397,6 +4470,134 @@
           },
           "sending_enabled": {
             "const": false
+          }
+        }
+      },
+      "WechatMonitorSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "peer_ids",
+          "interval_seconds"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 300,
+            "default": 30
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "enabled": {
+                  "const": true
+                }
+              },
+              "required": [
+                "enabled"
+              ]
+            },
+            "then": {
+              "properties": {
+                "peer_ids": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WechatMonitorStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "peer_ids",
+          "interval_seconds",
+          "state",
+          "last_cycle_at",
+          "last_error_code",
+          "last_result",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 300
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "waiting",
+              "reading",
+              "error",
+              "not_configured"
+            ]
+          },
+          "last_cycle_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "last_error_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WechatReadResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "read_only": {
+            "const": true,
+            "type": "boolean"
+          },
+          "sending_enabled": {
+            "const": false,
+            "type": "boolean"
           }
         }
       }

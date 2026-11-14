@@ -56,10 +56,16 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	return &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat}, nil
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	if err := h.restoreWechatMonitor(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted WeChat monitor configuration could not be restored")
+	}
+	return h, nil
 }
 
 func (h *handler) Close() error {
+	h.closeWechatMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
 	}
@@ -115,6 +121,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method != http.MethodGet {
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/wechat-db/monitor" {
+				h.configureWechatMonitor(w, r, traceID)
+				return
+			}
 			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/wechat-db/read" {
 				h.readWechat(w, r, traceID)
 				return

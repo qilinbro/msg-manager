@@ -30,6 +30,23 @@ export interface WechatStatus {
   last_read_at: string | null;
   last_result: WechatReadResult | null;
   sending_enabled: false;
+  // null allows manual reading to keep working against a pre-monitor service.
+  monitor: WechatMonitorStatus | null;
+}
+
+export interface WechatMonitorSettings {
+  enabled: boolean;
+  peer_ids: string[];
+  interval_seconds: number;
+}
+
+export interface WechatMonitorStatus extends WechatMonitorSettings {
+  state: 'disabled' | 'waiting' | 'reading' | 'error' | 'not_configured';
+  last_cycle_at: string | null;
+  last_error_code: string | null;
+  last_result: WechatReadResult | null;
+  read_only: true;
+  sending_enabled: false;
 }
 
 export interface WechatSession {
@@ -68,6 +85,7 @@ const ERROR_MESSAGES: Record<string, string> = {
     '消息标识与已有记录存在冲突，此次未保存。请核对本机数据库来源。',
   INVALID_INPUT: '会话选择无效，请重新读取列表并选择一个私聊。',
   INVALID_REQUEST: '微信读取请求无法处理，请刷新工作台后重试。',
+  NOT_IMPLEMENTED: '后台尚未更新，请更新后重启后台，再开启自动读取。',
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -94,11 +112,44 @@ const isResult = (value: unknown): value is WechatReadResult =>
   typeof value.limited === 'boolean' &&
   validDate(value.read_at);
 
+const validPeer = (value: unknown): value is string =>
+  validLabel(value, 128) && !/[\\/@]/.test(value);
+const validMonitorSettings = (value: unknown): value is WechatMonitorSettings =>
+  isRecord(value) &&
+  typeof value.enabled === 'boolean' &&
+  Number.isInteger(value.interval_seconds) &&
+  Number(value.interval_seconds) >= 10 &&
+  Number(value.interval_seconds) <= 300 &&
+  Array.isArray(value.peer_ids) &&
+  value.peer_ids.length <= 20 &&
+  (!value.enabled || value.peer_ids.length > 0) &&
+  value.peer_ids.every(validPeer) &&
+  new Set(value.peer_ids).size === value.peer_ids.length;
+
+const isMonitor = (value: unknown): value is WechatMonitorStatus =>
+  isRecord(value) &&
+  validMonitorSettings(value) &&
+  readOnly(value) &&
+  ['disabled', 'waiting', 'reading', 'error', 'not_configured'].includes(
+    String(value.state),
+  ) &&
+  (value.last_cycle_at === null || validDate(value.last_cycle_at)) &&
+  (value.last_error_code === null ||
+    (typeof value.last_error_code === 'string' &&
+      /^[A-Z][A-Z0-9_]{0,63}$/.test(value.last_error_code))) &&
+  (value.last_result === null || isResult(value.last_result));
+
+export function wechatMonitorError(code: string): string {
+  return Object.hasOwn(ERROR_MESSAGES, code)
+    ? ERROR_MESSAGES[code]
+    : '后台本轮读取未完成，将按设置的频率再次检查。可先查看已保存的消息。';
+}
+
 async function request(
   token: string,
   signal: AbortSignal,
-  action: 'status' | 'sessions' | 'read',
-  peerID?: string,
+  action: 'status' | 'sessions' | 'read' | 'monitor',
+  input?: Record<string, unknown>,
 ): Promise<unknown> {
   if (SERVICE.error) throw new ServiceError(SERVICE.error, 'CONFIG_ERROR');
   const controller = new AbortController();
@@ -106,6 +157,7 @@ async function request(
   signal.addEventListener('abort', abort, { once: true });
   if (signal.aborted) controller.abort();
   let timedOut = false;
+  const mutation = action === 'read' || action === 'monitor';
   const timeout = window.setTimeout(
     () => {
       timedOut = true;
@@ -117,14 +169,13 @@ async function request(
     const response = await fetch(
       `${SERVICE.url}/api/v1/connections/wechat-db/${action}`,
       {
-        method: action === 'read' ? 'POST' : 'GET',
+        method: mutation ? 'POST' : 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',
-          ...(action === 'read' ? { 'Content-Type': 'application/json' } : {}),
+          ...(mutation ? { 'Content-Type': 'application/json' } : {}),
         },
-        body:
-          action === 'read' ? JSON.stringify({ peer_id: peerID }) : undefined,
+        body: mutation ? JSON.stringify(input) : undefined,
         signal: controller.signal,
         cache: 'no-store',
         credentials: 'omit',
@@ -159,18 +210,22 @@ async function request(
   } catch (error: unknown) {
     if (timedOut)
       throw new ServiceError(
-        action === 'read'
-          ? '读取等待超时，后台可能已保存消息。请先更新状态并查看消息，再决定是否重试。'
-          : '微信状态或会话读取超时，请先更新状态再试。',
+        action === 'monitor'
+          ? '后台读取设置的结果尚未确认，请先更新状态。工作台不会自动重试设置。'
+          : action === 'read'
+            ? '读取等待超时，后台可能已保存消息。请先更新状态并查看消息，再决定是否重试。'
+            : '微信状态或会话读取超时，请先更新状态再试。',
         'TIMEOUT',
       );
     if (controller.signal.aborted)
       throw new DOMException('请求已取消', 'AbortError');
     if (error instanceof ServiceError) throw error;
     throw new ServiceError(
-      action === 'read'
-        ? '连接中断，后台可能已保存消息。请先更新状态并查看消息，再决定是否重试。'
-        : '无法读取微信状态或会话，请确认本地服务正在运行。',
+      action === 'monitor'
+        ? '连接中断，后台设置可能已经保存。请先更新状态确认。'
+        : action === 'read'
+          ? '连接中断，后台可能已保存消息。请先更新状态并查看消息，再决定是否重试。'
+          : '无法读取微信状态或会话，请确认本地服务正在运行。',
       'NETWORK_ERROR',
     );
   } finally {
@@ -198,7 +253,15 @@ export async function getWechatStatus(
       '微信只读状态格式不匹配，请检查服务版本。',
       'INVALID_RESPONSE',
     );
-  return value as unknown as WechatStatus;
+  if (value.monitor !== undefined && !isMonitor(value.monitor))
+    throw new ServiceError(
+      '后台读取状态格式不匹配，请检查服务版本。',
+      'INVALID_RESPONSE',
+    );
+  return {
+    ...value,
+    monitor: value.monitor ?? null,
+  } as unknown as WechatStatus;
 }
 
 export async function getWechatSessions(
@@ -238,10 +301,33 @@ export async function readWechatMessages(
 ): Promise<WechatReadResult> {
   if (!validLabel(peerID, 128))
     throw new ServiceError('请先选择一个有效的微信私聊。', 'INVALID_INPUT');
-  const value = await request(token, signal, 'read', peerID);
+  const value = await request(token, signal, 'read', { peer_id: peerID });
   if (!isResult(value))
     throw new ServiceError(
       '微信读取结果暂时无法确认，请先更新状态并查看消息。',
+      'INVALID_RESPONSE',
+    );
+  return value;
+}
+
+export async function saveWechatMonitor(
+  token: string,
+  signal: AbortSignal,
+  settings: WechatMonitorSettings,
+): Promise<WechatMonitorStatus> {
+  if (!validMonitorSettings(settings))
+    throw new ServiceError(
+      '请选择1至20个私聊，读取频率设为10至300秒。',
+      'INVALID_INPUT',
+    );
+  const value = await request(token, signal, 'monitor', {
+    enabled: settings.enabled,
+    peer_ids: settings.peer_ids,
+    interval_seconds: settings.interval_seconds,
+  });
+  if (!isMonitor(value))
+    throw new ServiceError(
+      '后台读取设置的结果尚未确认，请先更新状态。',
       'INVALID_RESPONSE',
     );
   return value;

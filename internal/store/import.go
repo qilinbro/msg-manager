@@ -60,7 +60,9 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 	if err != nil {
 		return ImportResult{}, err
 	}
-	s.mu.Lock()
+	if err := s.lockContext(ctx); err != nil {
+		return ImportResult{}, err
+	}
 	defer s.mu.Unlock()
 	if err := ctx.Err(); err != nil {
 		return ImportResult{}, err

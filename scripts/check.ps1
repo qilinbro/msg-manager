@@ -40,6 +40,8 @@ try {
         & (Join-Path $PSScriptRoot 'test-wechat-init.ps1') -ProbeExecutable $initProbe
     }
     if (-not $SkipFrontend) {
+        node scripts/test-wechat-monitor.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Wechat monitor client regression checks failed.' }
         node scripts/test-inbox-import.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Inbox import regression checks failed.' }
         npm.cmd --prefix apps/desktop run format:check

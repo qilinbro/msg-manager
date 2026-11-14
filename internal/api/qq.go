@@ -62,6 +62,7 @@ func (h *handler) connections() []connector.Descriptor {
 		if items[i].ID == "wechat-db" {
 			h.wechat.mu.RLock()
 			items[i].Status = h.wechat.status.State
+			items[i].Capabilities.ReceiveText = h.wechat.monitor.Enabled && h.wechat.reader != nil && h.inbox != nil
 			h.wechat.mu.RUnlock()
 			items[i].Capabilities.HistoryImport = h.wechat.reader != nil && h.inbox != nil
 		}

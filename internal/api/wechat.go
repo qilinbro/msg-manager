@@ -19,11 +19,17 @@ type wechatReader interface {
 }
 
 type wechatConnection struct {
-	reader    wechatReader
-	gate      chan struct{}
-	mu        sync.RWMutex
-	status    WechatStatus
-	accountID string
+	reader        wechatReader
+	gate          chan struct{}
+	mu            sync.RWMutex
+	status        WechatStatus
+	accountID     string
+	monitorMu     sync.Mutex
+	monitor       WechatMonitorStatus
+	cancelMonitor context.CancelFunc
+	monitorDone   chan struct{}
+	closed        bool
+	monitorWait   func(context.Context, time.Duration) bool
 }
 
 type WechatReadResult struct {
@@ -36,17 +42,18 @@ type WechatReadResult struct {
 }
 
 type WechatStatus struct {
-	Configured     bool              `json:"configured"`
-	State          string            `json:"state"`
-	AccountID      *string           `json:"account_id"`
-	ReadOnly       bool              `json:"read_only"`
-	LastReadAt     *string           `json:"last_read_at"`
-	LastResult     *WechatReadResult `json:"last_result"`
-	SendingEnabled bool              `json:"sending_enabled"`
+	Configured     bool                `json:"configured"`
+	State          string              `json:"state"`
+	AccountID      *string             `json:"account_id"`
+	ReadOnly       bool                `json:"read_only"`
+	LastReadAt     *string             `json:"last_read_at"`
+	LastResult     *WechatReadResult   `json:"last_result"`
+	SendingEnabled bool                `json:"sending_enabled"`
+	Monitor        WechatMonitorStatus `json:"monitor"`
 }
 
 func newWechatConnection(cfg wechatdb.Config) (*wechatConnection, error) {
-	c := &wechatConnection{gate: make(chan struct{}, 1), status: WechatStatus{State: "not_configured", ReadOnly: true}}
+	c := &wechatConnection{gate: make(chan struct{}, 1), status: WechatStatus{State: "not_configured", ReadOnly: true}, monitor: defaultWechatMonitor()}
 	if cfg.Directory == "" && cfg.AccountID == "" && cfg.Key == "" && cfg.Limit == 0 {
 		return c, nil
 	}
@@ -64,6 +71,7 @@ func newWechatConnection(cfg wechatdb.Config) (*wechatConnection, error) {
 func (h *handler) wechatStatus(w http.ResponseWriter) {
 	h.wechat.mu.RLock()
 	status := h.wechat.status
+	status.Monitor = h.wechat.monitorSnapshotLocked()
 	h.wechat.mu.RUnlock()
 	writeJSON(w, http.StatusOK, status)
 }
@@ -168,17 +176,39 @@ func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID str
 	defer func() { <-h.wechat.gate }()
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
-	batch, err := h.wechat.reader.Read(ctx, input.PeerID)
-	if err == nil && (batch.Info.AccountID != h.wechat.accountID || !batch.Info.ReadOnly || batch.PeerID != input.PeerID || len(batch.Messages) > 500) {
+	response, err := h.readWechatPeer(ctx, input.PeerID)
+	if err != nil {
+		var importFailure wechatImportFailure
+		if errors.As(err, &importFailure) {
+			h.wechat.mu.Lock()
+			h.wechat.status.State = "unavailable"
+			h.wechat.mu.Unlock()
+			writeInboxError(w, importFailure.err, traceID)
+		} else {
+			h.failWechat(w, err, traceID)
+		}
+		return
+	}
+	writeJSON(w, 200, response)
+}
+
+type wechatImportFailure struct{ err error }
+
+func (e wechatImportFailure) Error() string { return "WeChat import failed" }
+func (e wechatImportFailure) Unwrap() error { return e.err }
+
+// Caller owns the connector gate. Both foreground and background reads use the
+// same account checks and context-aware atomic import.
+func (h *handler) readWechatPeer(ctx context.Context, peerID string) (WechatReadResult, error) {
+	batch, err := h.wechat.reader.Read(ctx, peerID)
+	if err == nil && (batch.Info.AccountID != h.wechat.accountID || !batch.Info.ReadOnly || batch.PeerID != peerID || len(batch.Messages) > 500) {
 		err = wechatdb.ErrUnsupportedSchema
 	}
 	if err != nil {
-		h.failWechat(w, err, traceID)
-		return
+		return WechatReadResult{}, err
 	}
 	if ctx.Err() != nil {
-		h.failWechat(w, ctx.Err(), traceID)
-		return
+		return WechatReadResult{}, ctx.Err()
 	}
 	req := store.ImportRequest{Platform: "weixin", AccountID: h.wechat.accountID, AccountName: h.wechat.accountID}
 	for _, item := range batch.Messages {
@@ -188,11 +218,7 @@ func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID str
 	if len(req.Messages) > 0 {
 		result, err = h.inbox.ImportWeChatContext(ctx, req)
 		if err != nil {
-			h.wechat.mu.Lock()
-			h.wechat.status.State = "unavailable"
-			h.wechat.mu.Unlock()
-			writeInboxError(w, err, traceID)
-			return
+			return WechatReadResult{}, wechatImportFailure{err}
 		}
 	}
 	now := time.Now().UTC().Format(time.RFC3339Nano)
@@ -200,5 +226,5 @@ func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID str
 	h.wechat.mu.Lock()
 	h.wechat.status.State, h.wechat.status.LastReadAt, h.wechat.status.LastResult = "read", &now, &response
 	h.wechat.mu.Unlock()
-	writeJSON(w, 200, response)
+	return response, nil
 }
