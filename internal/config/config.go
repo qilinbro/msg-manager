@@ -19,15 +19,17 @@ import (
 const DefaultAddr = "127.0.0.1:17890"
 
 type Config struct {
-	Addr         string
-	APIToken     string
-	QQOneBot     onebot.Config
-	Email        mailbox.Config
-	DatabasePath string
-	DatabaseKey  string
-	AI           agent.Config
-	AIDailyLimit int
-	WechatDB     wechatdb.Config
+	Addr          string
+	APIToken      string
+	QQOneBot      onebot.Config
+	Email         mailbox.Config
+	DatabasePath  string
+	DatabaseKey   string
+	AI            agent.Config
+	AIDailyLimit  int
+	FinfoldOrigin string
+	FinfoldSecret string
+	WechatDB      wechatdb.Config
 }
 
 func (Config) String() string   { return "sociald configuration (redacted)" }
@@ -39,6 +41,7 @@ func LoadFromEnv() (Config, error) {
 		addr = DefaultAddr
 	}
 	cfg := Config{
+		FinfoldOrigin: os.Getenv("FINFOLD_AWAY_ORIGIN"), FinfoldSecret: os.Getenv("FINFOLD_AWAY_HANDOFF_SECRET"),
 		Addr: addr, APIToken: os.Getenv("SOCIALD_API_TOKEN"),
 		DatabasePath: os.Getenv("SOCIALD_DATABASE_PATH"), DatabaseKey: os.Getenv("SOCIALD_DATABASE_KEY"),
 		QQOneBot: onebot.Config{

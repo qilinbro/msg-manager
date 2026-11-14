@@ -9,11 +9,14 @@ import {
 } from './api';
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
+import AwayDesk from './AwayDesk';
+import { BrandLockup, RelaySymbol } from './brand/Brand';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
 
-type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
+type Page =
+  'away' | 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
 type IconName =
   | 'overview'
   | 'messages'
@@ -26,12 +29,14 @@ type IconName =
   | 'plug'
   | 'leaf';
 const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
+  { page: 'away', label: '接班', icon: 'overview' },
   { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'messages', label: '消息', icon: 'messages' },
   { page: 'contacts', label: '联系人', icon: 'contacts' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
 ];
 const PAGE_TITLES: Record<Page, string> = {
+  away: '接班',
   overview: '概览',
   messages: '消息',
   contacts: '联系人',
@@ -896,11 +901,11 @@ function Settings({
           </div>
         </dl>
         <p>
-          当前支持本地加密消息管理、记录导入、邮箱手动收取与 QQ
-          身份核验。持续收件、AI
-          回复和发送尚未实现；账号核验成功不代表已接入消息。个人微信 ClawBot
-          仍仅针对 Bot
-          联系人，不接管已有好友或聊天。关闭工作台后是否继续处理，取决于独立后台服务的后续部署。
+          接班让重要来信在你离席期间变成可核对的任务和待审回信。
+          在指定发件人和授权时段内，独立后台可以持续检查邮箱；关闭窗口后，电脑和后台仍需保持运行。
+          统一消息中心支持加密存储、手动 AI 整理与选定微信私聊的后台只读。 QQ
+          OneBot 当前仅核验身份。回信保存为草稿，发送由你决定。 真实 QQ
+          邮箱三轮验收与原生桌面验收尚待完成。
         </p>
       </details>
     </>
@@ -932,6 +937,17 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', warnUnsaved);
   }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
+  if (page === 'away') {
+    return (
+      <AwayDesk
+        key={activeToken}
+        token={activeToken}
+        onSettings={onSettings}
+        onAuthFailure={onAuthFailure}
+        onBack={() => setPage('overview')}
+      />
+    );
+  }
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -942,14 +958,13 @@ export default function App() {
           className="brand"
           href="#main-content"
           onClick={() => setPage('overview')}
-          aria-label="Social Intelligence OS 概览"
+          aria-label="接班 Away Desk 概览"
         >
-          <span className="brand-symbol">
-            <Icon name="leaf" size={25} />
+          <span className="brand-full">
+            <BrandLockup />
           </span>
-          <span>
-            Social Intelligence
-            <span className="brand-subtitle">关系工作台</span>
+          <span className="brand-compact">
+            <RelaySymbol />
           </span>
         </a>
         <span className="sidebar-section-label">个人工作空间</span>
@@ -1047,7 +1062,7 @@ export default function App() {
           )}
         </main>
         <footer className="workspace-footer">
-          <span>Social Intelligence OS</span>
+          <span>接班 / Away Desk</span>
           <span>由你建立关系，由 AI 延续上下文。</span>
         </footer>
       </div>

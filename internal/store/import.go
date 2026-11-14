@@ -72,6 +72,17 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 		return ImportResult{}, ErrUnavailable
 	}
 	defer tx.Rollback()
+	result, err := importIntoTx(ctx, tx, req, source)
+	if err != nil {
+		return ImportResult{}, err
+	}
+	if tx.Commit() != nil {
+		return ImportResult{}, ErrUnavailable
+	}
+	return result, nil
+}
+
+func importIntoTx(ctx context.Context, tx *sql.Tx, req ImportRequest, source string) (ImportResult, error) {
 	connectionID := stableID("connection", req.Platform, req.AccountID)
 	// v4 provenance is additive so the v3 graph (including AI evidence) never
 	// needs rebuilding. Legacy columns retain their original constrained values.
@@ -133,9 +144,6 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 	}
 	if err := ctx.Err(); err != nil {
 		return ImportResult{}, err
-	}
-	if tx.Commit() != nil {
-		return ImportResult{}, ErrUnavailable
 	}
 	result.Conversations = len(touched)
 	return result, nil

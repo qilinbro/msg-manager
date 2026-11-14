@@ -111,7 +111,7 @@ func (c *Client) open(ctx context.Context, budget int64) (*session, error) {
 	if mbox == nil || !mbox.ReadOnly || mbox.UidValidity == 0 {
 		return failClose(ProtocolError)
 	}
-	return &session{client: cl, conn: conn, stopCancel: stop, info: Info{AccountID: c.cfg.Username, Folder: c.cfg.Folder, UIDValidity: mbox.UidValidity, Messages: mbox.Messages, ReadOnly: true}}, nil
+	return &session{client: cl, conn: conn, stopCancel: stop, info: Info{AccountID: c.cfg.Username, Folder: c.cfg.Folder, UIDValidity: mbox.UidValidity, UIDNext: mbox.UidNext, Messages: mbox.Messages, ReadOnly: true}}, nil
 }
 
 func (c *Client) Probe(ctx context.Context) (Info, error) {
@@ -152,6 +152,19 @@ func fetchMessages(cl *protocolClient, seqset *imap.SeqSet, items []imap.FetchIt
 }
 
 func (c *Client) Fetch(ctx context.Context) (Batch, error) {
+	return c.fetch(ctx, 0, 0)
+}
+
+// FetchSince shares the bounded read-only IMAP path and skips fetching old
+// message bodies. A changed UID generation requires a new user authorization.
+func (c *Client) FetchSince(ctx context.Context, validity, minUID uint32) (Batch, error) {
+	if validity == 0 || minUID == 0 {
+		return Batch{}, fail(ProtocolError)
+	}
+	return c.fetch(ctx, validity, minUID)
+}
+
+func (c *Client) fetch(ctx context.Context, validity, minUID uint32) (Batch, error) {
 	ctx, cancel := context.WithTimeout(ctx, operationTimeout)
 	defer cancel()
 	budget := int64(c.cfg.Limit)*(MaxRawMessageBytes+(16<<10)) + (1 << 20)
@@ -160,8 +173,11 @@ func (c *Client) Fetch(ctx context.Context) (Batch, error) {
 		return Batch{}, err
 	}
 	defer s.close()
+	if validity != 0 && (s.info.UIDValidity != validity || s.info.UIDNext < minUID) {
+		return Batch{}, fail(MailboxChanged)
+	}
 	batch := Batch{Info: s.info, Mails: []Mail{}, Truncated: s.info.Messages > uint32(c.cfg.Limit)}
-	if s.info.Messages == 0 {
+	if s.info.Messages == 0 || minUID != 0 && s.info.UIDNext == minUID {
 		return batch, nil
 	}
 	from := uint32(1)
@@ -181,6 +197,9 @@ func (c *Client) Fetch(ctx context.Context) (Batch, error) {
 			return Batch{}, fail(ProtocolError)
 		}
 		seenUIDs[meta.Uid] = true
+		if meta.Uid < minUID {
+			continue
+		}
 		if meta.Size > MaxRawMessageBytes {
 			batch.Skipped++
 			continue
@@ -223,6 +242,7 @@ func (c *Client) Fetch(ctx context.Context) (Batch, error) {
 			batch.Skipped++
 			continue
 		}
+		message.InternalDate = meta.InternalDate.UTC()
 		batch.Mails = append(batch.Mails, message)
 	}
 	// Sequence-based snapshots can lose entries during remote expunges. Surface

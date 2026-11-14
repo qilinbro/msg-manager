@@ -25,6 +25,8 @@ type handler struct {
 	inbox     *store.Store
 	email     *emailConnection
 	ai        *aiConnection
+	away      *awayWorker
+	finfold   *finfoldHandoff
 	wechat    *wechatConnection
 }
 
@@ -56,15 +58,22 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat, finfold: newFinfoldHandoff(cfg.FinfoldOrigin, cfg.FinfoldSecret)}
 	if err := h.restoreWechatMonitor(); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted WeChat monitor configuration could not be restored")
+	}
+	if inbox != nil {
+		h.startAwayWorker()
 	}
 	return h, nil
 }
 
 func (h *handler) Close() error {
+	if h.away != nil {
+		h.away.stop()
+		<-h.away.done
+	}
 	h.closeWechatMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
@@ -94,11 +103,11 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	apiPath := r.URL.Path == "/api/v1" || strings.HasPrefix(r.URL.Path, "/api/v1/")
 	// Browsers omit credentials in CORS preflight. This exception returns no
-	// business data. Only exact inbox/AI mutation routes are permitted in addition
+	// business data. Only implemented local mutation routes are permitted in addition
 	// to GET, and every actual request must authenticate.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !awayMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -118,6 +127,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(withLocalPrincipal(r.Context()))
 		if !validScopeClaims(r, authenticatedWorkspace(r.Context())) {
 			writeError(w, http.StatusForbidden, "SCOPE_DENIED", "请求不属于当前工作区。", traceID)
+			return
+		}
+		if action, id, task := awayResource(r.Method, r.URL.Path); action != "" {
+			h.serveAway(w, r, traceID, action, id, task)
 			return
 		}
 		if r.Method != http.MethodGet {
