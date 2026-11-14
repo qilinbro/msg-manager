@@ -31,7 +31,7 @@
 | FEAT-T03 | T03 存储与加密 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 待审查 | 2026-11-13 | 2026-11-16 | — | CHG-T03-001；原型检查通过，待joey审查 |
 | FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-004；全部已实现功能整合main |
 | FEAT-T05 | T05 数据模型 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-17 | 2026-11-18 | — | CHG-T05-002；邮箱子项工程检查通过，待真实验收 |
-| FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-004；微信初始化模拟检查通过，待真实执行/正式审查 |
+| FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-005；5.1启动兼容检查通过，待使用复核/正式审查 |
 | FEAT-T07 | T07 联系人与导入 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-20 | — | CHG-T07-001；1000条合成记录验证通过 |
 | FEAT-T08 | T08 消息工作台 | joey（前端 / 桌面 / UI） | angjustinl（代码审查），kirinbao（交互验收） | 进行中 | 2026-11-17 | 2026-11-20 | — | CHG-T08-002；邮箱子项工程检查通过，待真实验收 |
 | FEAT-T09 | T09 长期记忆 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-23 | 2026-11-24 | — | CHG-T09-001；手动子项工程检查通过，待审查/真实验收 |
@@ -285,3 +285,11 @@
 - 检查：完整 `scripts/check.ps1 -IncludeWechatInit` 通过；随后真实checkpoint页变化兼容及Frida隔离导入修复的17项Python专项通过。Go探针测试/vet（覆盖94.3%）、PowerShell合成DPAPI/跨语言互通/账号路径/旧配置及显式ACL清理测试通过；模拟捕获不等于真实取钥。
 - 交付：scripts/initialize-wechat.ps1、WechatInit.psm1、prepare-wechat-init.ps1、wechat_init/、cmd/wechat-init-check/、third_party/flandora_wxkey/。真实检查仅包含测试Python自身PID元数据和公开合成加密库，没有连接真实微信；joey正式审查、kirinbao验收均待进行。
 - 前一读取首版实际提交为[2629de5](https://github.com/qilinbro/msg-manager/commit/2629de5a31b540411295df54b3a8e9e91b2216d9)；上传不等于整项完成。
+
+### CHG-T06-005｜Windows PowerShell5.1启动兼容
+
+- 日期：2026-11-14；关联FEAT-T06。用户实际在5.1.26100.9818运行初始化，#requires7.2在进入主体前拒绝；重新打开启动兼容子项，修复及工程检查通过，待指定人员审查/使用复核，实际完成日期—。
+- 修复范围：操作入口为5.1可解析ASCII薄入口，原7.2业务脚本移到同目录*-core.ps1；共同选择器验证本机现有7.2+ x64后转发，不自动安装、不提权、不改变执行策略。
+- 覆盖initialize-wechat、prepare-wechat-init、configure-wechat及start-inbox。9个真实5.1/7宿主的合成子进程用例及选择器/参数检查通过，覆盖中文/空格/单引号参数、开关、空值、返回码及父宿主保留；四个core与main原正文的规范化Git哈希一致，ASCII入口和语法检查通过。
+- 辅助复核发现并修复5.1剥版本探测内部引号、7直接路径吞返回码两处问题。没有运行真实初始化或读取密钥；不重新声明既有微信验收通过。交付：scripts/PowerShellBootstrap.psm1、四个薄入口及*-core.ps1、test-powershell-bootstrap.ps1；check.ps1在Windows纳入该回归。
+- 负责人angjustinl，指定审查joey，kirinbao复核真实使用；代码修复/上传不代表真人取钥或整项验收。前一初始化实现已实际上传main：[30737ff](https://github.com/qilinbro/msg-manager/commit/30737ff38b1d99e639fc2c5dc7fae6344eca80f7)。

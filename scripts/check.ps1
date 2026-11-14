@@ -25,6 +25,9 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
     node scripts/check-contract.mjs
     if ($LASTEXITCODE -ne 0) { throw 'API contract checks failed.' }
+    if ($IsWindows) {
+        & (Join-Path $PSScriptRoot 'test-powershell-bootstrap.ps1')
+    }
     if ($IncludeWechatInit) {
         & (Join-Path $PSScriptRoot 'prepare-wechat-init.ps1') -CheckOnly
         $initPython = Join-Path $projectRoot '.tools/wechat-init-venv/Scripts/python.exe'

@@ -18,7 +18,9 @@
 
 ## 微信4.1.15.56首次初始化
 
-需要 Windows、Python3.13 x64，以及本项目已有的 Go1.26+/GCC 构建环境。项目会使用独立 `.tools/wechat-init-venv`；本轮开发机已准备好该环境，不修改全局Python包。
+需要 Windows、PowerShell7.2+ x64、Python3.13 x64，以及本项目已有的 Go1.26+/GCC 构建环境。项目会使用独立 `.tools/wechat-init-venv`；本轮开发机已准备好该环境，不修改全局Python包。
+
+可以从 Windows 自带 PowerShell5.1 直接运行下列操作入口；入口会查找并验证已有的7.2+ x64后自动调用，不修改当前终端默认版本或执行策略。检查范围包括PATH、常规PowerShell安装目录及当前用户的Codex内置运行时；找不到时才提示安装。PowerShell7与5.1可并存，见[微软文档](https://learn.microsoft.com/en-us/powershell/scripting/whats-new/migrating-from-windows-powershell-51-to-powershell-7)。
 
 首次克隆项目时，先运行依赖准备；它只从官方PyPI安装固定版本和SHA256的Frida包，不连接微信：
 
@@ -26,7 +28,7 @@
 .\scripts\prepare-wechat-init.ps1
 ```
 
-随后在项目目录打开 PowerShell7，运行：
+随后在项目目录运行（当前是5.1也可）：
 
 ```powershell
 .\scripts\initialize-wechat.ps1
@@ -44,7 +46,7 @@
 
 ## 已有密钥后的本机配置
 
-在项目目录的 PowerShell 7 运行：
+在项目目录运行（入口兼容5.1，会自动调用7.2+）：
 
 ```powershell
 .\scripts\configure-wechat.ps1
