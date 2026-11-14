@@ -10,6 +10,8 @@ import {
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
 import type { AIDraftBuffer } from './ai-api';
+import { useServiceSession } from './useServiceSession';
+import type { ServiceSession as Session } from './useServiceSession';
 
 type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
 type IconName =
@@ -23,19 +25,6 @@ type IconName =
   | 'check'
   | 'plug'
   | 'leaf';
-type Session = {
-  status: 'idle' | 'connecting' | 'connected' | 'error';
-  system: SystemStatus | null;
-  error: string | null;
-  checkedAt: string | null;
-};
-
-const INITIAL_SESSION: Session = {
-  status: 'idle',
-  system: null,
-  error: null,
-  checkedAt: null,
-};
 const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
   { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'messages', label: '消息', icon: 'messages' },
@@ -726,6 +715,7 @@ function Settings({
   activeToken,
   tokenDraft,
   hasToken,
+  storageAvailable,
   onDraftChange,
   onConnect,
   onClear,
@@ -737,6 +727,7 @@ function Settings({
   activeToken: string;
   tokenDraft: string;
   hasToken: boolean;
+  storageAvailable: boolean;
   onDraftChange: (value: string) => void;
   onConnect: (event: FormEvent<HTMLFormElement>) => void;
   onClear: () => void;
@@ -782,7 +773,9 @@ function Settings({
           />
           <p id="token-description" className="input-help">
             <Icon name="lock" size={14} />
-            令牌仅保存在本次窗口内存中，关闭后需要重新输入。
+            {storageAvailable
+              ? '连接信息仅在本标签页会话内保留，刷新后自动验证，可随时清除。'
+              : '当前浏览器无法保存会话，连接仅在本窗口内存中保留；刷新后需重新连接。'}
           </p>
           <div className="form-actions">
             <button
@@ -916,12 +909,19 @@ function Settings({
 
 export default function App() {
   const [page, setPage] = useState<Page>('overview');
-  const [session, setSession] = useState<Session>(INITIAL_SESSION);
-  const [tokenDraft, setTokenDraft] = useState('');
-  const [activeToken, setActiveToken] = useState('');
   const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
-  const pending = useRef<AbortController | null>(null);
-  useEffect(() => () => pending.current?.abort(), []);
+  const {
+    session,
+    tokenDraft,
+    setTokenDraft,
+    activeToken,
+    storageAvailable,
+    connect,
+    clear,
+    cancel,
+    onAuthFailure,
+    onSystemUpdate,
+  } = useServiceSession(aiDrafts);
   useEffect(() => {
     const warnUnsaved = (event: BeforeUnloadEvent) => {
       if (!aiDrafts.size) return;
@@ -932,78 +932,6 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', warnUnsaved);
   }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
-  const onAuthFailure = useCallback(() => {
-    pending.current?.abort();
-    pending.current = null;
-    aiDrafts.clear();
-    setActiveToken('');
-    setSession({
-      ...INITIAL_SESSION,
-      status: 'error',
-      error: '令牌无效或已失效，请在设置中重新连接。',
-    });
-  }, [aiDrafts]);
-  const onSystemUpdate = useCallback((system: SystemStatus) => {
-    setSession((previous) =>
-      previous.status === 'connected'
-        ? {
-            ...previous,
-            system,
-            checkedAt: new Date().toLocaleTimeString('zh-CN', {
-              hour12: false,
-              timeZone: 'Asia/Shanghai',
-            }),
-          }
-        : previous,
-    );
-  }, []);
-  const clear = () => {
-    pending.current?.abort();
-    pending.current = null;
-    aiDrafts.clear();
-    setTokenDraft('');
-    setActiveToken('');
-    setSession(INITIAL_SESSION);
-  };
-  const cancel = () => {
-    pending.current?.abort();
-    pending.current = null;
-    setSession(INITIAL_SESSION);
-  };
-  const connect = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const token = tokenDraft.trim();
-    if (!token || SERVICE.error) return;
-    aiDrafts.clear();
-    pending.current?.abort();
-    const controller = new AbortController();
-    pending.current = controller;
-    setActiveToken('');
-    setSession({ ...INITIAL_SESSION, status: 'connecting' });
-    try {
-      const system = await getSystem(token, controller.signal);
-      if (controller.signal.aborted) return;
-      setActiveToken(token);
-      setSession({
-        status: 'connected',
-        system,
-        error: null,
-        checkedAt: new Date().toLocaleTimeString('zh-CN', {
-          hour12: false,
-          timeZone: 'Asia/Shanghai',
-        }),
-      });
-    } catch (error: unknown) {
-      if (controller.signal.aborted) return;
-      setSession({
-        ...INITIAL_SESSION,
-        status: 'error',
-        error: error instanceof Error ? error.message : '连接失败，请重试。',
-      });
-    } finally {
-      if (pending.current === controller) pending.current = null;
-    }
-  };
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -1092,6 +1020,7 @@ export default function App() {
               activeToken={activeToken}
               tokenDraft={tokenDraft}
               hasToken={Boolean(activeToken)}
+              storageAvailable={storageAvailable}
               onDraftChange={setTokenDraft}
               onConnect={connect}
               onClear={clear}
