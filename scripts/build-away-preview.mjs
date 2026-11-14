@@ -7,6 +7,11 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = resolve(root, "apps/desktop/dist");
 const output = resolve(process.argv[2] || resolve(dist, "away-preview.html"));
 let html = await readFile(resolve(dist, "index.html"), "utf8");
+const favicon = await readFile(resolve(dist, "brand/favicon.svg"));
+html = html.replace(
+  'href="/brand/favicon.svg"',
+  `href="data:image/svg+xml;base64,${favicon.toString("base64")}"`,
+);
 const scripts = [
   ...html.matchAll(/<script\b[^>]*src="([^"]+)"[^>]*><\/script>/g),
 ];

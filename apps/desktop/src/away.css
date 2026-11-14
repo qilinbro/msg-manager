@@ -58,42 +58,19 @@
   border-right: 1px solid #28323b;
 }
 .away-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
   padding: 0 7px;
+  color: #f3f7ee;
 }
-.away-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid #60734e;
-  border-radius: 12px;
-  background: #c9f578;
-  color: #1c3224;
-  flex-shrink: 0;
-}
-.away-brand-mark svg {
-  width: 32px;
-  height: 32px;
-}
-.away-brand strong,
-.away-brand > div > span {
+.away-brand > svg {
   display: block;
+  width: 145px;
+  height: auto;
 }
-.away-brand strong {
-  font-size: 21px;
-  line-height: 1.15;
-  font-weight: 620;
-  letter-spacing: 0.08em;
+.away-brand .relay-out {
+  fill: #c9f578;
 }
-.away-brand > div > span {
-  font-size: 9px;
-  margin-top: 5px;
-  color: #98a8b5;
-  letter-spacing: 0.17em;
-  white-space: nowrap;
+.away-brand .brand-latin {
+  fill: #98a8b5;
 }
 .away-nav-label {
   margin: 47px 13px 13px;
@@ -158,53 +135,42 @@
   font-size: 8px;
   letter-spacing: 0.15em;
 }
-.away-orbit {
+.away-relay {
   position: relative;
-  margin: 0 auto 23px;
-  width: 125px;
-  height: 125px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    #53685422 10%,
-    transparent 70%
-  );
+  width: 116px;
+  height: 116px;
+  margin: 0 auto 23px;
+  color: #c9f578;
+  border: 1px solid #53645055;
+  border-radius: 28px;
+  background: linear-gradient(145deg, #c9f5780a, #c9f57800);
 }
-.away-orbit i {
+.away-relay::before,
+.away-relay::after {
+  content: '';
   position: absolute;
-  width: 112px;
-  height: 112px;
-  border: 1px solid #b7db9455;
-  border-radius: 50%;
-  transform: rotate(-38deg) scaleY(0.54);
+  width: 22px;
+  height: 1px;
+  background: #8aa46c70;
 }
-.away-orbit i:nth-child(2) {
-  transform: rotate(38deg) scaleY(0.54);
-  border-color: #92b5ba77;
+.away-relay::before {
+  left: -12px;
+  top: 34px;
 }
-.away-orbit i:nth-child(3) {
-  transform: rotate(90deg) scaleY(0.54);
-  border-color: #aac5bb33;
+.away-relay::after {
+  right: -12px;
+  bottom: 34px;
 }
-.away-orbit > span {
-  font-size: 39px;
-  line-height: 1;
-  color: #d6edbd;
-  font-weight: 250;
+.away-relay > svg {
+  width: 76px;
+  height: 76px;
 }
-.away-orbit b {
-  position: absolute;
-  top: 30px;
-  right: 19px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #d2fa94;
-  box-shadow: 0 0 15px #d2fa94aa;
+.away-relay .relay-in {
+  fill: #edf5e4;
 }
-.is-running .away-orbit {
+.is-running .away-relay > svg {
   animation: away-breathe 3s ease-in-out infinite;
 }
 .away-nav-foot {
@@ -1155,15 +1121,8 @@
   .away-brand {
     padding: 0;
   }
-  .away-brand strong {
-    font-size: 18px;
-  }
-  .away-brand > div > span {
-    font-size: 8px;
-  }
-  .away-brand-mark {
-    width: 34px;
-    height: 34px;
+  .away-brand > svg {
+    width: 126px;
   }
   .away-nav-label,
   .away-agent {
@@ -1319,7 +1278,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .away-reveal,
-  .is-running .away-orbit {
+  .is-running .away-relay > svg {
     animation: none;
   }
   .away-shell *,

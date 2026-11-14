@@ -10,6 +10,7 @@ import {
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
 import AwayDesk from './AwayDesk';
+import { BrandLockup, RelaySymbol } from './brand/Brand';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
@@ -957,14 +958,13 @@ export default function App() {
           className="brand"
           href="#main-content"
           onClick={() => setPage('overview')}
-          aria-label="Social Intelligence OS 概览"
+          aria-label="接班 Away Desk 概览"
         >
-          <span className="brand-symbol">
-            <Icon name="leaf" size={25} />
+          <span className="brand-full">
+            <BrandLockup />
           </span>
-          <span>
-            Social Intelligence
-            <span className="brand-subtitle">关系工作台</span>
+          <span className="brand-compact">
+            <RelaySymbol />
           </span>
         </a>
         <span className="sidebar-section-label">个人工作空间</span>
@@ -1062,7 +1062,7 @@ export default function App() {
           )}
         </main>
         <footer className="workspace-footer">
-          <span>Social Intelligence OS</span>
+          <span>接班 / Away Desk</span>
           <span>由你建立关系，由 AI 延续上下文。</span>
         </footer>
       </div>

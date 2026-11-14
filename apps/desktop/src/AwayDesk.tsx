@@ -18,6 +18,7 @@ import {
 } from './away-demo';
 import type { DemoScenario } from './away-demo';
 import { ServiceError } from './api';
+import { BrandLockup, RelaySymbol } from './brand/Brand';
 import './away.css';
 
 const paths = {
@@ -93,35 +94,6 @@ function Icon({
     >
       {paths[name]}
     </svg>
-  );
-}
-
-function BrandMark() {
-  return (
-    <span className="away-brand-mark" aria-hidden="true">
-      <svg
-        viewBox="0 0 32 32"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.45"
-      >
-        <ellipse
-          cx="15.5"
-          cy="16"
-          rx="10"
-          ry="4.4"
-          transform="rotate(-34 15.5 16)"
-        />
-        <ellipse
-          cx="15.5"
-          cy="16"
-          rx="10"
-          ry="4.4"
-          transform="rotate(34 15.5 16)"
-        />
-        <circle cx="23.5" cy="8.9" r="2.2" fill="#a3eee0" stroke="#151e23" />
-      </svg>
-    </span>
   );
 }
 
@@ -706,11 +678,7 @@ export default function AwayDesk({
       </a>
       <header className="away-nav">
         <div className="away-brand">
-          <BrandMark />
-          <div>
-            <strong>接班</strong>
-            <span>AWAY DESK</span>
-          </div>
+          <BrandLockup />
         </div>
         <span className="away-nav-label">WORKSPACE</span>
         <nav aria-label="接班导航">
@@ -737,12 +705,8 @@ export default function AwayDesk({
           </button>
         </nav>
         <div className={`away-agent ${running ? 'is-running' : ''}`}>
-          <div className="away-orbit" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <span>↗</span>
-            <b />
+          <div className="away-relay" aria-hidden="true">
+            <RelaySymbol />
           </div>
           <span className="away-eyebrow">WHILE YOU’RE AWAY</span>
           <strong>{running ? '我在接班。' : '随时，接你的班。'}</strong>

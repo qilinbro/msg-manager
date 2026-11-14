@@ -1,8 +1,13 @@
 # 接班 / Away Desk
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="apps/desktop/public/brand/lockup-reverse.svg" />
+  <img src="apps/desktop/public/brand/lockup.svg" alt="接班 Away Desk" width="210" />
+</picture>
+
 **你不在，事情在推进。**
 
-[立即体验 →](https://joeymilano.github.io/msg-manager/) · [查看 PR #3](https://github.com/qilinbro/msg-manager/pull/3)
+[立即体验 →](https://joeymilano.github.io/msg-manager/) · [查看 PR #3](https://github.com/qilinbro/msg-manager/pull/3) · [品牌展示与 Logo 下载](https://joeymilano.github.io/msg-manager/brand/)
 
 无需登录。点「一键演示」，7 秒看完一次交接。
 
