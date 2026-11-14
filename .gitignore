@@ -17,6 +17,8 @@
 !**/.env.example
 *.log
 *.tsbuildinfo
+**/__pycache__/
+*.pyc
 
 # 图标生成器会附带移动端资源；首版仅跟踪配置实际引用的桌面图标。
 /apps/desktop/src-tauri/icons/*

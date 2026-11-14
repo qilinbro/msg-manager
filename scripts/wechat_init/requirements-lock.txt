@@ -1,0 +1,5 @@
+# Verified 2026-11-14 against official PyPI release metadata:
+# https://pypi.org/project/frida/17.26.3/#files
+# Python >=3.7, cp37-abi3-win_amd64; this project uses CPython 3.13 x64.
+# https://files.pythonhosted.org/packages/17/51/a4fb6d06e097cfe14cfcaac0bb7bc7782eeb8da81a82721b9440ee2e4c83/frida-17.26.3-cp37-abi3-win_amd64.whl
+frida==17.26.3 --hash=sha256:f91b80f3e5f72eaffb63ee5d0a5f49e63fdb91d35cc7dc2d6540b31c3a8f3833
