@@ -41,7 +41,7 @@ export interface InboxMessage {
   body: string;
   occurred_at: string;
   read: boolean;
-  source?: 'import' | 'imap';
+  source?: 'import' | 'imap' | 'wechatdb';
   email?: EmailHeaders;
 }
 export interface EmailHeaders {
@@ -215,7 +215,8 @@ function message(value: unknown): value is InboxMessage {
     typeof value.read === 'boolean' &&
     (value.source === undefined ||
       value.source === 'import' ||
-      value.source === 'imap') &&
+      value.source === 'imap' ||
+      value.source === 'wechatdb') &&
     (value.email === undefined || validEmail(value.email))
   );
 }

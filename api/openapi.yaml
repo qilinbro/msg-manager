@@ -3,7 +3,7 @@
   "info": {
     "title": "Social Intelligence OS — scaffold API",
     "version": "0.1.0",
-    "description": "本机 Bearer API：加密消息管理、只读 IMAP 手动同步、QQ 身份核验和用户确认后发起的会话 AI 分析。模型只生成本地建议，不开放平台发送。后台实时接收、任务队列、审批、发送和 SSE 仍待实现。JSON 语法是有效的 YAML 1.2；预检仅放行明确来源和方法，实际业务请求始终鉴权。"
+    "description": "本机 Bearer API：加密消息管理、只读微信本地库读取、IMAP 手动同步、QQ 身份核验和用户确认后发起的会话 AI 分析。模型只生成本地建议，不开放平台发送。后台实时接收、任务队列、审批、发送和 SSE 仍待实现。JSON 语法是有效的 YAML 1.2；预检仅放行明确来源和方法，实际业务请求始终鉴权。"
   },
   "servers": [
     {
@@ -2649,6 +2649,305 @@
         }
       }
     },
+    "/api/v1/connections/wechat-db/status": {
+      "get": {
+        "description": "返回缓存配置/手动读取及monitor后台轮询状态；不打开微信库，不返回路径或密钥。monitor仅在用户明确启用后由独立服务读取，ready不证明平台在线。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/wechat-db/sessions": {
+      "get": {
+        "description": "用户手动读取固定本机账号目录中的可用私聊；只读，不接受任何查询参数。 使用单次身份/会话验证与有界批量查名，30秒预算内不重复完整扫描。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatSessions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式无效；禁止客户端指定数据库路径、账号或密钥",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用；读取预算耗尽使用WECHAT_TIMEOUT区分，状态仍为unavailable，不返回原生错误或密钥。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/wechat-db/read": {
+      "post": {
+        "description": "手动读取所选私聊最近一批文本，原子保存到产品加密库。默认100/最大500个源记录窗口，跳过媒体；不是全历史、持续接收或密钥提取。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "peer_id"
+                ],
+                "properties": {
+                  "peer_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatReadResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式无效；禁止客户端指定数据库路径、账号或密钥",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "消息标识冲突，整批不保存",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超过限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用；读取预算耗尽使用WECHAT_TIMEOUT区分，状态仍为unavailable，不返回原生错误或密钥。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/wechat-db/monitor": {
+      "post": {
+        "operationId": "configureWechatMonitor",
+        "x-implementation-status": "implemented",
+        "description": "明确配置后台只读轮询私聊（默认关闭，10—300秒、最多20个）。设置按本机固定账号保存于产品加密库。启用校验账号与可读私聊，暂停取消并等待旧轮结束；HTTP/页面退出不停止已启用的服务轮询。不是全历史/掉线补漏或通用持久任务，发送关闭。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WechatMonitorSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "已保存并应用设置；返回缓存后台状态。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatMonitorStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT / INVALID_REQUEST",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "微信/存储未配置、忙、校验失败或存储不可用；状态需重新确认。；读取预算耗尽使用WECHAT_TIMEOUT区分，状态仍为unavailable，不返回原生错误或密钥。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/away-sessions/{session_id}/stop": {
+      "post": {
+        "summary": "Stop polling and cancel in-flight analysis for this session",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwaySnapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Local bearer token required"
+          },
+          "503": {
+            "description": "Local storage or required configuration unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
     "/api/v1/away-sessions": {
       "get": {
         "summary": "Read the latest Away Desk handover",
@@ -2711,9 +3010,9 @@
         }
       }
     },
-    "/api/v1/away-sessions/{session_id}/stop": {
+    "/api/v1/away-sessions/finfold": {
       "post": {
-        "summary": "Stop polling and cancel in-flight analysis for this session",
+        "summary": "Issue a short-lived Finfold import link for confirmed public fields",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -2721,7 +3020,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AwaySnapshot"
+                  "$ref": "#/components/schemas/AwayFinfoldLink"
                 }
               }
             }
@@ -2731,19 +3030,24 @@
           },
           "503": {
             "description": "Local storage or required configuration unavailable"
+          },
+          "400": {
+            "description": "Invalid public fields"
+          },
+          "502": {
+            "description": "Unable to issue the import link"
           }
         },
-        "parameters": [
-          {
-            "in": "path",
-            "name": "session_id",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "maxLength": 128
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AwayFinfoldRequest"
+              }
             }
           }
-        ]
+        }
       }
     },
     "/api/v1/away-sessions/{session_id}/tasks/{task_id}": {
@@ -2804,46 +3108,6 @@
             }
           }
         ]
-      }
-    },
-    "/api/v1/away-sessions/finfold": {
-      "post": {
-        "summary": "Issue a short-lived Finfold import link for confirmed public fields",
-        "x-implementation-status": "implemented",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AwayFinfoldLink"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Local bearer token required"
-          },
-          "503": {
-            "description": "Local storage or required configuration unavailable"
-          },
-          "400": {
-            "description": "Invalid public fields"
-          },
-          "502": {
-            "description": "Unable to issue the import link"
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AwayFinfoldRequest"
-              }
-            }
-          }
-        }
       }
     }
   },
@@ -3278,7 +3542,8 @@
             "enum": [
               "import",
               "imap",
-              "mixed"
+              "mixed",
+              "wechatdb"
             ]
           },
           "message_count": {
@@ -3395,7 +3660,8 @@
             "type": "string",
             "enum": [
               "import",
-              "imap"
+              "imap",
+              "wechatdb"
             ]
           },
           "email": {
@@ -4255,6 +4521,283 @@
           }
         }
       },
+      "WechatReadResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations",
+          "skipped",
+          "limited",
+          "read_at",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "read_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "read_only": {
+            "const": true
+          },
+          "sending_enabled": {
+            "const": false
+          }
+        }
+      },
+      "WechatStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "state",
+          "account_id",
+          "read_only",
+          "last_read_at",
+          "last_result",
+          "sending_enabled",
+          "monitor"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "not_configured",
+              "ready",
+              "reading",
+              "read",
+              "invalid_key",
+              "unavailable",
+              "unsupported_schema",
+              "changed",
+              "not_found"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "read_only": {
+            "const": true
+          },
+          "last_read_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WechatReadResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sending_enabled": {
+            "const": false
+          },
+          "monitor": {
+            "$ref": "#/components/schemas/WechatMonitorStatus"
+          }
+        }
+      },
+      "WechatSession": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "peer_id",
+          "name"
+        ],
+        "properties": {
+          "peer_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "WechatSessions": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WechatSession"
+            }
+          },
+          "read_only": {
+            "const": true
+          },
+          "sending_enabled": {
+            "const": false
+          }
+        }
+      },
+      "WechatMonitorSettings": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "peer_ids",
+          "interval_seconds"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 300,
+            "default": 30
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "enabled": {
+                  "const": true
+                }
+              },
+              "required": [
+                "enabled"
+              ]
+            },
+            "then": {
+              "properties": {
+                "peer_ids": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WechatMonitorStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "peer_ids",
+          "interval_seconds",
+          "state",
+          "last_cycle_at",
+          "last_error_code",
+          "last_result",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 300
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "waiting",
+              "reading",
+              "error",
+              "not_configured"
+            ]
+          },
+          "last_cycle_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "last_error_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 64
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WechatReadResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "read_only": {
+            "const": true,
+            "type": "boolean"
+          },
+          "sending_enabled": {
+            "const": false,
+            "type": "boolean"
+          }
+        }
+      },
       "AwayStart": {
         "type": "object",
         "additionalProperties": false,
@@ -4283,6 +4826,81 @@
           "consent"
         ]
       },
+      "AwayPublicBrief": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "product": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "selling_points": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1200
+          },
+          "cta": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "event",
+          "product",
+          "selling_points",
+          "cta"
+        ]
+      },
+      "AwayFinfoldLink": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "AwayEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "started",
+              "received",
+              "task",
+              "draft",
+              "sync_error",
+              "draft_error",
+              "stopped",
+              "ended"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "kind"
+        ]
+      },
       "AwayTaskPatch": {
         "type": "object",
         "additionalProperties": false,
@@ -4298,43 +4916,20 @@
         },
         "minProperties": 1
       },
-      "AwaySession": {
+      "AwayFinfoldRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "id": {
-            "type": "string"
+          "brief": {
+            "$ref": "#/components/schemas/AwayPublicBrief"
           },
-          "status": {
-            "type": "string",
-            "enum": [
-              "running",
-              "stopped",
-              "ended"
-            ]
-          },
-          "started_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "ends_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "stopped_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "sender": {
-            "type": "string"
+          "confirmed": {
+            "const": true
           }
         },
         "required": [
-          "id",
-          "status",
-          "started_at",
-          "ends_at",
-          "sender"
+          "brief",
+          "confirmed"
         ]
       },
       "AwayTask": {
@@ -4393,34 +4988,43 @@
           "body"
         ]
       },
-      "AwayEvent": {
+      "AwaySession": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "at": {
-            "type": "string",
-            "format": "date-time"
+          "id": {
+            "type": "string"
           },
-          "kind": {
+          "status": {
             "type": "string",
             "enum": [
-              "started",
-              "received",
-              "task",
-              "draft",
-              "sync_error",
-              "draft_error",
+              "running",
               "stopped",
               "ended"
             ]
           },
-          "detail": {
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stopped_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sender": {
             "type": "string"
           }
         },
         "required": [
-          "at",
-          "kind"
+          "id",
+          "status",
+          "started_at",
+          "ends_at",
+          "sender"
         ]
       },
       "AwaySnapshot": {
@@ -4456,67 +5060,6 @@
           "tasks",
           "events",
           "handoff_enabled"
-        ]
-      },
-      "AwayPublicBrief": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "event": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300
-          },
-          "product": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300
-          },
-          "selling_points": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 1200
-          },
-          "cta": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300
-          }
-        },
-        "required": [
-          "event",
-          "product",
-          "selling_points",
-          "cta"
-        ]
-      },
-      "AwayFinfoldRequest": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "brief": {
-            "$ref": "#/components/schemas/AwayPublicBrief"
-          },
-          "confirmed": {
-            "const": true
-          }
-        },
-        "required": [
-          "brief",
-          "confirmed"
-        ]
-      },
-      "AwayFinfoldLink": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "url": {
-            "type": "string",
-            "format": "uri"
-          }
-        },
-        "required": [
-          "url"
         ]
       }
     }

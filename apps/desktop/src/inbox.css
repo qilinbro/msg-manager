@@ -1055,6 +1055,108 @@
   color: #8c382b;
   background: #fcf0e8;
 }
+.wechat-read-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  margin-top: 18px;
+}
+.wechat-chat-field {
+  display: grid;
+  flex: 1 1 280px;
+  gap: 8px;
+  min-width: 0;
+}
+.wechat-chat-field label {
+  color: var(--inbox-muted);
+  font-size: 12px;
+}
+.wechat-chat-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.wechat-chat-field select:disabled {
+  color: var(--inbox-muted);
+  background: #f5f7ef;
+}
+.wechat-read-form > .button {
+  min-height: 42px;
+  font-size: 12px;
+}
+.wechat-monitor {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.wechat-monitor-heading,
+.wechat-monitor-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+.wechat-monitor-heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+.wechat-monitor-controls {
+  align-items: end;
+  margin-top: 15px;
+}
+.wechat-monitor-controls label {
+  display: grid;
+  gap: 8px;
+  color: var(--inbox-muted);
+  font-size: 11px;
+}
+.wechat-monitor-controls input {
+  width: 140px;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.wechat-monitor-controls .button {
+  min-height: 42px;
+  font-size: 12px;
+}
+.wechat-monitor-peers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.wechat-monitor-peers li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 11px;
+}
+.wechat-monitor-peers li > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .inbox-platform-mark.is-email,
 .inbox-avatar-source.is-email {
   color: #715225;
@@ -1104,6 +1206,9 @@
   }
   .email-panel-state {
     gap: 8px 12px;
+  }
+  .wechat-read-form > .button {
+    width: 100%;
   }
   .email-message-metadata {
     font-size: 10px;

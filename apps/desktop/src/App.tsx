@@ -11,6 +11,8 @@ import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
 import AwayDesk from './AwayDesk';
 import type { AIDraftBuffer } from './ai-api';
+import { useServiceSession } from './useServiceSession';
+import type { ServiceSession as Session } from './useServiceSession';
 
 type Page =
   'away' | 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
@@ -25,19 +27,6 @@ type IconName =
   | 'check'
   | 'plug'
   | 'leaf';
-type Session = {
-  status: 'idle' | 'connecting' | 'connected' | 'error';
-  system: SystemStatus | null;
-  error: string | null;
-  checkedAt: string | null;
-};
-
-const INITIAL_SESSION: Session = {
-  status: 'idle',
-  system: null,
-  error: null,
-  checkedAt: null,
-};
 const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
   { page: 'away', label: '接班', icon: 'overview' },
   { page: 'overview', label: '概览', icon: 'overview' },
@@ -730,6 +719,7 @@ function Settings({
   activeToken,
   tokenDraft,
   hasToken,
+  storageAvailable,
   onDraftChange,
   onConnect,
   onClear,
@@ -741,6 +731,7 @@ function Settings({
   activeToken: string;
   tokenDraft: string;
   hasToken: boolean;
+  storageAvailable: boolean;
   onDraftChange: (value: string) => void;
   onConnect: (event: FormEvent<HTMLFormElement>) => void;
   onClear: () => void;
@@ -786,7 +777,9 @@ function Settings({
           />
           <p id="token-description" className="input-help">
             <Icon name="lock" size={14} />
-            令牌仅保存在本次窗口内存中，关闭后需要重新输入。
+            {storageAvailable
+              ? '连接信息仅在本标签页会话内保留，刷新后自动验证，可随时清除。'
+              : '当前浏览器无法保存会话，连接仅在本窗口内存中保留；刷新后需重新连接。'}
           </p>
           <div className="form-actions">
             <button
@@ -907,11 +900,11 @@ function Settings({
           </div>
         </dl>
         <p>
-          当前支持本地加密消息管理、记录导入、邮箱手动收取与 QQ
-          身份核验。持续收件、AI
-          回复和发送尚未实现；账号核验成功不代表已接入消息。个人微信 ClawBot
-          仍仅针对 Bot
-          联系人，不接管已有好友或聊天。关闭工作台后是否继续处理，取决于独立后台服务的后续部署。
+          接班让重要来信在你离席期间变成可核对的任务和待审回信。
+          在指定发件人和授权时段内，独立后台可以持续检查邮箱；关闭窗口后，电脑和后台仍需保持运行。
+          统一消息中心支持加密存储、手动 AI 整理与选定微信私聊的后台只读。 QQ
+          OneBot 当前仅核验身份。回信保存为草稿，发送由你决定。 真实 QQ
+          邮箱三轮验收与原生桌面验收尚待完成。
         </p>
       </details>
     </>
@@ -920,12 +913,19 @@ function Settings({
 
 export default function App() {
   const [page, setPage] = useState<Page>('overview');
-  const [session, setSession] = useState<Session>(INITIAL_SESSION);
-  const [tokenDraft, setTokenDraft] = useState('');
-  const [activeToken, setActiveToken] = useState('');
   const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
-  const pending = useRef<AbortController | null>(null);
-  useEffect(() => () => pending.current?.abort(), []);
+  const {
+    session,
+    tokenDraft,
+    setTokenDraft,
+    activeToken,
+    storageAvailable,
+    connect,
+    clear,
+    cancel,
+    onAuthFailure,
+    onSystemUpdate,
+  } = useServiceSession(aiDrafts);
   useEffect(() => {
     const warnUnsaved = (event: BeforeUnloadEvent) => {
       if (!aiDrafts.size) return;
@@ -936,78 +936,6 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', warnUnsaved);
   }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
-  const onAuthFailure = useCallback(() => {
-    pending.current?.abort();
-    pending.current = null;
-    aiDrafts.clear();
-    setActiveToken('');
-    setSession({
-      ...INITIAL_SESSION,
-      status: 'error',
-      error: '令牌无效或已失效，请在设置中重新连接。',
-    });
-  }, [aiDrafts]);
-  const onSystemUpdate = useCallback((system: SystemStatus) => {
-    setSession((previous) =>
-      previous.status === 'connected'
-        ? {
-            ...previous,
-            system,
-            checkedAt: new Date().toLocaleTimeString('zh-CN', {
-              hour12: false,
-              timeZone: 'Asia/Shanghai',
-            }),
-          }
-        : previous,
-    );
-  }, []);
-  const clear = () => {
-    pending.current?.abort();
-    pending.current = null;
-    aiDrafts.clear();
-    setTokenDraft('');
-    setActiveToken('');
-    setSession(INITIAL_SESSION);
-  };
-  const cancel = () => {
-    pending.current?.abort();
-    pending.current = null;
-    setSession(INITIAL_SESSION);
-  };
-  const connect = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const token = tokenDraft.trim();
-    if (!token || SERVICE.error) return;
-    aiDrafts.clear();
-    pending.current?.abort();
-    const controller = new AbortController();
-    pending.current = controller;
-    setActiveToken('');
-    setSession({ ...INITIAL_SESSION, status: 'connecting' });
-    try {
-      const system = await getSystem(token, controller.signal);
-      if (controller.signal.aborted) return;
-      setActiveToken(token);
-      setSession({
-        status: 'connected',
-        system,
-        error: null,
-        checkedAt: new Date().toLocaleTimeString('zh-CN', {
-          hour12: false,
-          timeZone: 'Asia/Shanghai',
-        }),
-      });
-    } catch (error: unknown) {
-      if (controller.signal.aborted) return;
-      setSession({
-        ...INITIAL_SESSION,
-        status: 'error',
-        error: error instanceof Error ? error.message : '连接失败，请重试。',
-      });
-    } finally {
-      if (pending.current === controller) pending.current = null;
-    }
-  };
   if (page === 'away') {
     return (
       <AwayDesk
@@ -1107,6 +1035,7 @@ export default function App() {
               activeToken={activeToken}
               tokenDraft={tokenDraft}
               hasToken={Boolean(activeToken)}
+              storageAvailable={storageAvailable}
               onDraftChange={setTokenDraft}
               onConnect={connect}
               onClear={clear}

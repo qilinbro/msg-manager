@@ -1,4 +1,4 @@
-// Package connector defines adapter boundaries; no live adapter is enabled yet.
+// Package connector defines the capabilities of local platform adapters.
 package connector
 
 import (
@@ -31,6 +31,7 @@ func Planned() []Descriptor {
 		{ID: "weixin-clawbot", DisplayName: "微信 Clawbot", Platform: "weixin", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划验证微信 Clawbot 授权能力；不代表接管个人微信全部现有好友或聊天。"},
 		{ID: "telegram-bot", DisplayName: "Telegram 机器人", Platform: "telegram", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划通过 Bot API 处理机器人实际可见的授权会话，不读取个人账号全部私聊。"},
 		{ID: "email-imap", DisplayName: "邮箱（IMAP只读）", Platform: "email", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "支持本机配置邮箱后手动收取最近邮件；未启用后台自动收件或发信。"},
+		{ID: "wechat-db", DisplayName: "微信（本地数据库只读）", Platform: "weixin", Status: "not_configured", ImplementationStatus: "manual_read_ready", Description: "配置自己的本机微信4.x数据库后手动读取，或明确选定私聊开启后台定时读取；后台需保持运行，不代表完整历史同步。"},
 	}
 }
 

@@ -131,7 +131,7 @@ function advance() {
           'Please send the public description and a 60-second demo video tomorrow afternoon.',
         );
         task.draft = task.draft?.replace(
-          ', due by 18:00 Beijing time',
+          ', due by 18:00 Beijing time.',
           '. Could you confirm the submission deadline and time zone?',
         );
       }

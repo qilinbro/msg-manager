@@ -1,4 +1,4 @@
-param([switch]$SkipFrontend, [switch]$IncludeDesktop)
+param([switch]$SkipFrontend, [switch]$IncludeDesktop, [switch]$IncludeWechatInit)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $goCommand = Get-Command go -ErrorAction SilentlyContinue
@@ -25,7 +25,25 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
     node scripts/check-contract.mjs
     if ($LASTEXITCODE -ne 0) { throw 'API contract checks failed.' }
+    if ($IsWindows) {
+        & (Join-Path $PSScriptRoot 'test-powershell-bootstrap.ps1')
+        & (Join-Path $PSScriptRoot 'test-inbox-launcher.ps1')
+    }
+    if ($IncludeWechatInit) {
+        & (Join-Path $PSScriptRoot 'prepare-wechat-init.ps1') -CheckOnly
+        $initPython = Join-Path $projectRoot '.tools/wechat-init-venv/Scripts/python.exe'
+        & $initPython -m unittest scripts.wechat_init.test_worker
+        if ($LASTEXITCODE -ne 0) { throw 'WeChat initialization synthetic tests failed.' }
+        $initProbe = Join-Path $projectRoot '.runtime/wechat-init-test-probe.exe'
+        & $goBinary build -tags sqlite_fts5 -o $initProbe ./cmd/wechat-init-check
+        if ($LASTEXITCODE -ne 0) { throw 'WeChat configuration probe could not be built.' }
+        & (Join-Path $PSScriptRoot 'test-wechat-init.ps1') -ProbeExecutable $initProbe
+    }
     if (-not $SkipFrontend) {
+        node scripts/test-service-session.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Service session regression checks failed.' }
+        node scripts/test-wechat-monitor.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Wechat monitor client regression checks failed.' }
         node scripts/test-inbox-import.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Inbox import regression checks failed.' }
         npm.cmd --prefix apps/desktop run format:check

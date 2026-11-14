@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -236,7 +237,7 @@ func (s *Store) QueueAwayMail(sessionID string, req ImportRequest, received time
 		if err != nil {
 			return err
 		}
-		if _, err := importIntoTx(tx, req, "imap"); err != nil {
+		if _, err := importIntoTx(context.Background(), tx, req, "imap"); err != nil {
 			return err
 		}
 		result, err := tx.Exec(`INSERT INTO away_tasks(id,session_id,received_ms,title,state) VALUES(?,?,?,?,'queued') ON CONFLICT(id) DO NOTHING`, id, sessionID, received.UnixMilli(), m.PeerName)

@@ -7,7 +7,7 @@ import (
 	"github.com/qilinbro/msg-manager/migrations"
 )
 
-const latestSchemaVersion = 4
+const latestSchemaVersion = 6
 
 func migrate(db *sql.DB) error {
 	tx, err := db.Begin()
@@ -61,15 +61,50 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 	}
-	if version < 4 {
-		raw, err := migrations.Files.ReadFile("0004_away.sql")
+	var hasConnectorSource int
+	if err := tx.QueryRow(`SELECT count(*) FROM pragma_table_info('messages') WHERE name='connector_source'`).Scan(&hasConnectorSource); err != nil {
+		return ErrUnavailable
+	}
+	// The early away preview also used version 4. Its existing rows must survive.
+	if version < 4 || (version == 4 && hasConnectorSource == 0) {
+		raw, err := migrations.Files.ReadFile("0004_wechat_source.sql")
 		if err != nil {
 			return ErrUnavailable
 		}
 		if _, err = tx.Exec(string(raw)); err != nil {
 			return ErrUnavailable
 		}
-		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(4,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+		if _, err = tx.Exec(`INSERT OR IGNORE INTO schema_migrations(version,applied_at) VALUES(4,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 5 {
+		raw, err := migrations.Files.ReadFile("0005_wechat_monitor.sql")
+		if err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(string(raw)); err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(5,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 6 {
+		var hasAway int
+		if err := tx.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type='table' AND name='away_sessions'`).Scan(&hasAway); err != nil {
+			return ErrUnavailable
+		}
+		if hasAway == 0 {
+			raw, err := migrations.Files.ReadFile("0006_away.sql")
+			if err != nil {
+				return ErrUnavailable
+			}
+			if _, err := tx.Exec(string(raw)); err != nil {
+				return ErrUnavailable
+			}
+		}
+		if _, err := tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(6,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}
 	}

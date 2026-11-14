@@ -22,6 +22,7 @@ import type {
 } from './inbox-api';
 import './inbox.css';
 import EmailPanel from './EmailPanel';
+import WechatPanel from './WechatPanel';
 import AIPanel from './AIPanel';
 import type { AIDraftBuffer } from './ai-api';
 
@@ -551,6 +552,10 @@ export default function Inbox({
   const [notice, setNotice] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [revision, setRevision] = useState(0);
+  const [backgroundPending, setBackgroundPending] = useState(false);
+  const backgroundRequest = useRef<AbortController | null>(null);
+  const listExpanded = useRef(false);
+  const historyExpanded = useRef(false);
   const listRequest = useRef<AbortController | null>(null);
   const historyRequest = useRef<AbortController | null>(null);
   const actionRequest = useRef<AbortController | null>(null);
@@ -565,6 +570,25 @@ export default function Inbox({
   >({ kind: 'bottom' });
   const enabled = Boolean(token && info?.storage_enabled);
   const selectedId = selected?.id;
+  const backgroundView = useRef({ aiOpen, actionBusy, historyMore, listMore });
+  backgroundView.current = { aiOpen, actionBusy, historyMore, listMore };
+  const backgroundContext = JSON.stringify([
+    token,
+    platform,
+    query,
+    view,
+    selectedId,
+    revision,
+  ]);
+  const backgroundContextRef = useRef(backgroundContext);
+  backgroundContextRef.current = backgroundContext;
+  useEffect(
+    () => () => {
+      backgroundRequest.current?.abort();
+      backgroundRequest.current = null;
+    },
+    [token, platform, query, view, selectedId, revision],
+  );
   useLayoutEffect(() => {
     if (selectedId) detailHeader.current?.focus({ preventScroll: true });
     else if (previousSelectedId.current && restoreListFocus.current) {
@@ -599,9 +623,95 @@ export default function Inbox({
   const authFailed = (failure: unknown) =>
     failure instanceof ServiceError && failure.status === 401;
   const refresh = () => {
+    setBackgroundPending(false);
     setListCursor(null);
     setMessageCursor(null);
     setRevision((value) => value + 1);
+  };
+  const refreshBackground = async () => {
+    if (!enabled || backgroundRequest.current) return;
+    const controller = new AbortController();
+    backgroundRequest.current = controller;
+    const atLatest = () => {
+      const viewport = messageViewport.current;
+      return (
+        !historyExpanded.current &&
+        !backgroundView.current.aiOpen &&
+        !backgroundView.current.actionBusy &&
+        !backgroundView.current.historyMore &&
+        (!viewport ||
+          viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight <
+            48)
+      );
+    };
+    const updateList =
+      listState === 'ready' &&
+      !listExpanded.current &&
+      !backgroundView.current.listMore &&
+      !backgroundView.current.actionBusy;
+    const updateMessages =
+      Boolean(selectedId) && messageState === 'ready' && atLatest();
+    if (!updateList || (selectedId && !updateMessages))
+      setBackgroundPending(true);
+    try {
+      const [infoResult, listResult, messageResult] = await Promise.allSettled([
+        getInboxInfo(token, controller.signal),
+        updateList
+          ? getConversations(token, controller.signal, {
+              platform,
+              q: query,
+              unread: view === 'unread',
+              pinned: view === 'pinned',
+              archived: view === 'archived',
+            })
+          : Promise.resolve(null),
+        updateMessages && selectedId
+          ? getConversationMessages(token, controller.signal, selectedId)
+          : Promise.resolve(null),
+      ]);
+      if (
+        controller.signal.aborted ||
+        backgroundContextRef.current !== backgroundContext
+      )
+        return;
+      for (const result of [infoResult, listResult, messageResult]) {
+        if (result.status === 'rejected') {
+          if (authFailed(result.reason)) {
+            onAuthFailure();
+            return;
+          }
+          setBackgroundPending(true);
+        }
+      }
+      if (infoResult.status === 'fulfilled') setInfo(infoResult.value);
+      if (
+        listResult.status === 'fulfilled' &&
+        listResult.value &&
+        !listExpanded.current &&
+        !backgroundView.current.listMore &&
+        !backgroundView.current.actionBusy
+      ) {
+        const data = listResult.value;
+        setConversations(data.items);
+        setListCursor(data.next_cursor);
+        setSelected((current) =>
+          current
+            ? (data.items.find((item) => item.id === current.id) ?? current)
+            : null,
+        );
+      } else if (listResult.status === 'fulfilled' && listResult.value)
+        setBackgroundPending(true);
+      if (messageResult.status === 'fulfilled' && messageResult.value) {
+        if (atLatest()) {
+          scrollMode.current = { kind: 'bottom' };
+          setMessages(messageResult.value.items);
+          setMessageCursor(messageResult.value.next_cursor);
+        } else setBackgroundPending(true);
+      }
+    } finally {
+      if (backgroundRequest.current === controller)
+        backgroundRequest.current = null;
+    }
   };
   useEffect(() => {
     if (!token) return;
@@ -627,6 +737,7 @@ export default function Inbox({
     return () => controller.abort();
   }, [token, revision, onAuthFailure]);
   useEffect(() => {
+    listExpanded.current = false;
     listRequest.current?.abort();
     setConversations([]);
     setListCursor(null);
@@ -669,6 +780,7 @@ export default function Inbox({
     return () => controller.abort();
   }, [enabled, token, platform, query, view, revision, onAuthFailure]);
   useEffect(() => {
+    historyExpanded.current = false;
     historyRequest.current?.abort();
     setMessages([]);
     setMessageCursor(null);
@@ -717,6 +829,7 @@ export default function Inbox({
         cursor: listCursor,
       });
       if (controller.signal.aborted) return;
+      listExpanded.current = true;
       setConversations((current) => unique([...current, ...data.items]));
       setListCursor(data.next_cursor);
     } catch (failure: unknown) {
@@ -751,6 +864,7 @@ export default function Inbox({
         messageCursor,
       );
       if (controller.signal.aborted) return;
+      historyExpanded.current = true;
       scrollMode.current = {
         kind: 'prepend',
         height: messageViewport.current?.scrollHeight ?? 0,
@@ -858,9 +972,20 @@ export default function Inbox({
       <div className="inbox-source-note">
         <span className="inbox-status-dot" />
         <span>
-          这里汇集导入记录与按需同步的邮件。工作台不会自动发送消息或邮件。
+          这里汇集导入记录、微信后台读取结果与邮件。工作台不会自动发送消息或邮件。
         </span>
       </div>
+      {token ? (
+        <WechatPanel
+          key={token}
+          token={token}
+          storageEnabled={enabled}
+          revision={revision}
+          onSynced={refresh}
+          onBackgroundSynced={() => void refreshBackground()}
+          onAuthFailure={onAuthFailure}
+        />
+      ) : null}
       {token ? (
         <EmailPanel
           key={token}
@@ -870,6 +995,14 @@ export default function Inbox({
           onSynced={refresh}
           onAuthFailure={onAuthFailure}
         />
+      ) : null}
+      {backgroundPending ? (
+        <div className="inbox-notice" role="status">
+          <p>后台已保存新消息。当前阅读位置和编辑内容已保留。</p>
+          <button className="email-text-button" type="button" onClick={refresh}>
+            查看最新消息
+          </button>
+        </div>
       ) : null}
       {notice ? (
         <div className="inbox-notice" role="status">
@@ -901,7 +1034,7 @@ export default function Inbox({
         <section className="inbox-start">
           <Symbol name="mail" size={34} />
           <h2>先连接你的消息工作台</h2>
-          <p>连接本地服务后，就能导入社交记录，并按需同步和整理邮件。</p>
+          <p>连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。</p>
           <button className="button button-secondary" onClick={onSettings}>
             前往连接设置
             <Symbol name="arrow" size={16} />
@@ -981,7 +1114,7 @@ export default function Inbox({
               );
             })}
             <p className="inbox-filter-footnote">
-              社交记录来自导入，邮箱按需同步；各来源接入状态单独显示。
+              微信可按设置在后台读取，邮箱按需同步；其他社交记录来自导入。
             </p>
             <div className="inbox-live-states">
               {info.platforms.map((item) => (
@@ -993,7 +1126,9 @@ export default function Inbox({
                       : item.live_status === 'unsupported'
                         ? '暂不支持实时接入'
                         : item.live_status === 'configured'
-                          ? '已配置·手动同步'
+                          ? item.id === 'weixin'
+                            ? '已配置·可后台读取'
+                            : '已配置·手动同步'
                           : '实时未连接'}
                   </span>
                 </span>

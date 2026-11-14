@@ -27,6 +27,7 @@ type handler struct {
 	ai        *aiConnection
 	away      *awayWorker
 	finfold   *finfoldHandoff
+	wechat    *wechatConnection
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -46,6 +47,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	wechat, err := newWechatConnection(cfg.WechatDB)
+	if err != nil {
+		return nil, err
+	}
 	var inbox *store.Store
 	if cfg.DatabasePath != "" {
 		inbox, err = store.Open(cfg.DatabasePath, cfg.DatabaseKey)
@@ -53,7 +58,11 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, finfold: newFinfoldHandoff(cfg.FinfoldOrigin, cfg.FinfoldSecret)}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat, finfold: newFinfoldHandoff(cfg.FinfoldOrigin, cfg.FinfoldSecret)}
+	if err := h.restoreWechatMonitor(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted WeChat monitor configuration could not be restored")
+	}
 	if inbox != nil {
 		h.startAwayWorker()
 	}
@@ -65,6 +74,7 @@ func (h *handler) Close() error {
 		h.away.stop()
 		<-h.away.done
 	}
+	h.closeWechatMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
 	}
@@ -124,6 +134,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method != http.MethodGet {
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/wechat-db/monitor" {
+				h.configureWechatMonitor(w, r, traceID)
+				return
+			}
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/wechat-db/read" {
+				h.readWechat(w, r, traceID)
+				return
+			}
 			if aiMutation(r.Method, r.URL.Path) {
 				h.serveAI(w, r, traceID)
 				return
@@ -177,6 +195,10 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 		h.verifyQQ(w, r, traceID)
 	case "/api/v1/connections/email-imap/status":
 		h.emailStatus(w)
+	case "/api/v1/connections/wechat-db/status":
+		h.wechatStatus(w)
+	case "/api/v1/connections/wechat-db/sessions":
+		h.wechatSessions(w, r, traceID)
 	case "/api/v1/events":
 		writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "事件流与恢复游标尚未实现；当前不提供实时事件订阅。", traceID)
 	case "/api/v1/messages", "/api/v1/contacts", "/api/v1/drafts", "/api/v1/approvals", "/api/v1/jobs", "/api/v1/audit", "/api/v1/reports":

@@ -40,7 +40,7 @@ func conversationRoute(path string) (string, bool, bool) {
 
 func inboxMutation(method, path string) bool {
 	if method == http.MethodPost {
-		return path == "/api/v1/imports/messages" || path == "/api/v1/imports/telegram" || path == "/api/v1/connections/email-imap/sync"
+		return path == "/api/v1/imports/messages" || path == "/api/v1/imports/telegram" || path == "/api/v1/connections/email-imap/sync" || path == "/api/v1/connections/wechat-db/read" || path == "/api/v1/connections/wechat-db/monitor"
 	}
 	_, messages, ok := conversationRoute(path)
 	return method == http.MethodPatch && ok && !messages
@@ -65,6 +65,10 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 	if r.Method == http.MethodGet && r.URL.Path == "/api/v1/inbox" {
 		platforms := []inboxPlatform{{ID: "qq", Name: "QQ", LiveStatus: "probe_only"}, {ID: "weixin", Name: "微信", LiveStatus: "not_connected"}, {ID: "telegram", Name: "Telegram", LiveStatus: "not_connected"}, {ID: "shanliao", Name: "闪聊", LiveStatus: "unsupported"}, {ID: "email", Name: "邮箱", LiveStatus: "not_connected"}}
 		sourceMode := "import"
+		if h.wechat.reader != nil {
+			platforms[1].LiveStatus = "configured"
+			sourceMode = "mixed"
+		}
 		if h.email.client != nil {
 			platforms[4].LiveStatus = "configured"
 			sourceMode = "mixed"

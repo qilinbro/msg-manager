@@ -179,12 +179,14 @@ function Modal({
   const ref = useRef<HTMLDialogElement>(null);
   useLayoutEffect(() => {
     const opener = document.activeElement;
+    const scrollPosition = { left: window.scrollX, top: window.scrollY };
     const dialog = ref.current;
     dialog?.showModal();
     dialog?.querySelector<HTMLElement>('[data-away-focus]')?.focus();
     dialog?.querySelector('mark')?.scrollIntoView({ block: 'nearest' });
     return () => {
       dialog?.close();
+      window.scrollTo({ ...scrollPosition, behavior: 'instant' });
       if (opener instanceof HTMLElement && opener.isConnected) {
         opener.focus({ preventScroll: true });
       }
@@ -358,12 +360,7 @@ function Handover({
   const deadline = task.deadline;
   const today =
     deadline && day.format(new Date(deadline)) === day.format(new Date());
-  const draftPreview =
-    task.draft
-      ?.trim()
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .find((line, i) => i > 0 && line) ?? task.draft?.trim();
+  const draftPreview = task.draft?.trim();
   return (
     <>
       {tasks.length > 1 && (
@@ -382,82 +379,108 @@ function Handover({
           </select>
         </label>
       )}
-      <section
-        className="away-priority away-reveal"
-        key={task.id}
-        aria-label="任务详情"
-      >
-        <div className="away-priority-copy">
-          <span className="away-priority-label">
-            <span />
-            {task.done ? '已完成' : '待跟进'}
-          </span>
-          <h2>{task.title}</h2>
-          {task.requirements.length > 0 ? (
-            <ul className="away-deliverables" aria-label="交付要求">
-              {task.requirements.map((item, i) => (
-                <li key={i}>
-                  <Icon name="file" size={16} />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="away-priority-note">
-              请查看原文，确认需要交付的内容。
+      <div className="away-handover">
+        <section
+          className="away-priority away-reveal"
+          key={task.id}
+          aria-label="任务详情"
+        >
+          <div className="away-priority-copy">
+            <div className="away-card-topline">
+              <span className="away-eyebrow">01 / 下一件要紧事</span>
+              <span className="away-priority-label">
+                <span />
+                {task.done ? '已完成' : '待跟进'}
+              </span>
+            </div>
+            <p className="away-task-origin">
+              <Icon name="mail" size={14} />
+              {task.sender}
             </p>
-          )}
-        </div>
-        <button
-          type="button"
-          className="away-deadline"
-          onClick={openEvidence}
-          aria-label={
-            deadline ? `核对截止时间 ${fmt(deadline)} 原文` : '查看截止时间原文'
-          }
-        >
-          <span className="away-deadline-label">
-            <Icon name="clock" size={15} />
-            {deadline
-              ? `${today ? '今天' : fmt(deadline, calendar)}截止`
-              : '截止时间'}
-          </span>
-          <strong className={deadline ? undefined : 'is-unknown'}>
-            {deadline ? fmt(deadline) : '待确认'}
-          </strong>
-          <span className="away-deadline-link">
-            {deadline ? '北京时间 · 查看原文' : '查看邮件原文'}
-            <Icon name="diagonal" size={13} />
-          </span>
-        </button>
-      </section>
-      <section className="away-next away-reveal" aria-label="下一步">
-        <span className="away-next-icon">
-          <Icon name="edit" size={20} />
-        </span>
-        <div className="away-next-copy">
-          <h2>
-            {task.draft
-              ? '英文回信已备好'
-              : task.draft_failed
-                ? '回信需手动补写'
-                : '英文回信'}
-          </h2>
-          <p lang={draftPreview ? 'en' : undefined}>
-            {draftPreview ??
-              (task.draft_failed
-                ? '任务和原文已保留。'
-                : '可以根据原文撰写回信。')}
-          </p>
-        </div>
-        <button
-          className="away-button primary away-review"
-          onClick={reviewDraft}
-        >
-          {task.draft ? '审阅回信' : '撰写回信'}
-          <Icon name="arrow" size={17} />
-        </button>
-      </section>
+            <h2>{task.title}</h2>
+            {task.requirements.length > 0 ? (
+              <ul className="away-deliverables" aria-label="交付要求">
+                {task.requirements.map((item, i) => (
+                  <li key={i}>
+                    <span className="away-item-number">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="away-priority-note">
+                请查看原文，确认需要交付的内容。
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            className="away-deadline"
+            onClick={openEvidence}
+            aria-label={
+              deadline
+                ? `核对截止时间 ${fmt(deadline)} 原文`
+                : '查看截止时间原文'
+            }
+          >
+            <span className="away-deadline-label">
+              <Icon name="clock" size={15} />
+              {deadline
+                ? `${today ? '今天' : fmt(deadline, calendar)}截止`
+                : '截止时间'}
+            </span>
+            <strong className={deadline ? undefined : 'is-unknown'}>
+              {deadline ? fmt(deadline) : '待确认'}
+            </strong>
+            <span className="away-deadline-link">
+              {deadline ? '北京时间 · 查看原文' : '查看邮件原文'}
+              <Icon name="diagonal" size={13} />
+            </span>
+          </button>
+        </section>
+        <section className="away-next away-reveal" aria-label="下一步">
+          <div className="away-card-topline">
+            <span className="away-eyebrow">02 / 你只需确认</span>
+            <span className="away-next-icon">
+              <Icon name="edit" size={17} />
+            </span>
+          </div>
+          <div className="away-next-copy">
+            <h2>
+              {task.draft
+                ? '英文回信已备好'
+                : task.draft_failed
+                  ? '回信需手动补写'
+                  : '英文回信'}
+            </h2>
+            <div className="away-letter-meta">
+              <span>RE: {task.subject}</span>
+              <span>草稿</span>
+            </div>
+            <p className="away-letter" lang={draftPreview ? 'en' : undefined}>
+              {draftPreview ??
+                (task.draft_failed
+                  ? '任务和原文已保留。'
+                  : '可以根据原文撰写回信。')}
+            </p>
+          </div>
+          <div className="away-draft-footer">
+            <span>
+              <Icon name="shield" size={13} />
+              仅保存，未发送
+            </span>
+          </div>
+          <button
+            className="away-button primary away-review"
+            onClick={reviewDraft}
+          >
+            {task.draft ? '审阅回信' : '撰写回信'}
+            <Icon name="arrow" size={17} />
+          </button>
+        </section>
+      </div>
       <div className="away-task-actions">
         <span>
           <Icon name="shield" size={15} />
@@ -686,9 +709,10 @@ export default function AwayDesk({
           <BrandMark />
           <div>
             <strong>接班</strong>
-            <span>Away Desk</span>
+            <span>AWAY DESK</span>
           </div>
         </div>
+        <span className="away-nav-label">WORKSPACE</span>
         <nav aria-label="接班导航">
           <button
             aria-current={panel === 'desk' ? 'page' : undefined}
@@ -712,6 +736,18 @@ export default function AwayDesk({
             运行记录
           </button>
         </nav>
+        <div className={`away-agent ${running ? 'is-running' : ''}`}>
+          <div className="away-orbit" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <span>↗</span>
+            <b />
+          </div>
+          <span className="away-eyebrow">WHILE YOU’RE AWAY</span>
+          <strong>{running ? '我在接班。' : '随时，接你的班。'}</strong>
+          <p>收好消息，理清下一步。</p>
+        </div>
         <div className="away-nav-foot">
           {demo && <span className="away-demo-label">演示数据</span>}
           {onBack && (
@@ -728,6 +764,20 @@ export default function AwayDesk({
       </header>
 
       <main className="away-main" id="away-main" tabIndex={-1}>
+        <div className="away-topbar">
+          <span>
+            接班工作空间 <i>/</i>{' '}
+            {panel === 'desk'
+              ? '交接台'
+              : panel === 'setup'
+                ? '离席授权'
+                : '运行记录'}
+          </span>
+          <span>
+            <Icon name="shield" size={14} />
+            {demo ? '交互预览 · 合成邮件' : '本机处理 · 草稿待确认'}
+          </span>
+        </div>
         <header className="away-head">
           <div>
             <p className="away-context">
@@ -744,18 +794,34 @@ export default function AwayDesk({
               {sessionWindow && <time>{sessionWindow}</time>}
             </p>
             <h1>
-              {panel === 'setup'
-                ? '离席授权'
-                : panel === 'log'
-                  ? '运行记录'
-                  : replaying
-                    ? '离席回放'
-                    : pending > 0
-                      ? `有 ${pending} 件事等你跟进`
-                      : task
-                        ? '待办已处理'
-                        : '交接台'}
+              {panel === 'setup' ? (
+                '离席授权'
+              ) : panel === 'log' ? (
+                '运行记录'
+              ) : replaying ? (
+                '离席回放'
+              ) : pending > 0 ? (
+                <>
+                  <span className="away-title-part">你不在，</span>
+                  <span className="away-title-part">事情在推进。</span>
+                </>
+              ) : task ? (
+                '待办已处理'
+              ) : (
+                '交接台'
+              )}
             </h1>
+            <p className="away-head-description">
+              {panel === 'setup'
+                ? '选好关注的人，剩下的交给接班。'
+                : panel === 'log'
+                  ? '每一步都有时间，每个结果都有来处。'
+                  : replaying
+                    ? '用 7 秒，看见一次完整交接。'
+                    : pending > 0
+                      ? `${pending} 件待跟进 · ${task?.draft ? '任务已整理，回信等你确认。' : '先核对要求，再准备回信。'}`
+                      : '只关注重要来信，把时间留给手头的事。'}
+            </p>
           </div>
           <div className="away-head-actions">
             {demo && (replaying || !running) && (
@@ -1008,6 +1074,10 @@ export default function AwayDesk({
             )}
           </section>
         )}
+        <footer className="away-workspace-footer">
+          <span>AWAY DESK / 接班</span>
+          <span>你做决定，AI 做准备。</span>
+        </footer>
       </main>
 
       {overlay === 'evidence' && task && (

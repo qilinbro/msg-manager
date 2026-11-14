@@ -1,12 +1,16 @@
 # 接班 / Away Desk
 
-**去开个会。回来就知道哪件事要先做。**
+**你不在，事情在推进。**
+
+[立即体验 →](https://joeymilano.github.io/msg-manager/) · [查看 PR #3](https://github.com/qilinbro/msg-manager/pull/3)
+
+无需登录。点「一键演示」，7 秒看完一次交接。
 
 你离开工作台后，活动主办方来信，要求今天 18:00 前提交素材。回来时，交接台已经列好要交什么，备好英文回信。点一下 **18:00**，邮件里写着截止时间的那句话就亮了。
 
-![接班交接台。首屏显示今天 18:00 的截止时间、两项提交材料，以及审阅回信按钮。](docs/media/away-desk.png)
+![接班交接台。首屏显示今天 18:00 的截止时间、两项提交材料，以及审阅回信按钮。](docs/media/away-desk.jpg)
 
-[截止时间原文](docs/media/away-deadline-evidence.png) · [英文回信草稿](docs/media/away-reply-draft.png) · [7 秒体验](#7-秒体验) · [真实邮箱演示](docs/away-desk.md#90-秒实机演示) · [技术文档](技术文档.md)
+[截止时间原文](docs/media/away-deadline-evidence.jpg) · [英文回信草稿](docs/media/away-reply-draft.jpg) · [7 秒体验](#7-秒体验) · [真实邮箱演示](docs/away-desk.md#90-秒实机演示) · [技术文档](技术文档.md)
 
 ## 离席前选一个人，回来先看一件事
 
@@ -36,7 +40,7 @@ npm run dev
 2. 从授权测试邮箱投递一封虚构邀请。
 3. 重开工作台，核对截止时间对应的邮件原句，打开回信和运行记录。
 
-网页原型已走查。合成邮箱与本机 Qwen 模型已连续通过三轮浏览器关窗验收。真实 QQ 邮箱三轮验收、Tauri 原生桌面验收仍待完成。QQ 邮箱授权和三轮脚本见[自动验收三轮](docs/away-desk.md#自动验收三轮)。
+网页原型已走查。合成邮箱与本机 Qwen 模型已连续通过三轮浏览器关窗验收。真实 QQ 邮箱已登录并确认 IMAP/SMTP 开启，授权码手机验证暂缓，三轮真实收信验收尚未开始。Tauri 原生桌面验收仍待完成。QQ 邮箱授权和三轮脚本见[自动验收三轮](docs/away-desk.md#自动验收三轮)。
 
 ## 从一封邀请到 Finfold 推广素材
 
@@ -44,7 +48,7 @@ npm run dev
 
 ## 本机工作台
 
-接班由 React 工作台、Tauri 桌面外壳和独立 Go 后台组成。后台用 IMAP TLS 只读收件，任务与草稿存入本地 SQLCipher 加密库。项目也包含统一消息中心、QQ OneBot 账号核验和手动 AI 管理。QQ、微信、Telegram 和闪聊的导入记录可统一管理，持续同步选型见[自动获取聊天记录](参考项目/自动同步/README.md)。
+接班由 React 工作台、Tauri 桌面外壳和独立 Go 后台组成。后台用 IMAP TLS 只读收件，任务与草稿存入本地 SQLCipher 加密库。项目也包含统一消息中心、QQ OneBot 账号核验、微信本地库读取和手动 AI 管理。微信支持明确选定私聊的后台只读，配置见[微信接入说明](docs/wechat-db-setup.md)。QQ、微信、Telegram 和闪聊的导入记录可统一管理，持续同步选型见[自动获取聊天记录](参考项目/自动同步/README.md)。
 
 - [工作台启动、统一导入与检查](docs/unified-inbox.md)
 - [邮箱授权](docs/email-setup.md) · [模型接入](docs/ai-setup.md) · [接口契约](api/openapi.yaml)

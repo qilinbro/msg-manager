@@ -35,6 +35,34 @@ type Store struct {
 	mu sync.Mutex
 }
 
+// lockContext never leaves a detached mutex waiter behind after cancellation.
+// Context-aware imports use it so pausing a reader can join its worker even
+// while a different operation still holds the product database lock.
+func (s *Store) lockContext(ctx context.Context) error {
+	if ctx == nil {
+		return ErrInvalidInput
+	}
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if s.mu.TryLock() {
+			if err := ctx.Err(); err != nil {
+				s.mu.Unlock()
+				return err
+			}
+			return nil
+		}
+		timer := time.NewTimer(5 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return ctx.Err()
+		case <-timer.C:
+		}
+	}
+}
+
 func init() {
 	sql.Register("social-sqlcipher", &sqlcipher.SQLiteDriver{ConnectHook: func(conn *sqlcipher.SQLiteConn) error {
 		// ConnectHook executes after the driver applies the validated raw hex key.
