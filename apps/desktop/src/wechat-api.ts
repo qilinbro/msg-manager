@@ -73,6 +73,8 @@ const ERROR_MESSAGES: Record<string, string> = {
     '微信数据库密钥或加密格式不匹配，请检查本机配置。此次读取未保存。',
   WECHAT_UNAVAILABLE:
     '微信数据库暂时无法读取，请检查本机配置、文件访问权限和数据库状态。',
+  WECHAT_TIMEOUT:
+    '微信数据库读取超时，请稍后重试。读取未完成，不表示密钥或文件权限错误。',
   WECHAT_UNSUPPORTED_SCHEMA:
     '当前微信数据库结构尚未支持，请保留现有数据，等待适配后再试。',
   WECHAT_CHANGED:

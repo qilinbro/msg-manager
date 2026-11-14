@@ -18,6 +18,10 @@ type wechatReader interface {
 	Read(context.Context, string) (wechatdb.Batch, error)
 }
 
+type wechatSessionsReader interface {
+	SessionsWithInfo(context.Context) (wechatdb.Info, []wechatdb.Session, error)
+}
+
 type wechatConnection struct {
 	reader        wechatReader
 	gate          chan struct{}
@@ -96,7 +100,10 @@ func (h *handler) beginWechat(w http.ResponseWriter, traceID string) bool {
 
 func (h *handler) failWechat(w http.ResponseWriter, err error, traceID string) {
 	state, message := "unavailable", "微信数据库暂时无法读取，请检查本机配置和文件访问权限。"
+	code := ""
 	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		code, message = "WECHAT_TIMEOUT", "微信数据库读取超时；请稍后重试。本次读取没有完成，不表示密钥或文件权限错误。"
 	case errors.Is(err, wechatdb.ErrInvalidKey):
 		state, message = "invalid_key", "微信数据库密钥或加密格式不匹配；本轮未保存。"
 	case errors.Is(err, wechatdb.ErrUnsupportedSchema):
@@ -111,7 +118,48 @@ func (h *handler) failWechat(w http.ResponseWriter, err error, traceID string) {
 	h.wechat.mu.Lock()
 	h.wechat.status.State = state
 	h.wechat.mu.Unlock()
-	writeError(w, 503, "WECHAT_"+strings.ToUpper(state), message, traceID)
+	if code == "" {
+		code = "WECHAT_" + strings.ToUpper(state)
+	}
+	writeError(w, 503, code, message, traceID)
+}
+
+// A real reader can return identity and sessions from one validated operation.
+// The fallback keeps older adapters subject to the original identity checks.
+func (h *handler) validatedWechatSessions(ctx context.Context) ([]wechatdb.Session, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+	var info wechatdb.Info
+	var items []wechatdb.Session
+	var err error
+	if reader, ok := h.wechat.reader.(wechatSessionsReader); ok {
+		info, items, err = reader.SessionsWithInfo(ctx)
+	} else {
+		info, err = h.wechat.reader.Probe(ctx)
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		if err == nil && (info.AccountID != h.wechat.accountID || !info.ReadOnly) {
+			err = wechatdb.ErrUnsupportedSchema
+		}
+		if err != nil {
+			return nil, err
+		}
+		items, err = h.wechat.reader.Sessions(ctx)
+	}
+	// Source adapters may collapse a row-iteration timeout to unavailable.
+	// Preserve the context's precise reason before classifying source errors.
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	if err != nil {
+		return nil, err
+	}
+	if info.AccountID != h.wechat.accountID || !info.ReadOnly {
+		return nil, wechatdb.ErrUnsupportedSchema
+	}
+	return items, nil
 }
 
 func (h *handler) wechatSessions(w http.ResponseWriter, r *http.Request, traceID string) {
@@ -125,15 +173,7 @@ func (h *handler) wechatSessions(w http.ResponseWriter, r *http.Request, traceID
 	defer func() { <-h.wechat.gate }()
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
-	info, err := h.wechat.reader.Probe(ctx)
-	if err == nil && (info.AccountID != h.wechat.accountID || !info.ReadOnly) {
-		err = wechatdb.ErrUnsupportedSchema
-	}
-	if err != nil {
-		h.failWechat(w, err, traceID)
-		return
-	}
-	items, err := h.wechat.reader.Sessions(ctx)
+	items, err := h.validatedWechatSessions(ctx)
 	if err != nil {
 		h.failWechat(w, err, traceID)
 		return
@@ -200,7 +240,13 @@ func (e wechatImportFailure) Unwrap() error { return e.err }
 // Caller owns the connector gate. Both foreground and background reads use the
 // same account checks and context-aware atomic import.
 func (h *handler) readWechatPeer(ctx context.Context, peerID string) (WechatReadResult, error) {
+	if err := ctx.Err(); err != nil {
+		return WechatReadResult{}, err
+	}
 	batch, err := h.wechat.reader.Read(ctx, peerID)
+	if ctx.Err() != nil {
+		return WechatReadResult{}, ctx.Err()
+	}
 	if err == nil && (batch.Info.AccountID != h.wechat.accountID || !batch.Info.ReadOnly || batch.PeerID != peerID || len(batch.Messages) > 500) {
 		err = wechatdb.ErrUnsupportedSchema
 	}
@@ -218,6 +264,9 @@ func (h *handler) readWechatPeer(ctx context.Context, peerID string) (WechatRead
 	if len(req.Messages) > 0 {
 		result, err = h.inbox.ImportWeChatContext(ctx, req)
 		if err != nil {
+			if ctx.Err() != nil {
+				return WechatReadResult{}, ctx.Err()
+			}
 			return WechatReadResult{}, wechatImportFailure{err}
 		}
 	}

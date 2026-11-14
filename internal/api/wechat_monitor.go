@@ -200,14 +200,7 @@ func (h *handler) validateWechatMonitorPeers(ctx context.Context, peers []string
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	info, err := c.reader.Probe(ctx)
-	if err != nil {
-		return err
-	}
-	if info.AccountID != c.accountID || !info.ReadOnly {
-		return wechatdb.ErrUnsupportedSchema
-	}
-	sessions, err := c.reader.Sessions(ctx)
+	sessions, err := h.validatedWechatSessions(ctx)
 	if err != nil {
 		return err
 	}

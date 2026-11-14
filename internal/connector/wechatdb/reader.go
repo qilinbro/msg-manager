@@ -42,6 +42,7 @@ const (
 	MaxLimit     = 500
 	maxShards    = 64
 	maxSessions  = 10000
+	maxNameBatch = 500
 	driverName   = "social-wechatdb-readonly"
 )
 
@@ -403,20 +404,39 @@ func (r *Reader) names(ctx context.Context, sessions []Session) error {
 			parts = append(parts, "''")
 		}
 	}
-	query := "SELECT " + strings.Join(parts, ",") + " FROM contact WHERE username = ? LIMIT 2"
-	for i := range sessions {
-		rows, err := tx.QueryContext(ctx, query, sessions[i].PeerID)
+	// Bound parameters and returned rows while avoiding an encrypted table scan
+	// for each individual chat. Names remain bound to an exact private-chat ID,
+	// even when a source table uses a case-insensitive username collation.
+	for start := 0; start < len(sessions); start += maxNameBatch {
+		if ctx.Err() != nil {
+			return ErrUnavailable
+		}
+		end := min(start+maxNameBatch, len(sessions))
+		indices := make(map[string]int, end-start)
+		args := make([]any, 0, end-start+1)
+		for i := start; i < end; i++ {
+			indices[sessions[i].PeerID] = i
+			args = append(args, sessions[i].PeerID)
+		}
+		query := "SELECT " + strings.Join(parts, ",") + " FROM contact WHERE username IN (" + strings.TrimSuffix(strings.Repeat("?,", end-start), ",") + ") LIMIT ?"
+		args = append(args, 2*(end-start)+1)
+		rows, err := tx.QueryContext(ctx, query, args...)
 		if err != nil {
 			return ErrUnsupportedSchema
 		}
-		count := 0
+		seen := make(map[string]bool, end-start)
 		for rows.Next() {
-			count++
 			var id, remark, nick, alias sql.NullString
-			if count > 1 || rows.Scan(&id, &remark, &nick, &alias) != nil {
+			if rows.Scan(&id, &remark, &nick, &alias) != nil || !id.Valid {
 				_ = rows.Close()
 				return ErrUnsupportedSchema
 			}
+			i, expected := indices[id.String]
+			if !expected || seen[id.String] {
+				_ = rows.Close()
+				return ErrUnsupportedSchema
+			}
+			seen[id.String] = true
 			for _, name := range []string{remark.String, nick.String, alias.String} {
 				if name = cleanName(name); name != "" {
 					sessions[i].Name = name
@@ -473,26 +493,30 @@ func (r *Reader) metadata(ctx context.Context, op *operation) ([]Session, error)
 }
 
 func (r *Reader) Probe(ctx context.Context) (Info, error) {
-	sessions, err := r.Sessions(ctx)
-	if err != nil {
-		return Info{}, err
-	}
-	return Info{AccountID: r.config.AccountID, ReadOnly: true, SessionCount: len(sessions)}, nil
+	info, _, err := r.SessionsWithInfo(ctx)
+	return info, err
 }
 
 func (r *Reader) Sessions(ctx context.Context) ([]Session, error) {
+	_, sessions, err := r.SessionsWithInfo(ctx)
+	return sessions, err
+}
+
+// SessionsWithInfo returns the validated account metadata and chats from one
+// complete source-read operation. Callers need not repeat Probe then Sessions.
+func (r *Reader) SessionsWithInfo(ctx context.Context) (Info, []Session, error) {
 	op, err := r.begin()
 	if err != nil {
-		return nil, err
+		return Info{}, nil, err
 	}
 	sessions, err := r.metadata(ctx, op)
 	if err != nil {
-		return nil, err
+		return Info{}, nil, err
 	}
 	if err := r.finish(op); err != nil {
-		return nil, err
+		return Info{}, nil, err
 	}
-	return sessions, nil
+	return Info{AccountID: r.config.AccountID, ReadOnly: true, SessionCount: len(sessions)}, sessions, nil
 }
 
 func (r *Reader) Read(ctx context.Context, peerID string) (Batch, error) {

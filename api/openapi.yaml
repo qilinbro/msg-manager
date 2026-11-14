@@ -2689,7 +2689,7 @@
     },
     "/api/v1/connections/wechat-db/sessions": {
       "get": {
-        "description": "用户手动读取固定本机账号目录中的可用私聊；只读，不接受任何查询参数。",
+        "description": "用户手动读取固定本机账号目录中的可用私聊；只读，不接受任何查询参数。 使用单次身份/会话验证与有界批量查名，30秒预算内不重复完整扫描。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -2733,7 +2733,7 @@
             }
           },
           "503": {
-            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用",
+            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用；读取预算耗尽使用WECHAT_TIMEOUT区分，状态仍为unavailable，不返回原生错误或密钥。",
             "content": {
               "application/json": {
                 "schema": {
@@ -2832,7 +2832,7 @@
             }
           },
           "503": {
-            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用",
+            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用；读取预算耗尽使用WECHAT_TIMEOUT区分，状态仍为unavailable，不返回原生错误或密钥。",
             "content": {
               "application/json": {
                 "schema": {
@@ -2901,7 +2901,7 @@
             }
           },
           "503": {
-            "description": "微信/存储未配置、忙、校验失败或存储不可用；状态需重新确认。",
+            "description": "微信/存储未配置、忙、校验失败或存储不可用；状态需重新确认。；读取预算耗尽使用WECHAT_TIMEOUT区分，状态仍为unavailable，不返回原生错误或密钥。",
             "content": {
               "application/json": {
                 "schema": {

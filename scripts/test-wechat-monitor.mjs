@@ -62,6 +62,8 @@ for (const settings of [
 assert.equal(requests.length, beforeInvalid, 'invalid settings must not reach the service');
 responseStatus = 501; response = { error: { code: 'NOT_IMPLEMENTED', message: 'untrusted upstream detail' } };
 await assert.rejects(api.saveWechatMonitor('synthetic', signal(), monitor), /更新后重启后台/);
+responseStatus = 503; response = { error: { code: 'WECHAT_TIMEOUT', message: 'untrusted source path or key' } };
+await assert.rejects(api.getWechatSessions('synthetic', signal()), (error) => error.code === 'WECHAT_TIMEOUT' && /读取超时/.test(error.message) && !/untrusted/.test(error.message));
 responseStatus = 200;
 fetchAction = async () => { throw Error('synthetic connection loss'); };
 const beforeLoss = requests.length;

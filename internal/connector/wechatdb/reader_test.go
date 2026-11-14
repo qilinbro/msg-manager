@@ -456,3 +456,142 @@ func TestOptionalMessageColumnsCanBeAbsent(t *testing.T) {
 		t.Fatal("missing server ID did not fall back to separate local identities")
 	}
 }
+
+func TestSessionsWithInfoBatchesNamesAndLeavesSourceUnchanged(t *testing.T) {
+	f := newFixture(t, 1)
+	f.close()
+	sessionPath := filepath.Join(f.c.Directory, "session", "session.db")
+	contactPath := filepath.Join(f.c.Directory, "contact", "contact.db")
+	messagePath := filepath.Join(f.c.Directory, "message", "message_0.db")
+	sessionDB := fixtureDB(t, sessionPath, 1)
+	contactDB := fixtureDB(t, contactPath, 2)
+	mustExec(t, contactDB, "PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0;")
+	sessionTx, err := sessionDB.Begin()
+	if err != nil {
+		t.Fatal("could not start synthetic session setup")
+	}
+	defer sessionTx.Rollback()
+	contactTx, err := contactDB.Begin()
+	if err != nil {
+		t.Fatal("could not start synthetic name setup")
+	}
+	defer contactTx.Rollback()
+	sessionInsert, err := sessionTx.Prepare("INSERT INTO SessionTable VALUES (?,?)")
+	if err != nil {
+		t.Fatal("could not prepare synthetic sessions")
+	}
+	defer sessionInsert.Close()
+	contactInsert, err := contactTx.Prepare("INSERT INTO contact VALUES (?,?,?,?)")
+	if err != nil {
+		t.Fatal("could not prepare synthetic names")
+	}
+	defer contactInsert.Close()
+	// More than one batch, inserted backwards so row order cannot bind a name
+	// to the wrong chat. The contact WAL remains open throughout the read.
+	for i := 500; i >= 0; i-- {
+		peer := fmt.Sprintf("wxid_batch_%04d", i)
+		if _, err := sessionInsert.Exec(peer, 1700000000); err != nil {
+			t.Fatal("could not insert synthetic session")
+		}
+		var remark, nick, alias any = fmt.Sprintf("备注 %04d", i), fmt.Sprintf("昵称 %04d", i), "alias"
+		if i == 0 {
+			remark = nil
+		}
+		if i == 499 {
+			remark = strings.Repeat("名", 513)
+		}
+		if i == 500 {
+			remark, nick, alias = nil, nil, nil
+		}
+		if _, err := contactInsert.Exec(peer, remark, nick, alias); err != nil {
+			t.Fatal("could not insert synthetic contact")
+		}
+	}
+	if err := sessionTx.Commit(); err != nil {
+		t.Fatal("could not commit synthetic sessions")
+	}
+	if err := contactTx.Commit(); err != nil {
+		t.Fatal("could not commit synthetic contacts")
+	}
+	_ = sessionDB.Close()
+	paths := []string{sessionPath, contactPath, contactPath + "-wal", messagePath}
+	before := fileHashes(t, paths...)
+	info, sessions, err := f.reader().SessionsWithInfo(context.Background())
+	if err != nil || info.AccountID != fixtureOwner || !info.ReadOnly || info.SessionCount != 502 || len(sessions) != info.SessionCount {
+		t.Fatalf("batched sessions mismatch: count=%d, err=%v", len(sessions), err)
+	}
+	byID := make(map[string]string, len(sessions))
+	for _, session := range sessions {
+		byID[session.PeerID] = session.Name
+	}
+	for peer, expected := range map[string]string{
+		"wxid_batch_0000": "昵称 0000",
+		"wxid_batch_0001": "备注 0001",
+		"wxid_batch_0499": "昵称 0499",
+		"wxid_batch_0500": "wxid_batch_0500",
+		fixturePeer:       "合成联系人",
+	} {
+		if byID[peer] != expected {
+			t.Fatal("batched name priority or exact chat binding changed")
+		}
+	}
+	if !reflect.DeepEqual(before, fileHashes(t, paths...)) {
+		t.Fatal("batched metadata read modified a source database or WAL")
+	}
+}
+
+func TestBatchedNamesRejectDuplicateAndCaseInsensitiveMisbinding(t *testing.T) {
+	for _, variant := range []string{"duplicate", "case-insensitive"} {
+		t.Run(variant, func(t *testing.T) {
+			f := newFixture(t, 1)
+			f.close()
+			db := fixtureDB(t, filepath.Join(f.c.Directory, "contact", "contact.db"), 2)
+			if variant == "duplicate" {
+				mustExec(t, db, "INSERT INTO contact VALUES (?,?,?,?)", fixturePeer, "duplicate name", nil, nil)
+			} else {
+				mustExec(t, db, "DROP TABLE contact; CREATE TABLE contact(username TEXT COLLATE NOCASE,remark TEXT,nick_name TEXT,alias TEXT)")
+				mustExec(t, db, "INSERT INTO contact VALUES (?,?,?,?)", strings.ToUpper(fixturePeer), "must not bind to lower-case peer", nil, nil)
+			}
+			_ = db.Close()
+			info, sessions, err := f.reader().SessionsWithInfo(context.Background())
+			if !errors.Is(err, ErrUnsupportedSchema) || sessions != nil || info != (Info{}) {
+				t.Fatal("ambiguous contact metadata was returned")
+			}
+		})
+	}
+}
+
+func TestBatchedNamesKeepNullFallbackAndIgnoreOutOfScopeContacts(t *testing.T) {
+	f := newFixture(t, 1)
+	f.close()
+	db := fixtureDB(t, filepath.Join(f.c.Directory, "contact", "contact.db"), 2)
+	mustExec(t, db, "UPDATE contact SET remark=?,nick_name=NULL,alias=? WHERE username=?", strings.Repeat("名", 513), " \n合成别名\x00 ", fixturePeer)
+	mustExec(t, db, "INSERT INTO contact VALUES (NULL,?,?,?)", "not a chat", nil, nil)
+	mustExec(t, db, "INSERT INTO contact VALUES (?,?,?,?)", fixturePeer+strings.Repeat("x", 129), "not a chat either", nil, nil)
+	_ = db.Close()
+	sessions, err := f.reader().Sessions(context.Background())
+	if err != nil || len(sessions) != 1 || sessions[0].PeerID != fixturePeer || sessions[0].Name != "合成别名" {
+		t.Fatal("optional names or unrelated contact records changed chat binding")
+	}
+}
+
+func TestSessionsWithInfoCanceledAndEmptyStillValidateMetadata(t *testing.T) {
+	f := newFixture(t, 1)
+	f.close()
+	r := f.reader()
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	info, sessions, err := r.SessionsWithInfo(ctx)
+	if err == nil || sessions != nil || info != (Info{}) {
+		t.Fatal("canceled metadata operation returned account or contacts")
+	}
+	db := fixtureDB(t, filepath.Join(f.c.Directory, "session", "session.db"), 1)
+	mustExec(t, db, "DELETE FROM SessionTable")
+	_ = db.Close()
+	db = fixtureDB(t, filepath.Join(f.c.Directory, "contact", "contact.db"), 2)
+	mustExec(t, db, "ALTER TABLE contact RENAME COLUMN username TO unsupported_username")
+	_ = db.Close()
+	if _, _, err := r.SessionsWithInfo(context.Background()); !errors.Is(err, ErrUnsupportedSchema) {
+		t.Fatal("an empty session list bypassed required contact schema validation")
+	}
+}
