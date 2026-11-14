@@ -38,7 +38,29 @@ func TestAIUpgradeFromV2AndPersistedAnalysisMemoryPreferencesQuota(t *testing.T)
 		t.Fatal(err)
 	}
 	legacy := &Store{db: db}
-	id := aiTestConversation(t, legacy, "qq", "legacy-account", "legacy-peer")
+	// Seed the actual v2 layout directly: current Import writes the additive
+	// v4 provenance column, which does not exist before this upgrade.
+	connection := stableID("connection", "qq", "legacy-account")
+	contact := stableID("contact", connection, "legacy-peer")
+	id := stableID("conversation", connection, "legacy-peer")
+	statements := []struct {
+		query string
+		args  []any
+	}{
+		{`INSERT INTO connections VALUES(?,'local-default','qq','legacy-account','旧账号','import')`, []any{connection}},
+		{`INSERT INTO contacts VALUES(?,'local-default',?,'legacy-peer','旧联系人')`, []any{contact, connection}},
+		{`INSERT INTO conversations(id,workspace_id,connection_id,contact_id,peer_id,title) VALUES(?,'local-default',?,?,'legacy-peer','旧会话')`, []any{id, connection, contact}},
+	}
+	for _, statement := range statements {
+		if _, err = db.Exec(statement.query, statement.args...); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, message := range []ImportMessage{importMessage("evidence-one", "legacy-peer", "合成事实：周五交付原型", "2026-01-01T00:00:00.000000000Z"), importMessage("evidence-two", "legacy-peer", "合成问题：准备好了吗？", "2026-01-01T00:01:00.000000000Z")} {
+		if _, err = db.Exec(`INSERT INTO messages(id,workspace_id,conversation_id,external_id,direction,body,occurred_at,is_read) VALUES(?,'local-default',?,?,?,?,?,0)`, stableID("message", id, message.ExternalID), id, message.ExternalID, message.Direction, message.Body, message.OccurredAt); err != nil {
+			t.Fatal(err)
+		}
+	}
 	if err = legacy.UpdateConversation(id, ConversationPatch{Read: boolValue(true), Pinned: boolValue(true), Archived: boolValue(true)}); err != nil {
 		t.Fatal(err)
 	}
@@ -58,8 +80,8 @@ func TestAIUpgradeFromV2AndPersistedAnalysisMemoryPreferencesQuota(t *testing.T)
 		t.Fatal("v2 local management state lost")
 	}
 	var schemaVersion int
-	if s.db.QueryRow(`SELECT max(version)FROM schema_migrations`).Scan(&schemaVersion) != nil || schemaVersion != 3 {
-		t.Fatal("v3 schema not recorded")
+	if s.db.QueryRow(`SELECT max(version)FROM schema_migrations`).Scan(&schemaVersion) != nil || schemaVersion != 4 {
+		t.Fatal("current schema not recorded")
 	}
 	rows, err := s.db.Query(`PRAGMA foreign_key_check`)
 	if err != nil {

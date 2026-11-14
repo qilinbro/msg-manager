@@ -3,7 +3,7 @@
   "info": {
     "title": "Social Intelligence OS — scaffold API",
     "version": "0.1.0",
-    "description": "本机 Bearer API：加密消息管理、只读 IMAP 手动同步、QQ 身份核验和用户确认后发起的会话 AI 分析。模型只生成本地建议，不开放平台发送。后台实时接收、任务队列、审批、发送和 SSE 仍待实现。JSON 语法是有效的 YAML 1.2；预检仅放行明确来源和方法，实际业务请求始终鉴权。"
+    "description": "本机 Bearer API：加密消息管理、只读微信本地库读取、IMAP 手动同步、QQ 身份核验和用户确认后发起的会话 AI 分析。模型只生成本地建议，不开放平台发送。后台实时接收、任务队列、审批、发送和 SSE 仍待实现。JSON 语法是有效的 YAML 1.2；预检仅放行明确来源和方法，实际业务请求始终鉴权。"
   },
   "servers": [
     {
@@ -2648,6 +2648,201 @@
           }
         }
       }
+    },
+    "/api/v1/connections/wechat-db/status": {
+      "get": {
+        "description": "仅返回缓存状态及配置账号；不打开微信库，不返回路径或密钥。ready表示配置通过启动校验，不证明平台在线。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/wechat-db/sessions": {
+      "get": {
+        "description": "用户手动读取固定本机账号目录中的可用私聊；只读，不接受任何查询参数。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatSessions"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式无效；禁止客户端指定数据库路径、账号或密钥",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/wechat-db/read": {
+      "post": {
+        "description": "手动读取所选私聊最近一批文本，原子保存到产品加密库。默认100/最大500个源记录窗口，跳过媒体；不是全历史、持续接收或密钥提取。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "peer_id"
+                ],
+                "properties": {
+                  "peer_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatReadResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式无效；禁止客户端指定数据库路径、账号或密钥",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "令牌缺失或无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源/主机/工作区被拒绝",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "消息标识冲突，整批不保存",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求正文超过限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、繁忙、密钥/格式不匹配、读取中变化或存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3081,7 +3276,8 @@
             "enum": [
               "import",
               "imap",
-              "mixed"
+              "mixed",
+              "wechatdb"
             ]
           },
           "message_count": {
@@ -3198,7 +3394,8 @@
             "type": "string",
             "enum": [
               "import",
-              "imap"
+              "imap",
+              "wechatdb"
             ]
           },
           "email": {
@@ -4055,6 +4252,151 @@
               "confirmed",
               "unverified"
             ]
+          }
+        }
+      },
+      "WechatReadResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations",
+          "skipped",
+          "limited",
+          "read_at",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "read_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "read_only": {
+            "const": true
+          },
+          "sending_enabled": {
+            "const": false
+          }
+        }
+      },
+      "WechatStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "state",
+          "account_id",
+          "read_only",
+          "last_read_at",
+          "last_result",
+          "sending_enabled"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "not_configured",
+              "ready",
+              "reading",
+              "read",
+              "invalid_key",
+              "unavailable",
+              "unsupported_schema",
+              "changed",
+              "not_found"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "read_only": {
+            "const": true
+          },
+          "last_read_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WechatReadResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sending_enabled": {
+            "const": false
+          }
+        }
+      },
+      "WechatSession": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "peer_id",
+          "name"
+        ],
+        "properties": {
+          "peer_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "WechatSessions": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WechatSession"
+            }
+          },
+          "read_only": {
+            "const": true
+          },
+          "sending_enabled": {
+            "const": false
           }
         }
       }

@@ -21,7 +21,7 @@ while ($ancestor.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase) 
 
 $files = [Collections.Generic.SortedDictionary[string,string]]::new([StringComparer]::Ordinal)
 $excludedDirectories = @('node_modules', '.npm-cache', 'dist', 'target', 'gen', '.git', '.cache', '.tools', '.runtime', 'data', 'secrets', 'credentials', 'private', 'backups', 'uploads')
-$excludedExtensions = @('.log', '.tsbuildinfo', '.exe', '.zip', '.db', '.db3', '.sqlite', '.sqlite3', '.wal', '.shm', '.pem', '.key', '.pfx', '.p12', '.keystore')
+$excludedExtensions = @('.log', '.tsbuildinfo', '.exe', '.zip', '.db', '.db3', '.sqlite', '.sqlite3', '.wal', '.shm', '.pem', '.key', '.dpapi', '.pfx', '.p12', '.keystore')
 $desktopIcons = @('32x32.png', '128x128.png', '128x128@2x.png', 'icon.ico', 'icon.icns')
 
 function Add-HandoffFile([IO.FileInfo]$File) {
@@ -64,7 +64,7 @@ New-Item -ItemType Directory -Path $outputPath -Force | Out-Null
 $createdAt = [TimeZoneInfo]::ConvertTimeBySystemTimeZoneId([DateTimeOffset]::UtcNow, 'China Standard Time')
 $archivePath = Join-Path $outputPath ('msg-manager-' + $createdAt.ToString('yyyyMMdd-HHmmss-fff') + '.zip')
 $manifest = [ordered]@{
-    changes = @('CHG-T06-002','CHG-T04-004','CHG-T01-004','CHG-T09-001','CHG-T10-001','CHG-T11-001','CHG-T12-001','CHG-T13-001','CHG-T14-001','CHG-E04-001','CHG-T06-001','CHG-T05-002','CHG-T08-002','CHG-T03-001','CHG-T05-001','CHG-T07-001','CHG-T08-001','CHG-T04-003','CHG-T02-001')
+    changes = @('CHG-T06-003','CHG-T06-002','CHG-T04-004','CHG-T01-004','CHG-T09-001','CHG-T10-001','CHG-T11-001','CHG-T12-001','CHG-T13-001','CHG-T14-001','CHG-E04-001','CHG-T06-001','CHG-T05-002','CHG-T08-002','CHG-T03-001','CHG-T05-001','CHG-T07-001','CHG-T08-001','CHG-T04-003','CHG-T02-001')
     feats = @('FEAT-T01','FEAT-T09','FEAT-T10','FEAT-T11','FEAT-T12','FEAT-T13','FEAT-T14','FEAT-E04','FEAT-T06','FEAT-T03','FEAT-T05','FEAT-T07','FEAT-T08','FEAT-T04','FEAT-T02')
     task_status = 'in_progress'
     created_at = $createdAt.ToString('o')

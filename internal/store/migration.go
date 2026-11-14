@@ -20,7 +20,7 @@ func migrate(db *sql.DB) error {
 	if tx.QueryRow(`SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
 		return ErrUnavailable
 	}
-	if version > 3 {
+	if version > 4 {
 		return ErrUnavailable
 	}
 	if version == 0 {
@@ -56,6 +56,18 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(3,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 4 {
+		raw, err := migrations.Files.ReadFile("0004_wechat_source.sql")
+		if err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(string(raw)); err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(4,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}
 	}

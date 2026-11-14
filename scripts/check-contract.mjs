@@ -44,6 +44,7 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/imports/messages',
   'post /api/v1/imports/telegram',
   'post /api/v1/connections/email-imap/sync',
+  'post /api/v1/connections/wechat-db/read',
   'post /api/v1/conversations/{conversation_id}/analyze',
   'patch /api/v1/conversations/{conversation_id}/draft',
   'patch /api/v1/conversations/{conversation_id}/ai-settings',
@@ -54,6 +55,9 @@ assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
 assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);
 assert.equal(spec.components.schemas.EmailStatus.properties.sending_enabled.const,false);
 assert.equal(spec.components.schemas.EmailSyncResult.properties.sending_enabled.const,false);
+assert.equal(spec.components.schemas.WechatStatus.properties.read_only.const,true);
+assert.equal(spec.components.schemas.WechatReadResult.properties.sending_enabled.const,false);
+assert.deepEqual(Object.keys(spec.paths['/api/v1/connections/wechat-db/read'].post.requestBody.content['application/json'].schema.properties),['peer_id']);
 assert.equal(spec.components.schemas.AIStatus.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.AIAnalysis.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.AIAnalyzeRequest.properties.confirmed.const, true);

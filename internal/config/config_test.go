@@ -85,3 +85,32 @@ func TestDatabaseConfigurationRequiresPairedAbsolutePathAndRawKey(t *testing.T) 
 		}
 	}
 }
+
+func TestWechatEnvironmentLimitAndRedaction(t *testing.T) {
+	for _, key := range []string{"SOCIALD_DATABASE_PATH", "SOCIALD_DATABASE_KEY", "SOCIALD_ADDR", "EMAIL_IMAP_PORT", "EMAIL_IMAP_LIMIT", "AI_DAILY_LIMIT"} {
+		t.Setenv(key, "")
+	}
+	t.Setenv("SOCIALD_API_TOKEN", strings.Repeat("t", 32))
+	t.Setenv("WECHAT_DB_DIR", `D:\synthetic\wxid_owner\db_storage`)
+	t.Setenv("WECHAT_DB_ACCOUNT_ID", "wxid_owner")
+	t.Setenv("WECHAT_DB_KEY", strings.Repeat("ab", 32))
+	t.Setenv("WECHAT_DB_LIMIT", "150")
+	cfg, err := config.LoadFromEnv()
+	if err != nil || cfg.WechatDB.AccountID != "wxid_owner" || cfg.WechatDB.Limit != 150 || cfg.WechatDB.Key == "" {
+		t.Fatal("wechat config not loaded")
+	}
+	for _, format := range []string{"%v", "%+v", "%#v"} {
+		for _, value := range []any{cfg, cfg.WechatDB} {
+			printed := fmt.Sprintf(format, value)
+			if strings.Contains(printed, cfg.WechatDB.Key) || strings.Contains(printed, cfg.WechatDB.Directory) {
+				t.Fatal("wechat config formatting leaked a secret")
+			}
+		}
+	}
+	for _, invalid := range []string{"0", "501", "invalid"} {
+		t.Setenv("WECHAT_DB_LIMIT", invalid)
+		if _, err := config.LoadFromEnv(); err == nil {
+			t.Fatal("invalid wechat limit accepted")
+		}
+	}
+}

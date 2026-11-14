@@ -22,6 +22,7 @@ import type {
 } from './inbox-api';
 import './inbox.css';
 import EmailPanel from './EmailPanel';
+import WechatPanel from './WechatPanel';
 import AIPanel from './AIPanel';
 import type { AIDraftBuffer } from './ai-api';
 
@@ -858,9 +859,19 @@ export default function Inbox({
       <div className="inbox-source-note">
         <span className="inbox-status-dot" />
         <span>
-          这里汇集导入记录与按需同步的邮件。工作台不会自动发送消息或邮件。
+          这里汇集导入记录、按需读取的微信消息与邮件。工作台不会自动发送消息或邮件。
         </span>
       </div>
+      {token ? (
+        <WechatPanel
+          key={token}
+          token={token}
+          storageEnabled={enabled}
+          revision={revision}
+          onSynced={refresh}
+          onAuthFailure={onAuthFailure}
+        />
+      ) : null}
       {token ? (
         <EmailPanel
           key={token}
@@ -901,7 +912,7 @@ export default function Inbox({
         <section className="inbox-start">
           <Symbol name="mail" size={34} />
           <h2>先连接你的消息工作台</h2>
-          <p>连接本地服务后，就能导入社交记录，并按需同步和整理邮件。</p>
+          <p>连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。</p>
           <button className="button button-secondary" onClick={onSettings}>
             前往连接设置
             <Symbol name="arrow" size={16} />
@@ -981,7 +992,7 @@ export default function Inbox({
               );
             })}
             <p className="inbox-filter-footnote">
-              社交记录来自导入，邮箱按需同步；各来源接入状态单独显示。
+              微信与邮箱按需读取，其他社交记录来自导入；各来源状态单独显示。
             </p>
             <div className="inbox-live-states">
               {info.platforms.map((item) => (

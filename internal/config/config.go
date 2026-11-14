@@ -13,6 +13,7 @@ import (
 	"github.com/qilinbro/msg-manager/internal/agent"
 	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
 	"github.com/qilinbro/msg-manager/internal/connector/onebot"
+	"github.com/qilinbro/msg-manager/internal/connector/wechatdb"
 )
 
 const DefaultAddr = "127.0.0.1:17890"
@@ -26,6 +27,7 @@ type Config struct {
 	DatabaseKey  string
 	AI           agent.Config
 	AIDailyLimit int
+	WechatDB     wechatdb.Config
 }
 
 func (Config) String() string   { return "sociald configuration (redacted)" }
@@ -44,8 +46,16 @@ func LoadFromEnv() (Config, error) {
 			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
 			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
 		},
-		Email: mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
-		AI:    agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
+		Email:    mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
+		AI:       agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
+		WechatDB: wechatdb.Config{Directory: os.Getenv("WECHAT_DB_DIR"), AccountID: os.Getenv("WECHAT_DB_ACCOUNT_ID"), Key: os.Getenv("WECHAT_DB_KEY")},
+	}
+	if value := os.Getenv("WECHAT_DB_LIMIT"); value != "" {
+		limit, err := strconv.Atoi(value)
+		if err != nil || limit < 1 || limit > 500 {
+			return Config{}, errors.New("WECHAT_DB_LIMIT must be between 1 and 500")
+		}
+		cfg.WechatDB.Limit = limit
 	}
 	if value := os.Getenv("EMAIL_IMAP_PORT"); value != "" {
 		port, err := strconv.Atoi(value)
