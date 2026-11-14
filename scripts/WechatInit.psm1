@@ -33,7 +33,9 @@ function Initialize-WechatPrivateDirectory {
     if ((Test-Path -LiteralPath $absolute) -and -not (Test-Path -LiteralPath $absolute -PathType Container)) { throw 'INVALID_PRIVATE_DIRECTORY' }
     New-Item -ItemType Directory -Path $absolute -Force -ErrorAction Stop | Out-Null
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent().User
-    $acl = Get-Acl -LiteralPath $absolute -ErrorAction Stop
+    $directory = [IO.DirectoryInfo]::new($absolute)
+    $sections = [Security.AccessControl.AccessControlSections]::Access -bor [Security.AccessControl.AccessControlSections]::Owner
+    $acl = [IO.FileSystemAclExtensions]::GetAccessControl($directory, $sections)
     if ($acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -cne $identity.Value) { throw 'PRIVATE_DIRECTORY_OWNER_MISMATCH' }
     $rules = @($acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
     $alreadyPrivate = $acl.AreAccessRulesProtected -and $rules.Count -gt 0
@@ -43,10 +45,12 @@ function Initialize-WechatPrivateDirectory {
         if (($rule.FileSystemRights -band [Security.AccessControl.FileSystemRights]::FullControl) -eq [Security.AccessControl.FileSystemRights]::FullControl -and ($rule.InheritanceFlags -band [Security.AccessControl.InheritanceFlags]::ContainerInherit) -and ($rule.InheritanceFlags -band [Security.AccessControl.InheritanceFlags]::ObjectInherit)) { $hasFullControl = $true }
     }
     if ($alreadyPrivate -and $hasFullControl) { return $absolute }
-    $acl.SetAccessRuleProtection($true, $false)
-    foreach ($rule in @($acl.GetAccessRules($true, $false, [Security.Principal.SecurityIdentifier]))) { $null = $acl.RemoveAccessRuleSpecific($rule) }
-    $acl.SetAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow'))
-    Set-Acl -LiteralPath $absolute -AclObject $acl -ErrorAction Stop
+    # A fresh descriptor changes only its DACL. Never request owner/SACL writes,
+    # which can require privileges an ordinary local launch does not possess.
+    $restricted = [Security.AccessControl.DirectorySecurity]::new()
+    $restricted.SetAccessRuleProtection($true, $false)
+    $restricted.SetAccessRule([Security.AccessControl.FileSystemAccessRule]::new($identity, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow'))
+    [IO.FileSystemAclExtensions]::SetAccessControl($directory, $restricted)
     return $absolute
 }
 

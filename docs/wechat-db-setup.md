@@ -40,6 +40,10 @@
 4. 工具仅用所选账号的session.db验证候选密钥；原始采集材料只在有界内存中存在，不打印、不落盘。捕获后先由Go只读探针校验目标库，成功才把完整配置重新封装到当前用户DPAPI文件；失败保留旧配置。已有正式配置默认不覆盖，明确替换时使用 `-Replace`。
 5. 看到初始化成功后，重启 `scripts/start-inbox.ps1`，再到消息页手动加载微信私聊。捕获临时密文会清理，正常读取不需要Frida常驻。
 
+初始化成功后无需再次执行initialize-wechat。重复执行出现 `Configuration exists` 表示已有配置受到防覆盖保护；只有明确要替换配置时才使用 `-Replace`。
+
+若旧版启动后台在 `Set-Acl` 报 `SeSecurityPrivilege`，使用CHG-T06-006修复后的启动器重新运行 `scripts/start-inbox.ps1`。新启动器先检查私有目录，已正确保护则直接使用；需要收紧时仅更新DACL，不写所有者或审计权限。无需重新取钥或修改系统权限；已有inbox-key.dpapi和wechat-db.dpapi继续保留。工作台真实读取结果仍需手动验证。
+
 仅支持所选当前用户进程与精确版本4.1.15.56；不搜索其他账号、跟随新PID、提供手动挂钩地址或绕过访问限制。Go优先使用系统或项目工具；GCC支持现有MSYS2常见路径，也可用 `-CompilerPath` 明确指定已有gcc.exe。
 
 初始化入口与只读数据库适配器是不同组件：前者临时挂钩客户端，后者只读数据库。MIT离线辅助代码来源见 [第三方说明](../third_party/flandora_wxkey/SOURCE.md)，Frida许可另见 [许可原文](third-party/frida-license.txt)，没有打包完整上游KeyTool或WeFlow。

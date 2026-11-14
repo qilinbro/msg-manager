@@ -30,9 +30,10 @@ try {
     $private = Initialize-WechatPrivateDirectory (Join-Path $testRoot 'private')
     $unsafeDirectory = Join-Path $testRoot 'unsafe-private'
     New-Item -ItemType Directory -Path $unsafeDirectory | Out-Null
-    $unsafeACL = Get-Acl -LiteralPath $unsafeDirectory
+    $unsafeDirectoryInfo = [IO.DirectoryInfo]::new($unsafeDirectory)
+    $unsafeACL = [IO.FileSystemAclExtensions]::GetAccessControl($unsafeDirectoryInfo, [Security.AccessControl.AccessControlSections]::Access)
     $unsafeACL.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new([Security.Principal.SecurityIdentifier]::new('S-1-5-32-545'), 'ReadAndExecute', 'ContainerInherit,ObjectInherit', 'None', 'Allow'))
-    Set-Acl -LiteralPath $unsafeDirectory -AclObject $unsafeACL -ErrorAction Stop
+    [IO.FileSystemAclExtensions]::SetAccessControl($unsafeDirectoryInfo, $unsafeACL)
     $null = Initialize-WechatPrivateDirectory $unsafeDirectory
     $currentSID = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $securedACL = Get-Acl -LiteralPath $unsafeDirectory

@@ -10,7 +10,9 @@ foreach ($path in @($projectRoot,$dataDirectory,$privateDirectory)) {
         if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Local inbox data paths must not be links.' }
     }
 }
-New-Item -ItemType Directory -Path $privateDirectory -Force | Out-Null
+Import-Module (Join-Path $PSScriptRoot 'WechatInit.psm1') -Force
+# Reuse the idempotent, DACL-only directory guard before reading or creating keys.
+$privateDirectory = Initialize-WechatPrivateDirectory -Path $privateDirectory
 $keyPath = Join-Path $privateDirectory 'inbox-key.dpapi'
 $databasePath = Join-Path $dataDirectory 'messages.db'
 if (Test-Path -LiteralPath $keyPath) {
@@ -23,13 +25,6 @@ if (Test-Path -LiteralPath $keyPath) {
     $inboxProtectedKey | ConvertFrom-SecureString | Set-Content -LiteralPath $keyPath -Encoding UTF8 -NoNewline
     Remove-Variable inboxKeyHex
 }
-# The key is protected for this Windows user. Restrict its folder as well.
-$inboxIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().User
-$inboxACL = Get-Acl -LiteralPath $privateDirectory
-$inboxACL.SetAccessRuleProtection($true,$false)
-$inboxRule = [Security.AccessControl.FileSystemAccessRule]::new($inboxIdentity,'FullControl','ContainerInherit,ObjectInherit','None','Allow')
-$inboxACL.SetAccessRule($inboxRule)
-Set-Acl -LiteralPath $privateDirectory -AclObject $inboxACL
 $inboxPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($inboxProtectedKey)
 try {
     $env:SOCIALD_DATABASE_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($inboxPointer)

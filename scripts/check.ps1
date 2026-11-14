@@ -27,6 +27,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'API contract checks failed.' }
     if ($IsWindows) {
         & (Join-Path $PSScriptRoot 'test-powershell-bootstrap.ps1')
+        & (Join-Path $PSScriptRoot 'test-inbox-launcher.ps1')
     }
     if ($IncludeWechatInit) {
         & (Join-Path $PSScriptRoot 'prepare-wechat-init.ps1') -CheckOnly
