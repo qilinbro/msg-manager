@@ -34,6 +34,9 @@ runInNewContext(apiSource, {
 }, { filename: 'wechat-api.ts' });
 const api = apiModule.exports;
 const signal = () => new AbortController().signal;
+const profileCategoriesModule = { exports: {} };
+const profileCategoriesSource = stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-api.ts', import.meta.url), 'utf8')).replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n').replace(/^export /gm, '') + '\nmodule.exports={PROFILE_CATEGORIES,CATEGORY_NAMES};';
+runInNewContext(profileCategoriesSource, { module: profileCategoriesModule, transport: { SERVICE: { url: 'http://127.0.0.1:17890', error: null }, ServiceError } }, { filename: 'profile-api.ts' });
 let legacy = structuredClone(status); delete legacy.monitor;
 response = legacy;
 assert.equal((await api.getWechatStatus('synthetic', signal())).monitor, null, 'old backend must retain manual access');
@@ -153,13 +156,14 @@ let inboxMessages = [{ id: 'message-1', conversation_id: 'conversation-1', exter
 const conversation = { id: 'conversation-1', connection_id: 'connection-1', platform: 'weixin', account_id: 'wxid_synthetic', peer_id: 'wxid_synthetic_peer', title: 'Synthetic contact', last_message: 'synthetic initial message', last_message_at: '2026-01-01T00:00:00Z', unread_count: 1, pinned: false, archived: false };
 let historyReads = 0;
 const inbox = hookHarness('Inbox.tsx', 'Inbox', {
+  ...profileCategoriesModule.exports,
   getInboxInfo: async () => ({ storage_enabled: true, source_mode: 'mixed', platforms: [{ id: 'weixin', name: '微信', live_status: 'configured', message_count: inboxMessages.length }], import_limit: 1000 }),
   getConversations: async () => ({ items: [structuredClone(conversation)], next_cursor: 'synthetic-list-cursor' }),
   getConversationMessages: async () => { historyReads++; return { items: structuredClone(inboxMessages), next_cursor: 'synthetic-message-cursor' }; },
   updateConversation: async () => structuredClone(conversation),
   importMessages() {}, importTelegram() {}, parseImport() {},
   PLATFORM_NAMES: { qq: 'QQ', weixin: '微信', telegram: 'Telegram', shanliao: '闪聊', email: '邮箱' },
-  EmailPanel: 'EmailPanelStub', WechatPanel: 'WechatPanelStub', AIPanel: 'AIPanelStub',
+  EmailPanel: 'EmailPanelStub', WechatPanel: 'WechatPanelStub', AIPanel: 'AIPanelStub', ProfilePanel: 'ProfilePanelStub',
 }, { token: 'synthetic', aiDrafts: new Map(), onSettings() {}, onAuthFailure() { throw Error('unexpected authentication failure'); } });
 await inbox.flush();
 find(inbox, (node) => node.type === 'button' && node.props.className === 'inbox-conversation ').props.onClick({ currentTarget: { isConnected: true } });

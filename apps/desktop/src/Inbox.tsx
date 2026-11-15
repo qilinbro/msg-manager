@@ -25,6 +25,9 @@ import EmailPanel from './EmailPanel';
 import WechatPanel from './WechatPanel';
 import AIPanel from './AIPanel';
 import type { AIDraftBuffer } from './ai-api';
+import ProfilePanel from './ProfilePanel';
+import { CATEGORY_NAMES, PROFILE_CATEGORIES } from './profile-api';
+import type { ProfileCategory } from './profile-api';
 
 type View = 'all' | 'unread' | 'pinned' | 'archived';
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -523,16 +526,19 @@ export default function Inbox({
   aiDrafts,
   onSettings,
   onAuthFailure,
+  profilesOnly = false,
 }: {
   token: string;
   aiDrafts: Map<string, AIDraftBuffer>;
   onSettings: () => void;
   onAuthFailure: () => void;
+  profilesOnly?: boolean;
 }) {
   const [info, setInfo] = useState<InboxInfo | null>(null);
   const [infoState, setInfoState] = useState<LoadState>('idle');
   const [infoError, setInfoError] = useState<string | null>(null);
   const [platform, setPlatform] = useState<Platform | undefined>();
+  const [category, setCategory] = useState<ProfileCategory | undefined>();
   const [view, setView] = useState<View>('all');
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -543,6 +549,7 @@ export default function Inbox({
   const [listMore, setListMore] = useState(false);
   const [selected, setSelected] = useState<Conversation | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(profilesOnly);
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [messageState, setMessageState] = useState<LoadState>('idle');
   const [messageError, setMessageError] = useState<string | null>(null);
@@ -570,11 +577,24 @@ export default function Inbox({
   >({ kind: 'bottom' });
   const enabled = Boolean(token && info?.storage_enabled);
   const selectedId = selected?.id;
-  const backgroundView = useRef({ aiOpen, actionBusy, historyMore, listMore });
-  backgroundView.current = { aiOpen, actionBusy, historyMore, listMore };
+  const backgroundView = useRef({
+    aiOpen,
+    profileOpen,
+    actionBusy,
+    historyMore,
+    listMore,
+  });
+  backgroundView.current = {
+    aiOpen,
+    profileOpen,
+    actionBusy,
+    historyMore,
+    listMore,
+  };
   const backgroundContext = JSON.stringify([
     token,
     platform,
+    category,
     query,
     view,
     selectedId,
@@ -587,7 +607,7 @@ export default function Inbox({
       backgroundRequest.current?.abort();
       backgroundRequest.current = null;
     },
-    [token, platform, query, view, selectedId, revision],
+    [token, platform, category, query, view, selectedId, revision],
   );
   useLayoutEffect(() => {
     if (selectedId) detailHeader.current?.focus({ preventScroll: true });
@@ -628,7 +648,7 @@ export default function Inbox({
     setMessageCursor(null);
     setRevision((value) => value + 1);
   };
-  const refreshBackground = async () => {
+  const refreshBackground = async (profileChange = false) => {
     if (!enabled || backgroundRequest.current) return;
     const controller = new AbortController();
     backgroundRequest.current = controller;
@@ -637,6 +657,7 @@ export default function Inbox({
       return (
         !historyExpanded.current &&
         !backgroundView.current.aiOpen &&
+        !backgroundView.current.profileOpen &&
         !backgroundView.current.actionBusy &&
         !backgroundView.current.historyMore &&
         (!viewport ||
@@ -650,8 +671,15 @@ export default function Inbox({
       !backgroundView.current.listMore &&
       !backgroundView.current.actionBusy;
     const updateMessages =
-      Boolean(selectedId) && messageState === 'ready' && atLatest();
-    if (!updateList || (selectedId && !updateMessages))
+      !profilesOnly &&
+      !profileChange &&
+      Boolean(selectedId) &&
+      messageState === 'ready' &&
+      atLatest();
+    if (
+      !updateList ||
+      (!profilesOnly && !profileChange && selectedId && !updateMessages)
+    )
       setBackgroundPending(true);
     try {
       const [infoResult, listResult, messageResult] = await Promise.allSettled([
@@ -659,6 +687,7 @@ export default function Inbox({
         updateList
           ? getConversations(token, controller.signal, {
               platform,
+              category,
               q: query,
               unread: view === 'unread',
               pinned: view === 'pinned',
@@ -752,6 +781,7 @@ export default function Inbox({
     setListState('loading');
     getConversations(token, controller.signal, {
       platform,
+      category,
       q: query,
       unread: view === 'unread',
       pinned: view === 'pinned',
@@ -764,7 +794,11 @@ export default function Inbox({
         setListState('ready');
         setSelected((current) =>
           current
-            ? (data.items.find((item) => item.id === current.id) ?? null)
+            ? (data.items.find((item) => item.id === current.id) ??
+              (backgroundView.current.aiOpen ||
+              backgroundView.current.profileOpen
+                ? current
+                : null))
             : null,
         );
       })
@@ -778,7 +812,16 @@ export default function Inbox({
         setListError(messageOf(failure));
       });
     return () => controller.abort();
-  }, [enabled, token, platform, query, view, revision, onAuthFailure]);
+  }, [
+    enabled,
+    token,
+    platform,
+    category,
+    query,
+    view,
+    revision,
+    onAuthFailure,
+  ]);
   useEffect(() => {
     historyExpanded.current = false;
     historyRequest.current?.abort();
@@ -786,7 +829,7 @@ export default function Inbox({
     setMessageCursor(null);
     setHistoryMore(false);
     setMessageError(null);
-    if (!enabled || !selectedId) {
+    if (!enabled || !selectedId || profilesOnly) {
       setMessageState('idle');
       return;
     }
@@ -811,7 +854,7 @@ export default function Inbox({
         setMessageError(messageOf(failure));
       });
     return () => controller.abort();
-  }, [enabled, token, selectedId, revision, onAuthFailure]);
+  }, [enabled, token, selectedId, revision, profilesOnly, onAuthFailure]);
   const moreConversations = async () => {
     if (!enabled || !listCursor || listMore) return;
     const controller = new AbortController();
@@ -822,6 +865,7 @@ export default function Inbox({
     try {
       const data = await getConversations(token, controller.signal, {
         platform,
+        category,
         q: query,
         unread: view === 'unread',
         pinned: view === 'pinned',
@@ -946,8 +990,14 @@ export default function Inbox({
     <div className="inbox-root">
       <div className="inbox-title-row">
         <div>
-          <h1>所有消息，在一处。</h1>
-          <p>跨平台整理会话，把重要的联系留在视线里。</p>
+          <h1>
+            {profilesOnly ? '每位联系人，一份档案。' : '所有消息，在一处。'}
+          </h1>
+          <p>
+            {profilesOnly
+              ? '从已有会话整理关系，保留依据，再逐条核实新信息。'
+              : '跨平台整理会话，把重要的联系留在视线里。'}
+          </p>
         </div>
         <div className="inbox-header-actions">
           <button
@@ -975,7 +1025,7 @@ export default function Inbox({
           这里汇集导入记录、微信后台读取结果与邮件。工作台不会自动发送消息或邮件。
         </span>
       </div>
-      {token ? (
+      {token && !profilesOnly ? (
         <WechatPanel
           key={token}
           token={token}
@@ -986,7 +1036,7 @@ export default function Inbox({
           onAuthFailure={onAuthFailure}
         />
       ) : null}
-      {token ? (
+      {token && !profilesOnly ? (
         <EmailPanel
           key={token}
           token={token}
@@ -998,9 +1048,9 @@ export default function Inbox({
       ) : null}
       {backgroundPending ? (
         <div className="inbox-notice" role="status">
-          <p>后台已保存新消息。当前阅读位置和编辑内容已保留。</p>
+          <p>后台记录已有更新。当前阅读位置和编辑内容已保留。</p>
           <button className="email-text-button" type="button" onClick={refresh}>
-            查看最新消息
+            {profilesOnly ? '刷新联系人列表' : '查看最新消息'}
           </button>
         </div>
       ) : null}
@@ -1116,6 +1166,31 @@ export default function Inbox({
             <p className="inbox-filter-footnote">
               微信可按设置在后台读取，邮箱按需同步；其他社交记录来自导入。
             </p>
+            <label className="inbox-category-filter">
+              关系分类
+              <select
+                value={category ?? ''}
+                onChange={(event) => {
+                  setCategory(
+                    (event.target.value || undefined) as
+                      ProfileCategory | undefined,
+                  );
+                  if (
+                    !backgroundView.current.aiOpen &&
+                    !backgroundView.current.profileOpen
+                  )
+                    setSelected(null);
+                  setNotice(null);
+                }}
+              >
+                <option value="">全部分类</option>
+                {PROFILE_CATEGORIES.map((item) => (
+                  <option key={item} value={item}>
+                    {CATEGORY_NAMES[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="inbox-live-states">
               {info.platforms.map((item) => (
                 <span key={item.id}>
@@ -1161,7 +1236,7 @@ export default function Inbox({
                   {listState === 'ready'
                     ? platform === 'email'
                       ? `${conversations.length} 封邮件`
-                      : `${conversations.length} 个会话`
+                      : `${conversations.length} ${profilesOnly ? '位联系人' : '个会话'}`
                     : '正在读取'}
                 </span>
               </div>
@@ -1218,6 +1293,7 @@ export default function Inbox({
                         setQuery('');
                         setView('all');
                         setPlatform(undefined);
+                        setCategory(undefined);
                       }}
                     >
                       查看全部会话
@@ -1233,6 +1309,7 @@ export default function Inbox({
                         onClick={(event) => {
                           selectedTrigger.current = event.currentTarget;
                           setAiOpen(false);
+                          setProfileOpen(profilesOnly);
                           setSelected(item);
                           setNotice(null);
                         }}
@@ -1259,6 +1336,9 @@ export default function Inbox({
                             {item.last_message || '暂无文本消息'}
                           </span>
                           <span className="inbox-conversation-meta">
+                            <span className="inbox-category-label">
+                              {CATEGORY_NAMES[item.category ?? 'unclassified']}
+                            </span>
                             <span>
                               {PLATFORM_NAMES[item.platform]} ·{' '}
                               {item.platform === 'email'
@@ -1364,12 +1444,23 @@ export default function Inbox({
                     <Symbol name="archive" size={15} />
                     {selected.archived ? '移回收件箱' : '归档'}
                   </button>
+                  {!profilesOnly ? (
+                    <button
+                      onClick={() => setAiOpen((value) => !value)}
+                      aria-expanded={aiOpen}
+                      aria-controls={`ai-management-${selected.id}`}
+                    >
+                      AI 管理
+                    </button>
+                  ) : null}
                   <button
-                    onClick={() => setAiOpen((value) => !value)}
-                    aria-expanded={aiOpen}
-                    aria-controls={`ai-management-${selected.id}`}
+                    onClick={() =>
+                      setProfileOpen((value) => profilesOnly || !value)
+                    }
+                    aria-expanded={profileOpen}
+                    aria-controls={`personal-profile-${selected.id}`}
                   >
-                    AI 管理
+                    个人档案
                   </button>
                 </div>
                 <div
@@ -1377,7 +1468,17 @@ export default function Inbox({
                   ref={messageViewport}
                   aria-busy={messageState === 'loading'}
                 >
-                  {messageState === 'loading' ? (
+                  {profileOpen ? (
+                    <ProfilePanel
+                      key={`${token}:${selected.id}`}
+                      token={token}
+                      conversationId={selected.id}
+                      displayName={selected.title || selected.peer_id}
+                      onAuthFailure={onAuthFailure}
+                      onChanged={() => void refreshBackground(true)}
+                    />
+                  ) : null}
+                  {profilesOnly ? null : messageState === 'loading' ? (
                     <p className="inbox-history-note" role="status">
                       正在读取消息…
                     </p>

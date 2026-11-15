@@ -14,6 +14,7 @@ import (
 
 	"github.com/qilinbro/msg-manager/internal/config"
 	"github.com/qilinbro/msg-manager/internal/connector"
+	"github.com/qilinbro/msg-manager/internal/publicinfo"
 	"github.com/qilinbro/msg-manager/internal/store"
 )
 
@@ -26,6 +27,7 @@ type handler struct {
 	email     *emailConnection
 	ai        *aiConnection
 	wechat    *wechatConnection
+	profiles  *profileWorker
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -57,6 +59,15 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		}
 	}
 	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	var search publicinfo.Provider
+	if cfg.PublicSearch.APIKey != "" {
+		search, err = publicinfo.NewClient(cfg.PublicSearch)
+		if err != nil {
+			_ = h.Close()
+			return nil, fmt.Errorf("public search configuration is invalid")
+		}
+	}
+	h.profiles = newProfileWorker(h, search, cfg.SearchDailyLimit)
 	if err := h.restoreWechatMonitor(); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted WeChat monitor configuration could not be restored")
@@ -65,6 +76,9 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 }
 
 func (h *handler) Close() error {
+	if h.profiles != nil {
+		h.profiles.stop()
+	}
 	h.closeWechatMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
@@ -98,7 +112,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// to GET, and every actual request must authenticate.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -121,6 +135,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method != http.MethodGet {
+			if profileMutation(r.Method, r.URL.Path) {
+				h.serveProfile(w, r, traceID)
+				return
+			}
 			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/wechat-db/monitor" {
 				h.configureWechatMonitor(w, r, traceID)
 				return
@@ -191,6 +209,10 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 	case "/api/v1/messages", "/api/v1/contacts", "/api/v1/drafts", "/api/v1/approvals", "/api/v1/jobs", "/api/v1/audit", "/api/v1/reports":
 		writeJSON(w, http.StatusOK, ListResponse[any]{Items: []any{}})
 	default:
+		if profileRead(r.URL.Path) {
+			h.serveProfile(w, r, traceID)
+			return
+		}
 		if aiRead(r.URL.Path) {
 			h.serveAI(w, r, traceID)
 			return

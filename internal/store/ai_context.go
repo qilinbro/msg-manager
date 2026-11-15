@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 )
@@ -236,6 +237,11 @@ func (s *Store) UpdateAISettings(conversationID, mode, tone string) error {
 	}
 	if mode != settings.Mode || tone != settings.Tone {
 		if err = bumpAIPreferences(tx, conversation, mode, tone); err != nil {
+			return err
+		}
+	}
+	if mode == "paused" {
+		if err = cancelPausedProfileJobs(context.Background(), tx, conversationID); err != nil {
 			return err
 		}
 	}

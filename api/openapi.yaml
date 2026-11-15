@@ -930,6 +930,23 @@
               "maximum": 100,
               "default": 50
             }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "friend",
+                "family",
+                "colleague",
+                "client",
+                "partner",
+                "other",
+                "unclassified"
+              ]
+            }
           }
         ]
       }
@@ -2912,6 +2929,636 @@
           }
         }
       }
+    },
+    "/api/v1/ai/profile-status": {
+      "get": {
+        "description": "仅配置和额度元数据，不返回密钥或执行模型/搜索。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功；查询不调用外部模型或搜索，202仅表示作业已入队。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfileStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PROFILE_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_STALE / AI_CONSENT_REQUIRED / AI_PAUSED / PROFILE_SEARCH_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / SEARCH_NOT_CONFIGURED / PROFILE_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/profile": {
+      "get": {
+        "description": "返回当前会话联系人档案和已保存的候选/来源/作业，按工作区及联系人身份严格限域。",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；查询不调用外部模型或搜索，202仅表示作业已入队。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PROFILE_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_STALE / AI_CONSENT_REQUIRED / AI_PAUSED / PROFILE_SEARCH_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / SEARCH_NOT_CONFIGURED / PROFILE_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "description": "CAS保存人工资料与自动开关；默认关闭，开启需显式同意并绑定当前模型。AI paused时仅允许保持或关闭原开关和编辑人工内容；不授予新权限。",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactProfilePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功；查询不调用外部模型或搜索，202仅表示作业已入队。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PROFILE_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_STALE / AI_CONSENT_REQUIRED / AI_PAUSED / PROFILE_SEARCH_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / SEARCH_NOT_CONFIGURED / PROFILE_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/profile/generate": {
+      "post": {
+        "description": "提交有界聊天分类/档案作业；不绑定页面。模型不能确认事实或改写人工分类。",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "成功；查询不调用外部模型或搜索，202仅表示作业已入队。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfileJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PROFILE_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_STALE / AI_CONSENT_REQUIRED / AI_PAUSED / PROFILE_SEARCH_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / SEARCH_NOT_CONFIGURED / PROFILE_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/profile/enrich": {
+      "post": {
+        "description": "独立公开搜索授权后提交作业，只搜索明确公开姓名/公司；所有匹配候选默认待核实。",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "成功；查询不调用外部模型或搜索，202仅表示作业已入队。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfileJob"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PROFILE_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_STALE / AI_CONSENT_REQUIRED / AI_PAUSED / PROFILE_SEARCH_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / SEARCH_NOT_CONFIGURED / PROFILE_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/profile/facts/{fact_id}": {
+      "patch": {
+        "description": "用户明确确认或拒绝已有候选，CAS防覆盖；不接受候选原文、来源或身份的客户端伪造。",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "fact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactProfileFactPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功；查询不调用外部模型或搜索，202仅表示作业已入队。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "PROFILE_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_STALE / AI_CONSENT_REQUIRED / AI_PAUSED / PROFILE_SEARCH_NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / SEARCH_NOT_CONFIGURED / PROFILE_UNAVAILABLE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3416,6 +4063,18 @@
           },
           "account_name": {
             "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "friend",
+              "family",
+              "colleague",
+              "client",
+              "partner",
+              "other",
+              "unclassified"
+            ]
           }
         }
       },
@@ -4598,6 +5257,553 @@
           "sending_enabled": {
             "const": false,
             "type": "boolean"
+          }
+        }
+      },
+      "ContactProfileFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "field",
+          "value",
+          "state",
+          "origin",
+          "message_ids",
+          "source_ids"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "field": {
+            "type": "string",
+            "enum": [
+              "name",
+              "company",
+              "role",
+              "interest",
+              "project",
+              "preference",
+              "public_bio"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "confirmed",
+              "rejected"
+            ]
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "chat",
+              "public"
+            ]
+          },
+          "message_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxItems": 20
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxItems": 5
+          }
+        }
+      },
+      "ContactProfileSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "url",
+          "title",
+          "snippet",
+          "content_hash",
+          "retrieved_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 4096
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "snippet": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "content_hash": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ContactProfileJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "conversation_id",
+          "kind",
+          "state",
+          "attempts",
+          "next_attempt_at",
+          "lease_until",
+          "model_config_id",
+          "settings_revision",
+          "max_seq",
+          "last_error_code",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "conversation_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "organize",
+              "enrich"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled"
+            ]
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "next_attempt_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lease_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "model_config_id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "settings_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_seq": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "last_error_code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ContactProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "conversation_id",
+          "contact_id",
+          "display_name",
+          "platform",
+          "public_name",
+          "company",
+          "role",
+          "manual_notes",
+          "category_override",
+          "auto_organize",
+          "public_search_enabled",
+          "ai_paused",
+          "model_config_id",
+          "revision",
+          "processed_seq",
+          "max_seq",
+          "category",
+          "ai_category",
+          "tags",
+          "summary",
+          "evidence_ids",
+          "facts",
+          "sources",
+          "jobs",
+          "updated_at",
+          "document_markdown",
+          "truncated"
+        ],
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "contact_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "display_name": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "platform": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "public_name": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "manual_notes": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "category_override": {
+            "type": "string",
+            "enum": [
+              "",
+              "friend",
+              "family",
+              "colleague",
+              "client",
+              "partner",
+              "other",
+              "unclassified"
+            ]
+          },
+          "auto_organize": {
+            "type": "boolean"
+          },
+          "public_search_enabled": {
+            "type": "boolean"
+          },
+          "ai_paused": {
+            "type": "boolean"
+          },
+          "model_config_id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "processed_seq": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_seq": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "friend",
+              "family",
+              "colleague",
+              "client",
+              "partner",
+              "other",
+              "unclassified"
+            ]
+          },
+          "ai_category": {
+            "type": "string",
+            "enum": [
+              "friend",
+              "family",
+              "colleague",
+              "client",
+              "partner",
+              "other",
+              "unclassified"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "maxItems": 8
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxItems": 20
+          },
+          "facts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactProfileFact"
+            },
+            "maxItems": 100
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactProfileSource"
+            },
+            "maxItems": 200
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContactProfileJob"
+            },
+            "maxItems": 2
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "document_markdown": {
+            "type": "string",
+            "maxLength": 262144
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ContactProfilePatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "public_name": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "manual_notes": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "category_override": {
+            "type": "string",
+            "enum": [
+              "",
+              "friend",
+              "family",
+              "colleague",
+              "client",
+              "partner",
+              "other",
+              "unclassified"
+            ]
+          },
+          "auto_organize": {
+            "type": "boolean"
+          },
+          "public_search_enabled": {
+            "type": "boolean"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "model_config_id": {
+            "type": "string",
+            "maxLength": 64
+          }
+        }
+      },
+      "ContactProfileRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "confirmed",
+          "model_config_id"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{64}$"
+          }
+        }
+      },
+      "ContactProfileFactPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "state"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "rejected"
+            ]
+          }
+        }
+      },
+      "ContactProfileStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model_configured",
+          "search_configured",
+          "model_config_id",
+          "model",
+          "provider",
+          "endpoint_host",
+          "daily_limit",
+          "used_today",
+          "search_daily_limit",
+          "search_used_today",
+          "sending_enabled"
+        ],
+        "properties": {
+          "model_configured": {
+            "type": "boolean"
+          },
+          "search_configured": {
+            "type": "boolean"
+          },
+          "model_config_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          },
+          "provider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          },
+          "endpoint_host": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 512
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "used_today": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "search_daily_limit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "search_used_today": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
           }
         }
       }

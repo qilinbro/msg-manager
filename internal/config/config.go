@@ -14,20 +14,23 @@ import (
 	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
 	"github.com/qilinbro/msg-manager/internal/connector/onebot"
 	"github.com/qilinbro/msg-manager/internal/connector/wechatdb"
+	"github.com/qilinbro/msg-manager/internal/publicinfo"
 )
 
 const DefaultAddr = "127.0.0.1:17890"
 
 type Config struct {
-	Addr         string
-	APIToken     string
-	QQOneBot     onebot.Config
-	Email        mailbox.Config
-	DatabasePath string
-	DatabaseKey  string
-	AI           agent.Config
-	AIDailyLimit int
-	WechatDB     wechatdb.Config
+	Addr             string
+	APIToken         string
+	QQOneBot         onebot.Config
+	Email            mailbox.Config
+	DatabasePath     string
+	DatabaseKey      string
+	AI               agent.Config
+	AIDailyLimit     int
+	WechatDB         wechatdb.Config
+	PublicSearch     publicinfo.Config
+	SearchDailyLimit int
 }
 
 func (Config) String() string   { return "sociald configuration (redacted)" }
@@ -46,9 +49,10 @@ func LoadFromEnv() (Config, error) {
 			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
 			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
 		},
-		Email:    mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
-		AI:       agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
-		WechatDB: wechatdb.Config{Directory: os.Getenv("WECHAT_DB_DIR"), AccountID: os.Getenv("WECHAT_DB_ACCOUNT_ID"), Key: os.Getenv("WECHAT_DB_KEY")},
+		Email:        mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
+		AI:           agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
+		WechatDB:     wechatdb.Config{Directory: os.Getenv("WECHAT_DB_DIR"), AccountID: os.Getenv("WECHAT_DB_ACCOUNT_ID"), Key: os.Getenv("WECHAT_DB_KEY")},
+		PublicSearch: publicinfo.Config{APIKey: os.Getenv("TAVILY_API_KEY")},
 	}
 	if value := os.Getenv("WECHAT_DB_LIMIT"); value != "" {
 		limit, err := strconv.Atoi(value)
@@ -78,10 +82,20 @@ func LoadFromEnv() (Config, error) {
 		}
 		cfg.AIDailyLimit = limit
 	}
+	if value := os.Getenv("PUBLIC_SEARCH_DAILY_LIMIT"); value != "" {
+		limit, err := strconv.Atoi(value)
+		if err != nil || limit < 1 || limit > 1000 {
+			return Config{}, errors.New("PUBLIC_SEARCH_DAILY_LIMIT must be between 1 and 1000")
+		}
+		cfg.SearchDailyLimit = limit
+	}
 	return cfg, cfg.Validate()
 }
 
 func (c Config) Validate() error {
+	if publicinfo.ValidateConfig(c.PublicSearch) != nil || c.SearchDailyLimit < 0 || c.SearchDailyLimit > 1000 {
+		return errors.New("public search configuration is invalid; check the locally configured key and daily limit")
+	}
 	if c.DatabasePath != "" || c.DatabaseKey != "" {
 		key, keyErr := hex.DecodeString(c.DatabaseKey)
 		if !filepath.IsAbs(c.DatabasePath) || strings.HasPrefix(c.DatabasePath, `\\`) || len(key) != 32 || keyErr != nil {

@@ -40,6 +40,12 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if background, ok := handler.(interface{ StartBackground(context.Context) error }); ok {
+		if err := background.StartBackground(ctx); err != nil {
+			_ = listener.Close()
+			return err
+		}
+	}
 	server := &http.Server{
 		Handler: handler, ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout: 10 * time.Second, WriteTimeout: 40 * time.Second,

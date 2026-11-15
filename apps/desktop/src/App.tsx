@@ -1028,6 +1028,15 @@ export default function App() {
               onSystemUpdate={onSystemUpdate}
               onAuthFailure={onAuthFailure}
             />
+          ) : page === 'contacts' ? (
+            <Inbox
+              key={`profiles:${activeToken}`}
+              token={activeToken}
+              aiDrafts={aiDrafts}
+              onSettings={onSettings}
+              onAuthFailure={onAuthFailure}
+              profilesOnly
+            />
           ) : page === 'messages' ? (
             <Inbox
               key={activeToken}

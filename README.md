@@ -1,6 +1,6 @@
 # Social Intelligence OS
 
-多平台社交关系助手。当前实现为 **统一消息中心 + 微信本地库读取 + 邮箱只读同步 + QQ 账号核验 + 手动 AI 管理**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
+多平台社交关系助手。当前实现为 **统一消息中心 + 微信本地库读取 + 邮箱只读同步 + QQ 账号核验 + AI 分类与联系人档案**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
 
 全部已实现功能按用户授权整合至 main，检查与同步记录见 [main整合记录](docs/acceptance/main-integration.md)。各项真实服务、正式审查和产品验收状态继续单独记录。
 
@@ -12,11 +12,12 @@
 - 用户确认后导入统一 JSON，支持 Telegram Desktop 单个个人私聊导出；稳定标识去重、冲突整批回滚，SQLCipher 加密保存。
 - QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换；持续接收仍未实现。
 - 当前会话可先预览确认，再调用 DeepSeek/兼容接口整理摘要、风险、草稿和待核实记忆；用户确认记忆后才进入后续上下文。真实模型与界面验收待进行。
+- 联系人档案支持人工资料、AI 分类/摘要、事实候选、证据来源及 Markdown 导出。明确授权后可后台自动整理新消息、按公开姓名/公司搜索资料；公开结果待核实后确认，默认不开自动整理或联网。模型与 Tavily 密钥只在本机配置，见[档案配置](docs/ai-profiles-setup.md)。正式审查和真实模型/搜索验收待进行。
 - 邮箱支持本机配置 IMAP TLS 授权码后手动同步最近邮件，显示主题与地址；不改原邮箱已读，不发信。先支持 QQ/163/授权码企业邮箱的协议能力，真实账号尚待核验。
 - 微信支持配置本机4.x数据库和密钥后手动读取私聊，或明确选择私聊开启后台定时只读、去重入库；默认关闭，设置加密保存，关闭页面后后台可继续。仍是最近记录窗口，不保证全历史或离线补漏。配置见[微信本地记录接入](docs/wechat-db-setup.md)，真实私聊验收待进行。
 - 微信4.1.15.56另有用户主动确认的一次性本机初始化入口 `scripts/initialize-wechat.ps1`，在重新登录时临时挂钩指定进程，密钥验证后DPAPI保存。用户已回传真实初始化成功日志；后台工作台读取另行验收，依赖准备和操作步骤见同一接入说明。
 
-自动发送始终关闭。微信可对明确私聊开启本地库周期读取；QQ/Telegram持续收件、可靠消息游标/持久任务、Windows服务安装和真实消息发送仍未实现。电脑及后台需要保持运行；邮箱仍按需同步，不表示各平台都已持续在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
+自动发送始终关闭。微信可对明确私聊开启本地库周期读取；QQ/Telegram持续收件、可靠消息游标、通用任务/发件箱恢复、Windows服务安装和真实消息发送仍未实现。电脑及后台需要保持运行；邮箱仍按需同步，不表示各平台都已持续在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
 
 推荐先按[统一消息中心使用说明](docs/unified-inbox.md)运行 `scripts/start-inbox.ps1`，自动准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录。源码不含预置消息或真人聊天数据。
 
@@ -57,7 +58,7 @@ npm run dev
 
 打开 `http://127.0.0.1:1420`，在设置页填写后台令牌并连接。健康检查地址是 `http://127.0.0.1:17890/health/live`。
 
-`/health/ready` 当前仍返回 **503 NOT_READY**，因为无人值守所需实时接收、任务与发送链路尚未完成；本地导入管理能力由 `/api/v1/inbox` 的 `storage_enabled` 单独声明。
+`/health/ready` 当前仍返回 **503 NOT_READY**，因为无人值守所需实时接收、通用任务与发送链路尚未完成；本地导入管理能力由 `/api/v1/inbox` 的 `storage_enabled` 单独声明。
 
 ### 3. 桌面外壳
 
@@ -96,13 +97,19 @@ flowchart LR
     AI -->|校验结果| MEMORY[限域记忆 / 摘要 / 本地草稿]
     MEMORY --> STORE
     DOMAIN -. 后续实现 .-> CONNECTOR[微信 Clawbot / Telegram]
-    DOMAIN -. 后续实现 .-> AGENT[持久化任务 / 审批 / 发件箱]
+    API --> JOBS[档案持久作业 / 租约 / 配额]
+    JOBS --> AI
+    JOBS --> SEARCH[Tavily 公开搜索]
+    SEARCH --> CANDIDATE[待核实来源候选]
+    CANDIDATE --> STORE
+    DOMAIN -. 后续实现 .-> AGENT[通用任务 / 审批 / 发件箱]
 ```
 
-- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、只读邮箱同步及手动 AI 分析开放，发送/审批继续拒绝。
+- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、只读邮箱同步、手动 AI 分析及联系人档案作业开放，发送/审批继续拒绝。
 - [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
 - [自动获取聊天记录选型](参考项目/自动同步/README.md)：减少手工导入的QCE、Telegram个人账号及微信方案核验；目前为调研与待实施步骤。
 - [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
+- [联系人档案接入](docs/ai-profiles-setup.md)：后台自动分类、公开来源候选确认、配额及导出；[架构决定](docs/adr/0009-ai-contact-profiles.md)。
 - [AI 管理接入](docs/ai-setup.md)：DeepSeek/兼容服务本机配置、预览确认、记忆核对与草稿。
 - [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
 - [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：自有服务与 OneBot 连接层分离，优先 QQ 个人号。

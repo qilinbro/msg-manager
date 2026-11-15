@@ -1,4 +1,6 @@
 import { SERVICE, ServiceError } from './api';
+import { isProfileCategory } from './profile-api';
+import type { ProfileCategory } from './profile-api';
 
 export type Platform = 'qq' | 'weixin' | 'telegram' | 'shanliao' | 'email';
 export const PLATFORM_NAMES: Record<Platform, string> = {
@@ -32,6 +34,7 @@ export interface Conversation {
   unread_count: number;
   pinned: boolean;
   archived: boolean;
+  category?: ProfileCategory;
 }
 export interface InboxMessage {
   id: string;
@@ -202,7 +205,8 @@ function conversation(value: unknown): value is Conversation {
     (value.account_name === undefined || isString(value.account_name)) &&
     isCount(value.unread_count) &&
     typeof value.pinned === 'boolean' &&
-    typeof value.archived === 'boolean'
+    typeof value.archived === 'boolean' &&
+    (value.category === undefined || isProfileCategory(value.category))
   );
 }
 function message(value: unknown): value is InboxMessage {
@@ -276,6 +280,7 @@ export async function getConversations(
   signal: AbortSignal,
   filters: {
     platform?: Platform;
+    category?: ProfileCategory;
     q?: string;
     unread?: boolean;
     pinned?: boolean;
@@ -288,6 +293,10 @@ export async function getConversations(
     archived: String(filters.archived),
   });
   if (filters.platform) params.set('platform', filters.platform);
+  if (filters.category) {
+    if (!isProfileCategory(filters.category)) invalidResponse();
+    params.set('category', filters.category);
+  }
   if (filters.q) params.set('q', filters.q);
   if (filters.unread) params.set('unread', 'true');
   if (filters.pinned) params.set('pinned', 'true');

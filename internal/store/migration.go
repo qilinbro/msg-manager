@@ -20,7 +20,7 @@ func migrate(db *sql.DB) error {
 	if tx.QueryRow(`SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
 		return ErrUnavailable
 	}
-	if version > 5 {
+	if version > 6 {
 		return ErrUnavailable
 	}
 	if version == 0 {
@@ -80,6 +80,18 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(5,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 6 {
+		raw, err := migrations.Files.ReadFile("0006_contact_profiles.sql")
+		if err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(string(raw)); err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(6,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}
 	}

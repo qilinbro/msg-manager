@@ -66,7 +66,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 	if err != nil {
 		return ConversationPage{}, err
 	}
-	if filter.Platform != "" && !validPlatform(filter.Platform) || !utf8.ValidString(filter.Q) || len(filter.Q) > 512 || strings.ContainsRune(filter.Q, 0) {
+	if filter.Platform != "" && !validPlatform(filter.Platform) || filter.Category != "" && !profileCategories[filter.Category] || !utf8.ValidString(filter.Q) || len(filter.Q) > 512 || strings.ContainsRune(filter.Q, 0) {
 		return ConversationPage{}, ErrInvalidInput
 	}
 	filter.Q = strings.TrimSpace(filter.Q)
@@ -77,15 +77,31 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 		return ConversationPage{}, err
 	}
 	defer tx.Rollback()
+	// Legacy migration fixtures can query their existing message graph before
+	// the additive profile migration. No profile means unclassified, not a join
+	// against another contact or a plaintext persistence fallback.
+	var hasProfiles int
+	if tx.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type='table' AND name='contact_profiles'`).Scan(&hasProfiles) != nil {
+		return ConversationPage{}, ErrUnavailable
+	}
+	categoryExpression, profileJoin := "'unclassified'", ""
+	if hasProfiles == 1 {
+		categoryExpression = "coalesce(nullif(p.category_override,''),p.ai_category,'unclassified')"
+		profileJoin = " LEFT JOIN contact_profiles p ON p.conversation_id=v.id AND p.workspace_id=v.workspace_id AND p.connection_id=v.connection_id AND p.contact_id=v.contact_id"
+	}
 	query := `SELECT v.id,v.connection_id,c.platform,c.account_id,c.display_name,v.peer_id,v.title,
  (SELECT m.body FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message,
  (SELECT m.occurred_at FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message_at,
  (SELECT count(*) FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND m.direction='incoming' AND m.is_read=0) AS unread_count,
- v.pinned,v.archived FROM conversations v JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id WHERE v.workspace_id=? AND v.archived=?`
+	 v.pinned,v.archived,` + categoryExpression + ` AS category FROM conversations v JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id` + profileJoin + ` WHERE v.workspace_id=? AND v.archived=?`
 	args := []any{workspaceID, filter.Archived}
 	if filter.Platform != "" {
 		query += ` AND c.platform=?`
 		args = append(args, filter.Platform)
+	}
+	if filter.Category != "" {
+		query += ` AND ` + categoryExpression + `=?`
+		args = append(args, filter.Category)
 	}
 	if filter.Unread {
 		query += ` AND EXISTS (SELECT 1 FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND m.direction='incoming' AND m.is_read=0)`
@@ -100,7 +116,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 		query += ` AND (instr(lower(v.title),lower(?))>0 OR instr(lower(v.peer_id),lower(?))>0 OR instr(lower(c.account_id),lower(?))>0 OR instr(lower(c.display_name),lower(?))>0 OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND (instr(lower(m.body),lower(?))>0 OR instr(lower(coalesce(m.email_json,'')),lower(?))>0)))`
 		args = append(args, filter.Q, filter.Q, filter.Q, filter.Q, filter.Q, filter.Q)
 	}
-	fp := fingerprint("conversations", workspaceID, filter.Q, filter.Platform, filter.Unread, filter.Archived, filter.Pinned)
+	fp := fingerprint("conversations", workspaceID, filter.Q, filter.Platform, filter.Unread, filter.Archived, filter.Pinned, filter.Category)
 	query = `SELECT * FROM (` + query + `) result WHERE last_message_at IS NOT NULL`
 	if filter.Cursor != "" {
 		cursor, err := decodeCursor(filter.Cursor, fp, revision)
@@ -122,7 +138,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 	items := []Conversation{}
 	for rows.Next() {
 		var item Conversation
-		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived) != nil {
+		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived, &item.Category) != nil {
 			_ = rows.Close()
 			return ConversationPage{}, ErrUnavailable
 		}

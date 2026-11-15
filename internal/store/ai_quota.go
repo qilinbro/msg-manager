@@ -1,6 +1,9 @@
 package store
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 func validAIDay(day string) bool {
 	parsed, err := time.Parse("2006-01-02", day)
@@ -10,12 +13,18 @@ func validAIDay(day string) bool {
 // ReserveAICall records an attempt before outbound model IO. Failed provider
 // calls deliberately consume a slot; retries cannot bypass the local budget.
 func (s *Store) ReserveAICall(day, conversationID string, limit int) (string, error) {
+	return s.ReserveAICallContext(context.Background(), day, conversationID, limit)
+}
+
+func (s *Store) ReserveAICallContext(ctx context.Context, day, conversationID string, limit int) (string, error) {
 	if !validAIDay(day) || limit < 1 || limit > 10000 {
 		return "", ErrInvalidInput
 	}
-	s.mu.Lock()
+	if err := s.lockContext(ctx); err != nil {
+		return "", err
+	}
 	defer s.mu.Unlock()
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return "", ErrUnavailable
 	}
@@ -24,7 +33,7 @@ func (s *Store) ReserveAICall(day, conversationID string, limit int) (string, er
 		return "", err
 	}
 	var count int
-	if tx.QueryRow(`SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&count) != nil {
+	if tx.QueryRowContext(ctx, `SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&count) != nil {
 		return "", ErrUnavailable
 	}
 	if count >= limit {
@@ -34,7 +43,7 @@ func (s *Store) ReserveAICall(day, conversationID string, limit int) (string, er
 	if err != nil {
 		return "", err
 	}
-	if _, err = tx.Exec(`INSERT INTO ai_call_reservations(id,workspace_id,conversation_id,day,created_at)VALUES(?,?,?,?,?)`, id, workspaceID, conversationID, day, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+	if _, err = tx.ExecContext(ctx, `INSERT INTO ai_call_reservations(id,workspace_id,conversation_id,day,created_at)VALUES(?,?,?,?,?)`, id, workspaceID, conversationID, day, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 		return "", ErrUnavailable
 	}
 	if tx.Commit() != nil {
@@ -44,13 +53,22 @@ func (s *Store) ReserveAICall(day, conversationID string, limit int) (string, er
 }
 
 func (s *Store) CountAICalls(day string) (int, error) {
+	return s.CountAICallsContext(context.Background(), day)
+}
+
+func (s *Store) CountAICallsContext(ctx context.Context, day string) (int, error) {
 	if !validAIDay(day) {
 		return 0, ErrInvalidInput
 	}
-	s.mu.Lock()
+	if err := s.lockContext(ctx); err != nil {
+		return 0, err
+	}
 	defer s.mu.Unlock()
 	var count int
-	if s.db.QueryRow(`SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&count) != nil {
+	if s.db.QueryRowContext(ctx, `SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&count) != nil {
+		if err := ctx.Err(); err != nil {
+			return 0, err
+		}
 		return 0, ErrUnavailable
 	}
 	return count, nil

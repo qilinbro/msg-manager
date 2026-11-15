@@ -22,6 +22,7 @@ type Conversation struct {
 	UnreadCount   int    `json:"unread_count"`
 	Pinned        bool   `json:"pinned"`
 	Archived      bool   `json:"archived"`
+	Category      string `json:"category"`
 }
 
 type Message struct {
@@ -71,6 +72,7 @@ type ImportResult struct {
 }
 
 type Filter struct {
+	Category string
 	Q        string
 	Platform string
 	Unread   bool

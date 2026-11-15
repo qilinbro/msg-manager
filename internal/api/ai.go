@@ -236,6 +236,9 @@ func (h *handler) serveAI(w http.ResponseWriter, r *http.Request, traceID string
 				writeAIError(w, err, traceID)
 				return
 			}
+			if input.Mode == "paused" && h.profiles != nil {
+				h.profiles.cancelConversation(conversation)
+			}
 		}
 		settings, err := h.inbox.AISettings(conversation)
 		if err != nil {

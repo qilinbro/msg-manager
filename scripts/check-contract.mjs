@@ -51,6 +51,10 @@ assert.deepEqual(implementedMutations.sort(), [
   'patch /api/v1/conversations/{conversation_id}/ai-settings',
   'patch /api/v1/conversations/{conversation_id}/memories/{memory_id}',
   'delete /api/v1/conversations/{conversation_id}/memories/{memory_id}',
+  'patch /api/v1/conversations/{conversation_id}/profile',
+  'post /api/v1/conversations/{conversation_id}/profile/generate',
+  'post /api/v1/conversations/{conversation_id}/profile/enrich',
+  'patch /api/v1/conversations/{conversation_id}/profile/facts/{fact_id}',
 ].sort());
 assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
 assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);
@@ -68,4 +72,9 @@ assert.equal(spec.components.schemas.AIStatus.properties.sending_enabled.const, 
 assert.equal(spec.components.schemas.AIAnalysis.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.AIAnalyzeRequest.properties.confirmed.const, true);
 assert.deepEqual(spec.components.schemas.AISettings.properties.mode.enum, ['draft_only','paused']);
+assert.equal(spec.components.schemas.ContactProfileStatus.properties.sending_enabled.const,false);
+assert.equal(spec.components.schemas.ContactProfileRequest.properties.confirmed.const,true);
+assert.deepEqual(spec.components.schemas.ContactProfileFact.properties.state.enum,['unverified','confirmed','rejected']);
+assert.ok(spec.paths['/api/v1/conversations/{conversation_id}/profile/generate'].post.responses['202']);
+assert.ok(!spec.components.schemas.ContactProfileJob.properties.lease_token);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');

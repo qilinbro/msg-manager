@@ -6,9 +6,12 @@ import {runInNewContext} from 'node:vm';
 // Exercise the shipped import converter without starting a browser or making
 // network requests. Only the service transport dependency is replaced.
 const source=readFileSync(new URL('../apps/desktop/src/inbox-api.ts',import.meta.url),'utf8');
-const compiled=stripTypeScriptTypes(source).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^export /gm,'')+'\nmodule.exports={parseImport};';
+const profileModule={exports:{}};
+const profileSource=stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-api.ts',import.meta.url),'utf8')).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^export /gm,'')+'\nmodule.exports={isProfileCategory};';
+runInNewContext(profileSource,{module:profileModule,transport:{SERVICE:{url:'http://127.0.0.1:17890',error:null},ServiceError:class extends Error{}}},{filename:'profile-api.ts'});
+const compiled=stripTypeScriptTypes(source).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^import .* from '\.\/profile-api';\r?\n/m,'const {isProfileCategory}=profileDependency;\n').replace(/^export /gm,'')+'\nmodule.exports={parseImport};';
 const compiledModule={exports:{}};
-runInNewContext(compiled,{module:compiledModule,TextEncoder,URLSearchParams,transport:{SERVICE:{url:'http://127.0.0.1:17890',error:null},ServiceError:class extends Error{}}},{filename:'inbox-api.ts'});
+runInNewContext(compiled,{module:compiledModule,profileDependency:profileModule.exports,TextEncoder,URLSearchParams,transport:{SERVICE:{url:'http://127.0.0.1:17890',error:null},ServiceError:class extends Error{}}},{filename:'inbox-api.ts'});
 const {parseImport}=compiledModule.exports;
 const headers={subject:'合成主题',from_name:'合成发件人',from_address:'sender@example.test',to:['receiver@example.test'],folder:'INBOX'};
 const input={platform:'email',account_id:'synthetic-mail',account_name:'合成邮箱',messages:[{external_id:'one',peer_id:'thread-one',peer_name:'合成主题',direction:'incoming',body:'合成正文',occurred_at:'2026-01-01T00:00:00Z',read:true,email:headers}]};
