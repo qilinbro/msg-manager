@@ -9,11 +9,21 @@ import {
 } from './api';
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
+import AwayDesk from './AwayDesk';
+import WechatWorkspace from './WechatWorkspace';
+import { BrandLockup, RelaySymbol } from './brand/Brand';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
 
-type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
+type Page =
+  | 'wechat'
+  | 'away'
+  | 'overview'
+  | 'messages'
+  | 'contacts'
+  | 'approvals'
+  | 'settings';
 type IconName =
   | 'overview'
   | 'messages'
@@ -26,12 +36,16 @@ type IconName =
   | 'plug'
   | 'leaf';
 const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
+  { page: 'wechat', label: '微信工作台', icon: 'messages' },
+  { page: 'away', label: '邮箱交接', icon: 'overview' },
   { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'messages', label: '消息', icon: 'messages' },
   { page: 'contacts', label: '联系人', icon: 'contacts' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
 ];
 const PAGE_TITLES: Record<Page, string> = {
+  wechat: '微信工作台',
+  away: '邮箱交接',
   overview: '概览',
   messages: '消息',
   contacts: '联系人',
@@ -722,6 +736,7 @@ function Settings({
   onCancel,
   onSystemUpdate,
   onAuthFailure,
+  onWechat,
 }: {
   session: Session;
   activeToken: string;
@@ -734,6 +749,7 @@ function Settings({
   onCancel: () => void;
   onSystemUpdate: (system: SystemStatus) => void;
   onAuthFailure: () => void;
+  onWechat: () => void;
 }) {
   const connecting = session.status === 'connecting';
   return (
@@ -826,12 +842,45 @@ function Settings({
           </div>
         </form>
       </section>
-      <QQSettings
-        key={activeToken}
-        token={activeToken}
-        onSystemUpdate={onSystemUpdate}
-        onAuthFailure={onAuthFailure}
-      />
+      <section
+        className="settings-panel"
+        aria-labelledby="wechat-settings-title"
+      >
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">WECHAT · READ ONLY</p>
+            <h2 id="wechat-settings-title">微信私聊</h2>
+          </div>
+          <span className="label">本机接入</span>
+        </div>
+        <p className="page-description">
+          先在 Windows 微信 4.x
+          上完成本机配置，再回到微信工作台选择关注的人。后台只读保存消息，AI
+          由你按需发起。
+        </p>
+        <div className="form-actions">
+          <button className="button button-primary" onClick={onWechat}>
+            前往微信工作台 <Icon name="arrow" size={16} />
+          </button>
+          <a
+            className="button button-quiet"
+            href="https://github.com/qilinbro/msg-manager/blob/main/docs/wechat-db-setup.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            查看接入说明 ↗
+          </a>
+        </div>
+      </section>
+      <details className="development-details">
+        <summary>其他连接 · QQ 账号核验</summary>
+        <QQSettings
+          key={activeToken}
+          token={activeToken}
+          onSystemUpdate={onSystemUpdate}
+          onAuthFailure={onAuthFailure}
+        />
+      </details>
       <section className="settings-panel" aria-labelledby="automation-title">
         <div className="section-heading">
           <div>
@@ -856,7 +905,9 @@ function Settings({
         <div className="settings-row">
           <div>
             <h3>后台自动化</h3>
-            <p>当前仅读取状态与核验 QQ 身份，不执行收发或审批操作。</p>
+            <p>
+              微信私聊需明确选择并开启后台读取；邮箱离席交接单独授权。这里显示服务状态，不会开始读取或发送。
+            </p>
           </div>
           <span className="subtle-note">
             {session.system
@@ -896,11 +947,11 @@ function Settings({
           </div>
         </dl>
         <p>
-          当前支持本地加密消息管理、记录导入、邮箱手动收取与 QQ
-          身份核验。持续收件、AI
-          回复和发送尚未实现；账号核验成功不代表已接入消息。个人微信 ClawBot
-          仍仅针对 Bot
-          联系人，不接管已有好友或聊天。关闭工作台后是否继续处理，取决于独立后台服务的后续部署。
+          接班把关注的微信私聊保存在本机，原文、整理结果和回复草稿放在一起。
+          你选择关注的人并开启后台读取；需要 AI 帮忙时，再核对范围、手动发起。
+          邮箱交接是独立的离席授权流程，可把指定来信整理成任务与待审回信。
+          关闭窗口后，电脑和后台仍需保持运行。草稿不会自动发送。 QQ OneBot
+          当前仅核验身份；真实微信、QQ 邮箱三轮和原生桌面验收仍待完成。
         </p>
       </details>
     </>
@@ -908,7 +959,7 @@ function Settings({
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('overview');
+  const [page, setPage] = useState<Page>('wechat');
   const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
   const {
     session,
@@ -932,6 +983,28 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', warnUnsaved);
   }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
+  if (page === 'wechat')
+    return (
+      <WechatWorkspace
+        token={activeToken}
+        aiDrafts={aiDrafts}
+        onSettings={onSettings}
+        onAuthFailure={onAuthFailure}
+        onEmail={() => setPage('away')}
+        onInbox={() => setPage('messages')}
+      />
+    );
+  if (page === 'away') {
+    return (
+      <AwayDesk
+        key={activeToken}
+        token={activeToken}
+        onSettings={onSettings}
+        onAuthFailure={onAuthFailure}
+        onBack={() => setPage('wechat')}
+      />
+    );
+  }
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -942,14 +1015,13 @@ export default function App() {
           className="brand"
           href="#main-content"
           onClick={() => setPage('overview')}
-          aria-label="Social Intelligence OS 概览"
+          aria-label="接班 Away Desk 概览"
         >
-          <span className="brand-symbol">
-            <Icon name="leaf" size={25} />
+          <span className="brand-full">
+            <BrandLockup />
           </span>
-          <span>
-            Social Intelligence
-            <span className="brand-subtitle">关系工作台</span>
+          <span className="brand-compact">
+            <RelaySymbol />
           </span>
         </a>
         <span className="sidebar-section-label">个人工作空间</span>
@@ -1016,6 +1088,7 @@ export default function App() {
             />
           ) : page === 'settings' ? (
             <Settings
+              onWechat={() => setPage('wechat')}
               session={session}
               activeToken={activeToken}
               tokenDraft={tokenDraft}
@@ -1047,7 +1120,7 @@ export default function App() {
           )}
         </main>
         <footer className="workspace-footer">
-          <span>Social Intelligence OS</span>
+          <span>接班 / Away Desk</span>
           <span>由你建立关系，由 AI 延续上下文。</span>
         </footer>
       </div>

@@ -22,6 +22,17 @@ import type {
 import type { InboxMessage } from './inbox-api';
 import './ai.css';
 
+export type AIClient = {
+  getAIStatus: typeof getAIStatus;
+  getAIContext: typeof getAIContext;
+  getAnalysis: typeof getAnalysis;
+  analyzeConversation: typeof analyzeConversation;
+  saveAIDraft: typeof saveAIDraft;
+  saveAISettings: typeof saveAISettings;
+  confirmMemory: typeof confirmMemory;
+  deleteMemory: typeof deleteMemory;
+};
+
 const INTENTS: Record<string, string> = {
   greeting: '日常问候',
   information_request: '信息咨询',
@@ -98,13 +109,29 @@ export default function AIPanel({
   messages,
   draftCache,
   onAuthFailure,
+  client,
+  embedded = false,
+  previewOnly = false,
 }: {
+  client?: AIClient;
+  embedded?: boolean;
+  previewOnly?: boolean;
   token: string;
   conversationId: string;
   messages: InboxMessage[];
   draftCache: Map<string, AIDraftBuffer>;
   onAuthFailure: () => void;
 }) {
+  const api = client ?? {
+    getAIStatus,
+    getAIContext,
+    getAnalysis,
+    analyzeConversation,
+    saveAIDraft,
+    saveAISettings,
+    confirmMemory,
+    deleteMemory,
+  };
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [context, setContext] = useState<AIContext | null>(null);
   const [data, setData] = useState<AIEnvelope>({
@@ -152,8 +179,10 @@ export default function AIPanel({
 
   useEffect(() => {
     mounted.current = true;
-    panel.current?.scrollIntoView({ block: 'start' });
-    panel.current?.focus({ preventScroll: true });
+    if (!embedded) {
+      panel.current?.scrollIntoView({ block: 'start' });
+      panel.current?.focus({ preventScroll: true });
+    }
     return () => {
       mounted.current = false;
       pendingRead.current?.abort();
@@ -169,9 +198,9 @@ export default function AIPanel({
     setLoading(true);
     setReadError(null);
     Promise.all([
-      getAIStatus(token, controller.signal),
-      getAIContext(token, controller.signal, conversationId),
-      getAnalysis(token, controller.signal, conversationId),
+      api.getAIStatus(token, controller.signal),
+      api.getAIContext(token, controller.signal, conversationId),
+      api.getAnalysis(token, controller.signal, conversationId),
     ])
       .then(([nextStatus, nextContext, nextData]) => {
         if (controller.signal.aborted || epoch !== readEpoch.current) return;
@@ -272,7 +301,7 @@ export default function AIPanel({
     if (!status?.configured || context?.mode === 'paused' || dirtyRef.current)
       return;
     void run('preview', async (signal) => {
-      const next = await getAIContext(token, signal, conversationId);
+      const next = await api.getAIContext(token, signal, conversationId);
       if (signal.aborted || !mounted.current) return;
       setContext(next);
       setPreview(next);
@@ -292,7 +321,7 @@ export default function AIPanel({
     setPreview(null);
     setConsent(false);
     void run('analyze', async (signal) => {
-      const result = await analyzeConversation(
+      const result = await api.analyzeConversation(
         token,
         signal,
         conversationId,
@@ -332,7 +361,7 @@ export default function AIPanel({
     const analysisID = analysis.id,
       body = draft;
     void run('save', async (signal) => {
-      await saveAIDraft(token, signal, conversationId, analysisID, body);
+      await api.saveAIDraft(token, signal, conversationId, analysisID, body);
       if (signal.aborted || !mounted.current) return;
       dirtyRef.current = false;
       setDirty(false);
@@ -344,7 +373,11 @@ export default function AIPanel({
             ? { ...current.analysis, draft: body }
             : current.analysis,
       }));
-      setNotice('草稿已保存到本地，没有发送。');
+      setNotice(
+        previewOnly
+          ? '演示草稿已保留在当前页面，刷新后重置。没有发送。'
+          : '草稿已保存到本地，没有发送。',
+      );
       refresh();
     });
   };
@@ -367,8 +400,9 @@ export default function AIPanel({
   const changeMemory = (item: AIMemory, remove: boolean) => {
     if (dirtyRef.current) return;
     void run('memory', async (signal) => {
-      if (remove) await deleteMemory(token, signal, conversationId, item.id);
-      else await confirmMemory(token, signal, conversationId, item.id);
+      if (remove)
+        await api.deleteMemory(token, signal, conversationId, item.id);
+      else await api.confirmMemory(token, signal, conversationId, item.id);
       if (signal.aborted || !mounted.current) return;
       setNotice(
         remove
@@ -382,7 +416,7 @@ export default function AIPanel({
     if (dirtyRef.current) return;
     const settings = { mode, tone };
     void run('settings', async (signal) => {
-      await saveAISettings(token, signal, conversationId, settings);
+      await api.saveAISettings(token, signal, conversationId, settings);
       if (signal.aborted || !mounted.current) return;
       setNotice(
         settings.mode === 'paused'
@@ -394,7 +428,7 @@ export default function AIPanel({
   };
   return (
     <section
-      className="ai-panel"
+      className={`ai-panel ${analysis ? 'has-analysis' : ''}`}
       ref={panel}
       tabIndex={-1}
       aria-labelledby="ai-panel-title"
@@ -402,7 +436,7 @@ export default function AIPanel({
     >
       <header className="ai-panel-heading">
         <div>
-          <h3 id="ai-panel-title">AI 管理</h3>
+          <h3 id="ai-panel-title">{embedded ? '把回复准备好' : 'AI 管理'}</h3>
           <p>只处理当前会话，先核对，再使用。</p>
         </div>
         <span className="ai-mode-label">仅分析与草稿</span>
@@ -426,48 +460,51 @@ export default function AIPanel({
           请按项目 AI 接入说明在本机配置模型服务和密钥。工作台不收集模型密钥。
         </p>
       ) : null}
-      <div className="ai-settings">
-        <label>
-          处理状态
-          <select
-            value={mode}
-            onChange={(event) =>
-              setMode(event.target.value as AISettings['mode'])
+      <details className="ai-preferences">
+        <summary>处理偏好与回复语气</summary>
+        <div className="ai-settings">
+          <label>
+            处理状态
+            <select
+              value={mode}
+              onChange={(event) =>
+                setMode(event.target.value as AISettings['mode'])
+              }
+              disabled={locked || loading || dirty}
+            >
+              <option value="draft_only">允许分析与草稿</option>
+              <option value="paused">暂停新的 AI 处理</option>
+            </select>
+          </label>
+          <label>
+            回复语气
+            <select
+              value={tone}
+              onChange={(event) =>
+                setTone(event.target.value as AISettings['tone'])
+              }
+              disabled={locked || loading || dirty}
+            >
+              <option value="natural">自然</option>
+              <option value="casual">轻松</option>
+              <option value="professional">专业简洁</option>
+            </select>
+          </label>
+          <button
+            className="ai-text-button"
+            onClick={saveSettings}
+            disabled={
+              locked ||
+              loading ||
+              dirty ||
+              !context ||
+              (mode === context.mode && tone === context.tone)
             }
-            disabled={locked || loading || dirty}
           >
-            <option value="draft_only">允许分析与草稿</option>
-            <option value="paused">暂停新的 AI 处理</option>
-          </select>
-        </label>
-        <label>
-          回复语气
-          <select
-            value={tone}
-            onChange={(event) =>
-              setTone(event.target.value as AISettings['tone'])
-            }
-            disabled={locked || loading || dirty}
-          >
-            <option value="natural">自然</option>
-            <option value="casual">轻松</option>
-            <option value="professional">专业简洁</option>
-          </select>
-        </label>
-        <button
-          className="ai-text-button"
-          onClick={saveSettings}
-          disabled={
-            locked ||
-            loading ||
-            dirty ||
-            !context ||
-            (mode === context.mode && tone === context.tone)
-          }
-        >
-          {busy === 'settings' ? '保存中…' : '保存偏好'}
-        </button>
-      </div>
+            {busy === 'settings' ? '保存中…' : '保存偏好'}
+          </button>
+        </div>
+      </details>
       {context?.mode === 'paused' ? (
         <p className="ai-muted">
           此会话已暂停 AI 处理。恢复并保存偏好后，可以重新预览分析范围。
@@ -486,7 +523,13 @@ export default function AIPanel({
             dirty
           }
         >
-          {busy === 'preview' ? '正在读取范围…' : '预览本次分析范围'}
+          {busy === 'preview'
+            ? '正在读取范围…'
+            : embedded
+              ? analysis
+                ? '重新整理这段对话'
+                : '整理这段对话'
+              : '预览本次分析范围'}
         </button>
         <button
           className="ai-text-button"
@@ -509,15 +552,22 @@ export default function AIPanel({
       {preview ? (
         <div className="ai-preview">
           <h4>确认这次处理的内容</h4>
-          <p>
-            将向{' '}
-            <strong>{preview.endpoint_host || '本机配置的模型服务'}</strong>{' '}
-            提交当前会话的 <strong>{preview.message_count} 条消息</strong>和{' '}
-            <strong>{preview.memory_count} 条已确认记忆</strong>。
-            {preview.external
-              ? '内容将离开本机交由该模型服务处理。'
-              : '请求将提交到配置的本机模型服务。'}
-          </p>
+          {previewOnly ? (
+            <p>
+              本次演示包含 <strong>{preview.message_count} 条合成消息</strong>
+              。继续后展示示例分析与草稿，内容只留在当前页面，不连接模型服务。
+            </p>
+          ) : (
+            <p>
+              将向{' '}
+              <strong>{preview.endpoint_host || '本机配置的模型服务'}</strong>{' '}
+              提交当前会话的 <strong>{preview.message_count} 条消息</strong>和{' '}
+              <strong>{preview.memory_count} 条已确认记忆</strong>。
+              {preview.external
+                ? '内容将离开本机交由该模型服务处理。'
+                : '请求将提交到配置的本机模型服务。'}
+            </p>
+          )}
           {preview.truncated ? (
             <p className="ai-muted">
               本次只选择了预算内的近期内容，不包含此会话的全部历史。
@@ -553,7 +603,9 @@ export default function AIPanel({
               disabled={locked}
             />
             <span>
-              我已核对以上范围，同意将这些内容提交给显示的模型服务，仅生成分析与草稿。
+              {previewOnly
+                ? '我已核对以上演示范围，继续体验整理与备稿。'
+                : '我已核对以上范围，同意将这些内容提交给显示的模型服务，仅生成分析与草稿。'}
             </span>
           </label>
           <div className="ai-inline-actions">
@@ -693,7 +745,11 @@ export default function AIPanel({
                 还原修改
               </button>
             ) : null}
-            <span>仅保存在本地，不提供发送</span>
+            <span>
+              {previewOnly
+                ? '仅当前页面保留，刷新后重置'
+                : '仅保存在本地，不提供发送'}
+            </span>
           </div>
           <p className="ai-result-meta">
             {analysis.model} · 输入 {analysis.usage.prompt_tokens} / 输出{' '}

@@ -95,22 +95,18 @@ p {
   font-weight: bold;
   letter-spacing: -0.5px;
 }
-.brand-symbol {
-  width: 39px;
-  height: 43px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #8fa99a;
-  border-radius: 12px 12px 18px 12px;
-  background: #e5ece2;
-}
-.brand-subtitle {
+.brand-full > svg {
   display: block;
-  margin-top: 7px;
-  font-family: 'Microsoft YaHei UI', 'PingFang SC', sans-serif;
-  font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 3px;
+  width: 145px;
+  height: auto;
+}
+.brand-compact {
+  display: none;
+}
+.brand-compact > svg {
+  display: block;
+  width: 39px;
+  height: 39px;
 }
 .sidebar-section-label {
   margin: 0 16px 13px;
@@ -1021,7 +1017,10 @@ code {
   .brand {
     margin: 0 0 35px;
   }
-  .brand > span:last-child,
+  .brand-compact {
+    display: block;
+  }
+  .brand-full,
   .sidebar-section-label,
   .sidebar-note,
   .workspace-owner,
@@ -1095,14 +1094,9 @@ code {
   .brand {
     margin: 0;
   }
-  .brand-symbol {
+  .brand-compact > svg {
     width: 31px;
-    height: 34px;
-    border-radius: 9px 9px 12px 9px;
-  }
-  .brand-symbol svg {
-    width: 21px;
-    height: 21px;
+    height: 31px;
   }
   .sidebar nav {
     flex-direction: row;

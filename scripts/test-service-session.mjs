@@ -148,6 +148,10 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   let render = () => useServiceSession(aiDrafts);
   if (mode === 'app') {
     environment.Inbox = 'InboxStub';
+    environment.WechatWorkspace = 'WechatWorkspaceStub';
+    environment.AwayDesk = 'AwayDeskStub';
+    environment.BrandLockup = 'BrandLockupStub';
+    environment.RelaySymbol = 'RelaySymbolStub';
     const { App } = evaluate('App.tsx', ['App']);
     render = () => App();
   }
@@ -445,7 +449,8 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
 {
   const h = browserHarness({ mode: 'app' });
   await h.flush();
-  find(h, (node) => node.type === 'button' && node.props['aria-label'] === '设置').props.onClick();
+  assert.ok(find(h, (node) => node.type === 'WechatWorkspaceStub'), 'the app opens the real WeChat workspace by default');
+  find(h, (node) => node.type === 'WechatWorkspaceStub').props.onSettings();
   await h.flush();
   settings(h).onDraftChange(TOKEN_A); await h.flush();
   await settings(h).onConnect(submitEvent); await h.flush();
@@ -459,6 +464,15 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
   assert.equal(inbox.props.token, TOKEN_A);
   assert.equal(inbox.props.aiDrafts, drafts, 'navigation must retain the authenticated AI buffer');
   assert.equal(drafts.get('synthetic-chat').draft, 'synthetic navigation draft');
+  navigation('微信工作台'); await h.flush();
+  const wechat = find(h, (node) => node.type === 'WechatWorkspaceStub');
+  assert.equal(wechat.props.token, TOKEN_A);
+  assert.equal(wechat.props.aiDrafts, drafts);
+  wechat.props.onEmail(); await h.flush();
+  const away = find(h, (node) => node.type === 'AwayDeskStub');
+  assert.equal(away.props.token, TOKEN_A);
+  away.props.onBack(); await h.flush();
+  assert.equal(find(h, (node) => node.type === 'WechatWorkspaceStub').props.aiDrafts, drafts);
   assert.equal(h.requests.length, requestsAfterConnect, 'internal page navigation must not reconnect or replay service requests');
   assert.equal(h.sessions.loadServiceSession(SERVICE_URL).token, TOKEN_A);
   assert.equal(h.localStorageReads, 0);

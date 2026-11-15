@@ -14,6 +14,13 @@ import type {
   WechatStatus,
 } from './wechat-api';
 
+export type WechatClient = {
+  getWechatStatus: typeof getWechatStatus;
+  getWechatSessions: typeof getWechatSessions;
+  readWechatMessages: typeof readWechatMessages;
+  saveWechatMonitor: typeof saveWechatMonitor;
+};
+
 const MONITOR_NAMES = {
   disabled: '后台读取已暂停',
   waiting: '后台定时读取中',
@@ -66,7 +73,11 @@ export default function WechatPanel({
   onSynced,
   onBackgroundSynced,
   onAuthFailure,
+  client,
+  compact = false,
 }: {
+  client?: WechatClient;
+  compact?: boolean;
   token: string;
   storageEnabled: boolean;
   revision: number;
@@ -74,6 +85,14 @@ export default function WechatPanel({
   onBackgroundSynced: () => void;
   onAuthFailure: () => void;
 }) {
+  const api = client ?? {
+    getWechatStatus,
+    getWechatSessions,
+    readWechatMessages,
+    saveWechatMonitor,
+  };
+  const [expanded, setExpanded] = useState(false);
+  const [sessionSearch, setSessionSearch] = useState('');
   const [status, setStatus] = useState<WechatStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -137,7 +156,7 @@ export default function WechatPanel({
       const epoch = ++statusEpoch.current;
       if (!quiet) setStatusLoading(true);
       try {
-        const value = await getWechatStatus(token, controller.signal);
+        const value = await api.getWechatStatus(token, controller.signal);
         if (controller.signal.aborted || epoch !== statusEpoch.current) return;
         setStatus(value);
         setStatusError(null);
@@ -261,7 +280,7 @@ export default function WechatPanel({
     setError(null);
     setNotice(null);
     try {
-      const value = await saveWechatMonitor(token, controller.signal, {
+      const value = await api.saveWechatMonitor(token, controller.signal, {
         enabled,
         peer_ids: enabled ? monitorPeers : monitor.peer_ids,
         interval_seconds: enabled
@@ -301,7 +320,7 @@ export default function WechatPanel({
     if (!controller) return;
     clearSessions();
     try {
-      const items = await getWechatSessions(token, controller.signal);
+      const items = await api.getWechatSessions(token, controller.signal);
       if (controller.signal.aborted || !mounted.current) return;
       invalidateStatus();
       setSessions(items);
@@ -325,7 +344,11 @@ export default function WechatPanel({
     const controller = beginOperation('read');
     if (!controller) return;
     try {
-      const result = await readWechatMessages(token, controller.signal, peerID);
+      const result = await api.readWechatMessages(
+        token,
+        controller.signal,
+        peerID,
+      );
       if (controller.signal.aborted || !mounted.current) return;
       invalidateStatus();
       lastResultDigest.current = resultDigest(result);
@@ -385,307 +408,436 @@ export default function WechatPanel({
 
   return (
     <section
-      className="email-panel wechat-panel"
+      className={`email-panel wechat-panel ${compact ? 'wechat-compact' : ''}`}
       aria-labelledby="wechat-panel-title"
       aria-busy={Boolean(busy)}
     >
-      <div className="email-panel-main">
-        <div className="email-panel-heading">
-          <svg
-            width="23"
-            height="23"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
+      {compact && (
+        <div className="wechat-sync-bar">
+          <span
+            className={`wechat-sync-icon ${monitor?.enabled && !statusError && monitor.state !== 'error' ? 'is-active' : ''}`}
             aria-hidden="true"
           >
-            <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3a8.5 8.5 0 0 1 8.5 8.5Z" />
-            <path d="M8 10h9M8 14h6" />
-          </svg>
-          <div>
-            <h2 id="wechat-panel-title">读取本机微信消息</h2>
-            <p>按需保存私聊，也可以交给后台定时读取。</p>
+            ↻
+          </span>
+          <div className="wechat-sync-copy">
+            <strong>
+              {statusError
+                ? '暂时无法确认同步状态'
+                : !status
+                  ? '正在连接微信工作流…'
+                  : !status.configured
+                    ? '先接入本机微信'
+                    : !monitor
+                      ? '后台能力需要更新'
+                      : monitor.enabled
+                        ? monitor.state === 'error'
+                          ? '这次读取需要留意'
+                          : '后台正在帮你收好消息'
+                        : '后台读取已暂停'}
+            </strong>
+            <span>
+              {statusError
+                ? '已保存的消息仍可查看，请更新状态。'
+                : monitor?.enabled
+                  ? `${monitor.peer_ids.length} 个私聊 · 每 ${monitor.interval_seconds} 秒检查 · ${monitor.last_cycle_at ? '上次 ' + dateText(monitor.last_cycle_at) : '等待首次读取'}`
+                  : status?.configured
+                    ? '选好关注的人，再开启后台读取。'
+                    : 'Windows 微信 4.x · 配置在本机完成'}
+            </span>
           </div>
-        </div>
-        <div className="email-panel-actions">
-          <button
-            type="button"
-            className="button button-secondary"
-            onClick={loadSessions}
-            disabled={blocked}
-          >
-            {busy === 'sessions' ? '正在读取会话…' : '读取会话列表'}
-          </button>
-          {busy && busy !== 'monitor' ? (
+          {monitor?.enabled && (
             <button
               type="button"
               className="email-text-button"
-              onClick={stopWaiting}
+              disabled={Boolean(busy)}
+              onClick={() => void changeMonitor(false)}
             >
-              停止等待
+              暂停读取
             </button>
-          ) : null}
+          )}
           <button
             type="button"
-            className="email-text-button"
-            onClick={() => {
-              setStatusError(null);
-              setStatusRevision((value) => value + 1);
-            }}
-            disabled={statusLoading || Boolean(busy)}
-          >
-            {statusLoading ? '读取状态…' : '更新状态'}
-          </button>
-        </div>
-      </div>
-      <div className="email-panel-state">
-        <span
-          className={`email-state-label ${status?.state === 'read' && !error && !statusError ? 'is-synced' : ''}`}
-        >
-          {busy === 'sessions'
-            ? '正在读取会话'
-            : busy === 'read'
-              ? '正在读取消息'
-              : busy === 'monitor'
-                ? '正在保存后台读取设置'
-                : statusError
-                  ? '微信状态未确认'
-                  : error
-                    ? '此次读取未完成'
-                    : status
-                      ? STATE_NAMES[status.state]
-                      : statusLoading
-                        ? '正在读取微信状态'
-                        : '微信状态未读取'}
-        </span>
-        {status?.account_id ? (
-          <span className="email-account">本地账号：{status.account_id}</span>
-        ) : null}
-        <span>只读 · 发送关闭</span>
-      </div>
-      {status && !status.configured ? (
-        <p className="email-panel-note">
-          按微信接入说明，在本机配置数据库路径、账号标识与数据库密钥后重启服务。此处不填写微信密码或密钥。
-        </p>
-      ) : null}
-      {!storageEnabled ? (
-        <p className="email-panel-note">
-          本地加密存储尚未启用，可以先读取会话列表，启用存储后再保存消息。
-        </p>
-      ) : null}
-      {sessions?.length ? (
-        <form className="wechat-read-form" onSubmit={readMessages}>
-          <div className="wechat-chat-field">
-            <label htmlFor="wechat-peer">选择私聊</label>
-            <select
-              id="wechat-peer"
-              value={peerID}
-              onChange={(event) => {
-                setPeerID(event.target.value);
-                setNotice(null);
-                setError(null);
-              }}
-              disabled={blocked}
-              aria-describedby="wechat-read-help"
-            >
-              <option value="">请选择一个私聊</option>
-              {sessions.map((item) => (
-                <option key={item.peer_id} value={item.peer_id}>
-                  {item.name} · {item.peer_id}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
             className="button button-secondary"
-            type="submit"
-            disabled={blocked || !storageEnabled || !peerID}
+            aria-expanded={expanded}
+            aria-controls="wechat-connection-controls"
+            onClick={() => {
+              setExpanded((value) => !value);
+              if (!expanded && !sessions && !blocked) void loadSessions();
+            }}
           >
-            {busy === 'read' ? '正在读取并保存…' : '读取并保存消息'}
+            {expanded ? '收起设置' : '管理关注'}
           </button>
-          <button
-            className="email-text-button"
-            type="button"
-            disabled={
-              !monitor ||
-              Boolean(busy) ||
-              !peerID ||
-              monitorPeers.includes(peerID) ||
-              monitorPeers.length >= 20
-            }
-            onClick={() => editMonitorPeers([...monitorPeers, peerID])}
-          >
-            加入后台读取
-          </button>
-        </form>
-      ) : sessions ? (
-        <p className="email-panel-note" role="status">
-          当前数据库没有可读取的私聊。首版不读取群聊或媒体消息。
-        </p>
-      ) : null}
-      <section
-        className="wechat-monitor"
-        aria-labelledby="wechat-monitor-title"
-      >
-        <div className="wechat-monitor-heading">
-          <h3 id="wechat-monitor-title">后台自动读取</h3>
-          <span
-            className={`email-state-label ${monitor?.enabled ? 'is-synced' : ''}`}
-          >
-            {monitor ? MONITOR_NAMES[monitor.state] : '后台需要更新'}
-          </span>
         </div>
-        {!monitor ? (
-          <p className="email-panel-note">
-            {statusLoading && !status
-              ? '正在确认后台能力…'
-              : '更新后重启后台，再开启自动读取。已有的手动读取可继续使用。'}
+      )}
+      {compact &&
+        !expanded &&
+        (statusError || error || uncertain || monitor?.last_error_code) && (
+          <p className="email-feedback is-error" role="status">
+            {statusError ??
+              error ??
+              (uncertain
+                ? '结果尚未确认，请打开管理关注并更新状态。'
+                : wechatMonitorError(monitor!.last_error_code!))}
           </p>
-        ) : (
-          <>
-            <p className="email-panel-note">
-              {monitor.enabled
-                ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊。`
-                : '先读取会话列表，选择私聊并点击“加入后台读取”，再开启。最多选择20个私聊。'}
-              关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。
-            </p>
-            {monitorPeers.length ? (
-              <ul
-                className="wechat-monitor-peers"
-                aria-label="已选择的后台读取私聊"
+        )}
+      <div id="wechat-connection-controls" hidden={compact && !expanded}>
+        <div className="email-panel-main">
+          <div className="email-panel-heading">
+            <svg
+              width="23"
+              height="23"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
+              <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3a8.5 8.5 0 0 1 8.5 8.5Z" />
+              <path d="M8 10h9M8 14h6" />
+            </svg>
+            <div>
+              <h2 id="wechat-panel-title">关注你选定的私聊</h2>
+              <p>先选人，再开启。读取只保存消息，AI 由你按需发起。</p>
+            </div>
+          </div>
+          <div className="email-panel-actions">
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={loadSessions}
+              disabled={blocked}
+            >
+              {busy === 'sessions' ? '正在读取会话…' : '读取会话列表'}
+            </button>
+            {busy && busy !== 'monitor' ? (
+              <button
+                type="button"
+                className="email-text-button"
+                onClick={stopWaiting}
               >
-                {monitorPeers.map((id) => (
-                  <li key={id}>
-                    <span>
-                      {sessions?.find((item) => item.peer_id === id)?.name ??
-                        id}
+                停止等待
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="email-text-button"
+              onClick={() => {
+                setStatusError(null);
+                setStatusRevision((value) => value + 1);
+              }}
+              disabled={statusLoading || Boolean(busy)}
+            >
+              {statusLoading ? '读取状态…' : '更新状态'}
+            </button>
+          </div>
+        </div>
+        <div className="email-panel-state">
+          <span
+            className={`email-state-label ${status?.state === 'read' && !error && !statusError ? 'is-synced' : ''}`}
+          >
+            {busy === 'sessions'
+              ? '正在读取会话'
+              : busy === 'read'
+                ? '正在读取消息'
+                : busy === 'monitor'
+                  ? '正在保存后台读取设置'
+                  : statusError
+                    ? '微信状态未确认'
+                    : error
+                      ? '此次读取未完成'
+                      : status
+                        ? STATE_NAMES[status.state]
+                        : statusLoading
+                          ? '正在读取微信状态'
+                          : '微信状态未读取'}
+          </span>
+          {status?.account_id ? (
+            <span className="email-account">本地账号：{status.account_id}</span>
+          ) : null}
+          <span>只读 · 发送关闭</span>
+        </div>
+        {status && !status.configured ? (
+          <p className="email-panel-note">
+            按微信接入说明，在本机配置数据库路径、账号标识与数据库密钥后重启服务。此处不填写微信密码或密钥。
+          </p>
+        ) : null}
+        {!storageEnabled ? (
+          <p className="email-panel-note">
+            本地加密存储尚未启用，可以先读取会话列表，启用存储后再保存消息。
+          </p>
+        ) : null}
+        {sessions && sessions.length > 0 && monitor && (
+          <div className="wechat-people-picker">
+            <div className="wechat-picker-title">
+              <h3>01 / 选择关注的人</h3>
+              <span>{monitorPeers.length} / 20 已选</span>
+            </div>
+            <label className="wechat-picker-search">
+              <span className="inbox-sr-only">搜索微信私聊</span>
+              <input
+                type="search"
+                placeholder="搜索昵称或账号"
+                value={sessionSearch}
+                onChange={(event) => setSessionSearch(event.target.value)}
+              />
+            </label>
+            <div className="wechat-people-grid">
+              {sessions
+                .filter((item) =>
+                  `${item.name} ${item.peer_id}`
+                    .toLowerCase()
+                    .includes(sessionSearch.toLowerCase()),
+                )
+                .map((item) => (
+                  <label
+                    key={item.peer_id}
+                    className={`wechat-person ${monitorPeers.includes(item.peer_id) ? 'is-selected' : ''}`}
+                  >
+                    <span className="wechat-person-avatar" aria-hidden="true">
+                      {item.name.slice(0, 1)}
                     </span>
-                    <button
-                      type="button"
-                      className="email-text-button"
-                      aria-label={`移除私聊 ${id}`}
-                      disabled={Boolean(busy)}
-                      onClick={() =>
+                    <span>
+                      <strong>{item.name}</strong>
+                      <small>{item.peer_id}</small>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={monitorPeers.includes(item.peer_id)}
+                      disabled={
+                        Boolean(busy) ||
+                        (!monitorPeers.includes(item.peer_id) &&
+                          monitorPeers.length >= 20)
+                      }
+                      onChange={(event) =>
                         editMonitorPeers(
-                          monitorPeers.filter((item) => item !== id),
+                          event.target.checked
+                            ? [...monitorPeers, item.peer_id]
+                            : monitorPeers.filter((id) => id !== item.peer_id),
                         )
                       }
-                    >
-                      移除
-                    </button>
-                  </li>
+                    />
+                  </label>
                 ))}
-              </ul>
-            ) : null}
-            <div className="wechat-monitor-controls">
-              <label htmlFor="wechat-monitor-interval">
-                读取间隔（秒）
-                <input
-                  id="wechat-monitor-interval"
-                  type="number"
-                  min="10"
-                  max="300"
-                  step="1"
-                  value={monitorInterval}
-                  disabled={Boolean(busy)}
-                  aria-describedby="wechat-monitor-help"
-                  onChange={(event) => {
-                    setMonitorInterval(event.target.value);
-                    setMonitorDirty(true);
-                    monitorDirtyRef.current = true;
-                  }}
-                />
-              </label>
-              <button
-                type="button"
-                className="button button-primary"
-                disabled={
-                  Boolean(busy) ||
-                  !storageEnabled ||
-                  !status?.configured ||
-                  Boolean(statusError) ||
-                  uncertain ||
-                  !monitorPeers.length ||
-                  !validInterval ||
-                  (monitor.enabled && !monitorDirty)
-                }
-                onClick={() => void changeMonitor(true)}
-              >
-                {busy === 'monitor'
-                  ? '正在保存…'
-                  : monitor.enabled
-                    ? '保存并继续读取'
-                    : '开启后台读取'}
-              </button>
-              <button
-                type="button"
-                className="button button-secondary"
-                disabled={Boolean(busy) || !monitor.enabled}
-                onClick={() => void changeMonitor(false)}
-              >
-                暂停后台读取
-              </button>
             </div>
-            <p className="email-panel-note" id="wechat-monitor-help">
-              间隔10至300秒。
-              {monitorDirty
-                ? '选择或频率已修改，保存后才会生效。'
-                : '设置保存在本机，重启后台后恢复已开启的读取。'}
-            </p>
-            {monitor.last_cycle_at ? (
-              <p className="email-last-result">
-                上次后台检查{' '}
-                <time dateTime={monitor.last_cycle_at}>
-                  {dateText(monitor.last_cycle_at)}
-                </time>
-                {monitor.last_result
-                  ? ` · 新增 ${monitor.last_result.inserted} 条 · 重复 ${monitor.last_result.duplicates} 条`
-                  : ''}
-                {monitor.last_result?.limited
-                  ? ' · 已达到读取窗口上限，可能存在未读取记录'
-                  : ''}
-              </p>
-            ) : null}
-            {monitor.last_error_code ? (
-              <p className="email-feedback is-error" role="status">
-                {wechatMonitorError(monitor.last_error_code)}
-              </p>
-            ) : null}
-          </>
+          </div>
         )}
-      </section>
-      <p className="email-panel-note" id="wechat-read-help">
-        读取微信 Windows 4.x 本机已有的私聊文本，不发送消息、不调用AI。
-        每次读取最近一批记录；暂停、离线或消息量超过读取窗口时，可能无法补齐全部历史。
-      </p>
-      {visibleResult ? (
-        <p className="email-last-result">
-          最近一次成功读取{' '}
-          <time dateTime={visibleResult.read_at}>
-            {dateText(visibleResult.read_at)}
-          </time>
-          {' · '}保存 {visibleResult.inserted} 条 · 重复{' '}
-          {visibleResult.duplicates} 条 · 跳过 {visibleResult.skipped} 条
-          {visibleResult.limited ? ' · 本次已达到读取上限' : ''}
+        <section
+          className="wechat-monitor"
+          aria-labelledby="wechat-monitor-title"
+        >
+          <div className="wechat-monitor-heading">
+            <h3 id="wechat-monitor-title">02 / 开启后台读取</h3>
+            <span
+              className={`email-state-label ${monitor?.enabled ? 'is-synced' : ''}`}
+            >
+              {monitor ? MONITOR_NAMES[monitor.state] : '后台需要更新'}
+            </span>
+          </div>
+          {!monitor ? (
+            <p className="email-panel-note">
+              {statusLoading && !status
+                ? '正在确认后台能力…'
+                : '更新后重启后台，再开启自动读取。已有的手动读取可继续使用。'}
+            </p>
+          ) : (
+            <>
+              <p className="email-panel-note">
+                {monitor.enabled
+                  ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊。`
+                  : '读取会话列表后勾选要关注的人。最多选择 20 个私聊。'}
+                关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。
+              </p>
+              {monitorPeers.length ? (
+                <ul
+                  className="wechat-monitor-peers"
+                  aria-label="已选择的后台读取私聊"
+                >
+                  {monitorPeers.map((id) => (
+                    <li key={id}>
+                      <span>
+                        {sessions?.find((item) => item.peer_id === id)?.name ??
+                          id}
+                      </span>
+                      <button
+                        type="button"
+                        className="email-text-button"
+                        aria-label={`移除私聊 ${id}`}
+                        disabled={Boolean(busy)}
+                        onClick={() =>
+                          editMonitorPeers(
+                            monitorPeers.filter((item) => item !== id),
+                          )
+                        }
+                      >
+                        移除
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className="wechat-monitor-controls">
+                <label htmlFor="wechat-monitor-interval">
+                  读取间隔（秒）
+                  <input
+                    id="wechat-monitor-interval"
+                    type="number"
+                    min="10"
+                    max="300"
+                    step="1"
+                    value={monitorInterval}
+                    disabled={Boolean(busy)}
+                    aria-describedby="wechat-monitor-help"
+                    onChange={(event) => {
+                      setMonitorInterval(event.target.value);
+                      setMonitorDirty(true);
+                      monitorDirtyRef.current = true;
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="button button-primary"
+                  disabled={
+                    Boolean(busy) ||
+                    !storageEnabled ||
+                    !status?.configured ||
+                    Boolean(statusError) ||
+                    uncertain ||
+                    !monitorPeers.length ||
+                    !validInterval ||
+                    (monitor.enabled && !monitorDirty)
+                  }
+                  onClick={() => void changeMonitor(true)}
+                >
+                  {busy === 'monitor'
+                    ? '正在保存…'
+                    : monitor.enabled
+                      ? '保存并继续读取'
+                      : '开启后台读取'}
+                </button>
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  disabled={Boolean(busy) || !monitor.enabled}
+                  onClick={() => void changeMonitor(false)}
+                >
+                  暂停后台读取
+                </button>
+              </div>
+              <p className="email-panel-note" id="wechat-monitor-help">
+                间隔10至300秒。
+                {monitorDirty
+                  ? '选择或频率已修改，保存后才会生效。'
+                  : '设置保存在本机，重启后台后恢复已开启的读取。'}
+              </p>
+              {monitor.last_cycle_at ? (
+                <p className="email-last-result">
+                  上次后台检查{' '}
+                  <time dateTime={monitor.last_cycle_at}>
+                    {dateText(monitor.last_cycle_at)}
+                  </time>
+                  {monitor.last_result
+                    ? ` · 新增 ${monitor.last_result.inserted} 条 · 重复 ${monitor.last_result.duplicates} 条`
+                    : ''}
+                  {monitor.last_result?.limited
+                    ? ' · 已达到读取窗口上限，可能存在未读取记录'
+                    : ''}
+                </p>
+              ) : null}
+              {monitor.last_error_code ? (
+                <p className="email-feedback is-error" role="status">
+                  {wechatMonitorError(monitor.last_error_code)}
+                </p>
+              ) : null}
+            </>
+          )}
+        </section>
+        <details className="wechat-manual">
+          <summary>只读取一次 / 手动操作</summary>{' '}
+          {sessions?.length ? (
+            <form className="wechat-read-form" onSubmit={readMessages}>
+              <div className="wechat-chat-field">
+                <label htmlFor="wechat-peer">选择私聊</label>
+                <select
+                  id="wechat-peer"
+                  value={peerID}
+                  onChange={(event) => {
+                    setPeerID(event.target.value);
+                    setNotice(null);
+                    setError(null);
+                  }}
+                  disabled={blocked}
+                  aria-describedby="wechat-read-help"
+                >
+                  <option value="">请选择一个私聊</option>
+                  {sessions.map((item) => (
+                    <option key={item.peer_id} value={item.peer_id}>
+                      {item.name} · {item.peer_id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="button button-secondary"
+                type="submit"
+                disabled={blocked || !storageEnabled || !peerID}
+              >
+                {busy === 'read' ? '正在读取并保存…' : '读取并保存消息'}
+              </button>
+              <button
+                className="email-text-button"
+                type="button"
+                disabled={
+                  !monitor ||
+                  Boolean(busy) ||
+                  !peerID ||
+                  monitorPeers.includes(peerID) ||
+                  monitorPeers.length >= 20
+                }
+                onClick={() => editMonitorPeers([...monitorPeers, peerID])}
+              >
+                加入后台读取
+              </button>
+            </form>
+          ) : sessions ? (
+            <p className="email-panel-note" role="status">
+              当前数据库没有可读取的私聊。首版不读取群聊或媒体消息。
+            </p>
+          ) : null}
+        </details>
+        <p className="email-panel-note" id="wechat-read-help">
+          读取微信 Windows 4.x 本机已有的私聊文本，不发送消息、不调用AI。
+          每次读取最近一批记录；暂停、离线或消息量超过读取窗口时，可能无法补齐全部历史。
         </p>
-      ) : null}
-      <div aria-live="polite" aria-atomic="true">
-        {notice ? (
-          <p className="email-feedback" role="status">
-            {notice}
+        {visibleResult ? (
+          <p className="email-last-result">
+            最近一次成功读取{' '}
+            <time dateTime={visibleResult.read_at}>
+              {dateText(visibleResult.read_at)}
+            </time>
+            {' · '}保存 {visibleResult.inserted} 条 · 重复{' '}
+            {visibleResult.duplicates} 条 · 跳过 {visibleResult.skipped} 条
+            {visibleResult.limited ? ' · 本次已达到读取上限' : ''}
           </p>
         ) : null}
-        {uncertain ? (
-          <p className="email-panel-note" role="status">
-            本次处理结果尚未确认，请先更新状态。工作台不会自动重试。
-          </p>
-        ) : null}
-        {statusError || error ? (
-          <p className="email-feedback is-error" role="alert">
-            {statusError ?? error}
-          </p>
-        ) : null}
+        <div aria-live="polite" aria-atomic="true">
+          {notice ? (
+            <p className="email-feedback" role="status">
+              {notice}
+            </p>
+          ) : null}
+          {uncertain ? (
+            <p className="email-panel-note" role="status">
+              本次处理结果尚未确认，请先更新状态。工作台不会自动重试。
+            </p>
+          ) : null}
+          {statusError || error ? (
+            <p className="email-feedback is-error" role="alert">
+              {statusError ?? error}
+            </p>
+          ) : null}
+        </div>
       </div>
     </section>
   );

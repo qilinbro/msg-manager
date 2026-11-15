@@ -1,119 +1,79 @@
-# Social Intelligence OS
+# 接班 / Away Desk
 
-多平台社交关系助手。当前实现为 **统一消息中心 + 微信本地库读取 + 邮箱只读同步 + QQ 账号核验 + 手动 AI 管理**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="apps/desktop/public/brand/lockup-reverse.svg" />
+  <img src="apps/desktop/public/brand/lockup.svg" alt="接班 Away Desk" width="210" />
+</picture>
 
-全部已实现功能按用户授权整合至 main，检查与同步记录见 [main整合记录](docs/acceptance/main-integration.md)。各项真实服务、正式审查和产品验收状态继续单独记录。
+**消息收好了，接着聊。**
 
-## 当前能运行的内容
+[打开微信工作台 →](https://joeymilano.github.io/msg-manager/) · [体验邮箱交接](https://joeymilano.github.io/msg-manager/?demo=away) · [PR #3](https://github.com/qilinbro/msg-manager/pull/3) · [品牌与 Logo](https://joeymilano.github.io/msg-manager/brand/)
 
-- 本机 HTTP 服务、配对令牌鉴权、来源校验、健康检查和统一错误结构。
-- 读取真实服务状态，优先展示 QQ 个人号 OneBot 适配；微信 Clawbot / Telegram 保留待接入声明。
-- QQ、微信、Telegram、闪聊的导入文本在同一消息中心管理：平台筛选、搜索、未读、置顶、归档、会话详情与历史分页。
-- 用户确认后导入统一 JSON，支持 Telegram Desktop 单个个人私聊导出；稳定标识去重、冲突整批回滚，SQLCipher 加密保存。
-- QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换；持续接收仍未实现。
-- 当前会话可先预览确认，再调用 DeepSeek/兼容接口整理摘要、风险、草稿和待核实记忆；用户确认记忆后才进入后续上下文。真实模型与界面验收待进行。
-- 邮箱支持本机配置 IMAP TLS 授权码后手动同步最近邮件，显示主题与地址；不改原邮箱已读，不发信。先支持 QQ/163/授权码企业邮箱的协议能力，真实账号尚待核验。
-- 微信支持配置本机4.x数据库和密钥后手动读取私聊，或明确选择私聊开启后台定时只读、去重入库；默认关闭，设置加密保存，关闭页面后后台可继续。仍是最近记录窗口，不保证全历史或离线补漏。配置见[微信本地记录接入](docs/wechat-db-setup.md)，真实私聊验收待进行。
-- 微信4.1.15.56另有用户主动确认的一次性本机初始化入口 `scripts/initialize-wechat.ps1`，在重新登录时临时挂钩指定进程，密钥验证后DPAPI保存。用户已回传真实初始化成功日志；后台工作台读取另行验收，依赖准备和操作步骤见同一接入说明。
+开会前，选好需要关注的人。回来后，聊天原文就在眼前；需要帮忙时，确认内容范围，让 AI 整理重点、备好回复。你核对、修改，再决定怎么回复。
 
-自动发送始终关闭。微信可对明确私聊开启本地库周期读取；QQ/Telegram持续收件、可靠消息游标/持久任务、Windows服务安装和真实消息发送仍未实现。电脑及后台需要保持运行；邮箱仍按需同步，不表示各平台都已持续在线。QQ核验方式见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
+![微信工作台：左侧私聊，中间聊天原文，右侧整理结果与待审草稿。使用合成演示数据。](docs/media/wechat-desk.jpg)
 
-推荐先按[统一消息中心使用说明](docs/unified-inbox.md)运行 `scripts/start-inbox.ps1`，自动准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录。源码不含预置消息或真人聊天数据。
+公开预览无需登录，使用**合成聊天与分析**，不连接微信、不调用模型。可以体验勾选关注、暂停/恢复、分析确认和草稿编辑；刷新后演示修改重置。[关注设置](docs/media/wechat-focus.jpg) · [手机预览](docs/media/wechat-mobile.jpg) · [设计与验收](docs/wechat-workspace.md)
 
-## 本地启动
+## 三步，把一段对话接起来
 
-需要 Node.js 24、Go 1.26+、GCC（SQLCipher CGO 构建）和 PowerShell 7.2+。当前开发环境可使用项目内 `.tools/go` 的便携 Go，工具本身不进入仓库。
+| 步骤 | 你看到的结果 | 谁来发起 |
+| --- | --- | --- |
+| **01 · 选好私聊** | 在「管理关注」勾选联系人，设定读取间隔，明确开启。 | 你授权 |
+| **02 · 后台保存** | 后台定时只读选定私聊，保存到本机加密库。工作台显示最近检查时间、读取异常和暂停入口。 | 后台自动 |
+| **03 · 整理与备稿** | 打开一段对话，核对这次交给模型的消息，确认后获得摘要、引用和回复草稿。 | 你按需发起 |
 
-`initialize-wechat.ps1`、`prepare-wechat-init.ps1`、`configure-wechat.ps1` 和 `start-inbox.ps1` 可从 Windows PowerShell5.1 启动，会自动调用已有的 PowerShell7.2+ x64。实际业务仍在7运行，不自动安装或修改执行策略。
+聊天、整理、草稿并排显示。AI 说了什么，可以回到原文核对；没保存完的修改，切换会话后还在。草稿不会自动发送。
 
-### 1. 启动独立后台
+真实微信流程面向 **Windows 微信 4.x 的本地数据库**。首次接入和授权在本机完成；开启后台读取后，关闭界面仍可继续，但电脑和 Go 后台需要保持运行。支持选定的 1—20 个私聊、10—300 秒检查周期；每次读取近期一批文本，尚不保证离线期间的全量补齐。[微信接入说明](docs/wechat-db-setup.md)
 
-统一消息管理在项目根目录打开 PowerShell 7：
+## 邮箱，交给离席接班
 
-```powershell
-.\scripts\start-inbox.ps1
-```
+微信工作台侧栏的 **邮箱交接** 保留另一条流程：在授权时段内，指定发件人的来信可以自动变成任务和待审回信。
 
-如果只查看骨架与 QQ 核验，可不配置数据库，以原入口启动（消息中心会提示先配置加密存储）：
+你去开会，活动主办方发来一封邀请，要求今天 18:00 前提交素材。回来时，交接台已经列好要交什么，备好英文回信。点击 **18:00**，核对邮件里的截止原句。含糊时间保留为「待确认」。
 
-```powershell
-$env:SOCIALD_API_TOKEN = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-$env:SOCIALD_ADDR = '127.0.0.1:17890'
-$env:SOCIALD_API_TOKEN | Set-Clipboard
-.\scripts\dev-backend.ps1
-```
+[![邮箱交接台：截止时间、提交材料与待审回信。合成邮件演示。](docs/media/away-desk.jpg)](https://joeymilano.github.io/msg-manager/?demo=away)
 
-保持终端运行。上述命令已将本次令牌复制到剪贴板，在工作台设置页粘贴即可。验证成功后在当前标签页会话内保留连接；刷新/恢复会自动校验，临时断网保留信息。令牌不进入URL、日志或仓库，可在设置中清除；后台换了令牌时需重新连接。浏览器限制会话存储时降级为窗口内存。
+微信的后台读取**只保存消息**，不会自动调用 AI 或建任务。邮箱离席会话是独立授权的自动处理链，两者在界面与权限上分开。
 
-### 2. 启动前端
+## 先体验，再接入
 
-另开终端：
-
-```powershell
+```sh
 cd apps/desktop
 npm ci
 npm run dev
 ```
 
-打开 `http://127.0.0.1:1420`，在设置页填写后台令牌并连接。健康检查地址是 `http://127.0.0.1:17890/health/live`。
+- [微信演示](http://127.0.0.1:1420/?demo=wechat)：查看原文和已有合成草稿；切换另一位联系人，点击「整理这段对话」体验范围确认。右上角可切换未接入、读取失败、模型未配置状态。
+- [邮箱演示](http://127.0.0.1:1420/?demo=away)：点「一键演示」，7 秒走完交接，再点截止时间和「审阅回信」。
+- [真实工作台](http://127.0.0.1:1420/)：默认进入微信工作台，从「连接与设置」连接独立后台，使用本机已有的微信与模型配置。
 
-`/health/ready` 当前仍返回 **503 NOT_READY**，因为无人值守所需实时接收、任务与发送链路尚未完成；本地导入管理能力由 `/api/v1/inbox` 的 `storage_enabled` 单独声明。
+需要 Node.js 24 或更新版本。真实环境的启动、加密存储、微信初始化和模型配置分别见[工作台启动](docs/unified-inbox.md)、[微信接入](docs/wechat-db-setup.md)、[AI 接入](docs/ai-setup.md)、[邮箱授权](docs/email-setup.md)。
 
-### 3. 桌面外壳
+## 当前进度
 
-Tauri 源码位于 `apps/desktop/src-tauri`。原生启动还需要 Rust/Cargo、Windows C++ 构建工具与 WebView2；本轮未在缺少这些环境的机器上验证原生编译。
+| 项目 | 当前状态 |
+| --- | --- |
+| 微信工作台与公开预览 | 已实现三栏工作区、关注选择、状态和手动 AI 入口；浏览器与合成回归通过，待团队正式审查。 |
+| 真实微信后台 | 仓库已实现本地只读和选定私聊轮询。本轮前端走查未读取真实微信；Windows 原生与真实账号验收待完成。 |
+| 邮箱离席链路 | 合成邮箱 + 本机 Qwen 已通过三轮浏览器关窗检查。真实 QQ 邮箱三轮仍为 **0/3**，授权码手机验证暂缓；Tauri 原生验收待完成。 |
+| Finfold 接入 | 可以预览公开 Brief；真实导入入口默认关闭，后续接测试环境。 |
 
-```powershell
-cd apps/desktop
-npm run tauri dev
-```
+合成预览、后台实现、真实账号验收分别记录。[微信 UI 验证](docs/wechat-workspace.md#验证记录) · [邮箱三轮验收](docs/away-desk.md#自动验收三轮)
 
-Go 后台需独立启动。Tauri 不以 sidecar 启停它；Windows 服务注册与自动恢复由 T19 后续实现。
+## 从对话，到 Finfold 内容
 
-## 检查
+活动信息、产品卖点和 CTA 经你确认后，可以整理为公开 Brief，交给 Finfold 创作台准备 LinkedIn 和 X 内容。现阶段 Brief 预览位于邮箱交接流程；微信对话的一键提炼 Brief 尚未实现。原始聊天、邮件和回信不直接带入推广素材。[赛后接入设计](docs/away-desk.md#finfold-赛后接入)
 
-安装前端依赖后，在根目录运行：
+## 构建与协作
 
-```powershell
-.\scripts\check.ps1
-```
+React 工作台 · Tauri 桌面外壳 · 独立 Go 后台 · SQLCipher 本地加密存储。
 
-检查 Go 格式、测试、静态检查、API 引用、前端类型与构建；不自动声称桌面编译通过。已有 Rust 环境时可加 `-IncludeDesktop` 验证 Cargo 构建检查。
+统一消息中心还保留 QQ、微信、Telegram、闪聊与邮箱的导入整理；QQ OneBot 当前仅核验账号。接口与实际能力以[接口契约](api/openapi.yaml)、[功能进度](feat.md)、[任务规划](任务规划.md)和[技术文档](技术文档.md)为准。
 
-## 架构与文件
+- **angjustinl** · 后端、AI、数据与后台服务
+- **joey** · 前端、UI、桌面与 Tauri
+- **kirinbao** · 产品、测试验收与交付
 
-```mermaid
-flowchart LR
-    UI[React / Tauri 工作台] -->|本机 Bearer API| API[Go sociald]
-    API -->|只读账号核验| QQ[QQ OneBot v11 适配器]
-    QQ -->|HTTP / 正向 WS| PROVIDER[用户已有的个人 QQ 协议端]
-    API --> DOMAIN[领域 Scope / 消息 / 决策接口]
-    API --> INBOX[统一导入 / 会话 / 本地状态]
-    INBOX --> STORE[SQLCipher / SQLite]
-    API -->|手动只读同步| EMAIL[IMAP TLS 邮箱]
-    EMAIL --> INBOX
-    API -->|预览确认后单次分析| AI[固定 DeepSeek / 兼容模型]
-    AI -->|校验结果| MEMORY[限域记忆 / 摘要 / 本地草稿]
-    MEMORY --> STORE
-    DOMAIN -. 后续实现 .-> CONNECTOR[微信 Clawbot / Telegram]
-    DOMAIN -. 后续实现 .-> AGENT[持久化任务 / 审批 / 发件箱]
-```
-
-- [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、只读邮箱同步及手动 AI 分析开放，发送/审批继续拒绝。
-- [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
-- [自动获取聊天记录选型](参考项目/自动同步/README.md)：减少手工导入的QCE、Telegram个人账号及微信方案核验；目前为调研与待实施步骤。
-- [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
-- [AI 管理接入](docs/ai-setup.md)：DeepSeek/兼容服务本机配置、预览确认、记忆核对与草稿。
-- [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
-- [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：自有服务与 OneBot 连接层分离，优先 QQ 个人号。
-- [技术文档](技术文档.md)、[逐项任务](任务规划.md)、[feat 进度](feat.md)。
-- [参考项目](参考项目/README.md)：上游源码仅用于静态参考。
-- [本地交付与待办](docs/acceptance/T04-handoff.md)：源码包生成方式、GitHub 同步状态和剩余验收条件。
-
-## 三人分工
-
-- angjustinl：后端、AI、数据与后台服务。
-- joey：前端、UI、桌面与 Tauri。
-- kirinbao：产品、测试验收与交付。
-
-前后端由非作者交叉审查；辅助审查和构建通过不替代指定成员的正式审查与验收。
+前后端由非作者成员交叉审查，产品验收由 kirinbao 组织。

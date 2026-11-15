@@ -41,6 +41,10 @@ const implementedMutations = Object.entries(spec.paths).flatMap(([path, operatio
   Object.entries(operations).filter(([method, op]) => ['post', 'patch', 'put', 'delete'].includes(method) && op['x-implementation-status'] === 'implemented').map(([method]) => `${method} ${path}`));
 assert.deepEqual(implementedMutations.sort(), [
   'patch /api/v1/conversations/{conversation_id}',
+  'post /api/v1/away-sessions',
+  'post /api/v1/away-sessions/{session_id}/stop',
+  'patch /api/v1/away-sessions/{session_id}/tasks/{task_id}',
+  'post /api/v1/away-sessions/finfold',
   'post /api/v1/imports/messages',
   'post /api/v1/imports/telegram',
   'post /api/v1/connections/email-imap/sync',

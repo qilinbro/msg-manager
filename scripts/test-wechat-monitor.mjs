@@ -91,7 +91,8 @@ function hookHarness(file, componentName, bindings, props) {
   const source = readFileSync(new URL(`../apps/desktop/src/${file}`, import.meta.url), 'utf8')
     .replace(/^import[\s\S]*?from ['"][^'"]+['"];?\r?$/gm, '')
     .replace(/^import ['"][^'"]+['"];?\r?$/gm, '')
-    .replace(`export default function ${componentName}`, `function ${componentName}`);
+    .replace(`export default function ${componentName}`, `function ${componentName}`)
+    .replace(/^export type /gm, "type ");
   const transformed = transformSync(file, source, { jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' } });
   assert.equal(transformed.errors.length, 0);
   const componentModule = { exports: {} };
@@ -190,3 +191,41 @@ assert.ok(find(inbox, (node) => node.type === 'AIPanelStub'), 'AI editor must re
 inbox.unmount();
 
 console.log('WeChat monitor client/component and inbox soft-refresh checks passed: authenticated transport, old service compatibility, uncertain-result handling, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, selected chat and reading/editor preservation. Synthetic data only.');
+
+// The hosted workflow uses the same panels, but must never fall through to real clients.
+const fixtureSource = readFileSync(new URL('../apps/desktop/src/wechat-demo.ts', import.meta.url), 'utf8');
+const fixtureModule = {exports: {}};
+runInNewContext(stripTypeScriptTypes(fixtureSource).replace(/^export /gm, '') + '\nmodule.exports={createWechatDemo};', {module: fixtureModule, structuredClone});
+const demo = fixtureModule.exports.createWechatDemo();
+const compact = hookHarness('WechatPanel.tsx', 'WechatPanel', {wechatMonitorError: () => 'synthetic error'}, {
+ token: 'synthetic', client: demo.wechat, compact: true, storageEnabled: true, revision: 0,
+ onSynced() {}, onBackgroundSynced() {}, onAuthFailure() {throw Error('unexpected auth');},
+});
+await compact.flush();
+const controls = () => find(compact, node => node.props.id === 'wechat-connection-controls');
+assert.equal(controls().props.hidden, true, 'setup starts collapsed');
+find(compact, node => node.type === 'button' && text(node) === '管理关注').props.onClick();
+await compact.flush();
+assert.equal(controls().props.hidden, false);
+const checkbox = find(compact, node => node.type === 'input' && node.props.type === 'checkbox' && !node.props.checked);
+checkbox.props.onChange({target:{checked:true}}); await compact.flush();
+await find(compact, node => node.type === 'button' && text(node) === '保存并继续读取').props.onClick(); await compact.flush();
+assert.equal((await demo.wechat.getWechatStatus()).monitor.peer_ids.length, 4);
+await find(compact, node => node.type === 'button' && text(node) === '暂停读取').props.onClick(); await compact.flush();
+assert.equal((await demo.wechat.getWechatStatus()).monitor.enabled, false);
+compact.unmount();
+const isolatedInbox = hookHarness('Inbox.tsx', 'Inbox', {
+ PLATFORM_NAMES: {weixin:'微信'}, WechatPanel: 'WechatPanelStub', AIPanel: 'AIPanelStub', EmailPanel: 'EmailPanelStub',
+}, {token:'synthetic', client:demo.inbox, wechatClient:demo.wechat, aiClient:demo.ai, scope:'weixin', preview:true, aiDrafts:new Map(), onSettings(){}, onAuthFailure(){throw Error('unexpected auth');}});
+await isolatedInbox.flush();
+assert.ok(find(isolatedInbox, node => node.type === 'WechatPanelStub').props.compact);
+const embedded = find(isolatedInbox, node => node.type === 'AIPanelStub');
+assert.equal(embedded.props.client, demo.ai);
+assert.equal(embedded.props.previewOnly, true);
+assert.equal(embedded.props.embedded, true);
+isolatedInbox.unmount();
+const draft = await demo.ai.analyzeConversation('synthetic', signal(), 'demo-chat-1', 'demo-context-demo-chat-1');
+assert.match(draft.summary, /品牌记忆/);
+await demo.ai.saveAIDraft('synthetic', signal(), 'demo-chat-1', draft.id, 'edited synthetic reply');
+assert.equal((await demo.ai.getAnalysis('synthetic', signal(), 'demo-chat-1')).analysis.draft, 'edited synthetic reply');
+console.log('WeChat workspace checks passed: collapsed setup, checkbox selection, saved scope, pause, isolated preview clients, embedded draft panel and synthetic draft persistence.');

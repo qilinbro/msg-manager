@@ -23,8 +23,17 @@ import type {
 import './inbox.css';
 import EmailPanel from './EmailPanel';
 import WechatPanel from './WechatPanel';
+import type { WechatClient } from './WechatPanel';
+import type { AIClient } from './AIPanel';
 import AIPanel from './AIPanel';
 import type { AIDraftBuffer } from './ai-api';
+
+export type InboxClient = {
+  getInboxInfo: typeof getInboxInfo;
+  getConversations: typeof getConversations;
+  getConversationMessages: typeof getConversationMessages;
+  updateConversation: typeof updateConversation;
+};
 
 type View = 'all' | 'unread' | 'pinned' | 'archived';
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -523,16 +532,32 @@ export default function Inbox({
   aiDrafts,
   onSettings,
   onAuthFailure,
+  scope,
+  client,
+  wechatClient,
+  aiClient,
+  preview = false,
 }: {
+  scope?: 'weixin';
+  client?: InboxClient;
+  wechatClient?: WechatClient;
+  aiClient?: AIClient;
+  preview?: boolean;
   token: string;
   aiDrafts: Map<string, AIDraftBuffer>;
   onSettings: () => void;
   onAuthFailure: () => void;
 }) {
+  const api = client ?? {
+    getInboxInfo,
+    getConversations,
+    getConversationMessages,
+    updateConversation,
+  };
   const [info, setInfo] = useState<InboxInfo | null>(null);
   const [infoState, setInfoState] = useState<LoadState>('idle');
   const [infoError, setInfoError] = useState<string | null>(null);
-  const [platform, setPlatform] = useState<Platform | undefined>();
+  const [platform, setPlatform] = useState<Platform | undefined>(scope);
   const [view, setView] = useState<View>('all');
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
@@ -542,7 +567,7 @@ export default function Inbox({
   const [listCursor, setListCursor] = useState<string | null>(null);
   const [listMore, setListMore] = useState(false);
   const [selected, setSelected] = useState<Conversation | null>(null);
-  const [aiOpen, setAiOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(Boolean(scope));
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [messageState, setMessageState] = useState<LoadState>('idle');
   const [messageError, setMessageError] = useState<string | null>(null);
@@ -655,9 +680,9 @@ export default function Inbox({
       setBackgroundPending(true);
     try {
       const [infoResult, listResult, messageResult] = await Promise.allSettled([
-        getInboxInfo(token, controller.signal),
+        api.getInboxInfo(token, controller.signal),
         updateList
-          ? getConversations(token, controller.signal, {
+          ? api.getConversations(token, controller.signal, {
               platform,
               q: query,
               unread: view === 'unread',
@@ -666,7 +691,7 @@ export default function Inbox({
             })
           : Promise.resolve(null),
         updateMessages && selectedId
-          ? getConversationMessages(token, controller.signal, selectedId)
+          ? api.getConversationMessages(token, controller.signal, selectedId)
           : Promise.resolve(null),
       ]);
       if (
@@ -697,7 +722,9 @@ export default function Inbox({
         setSelected((current) =>
           current
             ? (data.items.find((item) => item.id === current.id) ?? current)
-            : null,
+            : preview && scope === 'weixin'
+              ? (data.items[0] ?? null)
+              : null,
         );
       } else if (listResult.status === 'fulfilled' && listResult.value)
         setBackgroundPending(true);
@@ -718,7 +745,8 @@ export default function Inbox({
     const controller = new AbortController();
     setInfoState('loading');
     setInfoError(null);
-    getInboxInfo(token, controller.signal)
+    api
+      .getInboxInfo(token, controller.signal)
       .then((data) => {
         if (controller.signal.aborted) return;
         setInfo(data);
@@ -750,13 +778,14 @@ export default function Inbox({
     const controller = new AbortController();
     listRequest.current = controller;
     setListState('loading');
-    getConversations(token, controller.signal, {
-      platform,
-      q: query,
-      unread: view === 'unread',
-      pinned: view === 'pinned',
-      archived: view === 'archived',
-    })
+    api
+      .getConversations(token, controller.signal, {
+        platform,
+        q: query,
+        unread: view === 'unread',
+        pinned: view === 'pinned',
+        archived: view === 'archived',
+      })
       .then((data) => {
         if (controller.signal.aborted) return;
         setConversations(data.items);
@@ -765,7 +794,9 @@ export default function Inbox({
         setSelected((current) =>
           current
             ? (data.items.find((item) => item.id === current.id) ?? null)
-            : null,
+            : preview && scope === 'weixin'
+              ? (data.items[0] ?? null)
+              : null,
         );
       })
       .catch((failure: unknown) => {
@@ -794,7 +825,8 @@ export default function Inbox({
     historyRequest.current = controller;
     setMessageState('loading');
     scrollMode.current = { kind: 'bottom' };
-    getConversationMessages(token, controller.signal, selectedId)
+    api
+      .getConversationMessages(token, controller.signal, selectedId)
       .then((data) => {
         if (controller.signal.aborted) return;
         setMessages(data.items);
@@ -820,7 +852,7 @@ export default function Inbox({
     setListMore(true);
     setListError(null);
     try {
-      const data = await getConversations(token, controller.signal, {
+      const data = await api.getConversations(token, controller.signal, {
         platform,
         q: query,
         unread: view === 'unread',
@@ -857,7 +889,7 @@ export default function Inbox({
     setHistoryMore(true);
     setMessageError(null);
     try {
-      const data = await getConversationMessages(
+      const data = await api.getConversationMessages(
         token,
         controller.signal,
         selectedId,
@@ -900,7 +932,12 @@ export default function Inbox({
     setActionBusy(true);
     setNotice(null);
     try {
-      await updateConversation(token, controller.signal, current.id, changes);
+      await api.updateConversation(
+        token,
+        controller.signal,
+        current.id,
+        changes,
+      );
       if (controller.signal.aborted) return;
       if (changes.archived !== undefined)
         setSelected((latest) => (latest?.id === current.id ? null : latest));
@@ -943,11 +980,20 @@ export default function Inbox({
     setNotice(null);
   };
   return (
-    <div className="inbox-root">
+    <div className={`inbox-root ${scope ? 'inbox-wechat' : ''}`}>
       <div className="inbox-title-row">
         <div>
-          <h1>所有消息，在一处。</h1>
-          <p>跨平台整理会话，把重要的联系留在视线里。</p>
+          {scope && (
+            <span className="wechat-overline">
+              YOUR CONVERSATIONS, CONTINUED.
+            </span>
+          )}
+          <h1>{scope ? '消息收好了，接着聊。' : '所有消息，在一处。'}</h1>
+          <p>
+            {scope
+              ? '关注的人在左边，来龙去脉在眼前，回复由你决定。'
+              : '跨平台整理会话，把重要的联系留在视线里。'}
+          </p>
         </div>
         <div className="inbox-header-actions">
           <button
@@ -959,26 +1005,47 @@ export default function Inbox({
           >
             <Symbol name="refresh" />
           </button>
-          <button
-            className="button button-primary"
-            onClick={() => setImportOpen((value) => !value)}
-            disabled={!enabled}
-          >
-            <Symbol name="import" size={16} />
-            导入消息
-          </button>
+          {!scope && (
+            <button
+              className="button button-primary"
+              onClick={() => setImportOpen((value) => !value)}
+              disabled={!enabled}
+            >
+              <Symbol name="import" size={16} />
+              导入消息
+            </button>
+          )}
+          {scope && (
+            <span className="wechat-local-pill">私聊文本 · 本机保存</span>
+          )}
         </div>
       </div>
-      <div className="inbox-source-note">
-        <span className="inbox-status-dot" />
-        <span>
-          这里汇集导入记录、微信后台读取结果与邮件。工作台不会自动发送消息或邮件。
-        </span>
-      </div>
+      {scope ? (
+        <ol className="wechat-flow" aria-label="微信工作流程">
+          <li>
+            <b>01</b>选好私聊
+          </li>
+          <li>
+            <b>02</b>后台保存<span>自动</span>
+          </li>
+          <li>
+            <b>03</b>整理与备稿<span>你来发起</span>
+          </li>
+        </ol>
+      ) : (
+        <div className="inbox-source-note">
+          <span className="inbox-status-dot" />
+          <span>
+            这里汇集导入记录、微信后台读取结果与邮件。工作台不会自动发送消息或邮件。
+          </span>
+        </div>
+      )}
       {token ? (
         <WechatPanel
           key={token}
           token={token}
+          client={wechatClient}
+          compact={Boolean(scope)}
           storageEnabled={enabled}
           revision={revision}
           onSynced={refresh}
@@ -986,7 +1053,7 @@ export default function Inbox({
           onAuthFailure={onAuthFailure}
         />
       ) : null}
-      {token ? (
+      {token && !scope ? (
         <EmailPanel
           key={token}
           token={token}
@@ -1033,8 +1100,12 @@ export default function Inbox({
       {!token ? (
         <section className="inbox-start">
           <Symbol name="mail" size={34} />
-          <h2>先连接你的消息工作台</h2>
-          <p>连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。</p>
+          <h2>{scope ? '从一个重要的人开始。' : '先连接你的消息工作台'}</h2>
+          <p>
+            {scope
+              ? '连接本地服务，完成 Windows 微信配置后，选定想关注的私聊。消息只读保存，按需交给 AI 整理。'
+              : '连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。'}
+          </p>
           <button className="button button-secondary" onClick={onSettings}>
             前往连接设置
             <Symbol name="arrow" size={16} />
@@ -1065,78 +1136,87 @@ export default function Inbox({
         </section>
       ) : (
         <div className={`inbox-layout ${selected ? 'has-selection' : ''}`}>
-          <aside className="inbox-filters" aria-label="会话筛选">
-            <h2>收件箱</h2>
-            <div className="inbox-view-filters">
-              {VIEWS.map((item) => (
-                <button
-                  key={item.value}
-                  className={view === item.value ? 'active' : ''}
-                  aria-pressed={view === item.value}
-                  onClick={() => selectView(item.value)}
-                >
-                  <Symbol name={item.icon} size={16} />
-                  <span>{item.name}</span>
-                </button>
-              ))}
-            </div>
-            <h3>平台来源</h3>
-            <button
-              className={`inbox-platform-filter ${platform === undefined ? 'active' : ''}`}
-              onClick={() => selectPlatform(undefined)}
-              aria-pressed={platform === undefined}
-            >
-              <span>全部平台</span>
-              <span className="inbox-count">
-                {info.platforms.reduce(
-                  (sum, item) => sum + item.message_count,
-                  0,
-                )}
-              </span>
-            </button>
-            {PLATFORMS.map((item) => {
-              const status = info.platforms.find(
-                (source) => source.id === item,
-              );
-              return (
-                <button
-                  key={item}
-                  className={`inbox-platform-filter ${platform === item ? 'active' : ''}`}
-                  onClick={() => selectPlatform(item)}
-                  aria-pressed={platform === item}
-                >
-                  <PlatformMark platform={item} />
-                  <span>{PLATFORM_NAMES[item]}</span>
-                  <span className="inbox-count">
-                    {status?.message_count ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-            <p className="inbox-filter-footnote">
-              微信可按设置在后台读取，邮箱按需同步；其他社交记录来自导入。
-            </p>
-            <div className="inbox-live-states">
-              {info.platforms.map((item) => (
-                <span key={item.id}>
-                  {PLATFORM_NAMES[item.id]}
-                  <span>
-                    {item.live_status === 'probe_only'
-                      ? '仅账号核验'
-                      : item.live_status === 'unsupported'
-                        ? '暂不支持实时接入'
-                        : item.live_status === 'configured'
-                          ? item.id === 'weixin'
-                            ? '已配置·可后台读取'
-                            : '已配置·手动同步'
-                          : '实时未连接'}
-                  </span>
+          {!scope && (
+            <aside className="inbox-filters" aria-label="会话筛选">
+              <h2>收件箱</h2>
+              <div className="inbox-view-filters">
+                {VIEWS.map((item) => (
+                  <button
+                    key={item.value}
+                    className={view === item.value ? 'active' : ''}
+                    aria-pressed={view === item.value}
+                    onClick={() => selectView(item.value)}
+                  >
+                    <Symbol name={item.icon} size={16} />
+                    <span>{item.name}</span>
+                  </button>
+                ))}
+              </div>
+              <h3>平台来源</h3>
+              <button
+                className={`inbox-platform-filter ${platform === undefined ? 'active' : ''}`}
+                onClick={() => selectPlatform(undefined)}
+                aria-pressed={platform === undefined}
+              >
+                <span>全部平台</span>
+                <span className="inbox-count">
+                  {info.platforms.reduce(
+                    (sum, item) => sum + item.message_count,
+                    0,
+                  )}
                 </span>
-              ))}
-            </div>
-          </aside>
+              </button>
+              {PLATFORMS.map((item) => {
+                const status = info.platforms.find(
+                  (source) => source.id === item,
+                );
+                return (
+                  <button
+                    key={item}
+                    className={`inbox-platform-filter ${platform === item ? 'active' : ''}`}
+                    onClick={() => selectPlatform(item)}
+                    aria-pressed={platform === item}
+                  >
+                    <PlatformMark platform={item} />
+                    <span>{PLATFORM_NAMES[item]}</span>
+                    <span className="inbox-count">
+                      {status?.message_count ?? 0}
+                    </span>
+                  </button>
+                );
+              })}
+              <p className="inbox-filter-footnote">
+                微信可按设置在后台读取，邮箱按需同步；其他社交记录来自导入。
+              </p>
+              <div className="inbox-live-states">
+                {info.platforms.map((item) => (
+                  <span key={item.id}>
+                    {PLATFORM_NAMES[item.id]}
+                    <span>
+                      {item.live_status === 'probe_only'
+                        ? '仅账号核验'
+                        : item.live_status === 'unsupported'
+                          ? '暂不支持实时接入'
+                          : item.live_status === 'configured'
+                            ? item.id === 'weixin'
+                              ? '已配置·可后台读取'
+                              : '已配置·手动同步'
+                            : '实时未连接'}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </aside>
+          )}
           <section className="inbox-conversations" aria-label="会话列表">
             <div className="inbox-list-header">
+              {scope && (
+                <div className="wechat-list-heading">
+                  <h2>私聊</h2>
+                  <span>{conversations.length}</span>
+                </div>
+              )}
+
               <label className="inbox-search">
                 <Symbol name="search" size={17} />
                 <span className="inbox-sr-only">搜索会话或消息</span>
@@ -1152,6 +1232,19 @@ export default function Inbox({
                   autoComplete="off"
                 />
               </label>
+              {scope && (
+                <div className="wechat-view-tabs" aria-label="会话筛选">
+                  {VIEWS.map((item) => (
+                    <button
+                      key={item.value}
+                      aria-pressed={view === item.value}
+                      onClick={() => selectView(item.value)}
+                    >
+                      {item.value === 'all' ? '全部' : item.name}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="inbox-list-summary">
                 <strong>
                   {platform ? PLATFORM_NAMES[platform] : '全部平台'} ·{' '}
@@ -1199,10 +1292,12 @@ export default function Inbox({
                     {query
                       ? '试试其他关键词，或切换平台来源。'
                       : view === 'all'
-                        ? '导入已有消息后，会话将按时间汇集在这里。'
+                        ? scope
+                          ? '在上方管理关注，选择私聊并开启后台读取。已保存的消息会出现在这里。'
+                          : '导入已有消息后，会话将按时间汇集在这里。'
                         : '可以切换到全部会话，继续查看已有记录。'}
                   </p>
-                  {view === 'all' && !query ? (
+                  {view === 'all' && !query && !scope ? (
                     <button
                       className="inbox-text-button"
                       onClick={() => setImportOpen(true)}
@@ -1210,19 +1305,19 @@ export default function Inbox({
                       导入消息
                       <Symbol name="arrow" size={15} />
                     </button>
-                  ) : (
+                  ) : query || view !== 'all' ? (
                     <button
                       className="inbox-text-button"
                       onClick={() => {
                         setSearch('');
                         setQuery('');
                         setView('all');
-                        setPlatform(undefined);
+                        setPlatform(scope);
                       }}
                     >
                       查看全部会话
                     </button>
-                  )}
+                  ) : null}
                 </div>
               ) : (
                 <ul className="inbox-conversation-list">
@@ -1232,7 +1327,7 @@ export default function Inbox({
                         className={`inbox-conversation ${selected?.id === item.id ? 'selected' : ''}`}
                         onClick={(event) => {
                           selectedTrigger.current = event.currentTarget;
-                          setAiOpen(false);
+                          setAiOpen(Boolean(scope));
                           setSelected(item);
                           setNotice(null);
                         }}
@@ -1263,7 +1358,9 @@ export default function Inbox({
                               {PLATFORM_NAMES[item.platform]} ·{' '}
                               {item.platform === 'email'
                                 ? item.account_name || '邮箱账号'
-                                : item.account_id}
+                                : scope
+                                  ? '私聊 · 本机保存'
+                                  : item.account_id}
                             </span>
                             {item.pinned ? (
                               <span className="inbox-pin-label">
@@ -1330,11 +1427,13 @@ export default function Inbox({
                       {PLATFORM_NAMES[selected.platform]} ·{' '}
                       {selected.platform === 'email'
                         ? selected.account_name || '邮箱账号'
-                        : selected.account_id}{' '}
+                        : scope
+                          ? '私聊'
+                          : selected.account_id}{' '}
                       ·{' '}
                       {selected.platform === 'email'
                         ? '本地邮件记录'
-                        : '导入记录'}
+                        : '本地会话记录'}
                     </p>
                   </div>
                 </header>
@@ -1364,13 +1463,15 @@ export default function Inbox({
                     <Symbol name="archive" size={15} />
                     {selected.archived ? '移回收件箱' : '归档'}
                   </button>
-                  <button
-                    onClick={() => setAiOpen((value) => !value)}
-                    aria-expanded={aiOpen}
-                    aria-controls={`ai-management-${selected.id}`}
-                  >
-                    AI 管理
-                  </button>
+                  {!scope && (
+                    <button
+                      onClick={() => setAiOpen((value) => !value)}
+                      aria-expanded={aiOpen}
+                      aria-controls={`ai-management-${selected.id}`}
+                    >
+                      AI 管理
+                    </button>
+                  )}
                 </div>
                 <div
                   className="inbox-history"
@@ -1413,7 +1514,7 @@ export default function Inbox({
                           <div className="inbox-message-caption">
                             <span>
                               {item.direction === 'outgoing'
-                                ? '我 · 历史记录'
+                                ? '我'
                                 : selected.platform === 'email'
                                   ? item.email?.from_name ||
                                     item.email?.from_address ||
@@ -1448,6 +1549,13 @@ export default function Inbox({
                             </dl>
                           ) : null}
                           <p>{item.body}</p>
+                          {scope && (
+                            <small className="wechat-message-source">
+                              {item.source === 'wechatdb'
+                                ? '本机微信 · 只读保存'
+                                : '导入记录'}
+                            </small>
+                          )}
                         </article>
                       ))}
                       {messageError ? (
@@ -1455,7 +1563,7 @@ export default function Inbox({
                           {messageError}
                         </p>
                       ) : null}
-                      {aiOpen ? (
+                      {aiOpen && !scope ? (
                         <div id={`ai-management-${selected.id}`}>
                           <AIPanel
                             key={`${token}:${selected.id}`}
@@ -1475,7 +1583,7 @@ export default function Inbox({
                   <span>
                     {selected.platform === 'email'
                       ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
-                      : '这是本地导入的历史记录，当前不提供消息发送。'}
+                      : '本地保存的会话；已读、置顶和归档只影响工作台。回复草稿不会自动发送。'}
                   </span>
                 </footer>
               </>
@@ -1492,12 +1600,48 @@ export default function Inbox({
                 <p>
                   在左侧选择会话，查看消息与来源。
                   <br />
-                  不同平台统一整理，账号依然各自清楚。
+                  {scope
+                    ? '需要整理时，再确认交给模型的内容。'
+                    : '不同平台统一整理，账号依然各自清楚。'}
                 </p>
-                <span>QQ · 微信 · Telegram · 闪聊 · 邮箱</span>
+                <span>
+                  {scope
+                    ? '只读保存 · 手动整理 · 回复由你确认'
+                    : 'QQ · 微信 · Telegram · 闪聊 · 邮箱'}
+                </span>
               </div>
             )}
           </section>
+          {scope && (
+            <aside className="wechat-ai-column" aria-label="会话整理与回复草稿">
+              <div className="wechat-ai-kicker">
+                <span>03 / 按需整理</span>
+                <span>手动发起</span>
+              </div>
+              {selected && messageState === 'ready' ? (
+                <AIPanel
+                  key={`${token}:${selected.id}`}
+                  token={token}
+                  conversationId={selected.id}
+                  messages={messages}
+                  draftCache={aiDrafts}
+                  onAuthFailure={onAuthFailure}
+                  client={aiClient}
+                  previewOnly={preview}
+                  embedded
+                />
+              ) : (
+                <div className="wechat-ai-empty">
+                  <span aria-hidden="true">↗</span>
+                  <h3>想好，再回复。</h3>
+                  <p>
+                    选择一段对话，核对本次分析范围，再让 AI 整理重点和草稿。
+                  </p>
+                  <small>后台读取不会自动调用 AI</small>
+                </div>
+              )}
+            </aside>
+          )}
         </div>
       )}
     </div>
