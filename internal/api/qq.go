@@ -67,6 +67,7 @@ func (h *handler) connections() []connector.Descriptor {
 			items[i].Capabilities.HistoryImport = h.wechat.reader != nil && h.inbox != nil
 		}
 	}
+	h.applyMilky(items)
 	return items
 }
 

@@ -11,8 +11,10 @@ import (
 	"strings"
 
 	"github.com/qilinbro/msg-manager/internal/agent"
+	"github.com/qilinbro/msg-manager/internal/connector/adapter"
 	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
 	"github.com/qilinbro/msg-manager/internal/connector/onebot"
+	"github.com/qilinbro/msg-manager/internal/connector/qqmilky"
 	"github.com/qilinbro/msg-manager/internal/connector/wechatdb"
 	"github.com/qilinbro/msg-manager/internal/publicinfo"
 )
@@ -23,6 +25,7 @@ type Config struct {
 	Addr             string
 	APIToken         string
 	QQOneBot         onebot.Config
+	QQMilky          qqmilky.Config
 	Email            mailbox.Config
 	DatabasePath     string
 	DatabaseKey      string
@@ -49,10 +52,22 @@ func LoadFromEnv() (Config, error) {
 			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
 			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
 		},
+		QQMilky: qqmilky.Config{Endpoint: adapter.Endpoint{
+			URL:            os.Getenv("QQ_MILKY_URL"),
+			AccessToken:    os.Getenv("QQ_MILKY_ACCESS_TOKEN"),
+			ExpectedSelfID: os.Getenv("QQ_MILKY_ACCOUNT_ID"),
+		}},
 		Email:        mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
 		AI:           agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
 		WechatDB:     wechatdb.Config{Directory: os.Getenv("WECHAT_DB_DIR"), AccountID: os.Getenv("WECHAT_DB_ACCOUNT_ID"), Key: os.Getenv("WECHAT_DB_KEY")},
 		PublicSearch: publicinfo.Config{APIKey: os.Getenv("TAVILY_API_KEY")},
+	}
+	if value := os.Getenv("QQ_MILKY_HISTORY_LIMIT"); value != "" {
+		limit, err := strconv.Atoi(value)
+		if err != nil || limit < 1 || limit > qqmilky.MaxHistoryLimit {
+			return Config{}, errors.New("QQ_MILKY_HISTORY_LIMIT must be between 1 and 30")
+		}
+		cfg.QQMilky.HistoryLimit = limit
 	}
 	if value := os.Getenv("WECHAT_DB_LIMIT"); value != "" {
 		limit, err := strconv.Atoi(value)
