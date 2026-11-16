@@ -109,7 +109,7 @@ function textOf(tree) { if (Array.isArray(tree)) return tree.map(textOf).join(''
 function find(panel, predicate) { const result = nodes(panel.tree).find(predicate); assert.ok(result, 'Expected profile control missing'); return result; }
 let currentProfile = structuredClone(profile), currentStatus = structuredClone(status);
 const calls = [], savedSettings = [], factChanges = [];
-const panel = harness({ ...api,
+const panel = harness({ ...api, ProfileLinksPanel: () => null,
   getProfile: async (_token, _signal, id) => { assert.equal(id, 'conversation-1'); calls.push('profile'); return structuredClone(currentProfile); },
   getProfileStatus: async () => { calls.push('status'); return structuredClone(currentStatus); },
   saveProfile: async (_token, _signal, _id, input) => { calls.push('save'); savedSettings.push(structuredClone(input)); currentProfile = { ...currentProfile, ...input, revision: currentProfile.revision + 1 }; return structuredClone(currentProfile); },

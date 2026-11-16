@@ -73,11 +73,18 @@ export interface ImportRequest {
   account_id: string;
   account_name: string;
   messages: ImportMessage[];
+  ai_organize?: ImportAIConsent;
+}
+export interface ImportAIConsent {
+  confirmed: true;
+  model_config_id: string;
 }
 export interface ImportResult {
   inserted: number;
   duplicates: number;
   conversations: number;
+  conversation_ids?: string[];
+  ai_queued?: number;
   skipped?: number;
 }
 
@@ -85,6 +92,7 @@ export interface TelegramImportRequest {
   account_id: string;
   account_name: string;
   export: Record<string, unknown>;
+  ai_organize?: ImportAIConsent;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -96,6 +104,10 @@ export const isPlatform = (value: unknown): value is Platform =>
   isString(value) && Object.hasOwn(PLATFORM_NAMES, value);
 
 const ERROR_MESSAGES: Record<string, string> = {
+  AI_CONSENT_REQUIRED: '模型目标已有变化，请重新检查模型并确认分析范围。',
+  AI_NOT_CONFIGURED: '请先在设置中配置模型，或取消勾选导入后分析。',
+  AI_IMPORT_NOT_AUTHORIZED:
+    '本次会话已暂停AI，或现有公开搜索授权属于其他模型；请先在档案中核对权限，或取消勾选分析后导入。',
   STORAGE_DISABLED: '本地消息存储尚未启用，请在设置中查看配置状态。',
   INVALID_REQUEST: '提交内容不符合导入格式，请检查字段、账号和消息时间。',
   PAYLOAD_TOO_LARGE: '文件或消息内容超过限制，请拆分后重新导入。',
@@ -351,7 +363,9 @@ export async function importMessages(
     !isRecord(value) ||
     !isCount(value.inserted) ||
     !isCount(value.duplicates) ||
-    !isCount(value.conversations)
+    !isCount(value.conversations) ||
+    (value.ai_queued !== undefined && !isCount(value.ai_queued)) ||
+    (data.ai_organize !== undefined && !isCount(value.ai_queued))
   )
     invalidResponse();
   return value as unknown as ImportResult;
@@ -368,7 +382,9 @@ export async function importTelegram(
     !isCount(value.inserted) ||
     !isCount(value.duplicates) ||
     !isCount(value.conversations) ||
-    !isCount(value.skipped)
+    !isCount(value.skipped) ||
+    (value.ai_queued !== undefined && !isCount(value.ai_queued)) ||
+    (data.ai_organize !== undefined && !isCount(value.ai_queued))
   )
     invalidResponse();
   return value as unknown as ImportResult;

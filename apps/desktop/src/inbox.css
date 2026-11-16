@@ -693,6 +693,19 @@
   line-height: 1.8;
   overflow-wrap: anywhere;
 }
+.inbox-consent-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 0 0 18px;
+  color: var(--inbox-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.inbox-consent-row input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+}
 .inbox-feedback {
   padding: 13px 16px;
   border-radius: 6px;

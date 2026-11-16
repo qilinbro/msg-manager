@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"testing"
@@ -112,7 +113,7 @@ func TestImportRollbackConflictAndValidationAreAtomic(t *testing.T) {
 		importMessage("1", "friend", "冲突正文", "2026-01-01T04:00:00Z"),
 	}}
 	result, err := s.Import(conflict)
-	if !errors.Is(err, ErrConflict) || result != (ImportResult{}) {
+	if !errors.Is(err, ErrConflict) || !reflect.DeepEqual(result, ImportResult{}) {
 		t.Fatal("conflict did not return sanitized zero-result error")
 	}
 	if len(mustConversations(t, s, Filter{}).Items) != 1 {

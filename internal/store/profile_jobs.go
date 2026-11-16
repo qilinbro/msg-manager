@@ -4,9 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 )
+
+var ErrProfileInputTooLarge = errors.New("a profile message exceeds the serialized input budget")
 
 const profileJobColumns = `id,conversation_id,kind,state,attempts,next_attempt_at,lease_until,lease_token,fence,model_config_id,settings_revision,max_seq,last_error_code,updated_at,input_hash,manual`
 
@@ -24,6 +27,7 @@ func scanProfileJob(row profileScanner) (profileJobRecord, error) {
 	if err != nil {
 		return j, err
 	}
+	j.ProfileJob.Manual = j.manual
 	if next.Valid {
 		j.NextAttemptAt = &next.String
 	}
@@ -100,7 +104,7 @@ func enqueueProfile(ctx context.Context, tx *sql.Tx, p profileRecord, kind, cfg 
 		}
 		return ProfileJob{}, ErrConflict
 	}
-	if !manual && err == nil && existing.State != "cancelled" && existing.ModelConfigID == cfg && existing.SettingsRevision == p.Revision && existing.MaxSeq >= p.MaxSeq {
+	if !manual && err == nil && p.ProcessedSeq >= p.MaxSeq && existing.State != "cancelled" && existing.ModelConfigID == cfg && existing.SettingsRevision == p.Revision && existing.MaxSeq >= p.MaxSeq {
 		return existing.ProfileJob, nil
 	}
 	now := profileNow()
@@ -346,14 +350,22 @@ func profileInput(ctx context.Context, tx *sql.Tx, j profileJobRecord, p profile
 	}
 	input := ProfileJobInput{Profile: profile, Messages: []AIMessage{}}
 	if j.Kind == "organize" {
-		rows, e := tx.QueryContext(ctx, `SELECT id,body,direction,occurred_at FROM messages WHERE workspace_id=? AND conversation_id=? AND seq<=? ORDER BY seq DESC LIMIT 21`, workspaceID, p.ConversationID, j.MaxSeq)
+		var rows *sql.Rows
+		if j.Manual {
+			// A recent-window manual preview must never claim older history
+			// has been processed by the automatic full-history pipeline.
+			input.ProcessedThroughSeq = p.ProcessedSeq
+			rows, e = tx.QueryContext(ctx, `SELECT seq,id,body,direction,occurred_at FROM messages WHERE workspace_id=? AND conversation_id=? AND seq<=? ORDER BY seq DESC LIMIT 21`, workspaceID, p.ConversationID, j.MaxSeq)
+		} else {
+			rows, e = tx.QueryContext(ctx, `SELECT seq,id,body,direction,occurred_at FROM messages WHERE workspace_id=? AND conversation_id=? AND seq>? AND seq<=? ORDER BY seq ASC LIMIT 21`, workspaceID, p.ConversationID, p.ProcessedSeq, j.MaxSeq)
+		}
 		if e != nil {
 			return input, ErrUnavailable
 		}
 		used := 2
 		for rows.Next() {
 			var m AIMessage
-			if rows.Scan(&m.ID, &m.Body, &m.Direction, &m.OccurredAt) != nil {
+			if rows.Scan(&m.Seq, &m.ID, &m.Body, &m.Direction, &m.OccurredAt) != nil {
 				rows.Close()
 				return input, ErrUnavailable
 			}
@@ -363,11 +375,18 @@ func profileInput(ctx context.Context, tx *sql.Tx, j profileJobRecord, p profile
 				return input, ErrUnavailable
 			}
 			if len(input.Messages) >= 20 || used+len(encodedMessage)+1 > 20000 {
+				if len(input.Messages) == 0 {
+					rows.Close()
+					return input, ErrProfileInputTooLarge
+				}
 				input.Truncated = true
 				break
 			}
 			input.Messages = append(input.Messages, m)
 			used += len(encodedMessage) + 1
+			if !j.Manual {
+				input.ProcessedThroughSeq = m.Seq
+			}
 		}
 		e = rows.Err()
 		rows.Close()
@@ -377,8 +396,10 @@ func profileInput(ctx context.Context, tx *sql.Tx, j profileJobRecord, p profile
 		if len(input.Messages) == 0 {
 			return input, ErrInvalidInput
 		}
-		for l, r := 0, len(input.Messages)-1; l < r; l, r = l+1, r-1 {
-			input.Messages[l], input.Messages[r] = input.Messages[r], input.Messages[l]
+		if j.Manual {
+			for l, r := 0, len(input.Messages)-1; l < r; l, r = l+1, r-1 {
+				input.Messages[l], input.Messages[r] = input.Messages[r], input.Messages[l]
+			}
 		}
 	}
 	encoded, e := json.Marshal(struct {

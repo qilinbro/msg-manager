@@ -16,6 +16,10 @@ type AIConversation struct {
 }
 
 type AIMessage struct {
+	// Seq is local store metadata used by resumable profile batches. It is
+	// intentionally excluded from the model JSON so the provider sees only the
+	// existing evidence ID/body/direction/time contract.
+	Seq        int64  `json:"-"`
 	ID         string `json:"id"`
 	Body       string `json:"body"`
 	Direction  string `json:"direction"`

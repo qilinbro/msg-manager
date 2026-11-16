@@ -92,6 +92,9 @@ func TestProfileInputRejectsCrossPurposeAndExcessContextBeforeIO(t *testing.T) {
 		func(i *ProfileInput) { i.Sources[0].URL = "http://127.0.0.1/private" },
 		func(i *ProfileInput) { i.Sources[0].Snippet = "电话13812345678" },
 		func(i *ProfileInput) { i.Sources = append(i.Sources, i.Sources[0]) },
+		func(i *ProfileInput) { i.PeerID = "private-platform-id" },
+		func(i *ProfileInput) { i.ManualNotes = "private user notes" },
+		func(i *ProfileInput) { i.PreviousSummary = "private summary" },
 	} {
 		input := testProfileInput("enrich")
 		mutate(&input)

@@ -40,6 +40,12 @@ try {
         & (Join-Path $PSScriptRoot 'test-wechat-init.ps1') -ProbeExecutable $initProbe
     }
     if (-not $SkipFrontend) {
+        node scripts/test-profile-links.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Profile links client checks failed.' }
+        node scripts/test-import-analysis.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Import analysis client regression checks failed.' }
+        node scripts/test-ai-model-client.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'AI model client regression checks failed.' }
         node scripts/test-milky-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'QQ Milky client regression checks failed.' }
         node scripts/test-profiles.mjs

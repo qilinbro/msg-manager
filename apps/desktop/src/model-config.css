@@ -1,0 +1,19 @@
+.ai-model-form > input {
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+.ai-model-form .ai-model-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.ai-model-form .ai-model-consent input {
+  width: 16px;
+  min-height: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 2px 0 0;
+  padding: 0;
+}

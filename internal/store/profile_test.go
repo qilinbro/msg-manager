@@ -111,7 +111,7 @@ func TestProfileManualJobAppendedMessagesEvidenceAndConfirmedFacts(t *testing.T)
 		t.Fatal("append invalidated captured prefix", e)
 	}
 	p := mustProfile(t, s, id)
-	if p.ProcessedSeq != maxBefore || p.MaxSeq <= p.ProcessedSeq || p.AICategory != "client" || len(p.Facts) != 1 || p.Facts[0].State != "unverified" {
+	if p.ProcessedSeq != 0 || p.MaxSeq <= maxBefore || p.AICategory != "client" || len(p.Facts) != 1 || p.Facts[0].State != "unverified" {
 		t.Fatal("profile result/watermark")
 	}
 	p, err := s.SetProfileFact(context.Background(), id, p.Facts[0].ID, "confirmed", p.Revision)
@@ -371,7 +371,7 @@ func TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph(t *testing.T) {
 		t.Fatal(e)
 	}
 	before := snapshotV3Data(t, legacy.db)
-	for _, table := range []string{"profile_fact_messages", "profile_fact_sources", "profile_facts", "profile_sources", "profile_jobs", "profile_search_reservations", "contact_profiles", "qq_milky_monitor_settings"} {
+	for _, table := range []string{"profile_links", "ai_model_config", "profile_fact_messages", "profile_fact_sources", "profile_facts", "profile_sources", "profile_jobs", "profile_search_reservations", "contact_profiles", "qq_milky_monitor_settings"} {
 		if _, e = legacy.db.Exec(`DROP TABLE ` + table); e != nil {
 			legacy.Close()
 			t.Fatal(e)
@@ -397,7 +397,7 @@ func TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph(t *testing.T) {
 		t.Fatal("migration auto authorized AI")
 	}
 	var version int
-	if upgraded.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 7 {
+	if upgraded.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 9 {
 		t.Fatal("profile migration missing")
 	}
 }
@@ -523,5 +523,79 @@ func TestProfileSchedulingSkipsUnchangedContactsBeforeBoundedScan(t *testing.T) 
 	job, err := s.ClaimProfileJob(context.Background(), profileTestConfig, time.Minute)
 	if err != nil || job == nil || job.ConversationID != id || job.SettingsRevision != p.Revision {
 		t.Fatal("dirty contact was not scheduled", err)
+	}
+}
+
+func TestProfileAutomaticOrganizeResumesBatchesFromProcessedWatermark(t *testing.T) {
+	s := testStore(t)
+	id := aiTestConversation(t, s, "qq", "profile-batch-account", "batch-peer")
+	batch := ImportRequest{Platform: "qq", AccountID: "profile-batch-account", Messages: []ImportMessage{}}
+	for i := 0; i < 100; i++ {
+		batch.Messages = append(batch.Messages, importMessage(fmt.Sprintf("batch-message-%03d", i), "batch-peer", fmt.Sprintf("合成批量消息 %03d", i), fmt.Sprintf("2026-01-02T00:%02d:%02dZ", i/60, i%60)))
+	}
+	mustImport(t, s, batch)
+	patchProfile(t, s, id, ProfilePatch{ExpectedRevision: profilePointer(int64(0)), AutoOrganize: profilePointer(true), ModelConfigID: profilePointer(profileTestConfig)})
+
+	seen := map[string]bool{}
+	previousThrough := int64(0)
+	successes := 0
+	retried := false
+	for successes < 20 {
+		if _, err := s.ScheduleProfileJobs(context.Background(), profileTestConfig); err != nil {
+			t.Fatal("schedule batch", err)
+		}
+		job, err := s.ClaimProfileJob(context.Background(), profileTestConfig, time.Minute)
+		if err != nil || job == nil {
+			t.Fatal("claim batch", err)
+		}
+		claim := *job
+		input, err := s.LoadProfileJobInput(context.Background(), claim)
+		if err != nil {
+			t.Fatal("load batch", err)
+		}
+		if len(input.Messages) == 0 || len(input.Messages) > 20 || input.ProcessedThroughSeq <= previousThrough {
+			t.Fatalf("invalid batch cursor: len=%d through=%d previous=%d", len(input.Messages), input.ProcessedThroughSeq, previousThrough)
+		}
+		if !retried {
+			retried = true
+			firstID := input.Messages[0].ID
+			if err := s.FailProfileJob(context.Background(), claim, "PROFILE_CANCELLED", true); err != nil {
+				t.Fatal("cancel batch", err)
+			}
+			retry, err := s.ClaimProfileJob(context.Background(), profileTestConfig, time.Minute)
+			if err != nil || retry == nil {
+				t.Fatal("claim retry", err)
+			}
+			retryInput, err := s.LoadProfileJobInput(context.Background(), *retry)
+			if err != nil || len(retryInput.Messages) == 0 || retryInput.Messages[0].ID != firstID {
+				t.Fatal("cancelled batch advanced cursor", err)
+			}
+			input, claim = retryInput, *retry
+		}
+		for _, message := range input.Messages {
+			if seen[message.ID] {
+				t.Fatalf("successful batches repeated message %s", message.ID)
+			}
+			seen[message.ID] = true
+		}
+		if err := s.CompleteProfileJob(context.Background(), claim, profileTestResult(input)); err != nil {
+			t.Fatal("complete batch", err)
+		}
+		previousThrough = input.ProcessedThroughSeq
+		successes++
+		if successes == 3 {
+			mustImport(t, s, ImportRequest{Platform: "qq", AccountID: "profile-batch-account", Messages: []ImportMessage{
+				importMessage("batch-appended-1", "batch-peer", "追加批量消息 1", "2026-01-03T00:00:00Z"),
+				importMessage("batch-appended-2", "batch-peer", "追加批量消息 2", "2026-01-03T00:00:01Z"),
+			}})
+		}
+		profile := mustProfile(t, s, id)
+		if profile.ProcessedSeq >= profile.MaxSeq {
+			break
+		}
+	}
+	profile := mustProfile(t, s, id)
+	if profile.ProcessedSeq != profile.MaxSeq || len(seen) != int(profile.MaxSeq) || successes < 6 {
+		t.Fatalf("automatic batches did not drain history: processed=%d max=%d seen=%d successes=%d", profile.ProcessedSeq, profile.MaxSeq, len(seen), successes)
 	}
 }

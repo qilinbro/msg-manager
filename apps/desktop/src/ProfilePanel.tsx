@@ -22,6 +22,7 @@ import type {
   ProfileStatus,
 } from './profile-api';
 import './profile.css';
+import ProfileLinksPanel from './ProfileLinksPanel';
 
 const EMPTY: ProfileSettings = {
   public_name: '',
@@ -531,6 +532,12 @@ export default function ProfilePanel({
       {profile ? (
         <>
           <div className="profile-category-line">
+            {profile.auto_organize && profile.analysis_total !== undefined ? (
+              <p role="status">
+                全历史整理：已处理 {profile.analysis_processed ?? 0} /{' '}
+                {profile.analysis_total} 条。额度不足时会等待，暂停后可继续。
+              </p>
+            ) : null}
             <span>
               当前分类：<strong>{CATEGORY_NAMES[profile.category]}</strong>
               {profile.category_override
@@ -869,6 +876,12 @@ export default function ProfilePanel({
               任务由独立后台执行，离开页面不会取消；电脑及后台需要保持运行。
             </p>
           </section>
+          <ProfileLinksPanel
+            key={`${token}:${conversationId}`}
+            token={token}
+            conversationId={conversationId}
+            onAuthFailure={onAuthFailure}
+          />
           <details className="profile-document">
             <summary>查看已保存的 Markdown 文档</summary>
             <pre>{profile.document_markdown || '尚未生成文档。'}</pre>

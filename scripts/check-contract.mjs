@@ -48,6 +48,9 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/connections/wechat-db/monitor',
   'post /api/v1/connections/qq-milky/sync',
   'post /api/v1/connections/qq-milky/monitor',
+	'patch /api/v1/ai/model-config',
+	'post /api/v1/conversations/{conversation_id}/profile-links',
+	'delete /api/v1/conversations/{conversation_id}/profile-links/{target_conversation_id}',
   'post /api/v1/conversations/{conversation_id}/analyze',
   'patch /api/v1/conversations/{conversation_id}/draft',
   'patch /api/v1/conversations/{conversation_id}/ai-settings',
@@ -82,7 +85,7 @@ assert.ok(!spec.components.schemas.ContactProfileJob.properties.lease_token);
 assert.equal(spec.components.schemas.MilkyStatus.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.MilkyStatus.properties.read_only.const, true);
 assert.equal(spec.components.schemas.MilkyVerification.properties.sending_enabled.const, false);
-assert.equal(spec.components.schemas.MilkyVerification.properties.receiving_enabled.const, false);
+assert.equal(spec.components.schemas.MilkyVerification.properties.receiving_enabled.type, 'boolean');
 assert.equal(spec.components.schemas.MilkyVerification.properties.milky_version.const, '1.3');
 assert.equal(spec.components.schemas.MilkySyncResult.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.MilkySyncResult.properties.source_kind.const, 'protocol_sync');

@@ -340,7 +340,7 @@ func TestProfilePublicEnrichmentUsesOnlyApprovedFieldsAndUnverifiedSources(t *te
 		t.Fatal("public settings failed", w.Code, w.Body.String())
 	}
 	model.run = func(ctx context.Context, in agent.ProfileInput) (agent.ProfileResult, error) {
-		if in.Purpose != "enrich" || in.DisplayName != "公开姓名" || in.PublicName != "公开姓名" || in.Company != "公开公司" || in.Role != "" || len(in.Messages) != 0 || len(in.ConfirmedFacts) != 0 || len(in.Sources) != 1 {
+		if in.Purpose != "enrich" || in.DisplayName != "公开姓名" || in.PublicName != "公开姓名" || in.Company != "公开公司" || in.Role != "" || in.Platform != "" || in.PeerID != "" || in.ManualNotes != "" || in.PreviousSummary != "" || len(in.Messages) != 0 || len(in.ConfirmedFacts) != 0 || len(in.Sources) != 1 {
 			t.Error("private profile data reached enrichment model")
 		}
 		return apiProfileResult(in), nil

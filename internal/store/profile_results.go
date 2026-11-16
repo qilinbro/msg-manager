@@ -165,7 +165,16 @@ func (s *Store) CompleteProfileJob(ctx context.Context, claim ProfileJob, result
 	if j.Kind == "organize" {
 		tags, _ := json.Marshal(result.Tags)
 		evidence, _ := json.Marshal(result.EvidenceIDs)
-		_, err = tx.ExecContext(ctx, `UPDATE contact_profiles SET ai_category=?,tags_json=?,summary=?,evidence_json=?,processed_seq=MAX(processed_seq,?),document_truncated=MAX(document_truncated,?),updated_at=? WHERE workspace_id=? AND conversation_id=? AND revision=?`, result.Category, string(tags), result.Summary, string(evidence), j.MaxSeq, input.Truncated, now, workspaceID, p.ConversationID, p.Revision)
+		// Only the exact input snapshot can advance the local cursor. Provider
+		// output and callers cannot claim unprocessed history was examined.
+		processedThrough := input.ProcessedThroughSeq
+		if processedThrough < 0 || processedThrough > j.MaxSeq || !j.Manual && processedThrough != 0 && processedThrough <= p.ProcessedSeq {
+			return ErrInvalidInput
+		}
+		// Pending automatic batches are tracked by processed_seq, not permanent
+		// truncation. A manually selected recent window is still incomplete.
+		windowTruncated := input.Truncated && j.Manual
+		_, err = tx.ExecContext(ctx, `UPDATE contact_profiles SET ai_category=?,tags_json=?,summary=?,evidence_json=?,processed_seq=MAX(processed_seq,?),document_truncated=MAX(document_truncated,?),updated_at=? WHERE workspace_id=? AND conversation_id=? AND revision=?`, result.Category, string(tags), result.Summary, string(evidence), processedThrough, windowTruncated, now, workspaceID, p.ConversationID, p.Revision)
 	} else {
 		_, err = tx.ExecContext(ctx, `UPDATE contact_profiles SET document_truncated=MAX(document_truncated,?),updated_at=? WHERE workspace_id=? AND conversation_id=? AND revision=?`, publicSummaryTruncated, now, workspaceID, p.ConversationID, p.Revision)
 	}

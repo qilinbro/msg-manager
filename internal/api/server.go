@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -19,16 +20,18 @@ import (
 )
 
 type handler struct {
-	tokenHash [32]byte
-	port      string
-	sequence  atomic.Uint64
-	qq        *qqConnection
-	milky     *milkyConnection
-	inbox     *store.Store
-	email     *emailConnection
-	ai        *aiConnection
-	wechat    *wechatConnection
-	profiles  *profileWorker
+	tokenHash   [32]byte
+	port        string
+	sequence    atomic.Uint64
+	qq          *qqConnection
+	milky       *milkyConnection
+	inbox       *store.Store
+	email       *emailConnection
+	ai          *aiConnection
+	wechat      *wechatConnection
+	profiles    *profileWorker
+	aiMu        sync.RWMutex
+	modelConfig store.ModelConfig
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -64,6 +67,11 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		}
 	}
 	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h.modelConfig = store.ModelConfig{BaseURL: cfg.AI.BaseURL, Model: cfg.AI.Model, APIKey: cfg.AI.APIKey, DailyLimit: ai.dailyLimit}
+	if err := h.restoreModelConfig(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted model configuration could not be restored")
+	}
 	var search publicinfo.Provider
 	if cfg.PublicSearch.APIKey != "" {
 		search, err = publicinfo.NewClient(cfg.PublicSearch)
@@ -122,7 +130,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// to GET, and every actual request must authenticate.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -144,7 +152,17 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusForbidden, "SCOPE_DENIED", "请求不属于当前工作区。", traceID)
 			return
 		}
+		if r.URL.Path == modelConfigPath {
+			h.serveModelConfig(w, r, traceID)
+			return
+		}
+		h.aiMu.RLock()
+		defer h.aiMu.RUnlock()
 		if r.Method != http.MethodGet {
+			if profileLinksMutation(r.Method, r.URL.Path) {
+				h.serveProfileLinks(w, r, traceID)
+				return
+			}
 			if profileMutation(r.Method, r.URL.Path) {
 				h.serveProfile(w, r, traceID)
 				return
@@ -231,6 +249,10 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 	case "/api/v1/messages", "/api/v1/contacts", "/api/v1/drafts", "/api/v1/approvals", "/api/v1/jobs", "/api/v1/audit", "/api/v1/reports":
 		writeJSON(w, http.StatusOK, ListResponse[any]{Items: []any{}})
 	default:
+		if profileLinksRead(r.URL.Path) {
+			h.serveProfileLinks(w, r, traceID)
+			return
+		}
 		if profileRead(r.URL.Path) {
 			h.serveProfile(w, r, traceID)
 			return

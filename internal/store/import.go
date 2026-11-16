@@ -4,11 +4,22 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"sort"
 	"strings"
 )
 
 func (s *Store) Import(req ImportRequest) (ImportResult, error) {
 	return s.importBatch(req, "import")
+}
+
+// ImportWithProfileAnalysis atomically commits imported messages and the
+// explicitly approved, model-bound profile jobs. Closing the UI cannot lose
+// a partially submitted list of follow-up requests.
+func (s *Store) ImportWithProfileAnalysis(ctx context.Context, req ImportRequest, configID string) (ImportResult, error) {
+	if req.AIOrganize == nil || !req.AIOrganize.Confirmed || req.AIOrganize.ModelConfigID != configID || !validProfileConfig(configID) {
+		return ImportResult{}, ErrInvalidInput
+	}
+	return s.importBatchContext(ctx, req, "import", configID)
 }
 
 // ImportIMAP is used only by the server-configured read-only mailbox adapter.
@@ -67,13 +78,17 @@ func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, err
 	return s.importBatchContext(context.Background(), req, source)
 }
 
-func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, source string) (ImportResult, error) {
+func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, source string, approvedConfig ...string) (ImportResult, error) {
 	if ctx == nil {
 		return ImportResult{}, ErrInvalidInput
 	}
 	if err := ctx.Err(); err != nil {
 		return ImportResult{}, err
 	}
+	if len(approvedConfig) > 1 || len(approvedConfig) == 1 && !validProfileConfig(approvedConfig[0]) || req.AIOrganize != nil && len(approvedConfig) == 0 {
+		return ImportResult{}, ErrInvalidInput
+	}
+	req.AIOrganize = nil
 	req, err := normalizeImport(req)
 	if err != nil {
 		return ImportResult{}, err
@@ -149,6 +164,39 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 			return ImportResult{}, ErrUnavailable
 		}
 	}
+	if len(approvedConfig) == 1 {
+		configID := approvedConfig[0]
+		for id := range touched {
+			p, err := profileRow(ctx, tx, id)
+			if err != nil {
+				return ImportResult{}, err
+			}
+			if p.AIPaused || p.PublicSearchEnabled && p.ModelConfigID != configID {
+				return ImportResult{}, ErrStaleContext
+			}
+			if err := ensureProfile(ctx, tx, p); err != nil {
+				return ImportResult{}, err
+			}
+			if !p.AutoOrganize || p.ModelConfigID != configID {
+				if _, err := tx.ExecContext(ctx, `UPDATE contact_profiles SET auto_organize=1,model_config_id=?,revision=revision+1,processed_seq=0,updated_at=? WHERE workspace_id=? AND conversation_id=?`, configID, profileNow(), workspaceID, id); err != nil {
+					return ImportResult{}, ErrUnavailable
+				}
+				if err := cancelProfileJobs(ctx, tx, id, "", "IMPORT_AUTHORIZATION_CHANGED"); err != nil {
+					return ImportResult{}, err
+				}
+				p, err = profileRow(ctx, tx, id)
+				if err != nil {
+					return ImportResult{}, err
+				}
+			}
+			if p.ProcessedSeq < p.MaxSeq {
+				if _, err := enqueueProfile(ctx, tx, p, "organize", configID, false); err != nil {
+					return ImportResult{}, err
+				}
+				result.AIQueued++
+			}
+		}
+	}
 	if err := ctx.Err(); err != nil {
 		return ImportResult{}, err
 	}
@@ -156,6 +204,11 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 		return ImportResult{}, ErrUnavailable
 	}
 	result.Conversations = len(touched)
+	result.ConversationIDs = make([]string, 0, len(touched))
+	for id := range touched {
+		result.ConversationIDs = append(result.ConversationIDs, id)
+	}
+	sort.Strings(result.ConversationIDs)
 	return result, nil
 }
 

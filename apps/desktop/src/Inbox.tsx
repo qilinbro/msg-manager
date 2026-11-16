@@ -26,8 +26,12 @@ import WechatPanel from './WechatPanel';
 import AIPanel from './AIPanel';
 import type { AIDraftBuffer } from './ai-api';
 import ProfilePanel from './ProfilePanel';
-import { CATEGORY_NAMES, PROFILE_CATEGORIES } from './profile-api';
-import type { ProfileCategory } from './profile-api';
+import {
+  CATEGORY_NAMES,
+  PROFILE_CATEGORIES,
+  getProfileStatus,
+} from './profile-api';
+import type { ProfileCategory, ProfileStatus } from './profile-api';
 
 type View = 'all' | 'unread' | 'pinned' | 'archived';
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
@@ -173,9 +177,32 @@ function ImportPanel({
     'editing' | 'reading' | 'importing' | 'done'
   >('editing');
   const [result, setResult] = useState<ImportResult | null>(null);
+  const [analyzeImported, setAnalyzeImported] = useState(false);
+  const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
+  const [modelStatus, setModelStatus] = useState<ProfileStatus | null>(null);
+  const [modelError, setModelError] = useState<string | null>(null);
+  const [modelRefresh, setModelRefresh] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const pending = useRef<AbortController | null>(null);
   const readVersion = useRef(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setModelStatus(null);
+    setModelError(null);
+    setAnalyzeImported(false);
+    void getProfileStatus(token, controller.signal).then(
+      (value) => {
+        if (!controller.signal.aborted) setModelStatus(value);
+      },
+      (failure: unknown) => {
+        if (controller.signal.aborted) return;
+        if (failure instanceof ServiceError && failure.status === 401)
+          onAuthFailure();
+        else setModelError('无法确认模型配置；你仍可取消AI整理后仅导入记录。');
+      },
+    );
+    return () => controller.abort();
+  }, [token, modelRefresh, onAuthFailure]);
   useEffect(
     () => () => {
       readVersion.current++;
@@ -188,8 +215,11 @@ function ImportPanel({
     setPreview(null);
     setError(null);
     setResult(null);
+    setAnalysisNotice(null);
+    setAnalyzeImported(false);
     setState('editing');
   };
+
   const prepare = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!file) {
@@ -278,11 +308,37 @@ function ImportPanel({
     setError(null);
     setState('importing');
     try {
+      if (
+        analyzeImported &&
+        (!modelStatus?.model_configured || !modelStatus.model_config_id)
+      ) {
+        throw new Error('请先配置并检查模型，或取消AI整理后仅导入记录。');
+      }
+      const consent =
+        analyzeImported && modelStatus?.model_config_id
+          ? {
+              ai_organize: {
+                confirmed: true as const,
+                model_config_id: modelStatus.model_config_id,
+              },
+            }
+          : {};
       const response =
         preview.mode === 'standard'
-          ? await importMessages(token, controller.signal, preview.request)
-          : await importTelegram(token, controller.signal, preview.request);
+          ? await importMessages(token, controller.signal, {
+              ...preview.request,
+              ...consent,
+            })
+          : await importTelegram(token, controller.signal, {
+              ...preview.request,
+              ...consent,
+            });
       if (controller.signal.aborted) return;
+      if (analyzeImported) {
+        setAnalysisNotice(
+          `已保存本次导入及 ${response.ai_queued ?? 0} 个会话的后台分析任务。后台会分批读取完整历史，结果可在联系人档案查看；额度用尽会等待次日继续。`,
+        );
+      }
       setResult(response);
       setPreview(null);
       setFile(null);
@@ -427,7 +483,7 @@ function ImportPanel({
             </pre>
             <p>
               direction 仅支持 incoming /
-              outgoing；时间必须包含时区。相同平台、账号、消息标识用于检查重复，文件不会交给模型。
+              outgoing；时间必须包含时区。相同平台、账号、消息标识用于检查重复。原始文件只在本机解析，只有明确勾选AI整理才提交会话内容。
             </p>
           </details>
         ) : (
@@ -477,6 +533,36 @@ function ImportPanel({
               <dd>本地导入，不开启实时连接</dd>
             </div>
           </dl>
+          <p className="inbox-form-note">
+            分析模型：
+            {modelStatus?.model_configured
+              ? `${modelStatus.provider ?? '兼容接口'} · ${modelStatus.model ?? ''} · ${modelStatus.endpoint_host ?? ''}`
+              : '尚未配置或未确认'}
+            。
+            <button
+              className="email-text-button"
+              type="button"
+              disabled={locked}
+              onClick={() => setModelRefresh((value) => value + 1)}
+            >
+              检查模型状态
+            </button>
+          </p>
+          {modelError ? (
+            <p className="inbox-inline-error">{modelError}</p>
+          ) : null}
+          <label className="inbox-consent-row">
+            <input
+              type="checkbox"
+              checked={analyzeImported}
+              disabled={locked || !modelStatus?.model_configured}
+              onChange={(event) => setAnalyzeImported(event.target.checked)}
+            />
+            <span>
+              允许上述模型分批读取本次会话的昵称、平台账号ID、聊天文本和已保存档案，分析完整历史并继续整理这些会话的新记录。
+              分类、摘要和事实候选写入对应联系人档案，新事实仍需核实；可在档案中暂停。
+            </span>
+          </label>
           <div className="inbox-inline-actions">
             <button
               className="button button-primary"
@@ -515,6 +601,9 @@ function ImportPanel({
               ? `跳过 ${result.skipped} 条附件或不支持记录。`
               : ''}
           </p>
+        ) : null}
+        {analysisNotice ? (
+          <p className="inbox-feedback is-success">{analysisNotice}</p>
         ) : null}
       </div>
     </section>

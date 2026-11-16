@@ -1140,7 +1140,7 @@
     },
     "/api/v1/imports/messages": {
       "post": {
-        "description": "用户主动导入本机文件，8MiB/1000条上限，原子去重；同ID不同内容整批回滚。",
+        "description": "用户主动导入本机文件，8MiB/1000条上限，原子去重；同ID不同内容整批回滚。 可选ai_organize明确确认当前模型：同一事务导入并建立会话分批作业；未授权仅本地保存。完整历史逐批处理，受每日额度约束，可暂停和恢复。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -1228,7 +1228,7 @@
     },
     "/api/v1/imports/telegram": {
       "post": {
-        "description": "用户主动导入本机文件，8MiB/1000条上限，原子去重；同ID不同内容整批回滚。",
+        "description": "用户主动导入本机文件，8MiB/1000条上限，原子去重；同ID不同内容整批回滚。 可选ai_organize明确确认当前模型：同一事务导入并建立会话分批作业；未授权仅本地保存。完整历史逐批处理，受每日额度约束，可暂停和恢复。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -3787,6 +3787,409 @@
           }
         }
       }
+    },
+    "/api/v1/ai/model-config": {
+      "get": {
+        "operationId": "getModelConfig",
+        "summary": "读取模型设置，不回显密钥",
+        "responses": {
+          "200": {
+            "description": "操作成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelConfig"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "saveModelConfig",
+        "summary": "加密保存并应用模型配置",
+        "description": "需当前版本及明确确认；新目标使旧模型授权指纹失效。保存不调用外部模型。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelConfigSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelConfig"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/profile-links": {
+      "get": {
+        "operationId": "getProfileLinks",
+        "summary": "读取关联建议、已确认关联及联合档案",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "操作成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileLinks"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "confirmProfileLink",
+        "summary": "明确确认两份聊天档案属于同一人",
+        "description": "原聊天和证据不迁移，AI权限不扩展，不因同名自动确认。",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileLinkConfirmation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "操作成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileLinks"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/profile-links/{target_conversation_id}": {
+      "delete": {
+        "operationId": "removeProfileLink",
+        "summary": "解除档案关联，保留原聊天",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "target_conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 128
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "操作成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileLinks"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "PROFILE_INVALID_INPUT / 请求格式不正确",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-implementation-status": "implemented"
+      }
     }
   },
   "components": {
@@ -4451,6 +4854,9 @@
             },
             "minItems": 1,
             "maxItems": 1000
+          },
+          "ai_organize": {
+            "$ref": "#/components/schemas/ImportAIConsent"
           }
         }
       },
@@ -4475,6 +4881,9 @@
           "export": {
             "type": "object",
             "description": "Telegram Desktop导出的单个personal_chat JSON对象；不支持全账号/群聊导出"
+          },
+          "ai_organize": {
+            "$ref": "#/components/schemas/ImportAIConsent"
           }
         }
       },
@@ -4496,6 +4905,18 @@
             "minimum": 0
           },
           "conversations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversation_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxItems": 1000
+          },
+          "ai_queued": {
             "type": "integer",
             "minimum": 0
           }
@@ -4524,6 +4945,18 @@
             "minimum": 0
           },
           "skipped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversation_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxItems": 1000
+          },
+          "ai_queued": {
             "type": "integer",
             "minimum": 0
           }
@@ -5712,7 +6145,10 @@
           "jobs",
           "updated_at",
           "document_markdown",
-          "truncated"
+          "truncated",
+          "peer_id",
+          "analysis_total",
+          "analysis_processed"
         ],
         "properties": {
           "conversation_id": {
@@ -5863,6 +6299,18 @@
           },
           "truncated": {
             "type": "boolean"
+          },
+          "peer_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "analysis_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "analysis_processed": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       },
@@ -6087,8 +6535,7 @@
           },
           "receiving_enabled": {
             "type": "boolean",
-            "const": false,
-            "description": "一次身份核验不启用持续接收"
+            "description": "只有账号重新核验成功并恢复已保存授权后才为true，发送始终关闭。"
           },
           "sending_enabled": {
             "type": "boolean",
@@ -6115,7 +6562,8 @@
             "type": "string",
             "enum": [
               "disabled",
-              "running"
+              "running",
+              "pending_verification"
             ]
           },
           "peer_ids": {
@@ -6305,6 +6753,207 @@
             "type": "boolean",
             "const": false,
             "description": "平台发送保持关闭"
+          }
+        }
+      },
+      "ImportAIConsent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "confirmed",
+          "model_config_id"
+        ],
+        "properties": {
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          },
+          "model_config_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64
+          }
+        }
+      },
+      "ModelConfig": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "base_url",
+          "model",
+          "daily_limit",
+          "key_configured",
+          "revision",
+          "configured",
+          "model_config_id",
+          "sending_enabled"
+        ],
+        "properties": {
+          "base_url": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "key_configured": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "model_config_id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "ModelConfigSave": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "base_url",
+          "model",
+          "daily_limit",
+          "api_key",
+          "confirmed"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "base_url": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "api_key": {
+            "type": "string",
+            "maxLength": 4096,
+            "writeOnly": true,
+            "description": "仅提交到本机后台并加密保存；空值保留旧密钥，换地址必须重填。"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "ProfileLinkIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "conversation_id",
+          "display_name",
+          "platform",
+          "peer_id",
+          "reason"
+        ],
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "display_name": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "platform": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "peer_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "same_public_name",
+              "same_nickname",
+              "same_platform_id"
+            ]
+          }
+        }
+      },
+      "ProfileLinks": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "conversation_id",
+          "candidates",
+          "linked",
+          "document_markdown",
+          "truncated"
+        ],
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileLinkIdentity"
+            },
+            "maxItems": 20
+          },
+          "linked": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProfileLinkIdentity"
+            },
+            "maxItems": 20
+          },
+          "document_markdown": {
+            "type": "string",
+            "maxLength": 180000
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProfileLinkConfirmation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "target_conversation_id",
+          "confirmed"
+        ],
+        "properties": {
+          "target_conversation_id": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
           }
         }
       }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/qilinbro/msg-manager/internal/agent"
 	"github.com/qilinbro/msg-manager/internal/publicinfo"
@@ -42,7 +43,7 @@ func (h *handler) StartBackground(ctx context.Context) error {
 	if ctx == nil {
 		return store.ErrInvalidInput
 	}
-	if h.profiles == nil || h.inbox == nil || h.profileModel() == nil {
+	if h.profiles == nil || h.inbox == nil {
 		return nil
 	}
 	p := h.profiles
@@ -142,7 +143,18 @@ func waitProfile(ctx context.Context) bool {
 
 func (p *profileWorker) run(ctx context.Context) {
 	for ctx.Err() == nil {
+		// One read lock covers scheduling, IO and persistence. Configuration
+		// changes wait for this snapshot; perform must not take a nested lock.
+		p.h.aiMu.RLock()
+		if p.h.profileModel() == nil {
+			p.h.aiMu.RUnlock()
+			if !waitProfile(ctx) {
+				return
+			}
+			continue
+		}
 		if err := lockProfileControl(ctx, &p.control); err != nil {
+			p.h.aiMu.RUnlock()
 			return
 		}
 		_, err := p.h.inbox.ScheduleProfileJobs(ctx, p.h.ai.configID)
@@ -152,6 +164,7 @@ func (p *profileWorker) run(ctx context.Context) {
 		}
 		if err != nil || job == nil {
 			p.control.Unlock()
+			p.h.aiMu.RUnlock()
 			if !waitProfile(ctx) {
 				return
 			}
@@ -178,6 +191,7 @@ func (p *profileWorker) run(ctx context.Context) {
 		p.activeID, p.activeStop, p.activeDone = "", nil, nil
 		close(done)
 		p.activeMu.Unlock()
+		p.h.aiMu.RUnlock()
 		if !waitProfile(ctx) {
 			return
 		}
@@ -259,8 +273,27 @@ func (p *profileWorker) perform(ctx context.Context, job store.ProfileJob) error
 			return p.h.inbox.CompleteProfileJob(ctx, job, store.ProfileJobResult{Tags: []string{}, EvidenceIDs: []string{}, SourceIDs: []string{}, Facts: []store.ProfileFactInput{}, Sources: sources})
 		}
 	} else {
+		modelInput.Platform = input.Profile.Platform
+		modelInput.PeerID = input.Profile.PeerID
+		modelInput.ManualNotes = input.Profile.ManualNotes
+		modelInput.PreviousSummary = input.Profile.Summary
 		for _, message := range input.Messages {
 			modelInput.Messages = append(modelInput.Messages, agent.Evidence{ID: message.ID, Body: message.Body, Direction: message.Direction, OccurredAt: message.OccurredAt})
+		}
+		// Preserve whole messages and evidence. Optional background notes yield
+		// to the serialized request budget; stored notes remain unchanged.
+		for {
+			encoded, encodeErr := json.Marshal(modelInput)
+			if encodeErr != nil || len(encoded) <= agent.MaxInputBytes {
+				break
+			}
+			if modelInput.ManualNotes != "" {
+				modelInput.ManualNotes = trimProfileRune(modelInput.ManualNotes)
+			} else if modelInput.PreviousSummary != "" {
+				modelInput.PreviousSummary = trimProfileRune(modelInput.PreviousSummary)
+			} else {
+				break
+			}
 		}
 	}
 	if err := p.h.inbox.CheckProfileLease(ctx, job); err != nil {
@@ -292,7 +325,18 @@ func (p *profileWorker) perform(ctx context.Context, job store.ProfileJob) error
 	return p.h.inbox.CompleteProfileJob(ctx, job, output)
 }
 
+func trimProfileRune(value string) string {
+	_, size := utf8.DecodeLastRuneInString(value)
+	if size == 0 {
+		return ""
+	}
+	return value[:len(value)-size]
+}
+
 func profileFailure(err error) (string, bool) {
+	if errors.Is(err, store.ErrProfileInputTooLarge) {
+		return "PROFILE_INPUT_TOO_LARGE", false
+	}
 	if errors.Is(err, context.Canceled) {
 		return "PROFILE_CANCELLED", true
 	}

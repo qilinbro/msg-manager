@@ -49,6 +49,9 @@ func profileRow(ctx context.Context, tx *sql.Tx, id string) (profileRecord, erro
 		return profileRecord{}, err
 	}
 	p := profileRecord{Profile: Profile{ConversationID: id, ContactID: c.ContactID, DisplayName: c.Title, Platform: c.Platform, Category: "unclassified", AICategory: "unclassified", Tags: []string{}, EvidenceIDs: []string{}, Facts: []ProfileFact{}, Sources: []ProfileSource{}, Jobs: []ProfileJob{}}, connectionID: c.ConnectionID}
+	if tx.QueryRowContext(ctx, `SELECT peer_id FROM conversations WHERE workspace_id=? AND connection_id=? AND contact_id=? AND id=?`, workspaceID, c.ConnectionID, c.ContactID, id).Scan(&p.PeerID) != nil {
+		return profileRecord{}, ErrUnavailable
+	}
 	var tags, evidence string
 	var auto, search, truncated int
 	var updated string
@@ -65,7 +68,7 @@ func profileRow(ctx context.Context, tx *sql.Tx, id string) (profileRecord, erro
 		p.documentTruncated = truncated == 1
 		p.UpdatedAt = &updated
 	}
-	if tx.QueryRowContext(ctx, `SELECT coalesce(max(seq),0) FROM messages WHERE workspace_id=? AND conversation_id=?`, workspaceID, id).Scan(&p.MaxSeq) != nil {
+	if tx.QueryRowContext(ctx, `SELECT coalesce(max(seq),0),count(*),coalesce(sum(CASE WHEN seq<=? THEN 1 ELSE 0 END),0) FROM messages WHERE workspace_id=? AND conversation_id=?`, p.ProcessedSeq, workspaceID, id).Scan(&p.MaxSeq, &p.AnalysisTotal, &p.AnalysisProcessed) != nil {
 		return profileRecord{}, ErrUnavailable
 	}
 	settings, _, err := aiSettings(tx, id)

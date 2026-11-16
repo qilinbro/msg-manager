@@ -81,6 +81,8 @@ export interface Profile extends ProfileSettings {
   revision: number;
   processed_seq: number;
   max_seq: number;
+  analysis_total?: number;
+  analysis_processed?: number;
   category: ProfileCategory;
   ai_category: ProfileCategory;
   tags: string[];
@@ -200,6 +202,8 @@ const validProfile = (value: unknown): value is Profile =>
   typeof value.ai_paused === 'boolean';
 
 const ERRORS: Record<string, string> = {
+  PROFILE_INPUT_TOO_LARGE:
+    '存在超过单批处理预算的消息，任务已停在该条记录；请拆分记录后重试，后续消息尚未标记为已分析。',
   AI_NOT_CONFIGURED: '模型尚未配置，请在本机后台配置后重启服务。',
   AI_PROFILE_NOT_CONFIGURED: '模型尚未配置，请在本机后台配置后重启服务。',
   AI_PAUSED: '该联系人的 AI 已暂停，请在 AI 管理中恢复后再整理或检索。',

@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/qilinbro/msg-manager/internal/importer"
@@ -17,6 +19,15 @@ import (
 )
 
 const maxImportBytes = 8 << 20
+
+func (h *handler) importWithAnalysis(r *http.Request, input store.ImportRequest) (store.ImportResult, error) {
+	if input.AIOrganize == nil {
+		return h.inbox.Import(input)
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	return h.inbox.ImportWithProfileAnalysis(ctx, input, h.ai.configID)
+}
 
 func conversationRoute(path string) (string, bool, bool) {
 	parts := strings.Split(path, "/")
@@ -130,7 +141,10 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 		if !readInboxJSON(w, r, &input, traceID) {
 			return
 		}
-		result, err := h.inbox.Import(input)
+		if input.AIOrganize != nil && !h.requireProfileConsent(w, input.AIOrganize.Confirmed, input.AIOrganize.ModelConfigID, traceID) {
+			return
+		}
+		result, err := h.importWithAnalysis(r, input)
 		if err != nil {
 			writeInboxError(w, err, traceID)
 			return
@@ -140,11 +154,15 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 	}
 	if r.Method == http.MethodPost && r.URL.Path == "/api/v1/imports/telegram" {
 		var input struct {
-			AccountID   string          `json:"account_id"`
-			AccountName string          `json:"account_name"`
-			Export      json.RawMessage `json:"export"`
+			AccountID   string                 `json:"account_id"`
+			AccountName string                 `json:"account_name"`
+			Export      json.RawMessage        `json:"export"`
+			AIOrganize  *store.ImportAIConsent `json:"ai_organize,omitempty"`
 		}
 		if !readInboxJSON(w, r, &input, traceID) {
+			return
+		}
+		if input.AIOrganize != nil && !h.requireProfileConsent(w, input.AIOrganize.Confirmed, input.AIOrganize.ModelConfigID, traceID) {
 			return
 		}
 		converted, err := importer.TelegramPrivate(input.Export, input.AccountID)
@@ -157,6 +175,7 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 			return
 		}
 		batch := store.ImportRequest{Platform: "telegram", AccountID: input.AccountID, AccountName: input.AccountName, Messages: make([]store.ImportMessage, 0, len(converted.Messages))}
+		batch.AIOrganize = input.AIOrganize
 		for _, message := range converted.Messages {
 			batch.Messages = append(batch.Messages, store.ImportMessage{ExternalID: message.ExternalID, PeerID: message.PeerID, PeerName: message.PeerName, Direction: message.Direction, Body: message.Body, OccurredAt: message.OccurredAt})
 		}
@@ -164,7 +183,7 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 			writeError(w, http.StatusBadRequest, "INVALID_REQUEST", "该导出文件没有可导入的好友私聊纯文本。", traceID)
 			return
 		}
-		result, err := h.inbox.Import(batch)
+		result, err := h.importWithAnalysis(r, batch)
 		if err != nil {
 			writeInboxError(w, err, traceID)
 			return
@@ -261,6 +280,10 @@ func parseInboxQuery(r *http.Request) (url.Values, error) {
 }
 
 func writeInboxError(w http.ResponseWriter, err error, traceID string) {
+	if errors.Is(err, store.ErrStaleContext) {
+		writeError(w, http.StatusConflict, "AI_IMPORT_NOT_AUTHORIZED", "本次会话的AI处理已暂停或授权需要重新确认；本次导入未保存。", traceID)
+		return
+	}
 	switch {
 	case errors.Is(err, store.ErrInvalidCursor):
 		writeError(w, http.StatusBadRequest, "INVALID_CURSOR", "消息记录已有变化，请刷新后继续查看。", traceID)

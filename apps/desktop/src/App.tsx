@@ -10,6 +10,7 @@ import {
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
+import { AIModelPanel } from './AIModelPanel';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
@@ -853,6 +854,7 @@ function Settings({
         onSystemUpdate={onSystemUpdate}
         onAuthFailure={onAuthFailure}
       />
+      <AIModelPanel token={activeToken} onAuthFailure={onAuthFailure} />
       <section className="settings-panel" aria-labelledby="automation-title">
         <div className="section-heading">
           <div>

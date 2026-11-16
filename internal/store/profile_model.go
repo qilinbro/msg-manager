@@ -7,6 +7,7 @@ type Profile struct {
 	ContactID           string          `json:"contact_id"`
 	DisplayName         string          `json:"display_name"`
 	Platform            string          `json:"platform"`
+	PeerID              string          `json:"peer_id"`
 	PublicName          string          `json:"public_name"`
 	Company             string          `json:"company"`
 	Role                string          `json:"role"`
@@ -19,6 +20,8 @@ type Profile struct {
 	Revision            int64           `json:"revision"`
 	ProcessedSeq        int64           `json:"processed_seq"`
 	MaxSeq              int64           `json:"max_seq"`
+	AnalysisTotal       int64           `json:"analysis_total"`
+	AnalysisProcessed   int64           `json:"analysis_processed"`
 	Category            string          `json:"category"`
 	AICategory          string          `json:"ai_category"`
 	Tags                []string        `json:"tags"`
@@ -79,6 +82,7 @@ type ProfileJob struct {
 	MaxSeq           int64   `json:"max_seq"`
 	LastErrorCode    *string `json:"last_error_code"`
 	UpdatedAt        string  `json:"updated_at"`
+	Manual           bool    `json:"-"`
 }
 
 type ProfileJobInput struct {
@@ -86,6 +90,8 @@ type ProfileJobInput struct {
 	Messages    []AIMessage `json:"messages"`
 	ContextHash string      `json:"context_hash"`
 	Truncated   bool        `json:"truncated"`
+	// ProcessedThroughSeq is local cursor metadata and never enters provider JSON.
+	ProcessedThroughSeq int64 `json:"-"`
 }
 
 type ProfileFactInput struct {
@@ -103,4 +109,6 @@ type ProfileJobResult struct {
 	SourceIDs   []string           `json:"source_ids"`
 	Facts       []ProfileFactInput `json:"facts"`
 	Sources     []ProfileSource    `json:"sources"`
+	// ProcessedThroughSeq is local cursor metadata and never enters provider JSON.
+	ProcessedThroughSeq int64 `json:"-"`
 }
