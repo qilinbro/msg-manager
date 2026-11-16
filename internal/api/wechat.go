@@ -203,7 +203,7 @@ func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID str
 		return
 	}
 	if r.URL.RawQuery != "" || input.PeerID == "" || len(input.PeerID) > 128 || strings.TrimSpace(input.PeerID) != input.PeerID || strings.ContainsAny(input.PeerID, "\x00\r\n/\\") {
-		writeError(w, 400, "INVALID_INPUT", "请选择本机已配置账号中的一个私聊。", traceID)
+		writeError(w, 400, "INVALID_INPUT", "请选择本机已配置账号中的一个私聊或群聊。", traceID)
 		return
 	}
 	if h.inbox == nil {
@@ -258,7 +258,7 @@ func (h *handler) readWechatPeer(ctx context.Context, peerID string) (WechatRead
 	}
 	req := store.ImportRequest{Platform: "weixin", AccountID: h.wechat.accountID, AccountName: h.wechat.accountID}
 	for _, item := range batch.Messages {
-		req.Messages = append(req.Messages, store.ImportMessage{ExternalID: item.ExternalID, PeerID: batch.PeerID, PeerName: mailLabel(batch.PeerName, 128), Direction: item.Direction, Body: item.Body, OccurredAt: item.OccurredAt})
+		req.Messages = append(req.Messages, store.ImportMessage{ExternalID: item.ExternalID, PeerID: batch.PeerID, PeerName: mailLabel(batch.PeerName, 128), ConversationKind: batch.Kind, Direction: item.Direction, Body: item.Body, OccurredAt: item.OccurredAt})
 	}
 	result := store.ImportResult{}
 	if len(req.Messages) > 0 {

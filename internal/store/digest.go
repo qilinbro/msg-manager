@@ -21,20 +21,22 @@ type DigestSchedule struct {
 }
 
 type DigestMessage struct {
-	ConversationID string
-	Title          string
-	Platform       string
-	Message        agent.Evidence
-	Unread         bool
+	ConversationID   string
+	Title            string
+	Platform         string
+	ConversationKind string
+	Message          agent.Evidence
+	Unread           bool
 }
 
 type DigestReminder struct {
-	ConversationID string   `json:"conversation_id"`
-	Title          string   `json:"title"`
-	Platform       string   `json:"platform"`
-	Priority       string   `json:"priority"`
-	Reason         string   `json:"reason"`
-	EvidenceIDs    []string `json:"evidence_ids"`
+	ConversationID   string   `json:"conversation_id"`
+	Title            string   `json:"title"`
+	Platform         string   `json:"platform"`
+	ConversationKind string   `json:"conversation_kind"`
+	Priority         string   `json:"priority"`
+	Reason           string   `json:"reason"`
+	EvidenceIDs      []string `json:"evidence_ids"`
 }
 
 type DigestReport struct {
@@ -158,7 +160,7 @@ func (s *Store) LoadDigestMessages(ctx context.Context, start, end string, limit
 		return nil, err
 	}
 	defer s.mu.Unlock()
-	rows, err := s.db.QueryContext(ctx, `SELECT m.conversation_id,v.title,c.platform,m.id,m.body,m.direction,m.occurred_at,m.is_read FROM messages m JOIN conversations v ON v.id=m.conversation_id AND v.workspace_id=m.workspace_id JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id WHERE m.workspace_id=? AND m.occurred_at>=? AND m.occurred_at<? ORDER BY m.occurred_at DESC,m.seq DESC LIMIT ?`, workspaceID, start, end, limit)
+	rows, err := s.db.QueryContext(ctx, `SELECT m.conversation_id,v.title,c.platform,v.conversation_kind,m.id,m.body,m.direction,m.occurred_at,m.is_read FROM messages m JOIN conversations v ON v.id=m.conversation_id AND v.workspace_id=m.workspace_id JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id WHERE m.workspace_id=? AND m.occurred_at>=? AND m.occurred_at<? ORDER BY m.occurred_at DESC,m.seq DESC LIMIT ?`, workspaceID, start, end, limit)
 	if err != nil {
 		return nil, ErrUnavailable
 	}
@@ -167,7 +169,7 @@ func (s *Store) LoadDigestMessages(ctx context.Context, start, end string, limit
 	for rows.Next() {
 		var item DigestMessage
 		var read int
-		if err := rows.Scan(&item.ConversationID, &item.Title, &item.Platform, &item.Message.ID, &item.Message.Body, &item.Message.Direction, &item.Message.OccurredAt, &read); err != nil {
+		if err := rows.Scan(&item.ConversationID, &item.Title, &item.Platform, &item.ConversationKind, &item.Message.ID, &item.Message.Body, &item.Message.Direction, &item.Message.OccurredAt, &read); err != nil {
 			return nil, ErrUnavailable
 		}
 		item.Unread = read == 0

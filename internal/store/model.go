@@ -10,19 +10,20 @@ type Connection struct {
 }
 
 type Conversation struct {
-	ID            string `json:"id"`
-	ConnectionID  string `json:"connection_id"`
-	Platform      string `json:"platform"`
-	AccountID     string `json:"account_id"`
-	AccountName   string `json:"account_name,omitempty"`
-	PeerID        string `json:"peer_id"`
-	Title         string `json:"title"`
-	LastMessage   string `json:"last_message"`
-	LastMessageAt string `json:"last_message_at"`
-	UnreadCount   int    `json:"unread_count"`
-	Pinned        bool   `json:"pinned"`
-	Archived      bool   `json:"archived"`
-	Category      string `json:"category"`
+	ID               string `json:"id"`
+	ConnectionID     string `json:"connection_id"`
+	Platform         string `json:"platform"`
+	AccountID        string `json:"account_id"`
+	AccountName      string `json:"account_name,omitempty"`
+	ConversationKind string `json:"conversation_kind"`
+	PeerID           string `json:"peer_id"`
+	Title            string `json:"title"`
+	LastMessage      string `json:"last_message"`
+	LastMessageAt    string `json:"last_message_at"`
+	UnreadCount      int    `json:"unread_count"`
+	Pinned           bool   `json:"pinned"`
+	Archived         bool   `json:"archived"`
+	Category         string `json:"category"`
 }
 
 type Message struct {
@@ -46,14 +47,15 @@ type EmailHeaders struct {
 }
 
 type ImportMessage struct {
-	ExternalID string        `json:"external_id"`
-	PeerID     string        `json:"peer_id"`
-	PeerName   string        `json:"peer_name"`
-	Direction  string        `json:"direction"`
-	Body       string        `json:"body"`
-	OccurredAt string        `json:"occurred_at"`
-	Read       *bool         `json:"read,omitempty"`
-	Email      *EmailHeaders `json:"email,omitempty"`
+	ExternalID       string        `json:"external_id"`
+	PeerID           string        `json:"peer_id"`
+	PeerName         string        `json:"peer_name"`
+	ConversationKind string        `json:"conversation_kind,omitempty"`
+	Direction        string        `json:"direction"`
+	Body             string        `json:"body"`
+	OccurredAt       string        `json:"occurred_at"`
+	Read             *bool         `json:"read,omitempty"`
+	Email            *EmailHeaders `json:"email,omitempty"`
 }
 
 type ImportRequest struct {

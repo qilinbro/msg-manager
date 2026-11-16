@@ -121,7 +121,7 @@ const saves = [];
 let softRefreshes = 0;
 const panel = hookHarness('WechatPanel.tsx', 'WechatPanel', {
   getWechatStatus: async (_token, requestSignal) => { calls.push({ action: 'status', signal: requestSignal }); return structuredClone(componentStatus); },
-  getWechatSessions: async () => { calls.push({ action: 'sessions' }); return [{ peer_id: 'wxid_synthetic_peer', name: '合成联系人' }]; },
+  getWechatSessions: async () => { calls.push({ action: 'sessions' }); return [{ peer_id: 'wxid_synthetic_peer', name: '合成联系人', conversation_kind: 'private' }]; },
   readWechatMessages: async () => { calls.push({ action: 'read' }); return structuredClone(readResult); },
   saveWechatMonitor: async (_token, _signal, settings) => { saves.push(structuredClone(settings)); componentStatus.monitor = { ...componentStatus.monitor, ...settings, state: settings.enabled ? 'waiting' : 'disabled' }; return structuredClone(componentStatus.monitor); },
   wechatMonitorError: () => 'synthetic error',
@@ -153,7 +153,7 @@ assert.equal(panel.intervals.size, 0);
 assert.equal(saves.length, 1, 'leaving the page must never mutate monitor settings');
 
 let inboxMessages = [{ id: 'message-1', conversation_id: 'conversation-1', external_id: 'synthetic-1', direction: 'incoming', body: 'synthetic initial message', occurred_at: '2026-01-01T00:00:00Z', read: false, source: 'wechatdb' }];
-const conversation = { id: 'conversation-1', connection_id: 'connection-1', platform: 'weixin', account_id: 'wxid_synthetic', peer_id: 'wxid_synthetic_peer', title: 'Synthetic contact', last_message: 'synthetic initial message', last_message_at: '2026-01-01T00:00:00Z', unread_count: 1, pinned: false, archived: false };
+const conversation = { id: 'conversation-1', connection_id: 'connection-1', platform: 'weixin', account_id: 'wxid_synthetic', peer_id: 'wxid_synthetic_peer', title: 'Synthetic contact', conversation_kind: 'private', last_message: 'synthetic initial message', last_message_at: '2026-01-01T00:00:00Z', unread_count: 1, pinned: false, archived: false };
 let historyReads = 0;
 const inbox = hookHarness('Inbox.tsx', 'Inbox', {
   ...profileCategoriesModule.exports,

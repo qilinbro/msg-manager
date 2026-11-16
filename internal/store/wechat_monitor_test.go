@@ -246,6 +246,14 @@ func TestWechatMonitorV4UpgradePreservesMessageAndAIGraph(t *testing.T) {
 	if _, err := legacy.db.Exec(`INSERT INTO schema_migrations VALUES(4,'2026-01-01T00:00:00Z')`); err != nil {
 		t.Fatal(err)
 	}
+	// ImportWeChat targets the current conversation projection. Add the
+	// additive kind column before seeding the legacy fixture so the test still
+	// exercises v4-to-current migration without bypassing the current importer.
+	if raw, err := migrations.Files.ReadFile("0011_wechat_group_conversations.sql"); err != nil {
+		t.Fatal(err)
+	} else if _, err := legacy.db.Exec(string(raw)); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := legacy.ImportWeChat(wechatBatch("wxid_self")); err != nil {
 		t.Fatal(err)
 	}
@@ -275,7 +283,7 @@ func TestWechatMonitorV4UpgradePreservesMessageAndAIGraph(t *testing.T) {
 		t.Fatal("monitor migration changed the existing message/AI graph")
 	}
 	var version, oldMigrations, sources int
-	if err := s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version); err != nil || version != 10 {
+	if err := s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version); err != nil || version != 11 {
 		t.Fatal("v5 migration was not recorded", version, err)
 	}
 	if err := s.db.QueryRow(`SELECT count(*) FROM schema_migrations WHERE version<=4 AND applied_at='2026-01-01T00:00:00Z'`).Scan(&oldMigrations); err != nil || oldMigrations != 4 {

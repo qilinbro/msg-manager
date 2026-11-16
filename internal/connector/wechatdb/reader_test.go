@@ -140,7 +140,7 @@ func TestEncryptedReadPrivateTextMultipleShardsAndIsolation(t *testing.T) {
 		t.Fatalf("probe mismatch: %+v, %v", info, err)
 	}
 	sessions, err := r.Sessions(context.Background())
-	if err != nil || !reflect.DeepEqual(sessions, []Session{{PeerID: fixturePeer, Name: "合成联系人"}}) {
+	if err != nil || !reflect.DeepEqual(sessions, []Session{{PeerID: fixturePeer, Name: "合成联系人", Kind: "private"}}) {
 		t.Fatalf("private sessions mismatch: %+v, %v", sessions, err)
 	}
 	batch, err := r.Read(context.Background(), fixturePeer)
@@ -167,6 +167,32 @@ func TestEncryptedReadPrivateTextMultipleShardsAndIsolation(t *testing.T) {
 		if _, err := r.Read(context.Background(), peer); !errors.Is(err, ErrInvalidConfig) {
 			t.Fatal("unsupported target accepted")
 		}
+	}
+}
+
+func TestGroupChatIdentityAndSenderNormalization(t *testing.T) {
+	for _, id := range []string{"@@room_123", "@@group-member_9"} {
+		if !groupID(id) || !chatID(id) || chatKind(id) != "group" {
+			t.Fatalf("valid group identity rejected: %q", id)
+		}
+	}
+	for _, id := range []string{"@room_123", "@@", "@@bad.id", "wxid_peer"} {
+		if groupID(id) {
+			t.Fatalf("invalid group identity accepted: %q", id)
+		}
+	}
+
+	r := &Reader{config: Config{AccountID: fixtureOwner}}
+	incoming, err := r.normalize(rawMessage{localID: 1, timestamp: 1700000000, kind: 1, sender: fixturePeer, content: []byte("群聊来信")}, "@@room_123")
+	if err != nil || incoming.Direction != "incoming" || incoming.Body != "群聊来信" {
+		t.Fatalf("group incoming message normalization failed: %+v, %v", incoming, err)
+	}
+	outgoing, err := r.normalize(rawMessage{localID: 2, timestamp: 1700000001, kind: 1, sender: fixtureOwner, content: []byte("群聊回复")}, "@@room_123")
+	if err != nil || outgoing.Direction != "outgoing" || outgoing.Body != "群聊回复" {
+		t.Fatalf("group outgoing message normalization failed: %+v, %v", outgoing, err)
+	}
+	if _, err := r.normalize(rawMessage{localID: 3, timestamp: 1700000002, kind: 1, sender: "room@chatroom", content: []byte("未知发送者")}, "@@room_123"); !errors.Is(err, ErrUnsupportedSchema) {
+		t.Fatalf("unknown group sender accepted: %v", err)
 	}
 }
 

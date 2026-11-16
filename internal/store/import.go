@@ -129,8 +129,12 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 		if _, err := tx.ExecContext(ctx, `INSERT INTO contacts(id,workspace_id,connection_id,peer_id,display_name) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING`, contactID, workspaceID, connectionID, m.PeerID, m.PeerName); err != nil {
 			return ImportResult{}, ErrUnavailable
 		}
-		if _, err := tx.ExecContext(ctx, `INSERT INTO conversations(id,workspace_id,connection_id,contact_id,peer_id,title) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`, conversationID, workspaceID, connectionID, contactID, m.PeerID, m.PeerName); err != nil {
+		if _, err := tx.ExecContext(ctx, `INSERT INTO conversations(id,workspace_id,connection_id,contact_id,peer_id,title,conversation_kind) VALUES (?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING`, conversationID, workspaceID, connectionID, contactID, m.PeerID, m.PeerName, m.ConversationKind); err != nil {
 			return ImportResult{}, ErrUnavailable
+		}
+		var existingKind string
+		if err := tx.QueryRowContext(ctx, `SELECT conversation_kind FROM conversations WHERE workspace_id=? AND id=?`, workspaceID, conversationID).Scan(&existingKind); err != nil || existingKind != m.ConversationKind {
+			return ImportResult{}, ErrConflict
 		}
 		var body, direction, occurredAt string
 		var existingEmail sql.NullString

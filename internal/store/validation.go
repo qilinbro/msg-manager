@@ -63,6 +63,12 @@ func normalizeImport(req ImportRequest) (ImportRequest, error) {
 	}
 	for i := range result.Messages {
 		m := &result.Messages[i]
+		if m.ConversationKind == "" {
+			m.ConversationKind = "private"
+		}
+		if m.ConversationKind != "private" && m.ConversationKind != "group" {
+			return ImportRequest{}, ErrInvalidInput
+		}
 		if !validLabel(m.ExternalID, true) || !validLabel(m.PeerID, true) || !validLabel(m.PeerName, false) || (m.Direction != "incoming" && m.Direction != "outgoing") || len(m.Body) < 1 || len(m.Body) > 16000 || !utf8.ValidString(m.Body) || strings.ContainsRune(m.Body, 0) {
 			return ImportRequest{}, ErrInvalidInput
 		}

@@ -279,7 +279,7 @@ export default function WechatPanel({
       setUncertain(false);
       setNotice(
         enabled
-          ? `已开启 ${value.peer_ids.length} 个私聊的后台读取。关闭页面后，后台服务仍按设置继续读取。`
+          ? `已开启 ${value.peer_ids.length} 个私聊或群聊的后台读取。关闭页面后，后台服务仍按设置继续读取。`
           : '后台读取已暂停，已保存的消息会继续保留。',
       );
     } catch (failure: unknown) {
@@ -477,7 +477,7 @@ export default function WechatPanel({
       {sessions?.length ? (
         <form className="wechat-read-form" onSubmit={readMessages}>
           <div className="wechat-chat-field">
-            <label htmlFor="wechat-peer">选择私聊</label>
+            <label htmlFor="wechat-peer">选择私聊或群聊</label>
             <select
               id="wechat-peer"
               value={peerID}
@@ -489,10 +489,12 @@ export default function WechatPanel({
               disabled={blocked}
               aria-describedby="wechat-read-help"
             >
-              <option value="">请选择一个私聊</option>
+              <option value="">请选择一个私聊或群聊</option>
               {sessions.map((item) => (
                 <option key={item.peer_id} value={item.peer_id}>
-                  {item.name} · {item.peer_id}
+                  {item.name} ·{' '}
+                  {item.conversation_kind === 'group' ? '群聊' : '私聊'} ·{' '}
+                  {item.peer_id}
                 </option>
               ))}
             </select>
@@ -521,7 +523,7 @@ export default function WechatPanel({
         </form>
       ) : sessions ? (
         <p className="email-panel-note" role="status">
-          当前数据库没有可读取的私聊。首版不读取群聊或媒体消息。
+          当前数据库没有可读取的私聊或群聊。媒体消息仍不读取。
         </p>
       ) : null}
       <section
@@ -546,8 +548,8 @@ export default function WechatPanel({
           <>
             <p className="email-panel-note">
               {monitor.enabled
-                ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊。`
-                : '先读取会话列表，选择私聊并点击“加入后台读取”，再开启。最多选择20个私聊。'}
+                ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊或群聊。`
+                : '先读取会话列表，选择私聊或群聊并点击“加入后台读取”，再开启。最多选择20个会话。'}
               关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。
             </p>
             {monitorPeers.length ? (

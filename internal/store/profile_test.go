@@ -397,7 +397,7 @@ func TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph(t *testing.T) {
 		t.Fatal("migration auto authorized AI")
 	}
 	var version int
-	if upgraded.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 10 {
+	if upgraded.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 11 {
 		t.Fatal("profile migration missing")
 	}
 }

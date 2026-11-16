@@ -23,6 +23,14 @@ func defaultWechatMonitorSettings() WechatMonitorSettings {
 // Match the connector's supported private account identifiers without coupling
 // encrypted message storage to a particular source database implementation.
 func validWechatMonitorID(id string) bool {
+	if len(id) >= 4 && len(id) <= 128 && strings.HasPrefix(id, "@@") {
+		for _, ch := range id[2:] {
+			if !(ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9' || ch == '_' || ch == '-') {
+				return false
+			}
+		}
+		return true
+	}
 	if len(id) < 2 || len(id) > 128 || !(id[0] >= 'A' && id[0] <= 'Z' || id[0] >= 'a' && id[0] <= 'z') || strings.HasPrefix(id, "gh_") {
 		return false
 	}

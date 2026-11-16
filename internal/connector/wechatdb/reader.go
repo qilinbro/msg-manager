@@ -33,7 +33,7 @@ var (
 	ErrUnavailable       = errors.New("local WeChat database unavailable")
 	ErrInvalidKey        = errors.New("local WeChat database key or encryption format is invalid")
 	ErrUnsupportedSchema = errors.New("unsupported local WeChat database schema")
-	ErrNotFound          = errors.New("local WeChat private conversation not found")
+	ErrNotFound          = errors.New("local WeChat conversation not found")
 	ErrChanged           = errors.New("local WeChat database changed; read again after activity stops")
 )
 
@@ -48,6 +48,7 @@ const (
 
 var (
 	usernamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]{1,127}$`)
+	groupPattern    = regexp.MustCompile(`^@@[A-Za-z0-9_-]{2,126}$`)
 	shardPattern    = regexp.MustCompile(`^message_([0-9]{1,5})\.db$`)
 	suffixPattern   = regexp.MustCompile(`^[A-Za-z0-9]{4}$`)
 )
@@ -72,6 +73,7 @@ type Info struct {
 type Session struct {
 	PeerID string `json:"peer_id"`
 	Name   string `json:"name"`
+	Kind   string `json:"conversation_kind"`
 }
 
 type Message struct {
@@ -85,6 +87,7 @@ type Batch struct {
 	Info     Info      `json:"info"`
 	PeerID   string    `json:"peer_id"`
 	PeerName string    `json:"peer_name"`
+	Kind     string    `json:"conversation_kind"`
 	Messages []Message `json:"messages"`
 	Skipped  int       `json:"skipped"`
 	Limited  bool      `json:"limited"`
@@ -118,6 +121,17 @@ func privateID(id string) bool {
 		return false
 	}
 	return true
+}
+
+func groupID(id string) bool { return groupPattern.MatchString(id) }
+
+func chatID(id string) bool { return privateID(id) || groupID(id) }
+
+func chatKind(id string) string {
+	if groupID(id) {
+		return "group"
+	}
+	return "private"
 }
 
 func NewReader(c Config) (*Reader, error) {
@@ -374,8 +388,8 @@ func (r *Reader) sessions(ctx context.Context) ([]Session, error) {
 		if rows.Scan(&id) != nil || !id.Valid {
 			return nil, ErrUnsupportedSchema
 		}
-		if privateID(id.String) && id.String != r.config.AccountID && !seen[id.String] {
-			result = append(result, Session{PeerID: id.String, Name: id.String})
+		if chatID(id.String) && id.String != r.config.AccountID && !seen[id.String] {
+			result = append(result, Session{PeerID: id.String, Name: id.String, Kind: chatKind(id.String)})
 		}
 		seen[id.String] = true
 	}
@@ -520,7 +534,7 @@ func (r *Reader) SessionsWithInfo(ctx context.Context) (Info, []Session, error) 
 }
 
 func (r *Reader) Read(ctx context.Context, peerID string) (Batch, error) {
-	if r == nil || !privateID(peerID) || peerID == r.config.AccountID {
+	if r == nil || !chatID(peerID) || peerID == r.config.AccountID {
 		return Batch{}, ErrInvalidConfig
 	}
 	op, err := r.begin()
@@ -579,7 +593,7 @@ func (r *Reader) Read(ctx context.Context, peerID string) (Batch, error) {
 		}
 	}
 	sort.Slice(raw, func(i, j int) bool { return newer(raw[i], raw[j]) })
-	batch := Batch{Info: Info{AccountID: r.config.AccountID, ReadOnly: true, SessionCount: len(sessions)}, PeerID: peerID, PeerName: peerName, Messages: []Message{}, Limited: sourceLimited}
+	batch := Batch{Info: Info{AccountID: r.config.AccountID, ReadOnly: true, SessionCount: len(sessions)}, PeerID: peerID, PeerName: peerName, Kind: chatKind(peerID), Messages: []Message{}, Limited: sourceLimited}
 	if len(raw) > r.config.Limit {
 		batch.Limited = true
 		raw = raw[:r.config.Limit]
@@ -610,7 +624,10 @@ func (r *Reader) normalize(msg rawMessage, peerID string) (Message, error) {
 	if msg.kind != 1 {
 		return m, nil
 	}
-	if msg.sender != peerID && msg.sender != r.config.AccountID {
+	if chatKind(peerID) == "private" && msg.sender != peerID && msg.sender != r.config.AccountID {
+		return Message{}, ErrUnsupportedSchema
+	}
+	if chatKind(peerID) == "group" && msg.sender != r.config.AccountID && !privateID(msg.sender) {
 		return Message{}, ErrUnsupportedSchema
 	}
 	body, err := messageText(msg.content, msg.compressed)

@@ -182,7 +182,7 @@ func (h *handler) generateDigest(ctx context.Context, force bool) (*store.Digest
 			priority = "high"
 		}
 		if len(result.Output.RiskFlags) > 0 || len(messages) > 5 {
-			report.Reminders = append(report.Reminders, store.DigestReminder{ConversationID: conversationID, Title: messages[0].Title, Platform: messages[0].Platform, Priority: priority, Reason: result.Output.Summary, EvidenceIDs: result.Output.EvidenceIDs})
+			report.Reminders = append(report.Reminders, store.DigestReminder{ConversationID: conversationID, Title: messages[0].Title, Platform: messages[0].Platform, ConversationKind: messages[0].ConversationKind, Priority: priority, Reason: result.Output.Summary, EvidenceIDs: result.Output.EvidenceIDs})
 		}
 		report.EvidenceIDs = append(report.EvidenceIDs, digestEvidence(messages)...)
 		report.ConversationCount++

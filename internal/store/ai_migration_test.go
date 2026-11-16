@@ -80,7 +80,7 @@ func TestAIUpgradeFromV2AndPersistedAnalysisMemoryPreferencesQuota(t *testing.T)
 		t.Fatal("v2 local management state lost")
 	}
 	var schemaVersion int
-	if s.db.QueryRow(`SELECT max(version)FROM schema_migrations`).Scan(&schemaVersion) != nil || schemaVersion != 10 {
+	if s.db.QueryRow(`SELECT max(version)FROM schema_migrations`).Scan(&schemaVersion) != nil || schemaVersion != 11 {
 		t.Fatal("current schema not recorded")
 	}
 	rows, err := s.db.Query(`PRAGMA foreign_key_check`)

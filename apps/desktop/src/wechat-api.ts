@@ -52,6 +52,7 @@ export interface WechatMonitorStatus extends WechatMonitorSettings {
 export interface WechatSession {
   peer_id: string;
   name: string;
+  conversation_kind: 'private' | 'group';
 }
 
 const STATES: WechatState[] = [
@@ -115,7 +116,10 @@ const isResult = (value: unknown): value is WechatReadResult =>
   validDate(value.read_at);
 
 const validPeer = (value: unknown): value is string =>
-  validLabel(value, 128) && !/[\\/@]/.test(value);
+  validLabel(value, 128) &&
+  (value.startsWith('@@')
+    ? /^@@[A-Za-z0-9_-]{2,126}$/.test(value)
+    : !/[\\/@]/.test(value));
 const validMonitorSettings = (value: unknown): value is WechatMonitorSettings =>
   isRecord(value) &&
   typeof value.enabled === 'boolean' &&
@@ -281,7 +285,9 @@ export async function getWechatSessions(
         isRecord(item) &&
         validLabel(item.peer_id, 128) &&
         typeof item.name === 'string' &&
-        Array.from(item.name).length <= 512,
+        Array.from(item.name).length <= 512 &&
+        (item.conversation_kind === 'private' ||
+          item.conversation_kind === 'group'),
     ) ||
     new Set(value.items.map((item) => item.peer_id)).size !== value.items.length
   )
@@ -291,6 +297,7 @@ export async function getWechatSessions(
     );
   return (value.items as WechatSession[]).map((item) => ({
     peer_id: item.peer_id,
+    conversation_kind: item.conversation_kind,
     name:
       item.name.replace(/[\u0000-\u001f\u007f]/g, ' ').trim() || item.peer_id,
   }));
@@ -302,7 +309,10 @@ export async function readWechatMessages(
   peerID: string,
 ): Promise<WechatReadResult> {
   if (!validLabel(peerID, 128))
-    throw new ServiceError('请先选择一个有效的微信私聊。', 'INVALID_INPUT');
+    throw new ServiceError(
+      '请先选择一个有效的微信私聊或群聊。',
+      'INVALID_INPUT',
+    );
   const value = await request(token, signal, 'read', { peer_id: peerID });
   if (!isResult(value))
     throw new ServiceError(

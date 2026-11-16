@@ -93,7 +93,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
  (SELECT m.body FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message,
  (SELECT m.occurred_at FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message_at,
  (SELECT count(*) FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND m.direction='incoming' AND m.is_read=0) AS unread_count,
-	 v.pinned,v.archived,` + categoryExpression + ` AS category FROM conversations v JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id` + profileJoin + ` WHERE v.workspace_id=? AND v.archived=?`
+	 v.pinned,v.archived,v.conversation_kind,` + categoryExpression + ` AS category FROM conversations v JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id` + profileJoin + ` WHERE v.workspace_id=? AND v.archived=?`
 	args := []any{workspaceID, filter.Archived}
 	if filter.Platform != "" {
 		query += ` AND c.platform=?`
@@ -138,7 +138,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 	items := []Conversation{}
 	for rows.Next() {
 		var item Conversation
-		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived, &item.Category) != nil {
+		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived, &item.ConversationKind, &item.Category) != nil {
 			_ = rows.Close()
 			return ConversationPage{}, ErrUnavailable
 		}

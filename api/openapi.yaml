@@ -2764,7 +2764,7 @@
     },
     "/api/v1/connections/wechat-db/read": {
       "post": {
-        "description": "手动读取所选私聊最近一批文本，原子保存到产品加密库。默认100/最大500个源记录窗口，跳过媒体；不是全历史、持续接收或密钥提取。",
+        "description": "手动读取所选私聊或群聊最近一批文本，原子保存到产品加密库。默认100/最大500个源记录窗口，跳过媒体；不是全历史、持续接收或密钥提取。群聊首版不提供成员列表、@提及解析或发送能力。",
         "x-implementation-status": "implemented",
         "requestBody": {
           "required": true,
@@ -4728,6 +4728,7 @@
           "account_id",
           "peer_id",
           "title",
+          "conversation_kind",
           "last_message",
           "last_message_at",
           "unread_count",
@@ -4756,6 +4757,13 @@
           },
           "peer_id": {
             "type": "string"
+          },
+          "conversation_kind": {
+            "type": "string",
+            "enum": [
+              "private",
+              "group"
+            ]
           },
           "title": {
             "type": "string"
@@ -4890,6 +4898,14 @@
           "occurred_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "conversation_kind": {
+            "type": "string",
+            "enum": [
+              "private",
+              "group"
+            ],
+            "default": "private"
           },
           "email": {
             "$ref": "#/components/schemas/EmailHeaders"
@@ -5842,7 +5858,8 @@
         "additionalProperties": false,
         "required": [
           "peer_id",
-          "name"
+          "name",
+          "conversation_kind"
         ],
         "properties": {
           "peer_id": {
@@ -5852,6 +5869,13 @@
           },
           "name": {
             "type": "string"
+          },
+          "conversation_kind": {
+            "type": "string",
+            "enum": [
+              "private",
+              "group"
+            ]
           }
         }
       },
@@ -7116,6 +7140,13 @@
           },
           "platform": {
             "type": "string"
+          },
+          "conversation_kind": {
+            "type": "string",
+            "enum": [
+              "private",
+              "group"
+            ]
           },
           "priority": {
             "type": "string"

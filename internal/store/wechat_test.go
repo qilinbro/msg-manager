@@ -21,6 +21,33 @@ func wechatBatch(account string) ImportRequest {
 	}}
 }
 
+func TestWeChatGroupConversationKindAndConflict(t *testing.T) {
+	s := testStore(t)
+	group := wechatBatch("self")
+	group.Messages[0].PeerID = "@@project_room"
+	group.Messages[0].PeerName = "项目群"
+	group.Messages[0].ConversationKind = "group"
+	result, err := s.ImportWeChat(group)
+	if err != nil || result.Inserted != 1 || result.Conversations != 1 {
+		t.Fatalf("group import failed: %+v, %v", result, err)
+	}
+	page := mustConversations(t, s, Filter{Platform: "weixin"})
+	if len(page.Items) != 1 || page.Items[0].ConversationKind != "group" || page.Items[0].PeerID != "@@project_room" {
+		t.Fatalf("group conversation kind missing: %+v", page.Items)
+	}
+
+	private := group
+	private.Messages = append([]ImportMessage(nil), group.Messages...)
+	private.Messages[0].ConversationKind = "private"
+	if _, err := s.ImportWeChat(private); err != ErrConflict {
+		t.Fatalf("conversation kind conflict was not rejected: %v", err)
+	}
+	page = mustConversations(t, s, Filter{Platform: "weixin"})
+	if len(page.Items) != 1 || page.Items[0].ConversationKind != "group" {
+		t.Fatalf("group conversation changed after conflict: %+v", page.Items)
+	}
+}
+
 type observedImportContext struct {
 	context.Context
 	checked chan struct{}
@@ -231,7 +258,7 @@ func snapshotV3Data(t *testing.T, db *sql.DB) map[string]string {
 		"workspaces":           `SELECT * FROM workspaces ORDER BY id`,
 		"connections":          `SELECT id,workspace_id,platform,account_id,display_name,source FROM connections ORDER BY id`,
 		"contacts":             `SELECT * FROM contacts ORDER BY id`,
-		"conversations":        `SELECT * FROM conversations ORDER BY id`,
+		"conversations":        `SELECT id,workspace_id,connection_id,contact_id,peer_id,title,pinned,archived FROM conversations ORDER BY id`,
 		"messages":             `SELECT seq,id,workspace_id,conversation_id,external_id,direction,body,occurred_at,is_read,source,email_json FROM messages ORDER BY seq`,
 		"ai_preferences":       `SELECT * FROM ai_preferences ORDER BY conversation_id`,
 		"ai_memories":          `SELECT * FROM ai_memories ORDER BY id`,
@@ -347,7 +374,7 @@ func TestV3ToV4PreservesAIDataForeignKeysAndMessageIdentity(t *testing.T) {
 		}
 	}
 	var version, oldVersions int
-	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 10 {
+	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 11 {
 		t.Fatal("v4 version missing")
 	}
 	if s.db.QueryRow(`SELECT count(*) FROM schema_migrations WHERE version<=3 AND applied_at='2026-01-01T00:00:00Z'`).Scan(&oldVersions) != nil || oldVersions != 3 {

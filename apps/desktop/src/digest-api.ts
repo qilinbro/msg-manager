@@ -11,6 +11,7 @@ export interface DigestReminder {
   conversation_id: string;
   title: string;
   platform: string;
+  conversation_kind: 'private' | 'group';
   priority: string;
   reason: string;
   evidence_ids: string[];

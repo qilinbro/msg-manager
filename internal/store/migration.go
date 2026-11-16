@@ -20,7 +20,7 @@ func migrate(db *sql.DB) error {
 	if tx.QueryRow(`SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
 		return ErrUnavailable
 	}
-	if version > 10 {
+	if version > 11 {
 		return ErrUnavailable
 	}
 	if version == 0 {
@@ -140,6 +140,24 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(10,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 11 {
+		raw, err := migrations.Files.ReadFile("0011_wechat_group_conversations.sql")
+		if err != nil {
+			return ErrUnavailable
+		}
+		var hasKind int
+		if err = tx.QueryRow(`SELECT count(*) FROM pragma_table_info('conversations') WHERE name='conversation_kind'`).Scan(&hasKind); err != nil {
+			return ErrUnavailable
+		}
+		if hasKind == 0 {
+			if _, err = tx.Exec(string(raw)); err != nil {
+				return ErrUnavailable
+			}
+		}
+		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(11,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}
 	}
