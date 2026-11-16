@@ -60,6 +60,8 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/conversations/{conversation_id}/profile/generate',
   'post /api/v1/conversations/{conversation_id}/profile/enrich',
   'patch /api/v1/conversations/{conversation_id}/profile/facts/{fact_id}',
+  'patch /api/v1/digest/schedule',
+  'post /api/v1/digest/run',
 ].sort());
 assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
 assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);

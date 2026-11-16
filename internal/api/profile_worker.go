@@ -157,6 +157,7 @@ func (p *profileWorker) run(ctx context.Context) {
 			p.h.aiMu.RUnlock()
 			return
 		}
+		p.h.maybeDailyDigest(ctx)
 		_, err := p.h.inbox.ScheduleProfileJobs(ctx, p.h.ai.configID)
 		var job *store.ProfileJob
 		if err == nil {

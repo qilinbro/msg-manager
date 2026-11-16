@@ -734,6 +734,25 @@ h1 {
 .workspace-footer > span:first-child {
   font-family: Georgia, serif;
 }
+.digest-report {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #d3dfcd;
+  border-radius: 7px;
+  background: #f6f8f1;
+  color: #31583e;
+}
+.digest-report p {
+  margin: 8px 0;
+  white-space: pre-wrap;
+}
+.digest-report ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.digest-report li {
+  margin: 5px 0;
+}
 .collection-surface {
   border: 1px solid var(--border);
   background: #fffefa;

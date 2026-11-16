@@ -371,7 +371,7 @@ func TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph(t *testing.T) {
 		t.Fatal(e)
 	}
 	before := snapshotV3Data(t, legacy.db)
-	for _, table := range []string{"profile_links", "ai_model_config", "profile_fact_messages", "profile_fact_sources", "profile_facts", "profile_sources", "profile_jobs", "profile_search_reservations", "contact_profiles", "qq_milky_monitor_settings"} {
+	for _, table := range []string{"profile_links", "ai_model_config", "digest_reports", "digest_schedules", "profile_fact_messages", "profile_fact_sources", "profile_facts", "profile_sources", "profile_jobs", "profile_search_reservations", "contact_profiles", "qq_milky_monitor_settings"} {
 		if _, e = legacy.db.Exec(`DROP TABLE ` + table); e != nil {
 			legacy.Close()
 			t.Fatal(e)
@@ -397,7 +397,7 @@ func TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph(t *testing.T) {
 		t.Fatal("migration auto authorized AI")
 	}
 	var version int
-	if upgraded.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 9 {
+	if upgraded.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 10 {
 		t.Fatal("profile migration missing")
 	}
 }

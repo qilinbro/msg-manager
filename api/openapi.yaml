@@ -4190,6 +4190,88 @@
         },
         "x-implementation-status": "implemented"
       }
+    },
+    "/api/v1/digest/schedule": {
+      "get": {
+        "summary": "读取每日摘要计划",
+        "responses": {
+          "200": {
+            "description": "计划",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestSchedule"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权"
+          }
+        }
+      },
+      "patch": {
+        "summary": "保存每日摘要计划",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DigestScheduleSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "计划已保存"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "409": {
+            "description": "版本冲突"
+          }
+        }
+      }
+    },
+    "/api/v1/digest/latest": {
+      "get": {
+        "summary": "读取最近每日摘要",
+        "responses": {
+          "200": {
+            "description": "摘要",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestLatest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权"
+          }
+        }
+      }
+    },
+    "/api/v1/digest/run": {
+      "post": {
+        "summary": "立即生成每日摘要",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "摘要已生成"
+          },
+          "401": {
+            "description": "未授权"
+          },
+          "503": {
+            "description": "模型或存储不可用"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6954,6 +7036,164 @@
           "confirmed": {
             "type": "boolean",
             "const": true
+          }
+        }
+      },
+      "DigestSchedule": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "local_time",
+          "timezone",
+          "revision",
+          "last_run_day"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "local_time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+          },
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Shanghai"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "last_run_day": {
+            "type": "string"
+          }
+        }
+      },
+      "DigestScheduleSave": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "local_time",
+          "timezone",
+          "expected_revision",
+          "confirmed"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "local_time": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Shanghai"
+          },
+          "expected_revision": {
+            "type": "integer"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "DigestReminder": {
+        "type": "object",
+        "required": [
+          "conversation_id",
+          "title",
+          "platform",
+          "priority",
+          "reason",
+          "evidence_ids"
+        ],
+        "properties": {
+          "conversation_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DigestReport": {
+        "type": "object",
+        "required": [
+          "id",
+          "day",
+          "state",
+          "summary",
+          "reminders",
+          "evidence_ids",
+          "conversation_count",
+          "generated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "reminders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DigestReminder"
+            }
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "conversation_count": {
+            "type": "integer"
+          },
+          "generated_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "DigestLatest": {
+        "type": "object",
+        "required": [
+          "report"
+        ],
+        "properties": {
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DigestReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       }

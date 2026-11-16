@@ -11,6 +11,7 @@ import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
 import { AIModelPanel } from './AIModelPanel';
+import { DigestPanel } from './DigestPanel';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
@@ -855,6 +856,7 @@ function Settings({
         onAuthFailure={onAuthFailure}
       />
       <AIModelPanel token={activeToken} onAuthFailure={onAuthFailure} />
+      <DigestPanel token={activeToken} onAuthFailure={onAuthFailure} />
       <section className="settings-panel" aria-labelledby="automation-title">
         <div className="section-heading">
           <div>
