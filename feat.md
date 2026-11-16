@@ -419,3 +419,4 @@
 - 交付：`migrations/0011_wechat_group_conversations.sql`、`internal/connector/wechatdb/reader.go`、`internal/store/{migration,model,validation,import,query,wechat_monitor}.go`、`internal/api/wechat.go`、`apps/desktop/src/{wechat-api,WechatPanel}.ts(x)`、OpenAPI及群聊文档。
 - 验证：群聊身份/成员发送方向、群会话导入与类型冲突回滚的 Go 测试通过；针对性 store/API 测试、`node scripts/test-wechat-monitor.mjs`、`node scripts/check-contract.mjs` 通过。真实 Windows 微信群聊库、后台周期读取和页面验收尚未完成。
 - 边界：只读文本；不提供成员目录、@提及结构化、群权限/管理、媒体本体、历史补齐或发送。负责人 angjustinl，后端审查 joey；前端 joey，前端审查 angjustinl；kirinbao 组织验收。指定审查人与实际完成日期均为 —。
+- 已直接推送到远端 `main`：[`e6a1b61`](https://github.com/qilinbro/msg-manager/commit/e6a1b61)；未创建 PR。推送只代表代码交付，不代表真实群聊验收完成。

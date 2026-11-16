@@ -7,6 +7,7 @@
 - 后端审查：joey（待正式登记）
 - 前端负责人：joey；前端审查：angjustinl（待正式登记）
 - 产品、测试与交付验收：kirinbao（待真实账号执行）
+- 工程交付提交：[`e6a1b61`](https://github.com/qilinbro/msg-manager/commit/e6a1b61)，已直接推送 `main`；提交不替代真实验收。
 
 ## 验收范围
 
