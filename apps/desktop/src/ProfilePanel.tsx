@@ -165,7 +165,7 @@ function UnattendedReceipt({
         {nextStep}
       </p>
       <p className="profile-muted">
-        后台连接：已返回状态 · 模型：
+        后台连接：{status ? '已返回状态' : '状态未读取'} · 模型：
         {status?.model_configured ? (status.model ?? '已配置') : '未配置'} ·
         发送：关闭
       </p>
