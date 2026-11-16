@@ -40,6 +40,8 @@ try {
         & (Join-Path $PSScriptRoot 'test-wechat-init.ps1') -ProbeExecutable $initProbe
     }
     if (-not $SkipFrontend) {
+        node scripts/test-milky-client.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'QQ Milky client regression checks failed.' }
         node scripts/test-profiles.mjs
         if ($LASTEXITCODE -ne 0) { throw 'AI profile client/component regression checks failed.' }
         node scripts/test-service-session.mjs

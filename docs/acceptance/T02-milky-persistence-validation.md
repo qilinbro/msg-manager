@@ -13,3 +13,7 @@
 ## 边界
 
 合成协议端和SQLCipher临时库测试，不代表真实 Lagrange.Milky、本人 QQ、浏览器/Tauri 或真实网络验收。逐页历史水位、事件补发、发送/审批仍未实现；发送保持关闭。
+
+## 客户端补充（CHG-T02-005）
+
+MilkyPanel 已恢复授权名单并区分运行中/待重新核验/默认关闭；待核验可清除授权，轮询不会覆盖未保存名单。scripts/test-milky-client.mjs、前端格式和 TypeScript 检查通过。真人浏览器/Tauri 验收仍待进行。

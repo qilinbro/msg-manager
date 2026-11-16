@@ -35,12 +35,17 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [peerID, setPeerID] = useState('');
   const [peers, setPeers] = useState('');
+  const peersDirty = useRef(false);
   const pending = useRef<AbortController | null>(null);
 
   const refresh = useCallback(
     async (controller: AbortController) => {
       const next = await getMilkyStatus(token, controller.signal);
       setStatus(next);
+      if (!peersDirty.current) {
+        setPeers(next.monitor.peer_ids.join(', '));
+      }
+      return next;
     },
     [token],
   );
@@ -50,6 +55,8 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
     const controller = new AbortController();
     pending.current = controller;
     setStatus(null);
+    peersDirty.current = false;
+    setPeers('');
     setError(null);
     setNotice(null);
     if (!token) return () => controller.abort();
@@ -93,8 +100,12 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
   const onVerify = () =>
     void run('verify', async (controller) => {
       await verifyMilky(token, controller.signal);
-      setNotice('账号与 Milky 版本已核验；这不代表持续在线，也不启用发送。');
-      await refresh(controller);
+      const next = await refresh(controller);
+      setNotice(
+        next.monitor.state === 'running'
+          ? '账号与 Milky 版本已核验，已恢复授权私聊的后台接收；发送保持关闭。'
+          : '账号与 Milky 版本已核验；后台接收仍未开启，发送保持关闭。',
+      );
       const system = await getSystem(token, controller.signal);
       onSystemUpdate(system);
     });
@@ -122,6 +133,8 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
         parsePeers(peers),
       );
       setStatus(next);
+      peersDirty.current = false;
+      setPeers(next.monitor.peer_ids.join(', '));
       setNotice(
         enabled
           ? '已开启所选私聊的后台接收；断线会记录缺口，不承诺补齐全部历史。'
@@ -131,10 +144,14 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
 
   const onPeerChange = (event: ChangeEvent<HTMLInputElement>) =>
     setPeerID(event.target.value);
-  const onPeersChange = (event: ChangeEvent<HTMLInputElement>) =>
+  const onPeersChange = (event: ChangeEvent<HTMLInputElement>) => {
+    peersDirty.current = true;
     setPeers(event.target.value);
+  };
   const verified = status?.state === 'identity_verified';
-  const monitorEnabled = status?.monitor.enabled ?? false;
+  const monitorSaved = status?.monitor.enabled ?? false;
+  const monitorRunning = status?.monitor.state === 'running';
+  const monitorPending = monitorSaved && !monitorRunning;
 
   return (
     <section className="settings-panel" aria-labelledby="milky-title">
@@ -202,7 +219,13 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           </div>
           <div>
             <dt>后台接收</dt>
-            <dd>{monitorEnabled ? '已开启' : '默认关闭'}</dd>
+            <dd>
+              {monitorRunning
+                ? '运行中'
+                : monitorPending
+                  ? '已保存，待重新核验'
+                  : '默认关闭'}
+            </dd>
           </div>
           <div>
             <dt>跳过 / 缺口</dt>
@@ -283,7 +306,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           disabled={
             !token ||
             !verified ||
-            monitorEnabled ||
+            monitorSaved ||
             parsePeers(peers).length === 0 ||
             busy !== null
           }
@@ -294,9 +317,9 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           type="button"
           className="button button-quiet"
           onClick={() => onMonitor(false)}
-          disabled={!token || !monitorEnabled || busy !== null}
+          disabled={!token || !monitorSaved || busy !== null}
         >
-          停止后台接收
+          {monitorPending ? '清除已保存的后台接收' : '停止后台接收'}
         </button>
       </div>
 
