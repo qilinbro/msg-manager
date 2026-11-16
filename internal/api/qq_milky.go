@@ -82,10 +82,11 @@ type MilkySyncResult struct {
 }
 
 type milkyConnection struct {
-	client *qqmilky.Client
-	gate   chan struct{}
-	mu     sync.RWMutex
-	status MilkyStatus
+	client    *qqmilky.Client
+	gate      chan struct{}
+	mu        sync.RWMutex
+	status    MilkyStatus
+	persisted store.QQMilkyMonitorSettings
 
 	monitorMu sync.Mutex
 	cancel    context.CancelFunc
@@ -119,6 +120,54 @@ func newMilkyConnection(cfg qqmilky.Config) (*milkyConnection, error) {
 	return c, nil
 }
 
+// restoreMilkyMonitor loads the explicit allowlist without contacting the
+// protocol endpoint. The provider must be verified after restart before the
+// saved worker is allowed to run.
+func (h *handler) restoreMilkyMonitor() error {
+	c := h.milky
+	if c.client == nil || h.inbox == nil {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	settings, err := h.inbox.LoadQQMilkyMonitor(ctx, c.client.SelfID())
+	if err != nil {
+		return err
+	}
+	c.monitorMu.Lock()
+	defer c.monitorMu.Unlock()
+	c.persisted = settings
+	state := "disabled"
+	if settings.Enabled {
+		state = "pending_verification"
+	}
+	c.mu.Lock()
+	c.status.Monitor = MilkyMonitor{Enabled: settings.Enabled, State: state, PeerIDs: append([]string{}, settings.PeerIDs...), ReadOnly: true}
+	c.status.ReceivingEnabled = false
+	c.mu.Unlock()
+	return nil
+}
+
+// startMilkyMonitorLocked starts only an already verified, persisted
+// authorization. The caller must hold monitorMu.
+func (h *handler) startMilkyMonitorLocked(settings store.QQMilkyMonitorSettings) {
+	c := h.milky
+	h.stopMilkyMonitorLocked()
+	c.persisted = store.QQMilkyMonitorSettings{Enabled: settings.Enabled, PeerIDs: append([]string{}, settings.PeerIDs...)}
+	state := "disabled"
+	if settings.Enabled {
+		state = "running"
+		ctx, cancel := context.WithCancel(context.Background())
+		done := make(chan struct{})
+		c.cancel, c.done, c.peers = cancel, done, append([]string{}, settings.PeerIDs...)
+		go h.runMilkyMonitor(ctx, append([]string{}, settings.PeerIDs...), done)
+	}
+	c.mu.Lock()
+	c.status.Monitor = MilkyMonitor{Enabled: settings.Enabled, State: state, PeerIDs: append([]string{}, settings.PeerIDs...), ReadOnly: true}
+	c.status.ReceivingEnabled = settings.Enabled
+	c.mu.Unlock()
+}
+
 func (h *handler) applyMilky(items []connector.Descriptor) {
 	if h.milky == nil {
 		return
@@ -134,7 +183,7 @@ func (h *handler) applyMilky(items []connector.Descriptor) {
 			continue
 		}
 		items[i].Status = state
-		items[i].Capabilities.ReceiveText = configured && monitor.Enabled && h.inbox != nil
+		items[i].Capabilities.ReceiveText = configured && monitor.State == "running" && h.inbox != nil
 		items[i].Capabilities.HistoryImport = configured && h.inbox != nil
 		if state == "identity_verified" {
 			items[i].Description = "上次检测已核验 QQ 账号与 Milky 版本；这不是持续在线状态。历史同步与显式开启的后台接收可用，发送保持关闭。"
@@ -181,14 +230,40 @@ func (h *handler) verifyMilky(w http.ResponseWriter, r *http.Request, traceID st
 	}
 	c.mu.Unlock()
 	if err != nil {
+		// A failed re-verification revokes the in-memory receive session. The
+		// encrypted allowlist remains saved, but it can only resume after a
+		// later successful identity/version probe.
+		c.monitorMu.Lock()
+		h.stopMilkyMonitorLocked()
+		monitorState := "disabled"
+		if c.persisted.Enabled {
+			monitorState = "pending_verification"
+		}
+		c.mu.Lock()
+		c.status.Monitor.State = monitorState
+		c.status.Monitor.Enabled = c.persisted.Enabled
+		c.status.Monitor.PeerIDs = append([]string{}, c.persisted.PeerIDs...)
+		c.status.ReceivingEnabled = false
+		c.mu.Unlock()
+		c.monitorMu.Unlock()
 		writeError(w, http.StatusServiceUnavailable, "MILKY_"+strings.ToUpper(state), milkyFailureMessage(state), traceID)
 		return
 	}
+	// A saved authorization is resumed only after this fresh identity/version
+	// probe succeeds; constructing a handler never starts provider I/O.
+	c.monitorMu.Lock()
+	if c.persisted.Enabled && c.cancel == nil && !c.closed && h.inbox != nil {
+		h.startMilkyMonitorLocked(c.persisted)
+	}
+	c.monitorMu.Unlock()
+	c.mu.RLock()
+	receiving := c.status.ReceivingEnabled
+	c.mu.RUnlock()
 	writeJSON(w, http.StatusOK, MilkyVerification{
 		ConnectionID: "qq-milky", State: state, AccountID: verification.AccountID,
 		Nickname: verification.Nickname, ImplName: verification.ImplName,
 		ImplVersion: verification.ImplVersion, MilkyVersion: verification.MilkyVersion,
-		CheckedAt: now, ReceivingEnabled: false, SendingEnabled: false,
+		CheckedAt: now, ReceivingEnabled: receiving, SendingEnabled: false,
 	})
 }
 
@@ -316,19 +391,34 @@ func (h *handler) configureMilkyMonitor(w http.ResponseWriter, r *http.Request, 
 		writeError(w, http.StatusServiceUnavailable, "MILKY_UNAVAILABLE", "后台服务正在停止。", traceID)
 		return
 	}
+	settings := store.QQMilkyMonitorSettings{Enabled: *request.Enabled, PeerIDs: peers}
+	old := c.persisted
+	// Join the old worker before changing durable authorization. If persistence
+	// fails, restore the previous worker and leave the old authorization intact.
 	h.stopMilkyMonitorLocked()
-	state := "disabled"
-	if *request.Enabled {
-		state = "running"
-		ctx, cancel := context.WithCancel(context.Background())
-		done := make(chan struct{})
-		c.cancel, c.done, c.peers = cancel, done, peers
-		go h.runMilkyMonitor(ctx, peers, done)
+	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+	defer cancel()
+	if err := h.inbox.SaveQQMilkyMonitor(ctx, c.client.SelfID(), settings); err != nil {
+		c.mu.RLock()
+		verifiedNow := c.status.State == "identity_verified"
+		c.mu.RUnlock()
+		if verifiedNow {
+			h.startMilkyMonitorLocked(old)
+		} else {
+			c.persisted = store.QQMilkyMonitorSettings{Enabled: old.Enabled, PeerIDs: append([]string{}, old.PeerIDs...)}
+			monitorState := "disabled"
+			if old.Enabled {
+				monitorState = "pending_verification"
+			}
+			c.mu.Lock()
+			c.status.Monitor = MilkyMonitor{Enabled: old.Enabled, State: monitorState, PeerIDs: append([]string{}, old.PeerIDs...), ReadOnly: true}
+			c.status.ReceivingEnabled = false
+			c.mu.Unlock()
+		}
+		writeInboxError(w, err, traceID)
+		return
 	}
-	c.mu.Lock()
-	c.status.Monitor = MilkyMonitor{Enabled: *request.Enabled, State: state, PeerIDs: peers, ReadOnly: true}
-	c.status.ReceivingEnabled = *request.Enabled
-	c.mu.Unlock()
+	h.startMilkyMonitorLocked(settings)
 	h.milkyStatus(w)
 }
 
@@ -353,8 +443,18 @@ func (h *handler) closeMilkyMonitor() {
 func (h *handler) runMilkyMonitor(ctx context.Context, peers []string, done chan struct{}) {
 	defer close(done)
 	c := h.milky
+	allowed := make(map[string]struct{}, len(peers))
+	for _, peer := range peers {
+		allowed[peer] = struct{}{}
+	}
 	c.client.Run(ctx,
 		func(message qqmilky.NormalizedMessage) error {
+			if _, ok := allowed[message.PeerID]; !ok {
+				// The protocol stream is account-scoped but not allowlist-scoped;
+				// never persist an event for an unselected private chat.
+				h.recordMilkyGap("ignored:unselected_peer")
+				return nil
+			}
 			if message.SkipReason != "" {
 				h.recordMilkyGap("skipped:" + message.SkipReason)
 				return nil

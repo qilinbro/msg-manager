@@ -77,6 +77,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted WeChat monitor configuration could not be restored")
 	}
+	if err := h.restoreMilkyMonitor(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted QQ Milky monitor configuration could not be restored")
+	}
 	return h, nil
 }
 

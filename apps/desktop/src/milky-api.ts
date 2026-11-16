@@ -39,7 +39,7 @@ export interface MilkyVerification {
   impl_version: string;
   milky_version: string;
   checked_at: string;
-  receiving_enabled: false;
+  receiving_enabled: boolean;
   sending_enabled: false;
 }
 

@@ -20,7 +20,7 @@ func migrate(db *sql.DB) error {
 	if tx.QueryRow(`SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
 		return ErrUnavailable
 	}
-	if version > 6 {
+	if version > 7 {
 		return ErrUnavailable
 	}
 	if version == 0 {
@@ -92,6 +92,18 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(6,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 7 {
+		raw, err := migrations.Files.ReadFile("0007_qq_milky_monitor.sql")
+		if err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(string(raw)); err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(7,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}
 	}

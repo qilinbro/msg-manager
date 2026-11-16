@@ -26,6 +26,10 @@ func milkyProvider(t *testing.T) *httptest.Server {
 }
 
 func milkyProviderWithHistory(t *testing.T, history string) *httptest.Server {
+	return milkyProviderWithHistoryAndEventPeer(t, history, "987654321")
+}
+
+func milkyProviderWithHistoryAndEventPeer(t *testing.T, history, eventPeer string) *httptest.Server {
 	t.Helper()
 	upgrader := websocket.Upgrader{}
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +41,8 @@ func milkyProviderWithHistory(t *testing.T, history string) *httptest.Server {
 			conn, err := upgrader.Upgrade(w, r, nil)
 			if err == nil {
 				defer conn.Close()
-				_ = conn.WriteMessage(websocket.TextMessage, []byte(`{"event_type":"message_receive","time":1730000000,"self_id":123456789,"data":{"message_scene":"friend","peer_id":987654321,"message_seq":9,"sender_id":987654321,"time":1730000000,"segments":[{"type":"text","data":{"text":"实时文本"}}]}}`))
+				payload := fmt.Sprintf(`{"event_type":"message_receive","time":1730000000,"self_id":123456789,"data":{"message_scene":"friend","peer_id":%s,"message_seq":9,"sender_id":%s,"time":1730000000,"segments":[{"type":"text","data":{"text":"实时文本"}}]}}`, eventPeer, eventPeer)
+				_ = conn.WriteMessage(websocket.TextMessage, []byte(payload))
 			}
 			return
 		}
@@ -211,6 +216,84 @@ func TestMilkyMonitorRequiresVerificationAndCanBeStopped(t *testing.T) {
 	}
 	if err := json.Unmarshal(stopped.Body.Bytes(), &payload); err != nil || payload.ReceivingEnabled || payload.Monitor.Enabled {
 		t.Fatalf("monitor did not stop: %+v %v", payload, err)
+	}
+}
+
+func TestMilkyMonitorIgnoresUnselectedRealtimePeer(t *testing.T) {
+	provider := milkyProviderWithHistoryAndEventPeer(t, `{"messages":[],"next_message_seq":null}`, "111111111")
+	defer provider.Close()
+	h := milkyHandlerWithStore(t, provider.URL)
+	if recorder := milkyRequest(h, http.MethodGet, "/api/v1/connections/qq-milky/verify", "", nil); recorder.Code != http.StatusOK {
+		t.Fatalf("verify: %d %s", recorder.Code, recorder.Body.String())
+	}
+	started := milkyRequest(h, http.MethodPost, "/api/v1/connections/qq-milky/monitor", `{"enabled":true,"peer_ids":["987654321"]}`, nil)
+	if started.Code != http.StatusOK {
+		t.Fatalf("monitor start: %d %s", started.Code, started.Body.String())
+	}
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		status := milkyRequest(h, http.MethodGet, "/api/v1/connections/qq-milky/status", "", nil)
+		if strings.Contains(status.Body.String(), "ignored:unselected_peer") {
+			break
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	conversations := milkyRequest(h, http.MethodGet, "/api/v1/conversations", "", nil)
+	if conversations.Code != http.StatusOK {
+		t.Fatalf("conversations: %d %s", conversations.Code, conversations.Body.String())
+	}
+	if strings.Contains(conversations.Body.String(), "实时文本") {
+		t.Fatal("unselected realtime peer was persisted")
+	}
+}
+
+func TestMilkyMonitorAuthorizationSurvivesRestartAndWaitsForVerification(t *testing.T) {
+	provider := milkyProvider(t)
+	defer provider.Close()
+	dbPath := filepath.Join(t.TempDir(), "persisted-milky-monitor.db")
+	cfg := config.Config{
+		Addr: config.DefaultAddr, APIToken: token,
+		DatabasePath: dbPath, DatabaseKey: strings.Repeat("0123456789abcdef", 4),
+		QQMilky: qqmilky.Config{Endpoint: adapter.Endpoint{
+			URL: provider.URL, AccessToken: milkyToken, ExpectedSelfID: milkyAccount, Timeout: 3 * time.Second,
+		}},
+	}
+	h1, err := api.NewHandler(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if recorder := milkyRequest(h1, http.MethodGet, "/api/v1/connections/qq-milky/verify", "", nil); recorder.Code != http.StatusOK {
+		t.Fatalf("first verify: %d %s", recorder.Code, recorder.Body.String())
+	}
+	started := milkyRequest(h1, http.MethodPost, "/api/v1/connections/qq-milky/monitor", `{"enabled":true,"peer_ids":["987654321"]}`, nil)
+	if started.Code != http.StatusOK {
+		t.Fatalf("first monitor start: %d %s", started.Code, started.Body.String())
+	}
+	if closer, ok := h1.(interface{ Close() error }); ok {
+		if err := closer.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	h2, err := api.NewHandler(cfg)
+	if err != nil {
+		t.Fatal("reopen handler", err)
+	}
+	defer func() {
+		if closer, ok := h2.(interface{ Close() error }); ok {
+			_ = closer.Close()
+		}
+	}()
+	pending := milkyRequest(h2, http.MethodGet, "/api/v1/connections/qq-milky/status", "", nil)
+	if pending.Code != http.StatusOK || !strings.Contains(pending.Body.String(), `"state":"pending_verification"`) || strings.Contains(pending.Body.String(), `"receiving_enabled":true`) {
+		t.Fatalf("saved monitor was not held pending verification: %d %s", pending.Code, pending.Body.String())
+	}
+	if recorder := milkyRequest(h2, http.MethodGet, "/api/v1/connections/qq-milky/verify", "", nil); recorder.Code != http.StatusOK {
+		t.Fatalf("second verify: %d %s", recorder.Code, recorder.Body.String())
+	}
+	running := milkyRequest(h2, http.MethodGet, "/api/v1/connections/qq-milky/status", "", nil)
+	if running.Code != http.StatusOK || !strings.Contains(running.Body.String(), `"state":"running"`) || !strings.Contains(running.Body.String(), `"receiving_enabled":true`) {
+		t.Fatalf("saved monitor did not resume after verification: %d %s", running.Code, running.Body.String())
 	}
 }
 

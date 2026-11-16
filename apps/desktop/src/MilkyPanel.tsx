@@ -181,7 +181,9 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
             <dd>
               {status
                 ? status.configured
-                  ? status.state
+                  ? status.state === 'pending_verification'
+                    ? '已保存，等待重新核验'
+                    : status.state
                   : '未配置'
                 : '读取中…'}
             </dd>
@@ -270,7 +272,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           placeholder="仅填写你明确授权的私聊"
         />
         <p className="input-help">
-          默认关闭，需先核验。后台设置不持久化，服务重启后须重新开启。
+          默认关闭，需先核验。已开启的联系人名单会加密保存；服务重启后需重新核验协议端，核验成功后恢复后台接收。
         </p>
       </div>
       <div className="form-actions">
