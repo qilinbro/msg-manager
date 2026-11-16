@@ -101,7 +101,7 @@ function harness(bindings, props) {
   const transformed = transformSync('ProfilePanel.tsx', source, { jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' } });
   assert.equal(transformed.errors.length, 0);
   const component = { exports: {} };
-  runInNewContext(transformed.code + '\nmodule.exports=ProfilePanel;', { ...bindings, ...hooks, ServiceError, TextEncoder, AbortController, module: component, Fragment: 'fragment', jsx: (type, supplied, ...children) => ({ type, props: { ...(supplied ?? {}), children } }), document: { visibilityState: 'visible', addEventListener: add, removeEventListener: remove }, window: { addEventListener: add, removeEventListener: remove, setInterval: (callback, ms) => { intervals.set(++timerID, { callback, ms }); return timerID; }, clearInterval: (id) => intervals.delete(id) } }, { filename: 'ProfilePanel.tsx' });
+  runInNewContext(transformed.code + '\nmodule.exports=ProfilePanel;', { ...bindings, ...hooks, ServiceError, TextEncoder, AbortController, module: component, Fragment: 'fragment', jsx: (type, supplied, ...children) => { const props = { ...(supplied ?? {}), children }; return typeof type === 'function' ? type(props) : { type, props }; }, document: { visibilityState: 'visible', addEventListener: add, removeEventListener: remove }, window: { addEventListener: add, removeEventListener: remove, setInterval: (callback, ms) => { intervals.set(++timerID, { callback, ms }); return timerID; }, clearInterval: (id) => intervals.delete(id) } }, { filename: 'ProfilePanel.tsx' });
   return { get tree() { return tree; }, intervals, async flush() { for (let i = 0; i < 25; i++) { if (dirty) { cursor = 0; dirty = false; tree = component.exports(props); const queue = effects; effects = []; for (const effect of queue) effect(); } await Promise.resolve(); } }, unmount() { for (const slot of slots) slot?.cleanup?.(); afterUnmount = true; } };
 }
 function nodes(tree) { if (!tree || typeof tree !== 'object') return []; return [tree, ...tree.props.children.flat(Infinity).flatMap(nodes)]; }
@@ -119,6 +119,8 @@ const panel = harness({ ...api, ProfileLinksPanel: () => null,
 }, { token: 'synthetic-token', conversationId: 'conversation-1', displayName: 'Synthetic contact', onAuthFailure() { throw Error('unexpected auth failure'); }, onChanged() {} });
 await panel.flush();
 assert.deepEqual([...new Set(calls)].sort(), ['profile', 'status'], 'mount must only read cached data');
+assert.ok(textOf(panel.tree).includes('不在场回执'), 'profile must show unattended receipt');
+assert.ok(textOf(panel.tree).includes('尚未授权后台任务'), 'receipt must explain idle mode');
 assert.equal(find(panel, (node) => node.type === 'input' && node.props.type !== 'checkbox').props.value, '', 'display names must not silently become public search identities');
 find(panel, (node) => node.type === 'textarea').props.onChange({ target: { value: 'unsaved synthetic notes' } });
 await panel.flush();
@@ -142,6 +144,8 @@ await panel.flush();
 find(panel, (node) => node.type === 'button' && textOf(node) === '整理聊天与分类').props.onClick();
 await panel.flush();
 assert.equal(calls.filter((kind) => kind === 'generate').length, 1);
+assert.ok(textOf(panel.tree).includes('等待后台处理'), 'queued job must be visible in receipt');
+assert.ok(textOf(panel.tree).includes('离开页面后会继续'), 'receipt must explain unattended continuation');
 assert.equal(currentProfile.facts[0].state, 'unverified');
 find(panel, (node) => node.type === 'button' && textOf(node) === '确认信息').props.onClick();
 await panel.flush();

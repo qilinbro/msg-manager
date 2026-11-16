@@ -60,6 +60,108 @@
   color: #526559;
   font-size: 12px;
 }
+.unattended-receipt {
+  margin: 18px 0 22px;
+  padding: 16px;
+  border: 1px solid #d3dfcd;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f6f8f1, #fffefa);
+}
+.unattended-receipt-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.unattended-receipt-heading .eyebrow {
+  margin: 0 0 5px;
+  color: #70846c;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+}
+.unattended-receipt-heading h4 {
+  margin: 0;
+}
+.unattended-state {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #eef2e8;
+  color: #526559;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.unattended-state.is-running,
+.unattended-state.is-succeeded {
+  background: #e3f1e1;
+  color: #31583e;
+}
+.unattended-state.is-failed,
+.unattended-state.is-paused {
+  background: #f7e9e4;
+  color: #923f35;
+}
+.unattended-receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+.unattended-receipt-grid > div {
+  min-width: 0;
+  padding-right: 12px;
+  border-right: 1px solid #e1e8dc;
+}
+.unattended-receipt-grid > div:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+.unattended-label {
+  display: block;
+  margin-bottom: 4px;
+  color: #71806f;
+  font-size: 11px;
+}
+.unattended-receipt-grid strong {
+  display: block;
+  color: #294936;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.unattended-error {
+  margin: 13px 0 0;
+  color: #923f35;
+  font-size: 13px;
+}
+.unattended-next {
+  margin: 13px 0 0;
+  color: #3d5747;
+  font-size: 13px;
+}
+.unattended-next strong {
+  color: #294936;
+}
+.unattended-receipt > .profile-muted {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .unattended-receipt-grid {
+    grid-template-columns: 1fr;
+  }
+  .unattended-receipt-grid > div,
+  .unattended-receipt-grid > div:last-child {
+    padding: 0 0 10px;
+    border-right: 0;
+    border-bottom: 1px solid #e1e8dc;
+  }
+  .unattended-receipt-grid > div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}
 .profile-settings {
   display: flex;
   flex-direction: column;

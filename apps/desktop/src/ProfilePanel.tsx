@@ -73,6 +73,106 @@ const uncertainFailure = (value: unknown) =>
 const publicIdentity = (name: string) =>
   Boolean(name.trim()) && !/^wxid_/i.test(name.trim());
 
+function UnattendedReceipt({
+  profile,
+  status,
+}: {
+  profile: Profile;
+  status: ProfileStatus | null;
+}) {
+  const jobs = [...profile.jobs].sort(
+    (left, right) => Date.parse(right.updated_at) - Date.parse(left.updated_at),
+  );
+  const latest = jobs[0] ?? null;
+  const active = jobs.find((job) => ['queued', 'running'].includes(job.state));
+  const state = profile.ai_paused
+    ? 'paused'
+    : (active?.state ??
+      latest?.state ??
+      (profile.auto_organize ? 'queued' : 'idle'));
+  const stateLabel: Record<string, string> = {
+    idle: '等待授权',
+    queued: '等待后台处理',
+    running: '后台处理中',
+    succeeded: '最近一批已完成',
+    failed: '处理未完成',
+    cancelled: '已停止',
+    paused: '已暂停',
+  };
+  const action = latest?.kind === 'enrich' ? '公开资料检索' : '聊天档案整理';
+  const processed = profile.analysis_processed ?? 0;
+  const total = profile.analysis_total ?? 0;
+  const hasProgress =
+    profile.auto_organize && profile.analysis_total !== undefined;
+  const nextStep = profile.ai_paused
+    ? '恢复此联系人的 AI 后，后台任务才会继续。'
+    : !status?.model_configured
+      ? '先在设置中保存模型，再确认这位联系人的处理范围。'
+      : state === 'failed'
+        ? '先刷新状态并检查失败原因，再决定是否重新提交。'
+        : state === 'queued' || state === 'running'
+          ? '离开页面后会继续；后台和电脑需要保持运行。'
+          : state === 'succeeded' && hasProgress && processed < total
+            ? '这一批已完成，后台会继续读取剩余历史。'
+            : profile.auto_organize
+              ? '新消息会按授权继续进入后台整理。'
+              : '当前没有持续任务；如需离场整理，请明确开启授权。';
+  return (
+    <section
+      className="unattended-receipt"
+      aria-labelledby="unattended-receipt-title"
+    >
+      <div className="unattended-receipt-heading">
+        <div>
+          <p className="eyebrow">WHILE YOU&apos;RE AWAY</p>
+          <h4 id="unattended-receipt-title">不在场回执</h4>
+        </div>
+        <span className={`unattended-state is-${state}`}>
+          {stateLabel[state]}
+        </span>
+      </div>
+      <div className="unattended-receipt-grid">
+        <div>
+          <span className="unattended-label">离开期间做了什么</span>
+          <strong>
+            {latest
+              ? action
+              : profile.auto_organize
+                ? '等待新消息或历史任务'
+                : '尚未授权后台任务'}
+          </strong>
+        </div>
+        <div>
+          <span className="unattended-label">处理进度</span>
+          <strong>
+            {hasProgress ? `${processed} / ${total} 条` : '按任务状态查看'}
+          </strong>
+        </div>
+        <div>
+          <span className="unattended-label">最近更新时间</span>
+          <strong>
+            {latest ? dateText(latest.updated_at) : '暂无后台记录'}
+          </strong>
+        </div>
+      </div>
+      {latest?.last_error_code ? (
+        <p className="unattended-error">
+          {profileJobError(latest.last_error_code)}
+        </p>
+      ) : null}
+      <p className="unattended-next">
+        <strong>下一步：</strong>
+        {nextStep}
+      </p>
+      <p className="profile-muted">
+        后台连接：已返回状态 · 模型：
+        {status?.model_configured ? (status.model ?? '已配置') : '未配置'} ·
+        发送：关闭
+      </p>
+    </section>
+  );
+}
+
 export default function ProfilePanel({
   token,
   conversationId,
@@ -531,6 +631,7 @@ export default function ProfilePanel({
       ) : null}
       {profile ? (
         <>
+          <UnattendedReceipt profile={profile} status={status} />
           <div className="profile-category-line">
             {profile.auto_organize && profile.analysis_total !== undefined ? (
               <p role="status">
