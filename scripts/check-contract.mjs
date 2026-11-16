@@ -46,6 +46,8 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/connections/email-imap/sync',
   'post /api/v1/connections/wechat-db/read',
   'post /api/v1/connections/wechat-db/monitor',
+  'post /api/v1/connections/qq-milky/sync',
+  'post /api/v1/connections/qq-milky/monitor',
   'post /api/v1/conversations/{conversation_id}/analyze',
   'patch /api/v1/conversations/{conversation_id}/draft',
   'patch /api/v1/conversations/{conversation_id}/ai-settings',
@@ -77,4 +79,15 @@ assert.equal(spec.components.schemas.ContactProfileRequest.properties.confirmed.
 assert.deepEqual(spec.components.schemas.ContactProfileFact.properties.state.enum,['unverified','confirmed','rejected']);
 assert.ok(spec.paths['/api/v1/conversations/{conversation_id}/profile/generate'].post.responses['202']);
 assert.ok(!spec.components.schemas.ContactProfileJob.properties.lease_token);
+assert.equal(spec.components.schemas.MilkyStatus.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.MilkyStatus.properties.read_only.const, true);
+assert.equal(spec.components.schemas.MilkyVerification.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.MilkyVerification.properties.receiving_enabled.const, false);
+assert.equal(spec.components.schemas.MilkyVerification.properties.milky_version.const, '1.3');
+assert.equal(spec.components.schemas.MilkySyncResult.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.MilkySyncResult.properties.source_kind.const, 'protocol_sync');
+assert.equal(spec.components.schemas.MilkyMonitor.properties.read_only.const, true);
+assert.equal(spec.components.schemas.MilkySyncRequest.properties.limit.maximum, 30);
+assert.equal(spec.components.schemas.MilkyMonitorRequest.properties.peer_ids.maxItems, 20);
+assert.ok(spec.paths['/api/v1/connections/qq-milky/verify'].get.responses['200']);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"strings"
 )
 
 func (s *Store) Import(req ImportRequest) (ImportResult, error) {
@@ -43,6 +44,23 @@ func (s *Store) ImportWeChatContext(ctx context.Context, req ImportRequest) (Imp
 		}
 	}
 	return s.importBatchContext(ctx, req, "wechatdb")
+}
+
+// ImportMilkyContext is reserved for the server-configured QQ Milky connector.
+// Schema v6 keeps a single compatibility source column, so provenance is
+// enforced by the server-generated "milky:friend:" external ID prefix: request
+// bodies can neither set nor promote it. A dedicated source enum needs the
+// future v7 migration and is recorded as a known limitation.
+func (s *Store) ImportMilkyContext(ctx context.Context, req ImportRequest) (ImportResult, error) {
+	if req.Platform != "qq" {
+		return ImportResult{}, ErrInvalidInput
+	}
+	for _, message := range req.Messages {
+		if !strings.HasPrefix(message.ExternalID, "milky:friend:") || message.Email != nil {
+			return ImportResult{}, ErrInvalidInput
+		}
+	}
+	return s.importBatchContext(ctx, req, "import")
 }
 
 func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, error) {

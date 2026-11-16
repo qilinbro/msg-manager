@@ -23,6 +23,7 @@ type handler struct {
 	port      string
 	sequence  atomic.Uint64
 	qq        *qqConnection
+	milky     *milkyConnection
 	inbox     *store.Store
 	email     *emailConnection
 	ai        *aiConnection
@@ -36,6 +37,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	}
 	_, port, _ := net.SplitHostPort(cfg.Addr)
 	qq, err := newQQConnection(cfg.QQOneBot)
+	if err != nil {
+		return nil, err
+	}
+	milky, err := newMilkyConnection(cfg.QQMilky)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +63,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
 	var search publicinfo.Provider
 	if cfg.PublicSearch.APIKey != "" {
 		search, err = publicinfo.NewClient(cfg.PublicSearch)
@@ -80,6 +85,7 @@ func (h *handler) Close() error {
 		h.profiles.stop()
 	}
 	h.closeWechatMonitor()
+	h.closeMilkyMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
 	}
@@ -147,6 +153,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.readWechat(w, r, traceID)
 				return
 			}
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/qq-milky/sync" {
+				h.syncMilky(w, r, traceID)
+				return
+			}
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/qq-milky/monitor" {
+				h.configureMilkyMonitor(w, r, traceID)
+				return
+			}
 			if aiMutation(r.Method, r.URL.Path) {
 				h.serveAI(w, r, traceID)
 				return
@@ -198,6 +212,10 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 		writeJSON(w, http.StatusOK, ListResponse[connector.Descriptor]{Items: h.connections()})
 	case "/api/v1/connections/qq-onebot/verify":
 		h.verifyQQ(w, r, traceID)
+	case "/api/v1/connections/qq-milky/verify":
+		h.verifyMilky(w, r, traceID)
+	case "/api/v1/connections/qq-milky/status":
+		h.milkyStatus(w)
 	case "/api/v1/connections/email-imap/status":
 		h.emailStatus(w)
 	case "/api/v1/connections/wechat-db/status":

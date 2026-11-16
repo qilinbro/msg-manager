@@ -3559,6 +3559,234 @@
           }
         }
       }
+    },
+    "/api/v1/connections/qq-milky/verify": {
+      "get": {
+        "operationId": "verifyQQMilkyAccount",
+        "summary": "核验 QQ Milky 协议端账号与协议版本",
+        "description": "协议端地址、访问令牌与预期 QQ 号只从后台环境读取；调用方不能提交目标或凭据。一次核验不代表持续在线，也不启用收发。",
+        "responses": {
+          "200": {
+            "description": "账号与 Milky 版本核验通过",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilkyVerification"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "缺少或无效的本机访问令牌。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin 或工作区校验失败。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "MILKY_NOT_CONFIGURED、MILKY_UNREACHABLE、MILKY_AUTH_FAILED、MILKY_IDENTITY_MISMATCH、MILKY_LOGGED_OUT、MILKY_VERSION_MISMATCH、MILKY_PROTOCOL_ERROR 或 MILKY_BUSY。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/qq-milky/status": {
+      "get": {
+        "operationId": "getQQMilkyStatus",
+        "summary": "读取 QQ Milky 连接缓存状态",
+        "description": "只读缓存，不触发协议端网络调用；展示最近一次核验、后台接收开关、跳过与缺口记录。",
+        "responses": {
+          "200": {
+            "description": "当前连接状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilkyStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "缺少或无效的本机访问令牌。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin 或工作区校验失败。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/qq-milky/sync": {
+      "post": {
+        "operationId": "syncQQMilkyHistory",
+        "summary": "按联系人同步一页好友私聊历史",
+        "description": "只读调用 get_history_messages，服务端生成稳定 external_id 并事务落库；非文本或不支持场景记录跳过原因。不发送消息。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilkySyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "同步结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilkySyncResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式或参数不合法。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "缺少或无效的本机访问令牌。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin 或工作区校验失败。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "协议端不可用、存储未启用或操作正在进行。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/qq-milky/monitor": {
+      "post": {
+        "operationId": "configureQQMilkyMonitor",
+        "summary": "显式开启或停止 QQ Milky 后台接收",
+        "description": "默认关闭。开启前必须完成账号核验并选定最多 20 个明确授权的私聊；断线显式记录缺口并用历史接口有界补查，不承诺全量补齐。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MilkyMonitorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新后的连接状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MilkyStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求格式或联系人白名单不合法。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "缺少或无效的本机访问令牌。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin 或工作区校验失败。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置、未核验或后台正在停止。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3679,7 +3907,8 @@
             "enum": [
               "qq-onebot",
               "weixin-clawbot",
-              "telegram-bot"
+              "telegram-bot",
+              "qq-milky"
             ]
           },
           "display_name": {
@@ -3704,7 +3933,9 @@
               "auth_failed",
               "identity_mismatch",
               "logged_out",
-              "protocol_error"
+              "protocol_error",
+              "version_mismatch",
+              "invalid_config"
             ]
           },
           "implementation_status": {
@@ -5804,6 +6035,276 @@
           "sending_enabled": {
             "type": "boolean",
             "const": false
+          }
+        }
+      },
+      "MilkyVerification": {
+        "type": "object",
+        "required": [
+          "connection_id",
+          "state",
+          "account_id",
+          "nickname",
+          "impl_name",
+          "impl_version",
+          "milky_version",
+          "checked_at",
+          "receiving_enabled",
+          "sending_enabled"
+        ],
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "const": "qq-milky"
+          },
+          "state": {
+            "type": "string",
+            "const": "identity_verified"
+          },
+          "account_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "协议端返回的登录昵称"
+          },
+          "impl_name": {
+            "type": "string",
+            "description": "协议端实现名称"
+          },
+          "impl_version": {
+            "type": "string",
+            "description": "协议端实现版本"
+          },
+          "milky_version": {
+            "type": "string",
+            "const": "1.3"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "receiving_enabled": {
+            "type": "boolean",
+            "const": false,
+            "description": "一次身份核验不启用持续接收"
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false,
+            "description": "平台发送保持关闭"
+          }
+        }
+      },
+      "MilkyMonitor": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "state",
+          "peer_ids",
+          "read_only",
+          "last_error"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "是否显式开启后台接收"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "running"
+            ]
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          },
+          "read_only": {
+            "type": "boolean",
+            "const": true,
+            "description": "后台接收不发送任何平台消息"
+          },
+          "last_error": {
+            "type": "string",
+            "description": "最近一次固定错误分类"
+          }
+        }
+      },
+      "MilkyStatus": {
+        "type": "object",
+        "required": [
+          "configured",
+          "state",
+          "account_id",
+          "nickname",
+          "milky_version",
+          "checked_at",
+          "receiving_enabled",
+          "sending_enabled",
+          "read_only",
+          "last_sync_at",
+          "last_sync_result",
+          "skipped",
+          "gaps",
+          "monitor"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "description": "后台是否已配置协议端"
+          },
+          "state": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": "string",
+            "description": "后台配置的预期 QQ 号"
+          },
+          "nickname": {
+            "type": "string",
+            "description": "最近一次核验返回的昵称"
+          },
+          "milky_version": {
+            "type": "string",
+            "description": "锁定的 Milky 协议版本"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "最近一次成功核验时间；空表示尚未核验"
+          },
+          "receiving_enabled": {
+            "type": "boolean",
+            "description": "是否显式开启后台接收"
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false,
+            "description": "平台发送保持关闭"
+          },
+          "read_only": {
+            "type": "boolean",
+            "const": true,
+            "description": "连接器只读"
+          },
+          "last_sync_at": {
+            "type": "string",
+            "description": "最近一次历史同步时间"
+          },
+          "last_sync_result": {
+            "type": "string",
+            "description": "最近一次历史同步结果"
+          },
+          "skipped": {
+            "type": "integer",
+            "description": "累计跳过的非文本或不支持消息数"
+          },
+          "gaps": {
+            "type": "array",
+            "description": "最近的断线/跳过缺口记录",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "integer"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "monitor": {
+            "$ref": "#/components/schemas/MilkyMonitor"
+          }
+        }
+      },
+      "MilkySyncRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "peer_id"
+        ],
+        "properties": {
+          "peer_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$",
+            "description": "明确选定的好友 QQ 号"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "description": "本页条数，默认 20"
+          }
+        }
+      },
+      "MilkyMonitorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "peer_ids"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "是否开启后台接收"
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          }
+        }
+      },
+      "MilkySyncResult": {
+        "type": "object",
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations",
+          "skipped",
+          "next_cursor",
+          "source_kind",
+          "sending_enabled"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer"
+          },
+          "duplicates": {
+            "type": "integer"
+          },
+          "conversations": {
+            "type": "integer"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "next_cursor": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "source_kind": {
+            "type": "string",
+            "const": "protocol_sync"
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false,
+            "description": "平台发送保持关闭"
           }
         }
       }

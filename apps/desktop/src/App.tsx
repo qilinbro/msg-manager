@@ -9,6 +9,7 @@ import {
 } from './api';
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
+import { MilkyPanel } from './MilkyPanel';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
@@ -46,6 +47,20 @@ const PLANNED_CONNECTORS: Connector[] = [
     status: 'not_configured',
     implementation_status: 'probe_ready',
     description: '优先接入个人 QQ；当前仅支持账号核验，尚未启用收发。',
+    capabilities: {
+      receive_text: false,
+      send_text: false,
+      history_import: false,
+    },
+  },
+  {
+    id: 'qq-milky',
+    platform: 'qq',
+    display_name: 'QQ 个人号（Milky 主线）',
+    status: 'not_configured',
+    implementation_status: 'manual_sync_ready',
+    description:
+      '自有 Milky 1.3 适配器：账号核验、好友私聊历史同步与显式开启的后台接收；发送保持关闭。',
     capabilities: {
       receive_text: false,
       send_text: false,
@@ -828,6 +843,12 @@ function Settings({
       </section>
       <QQSettings
         key={activeToken}
+        token={activeToken}
+        onSystemUpdate={onSystemUpdate}
+        onAuthFailure={onAuthFailure}
+      />
+      <MilkyPanel
+        key={`milky-${activeToken}`}
         token={activeToken}
         onSystemUpdate={onSystemUpdate}
         onAuthFailure={onAuthFailure}

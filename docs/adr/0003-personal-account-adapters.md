@@ -46,3 +46,33 @@ AstrBot 的 aiocqhttp 适配器使用 OneBot v11 **反向 WebSocket**：协议�
 - [固定版本适配器源码](https://github.com/AstrBotDevs/AstrBot/blob/2c3ee62b15eb0d329f608481002bed5fc45e84e7/astrbot/core/platform/sources/aiocqhttp/aiocqhttp_platform_adapter.py)
 - [OneBot 正向 WS](https://github.com/botuniverse/onebot-11/blob/master/communication/ws.md)、[反向 WS](https://github.com/botuniverse/onebot-11/blob/master/communication/ws-reverse.md)、[公共 API](https://github.com/botuniverse/onebot-11/blob/master/api/public.md)
 - [NapCat 接入文档](https://doc.napneko.icu/use/integration)；核验时 [NapCatQQ 仓库](https://github.com/NapNeko/NapCatQQ) 默认分支已显示 Ending，因此本项目只对用户实际部署的协议版本做兼容验证，不宣称上游当前可正常下载安装。
+
+## 2026-11-15 补充：Milky 主线与统一 adapter
+
+用户明确两项决策：① 新增 `qq-milky` 作为 QQ 主线；② 接受 GPL-3.0 协议端作为外部独立进程依赖。同时要求「通过基类继承把 adapter 协议端实现统一」。
+
+**Go 无基类继承。** 现有 `onebot`、`mailbox`、`wechatdb` 均为独立包，`internal/connector/connector.go` 已用接口（`Receiver`、`Sender`）与数据结构（`Capabilities`、`Event`、`Batch`、`SendResult`）定义契约层。统一的可行形态是「共享实现底座 + 接口组合」，不新增第二套契约：
+
+1. **契约层**：沿用 `connector` 既有接口，保持不变。
+2. **共享底座**（拟新增 `internal/connector/adapter`）：只承载横切边界——本机目标校验（仅 `127.0.0.1`/`::1`/`localhost`，不做 DNS 解析）、禁重定向/代理、令牌仅放 `Authorization` 头、`POST /api/{action}` 与 `{status,retcode,data}` 信封解码、严格 JSON（拒绝重复键与超深嵌套）、响应大小上限、正向 WebSocket 拨号、脱敏错误分类。
+3. **协议实现**：`qq-milky` 嵌入该底座并实现 `Probe`/历史/事件规范化/发送；`qq-onebot` 保留已交付的只读核验，待其正式审查后再迁移到同一底座，避免一次性改动已验证代码。
+
+`qq-milky` 面向 Milky 协议规范而非绑定单一实现，仅对用户实际部署的 `Lagrange.Milky` 版本做能力核验。协议端默认 `127.0.0.1:3000`、`POST /api/{action}`、`GET /event`（WS/SSE），鉴权 `Bearer <access_token>`；`get_login_info` 与 `get_impl_info` 用于账号与版本双校验。
+
+**合规口径（GPL-3.0）：** 协议端是用户自行安装的独立进程，本产品不分发其二进制、不动态或静态链接、不复制上游源码；只经本机 HTTP/WS 调用公开协议接口。发布说明与交付清单须声明协议端名称、许可证 GPL-3.0 及固定版本仓库链接。这是工程边界口径，不代指法律结论，最终由产品负责人确认；本产品自身许可不因此改变。`参考项目/` 的固定版本源码仍只作静态阅读，不进入交付包。
+
+**未决项（默认假设，待用户确认）：** 正向 WebSocket（SSE 备选、不采用 WebHook）；锁定 Milky 1.3 且 `get_impl_info.milky_version` 不匹配时明确拒绝；首版只读（身份核验/历史/实时接收），`SendText` 保持 `false`，发送实现待 T15/T16 就绪；QQ 历史主线改走 `get_history_messages`，QCE 资料降级为备选参考；协议端部署账号与第三方签名服务授权由用户确认。
+
+**仍然成立的边界：** 一次身份核验不等于持续在线或已开启收发；事件流没有唯一 ID、游标或断线补发，缺口必须显式记录并用历史 API 有界补查；去重键为 `(connection_id, message_scene, peer_id, message_seq)`；不确定发送结果转 `unknown` 且不自动重发；自动发送默认关闭，模型不接触 `access_token`。
+
+本条记录范围与设计决策；当时的实际完成日期保持 `—`。
+
+## 2026-11-15 实现补记（CHG-T02-003）
+
+用户要求完整实施。已按上述分层交付 `internal/connector/adapter`（共享底座）与 `internal/connector/qqmilky`（Milky 1.3 客户端），并在 `internal/api/qq_milky.go` 接入状态、核验、历史同步、后台事件接收与缺口补查；同步消息经 `store.ImportMilkyContext` 事务加密入库并去重，配置只从后台环境读取，工作台新增设置面板，契约与单元/集成测试同步补齐。
+
+`send_private_message` 在协议客户端内已实现，但**未接入任何 HTTP 路由、未装配发件箱执行器**；契约 `sending_enabled` 固定为 `false`。事件采用正向 WebSocket（本产品拨出），不采用 WebHook 入站；版本锁定 1.3，不匹配明确拒绝。
+
+已知限制：schema v6 的 `source` 兼容列仍记为 `import`，协议同步来源由服务端生成的 `milky:friend:` 前缀与连接显示名保证可追溯，独立来源枚举待 v7 迁移；后台接收设置不持久化；事件流无补发，缺口显式记录并用历史接口有界补查；`friend` 场景 `start_message_seq` 为空的行为需在真实协议端验证。
+
+本补记只说明实现与工程检查，不含真实账号授权、joey 正式代码审查或 kirinbao 验收；实际完成日期仍为 `—`。
