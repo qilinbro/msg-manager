@@ -386,6 +386,7 @@
 - 用户反馈配置微信后客户端白屏。Vite 日志定位为 `MilkyPanel` 读取 `status.gaps.length` 时后端状态返回 `gaps:null`；微信配置会同时刷新平台状态，因此暴露跨平台状态契约问题。
 - 已修复后端状态快照和前端兼容处理：无缺口输出空数组，旧后台返回 null 时前端降级为空数组；同时保护 Milky 监控 peer 列表。`scripts/test-milky-client.mjs` 覆盖 null 状态，前端类型检查通过。
 - 负责人 joey（前端 / UI）；后端状态代码审查 joey，前端代码审查 angjustinl；kirinbao 组织真实页面验收。完整检查与真实微信配置后页面复核待完成，实际完成日期 —。
+- 已直接推送到远端 `main`：[`f3938f9`](https://github.com/qilinbro/msg-manager/commit/f3938f9)；未创建 PR。推送只代表修复交付，不代表真实页面验收完成。
 
 ### AI联系人档案与公开资料子项开始（2026-11-14）
 
