@@ -1097,6 +1097,30 @@
   font: inherit;
   font-size: 12px;
 }
+.wechat-chat-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.wechat-chat-field input::placeholder {
+  color: var(--inbox-muted);
+}
+.wechat-chat-field input:disabled {
+  color: var(--inbox-muted);
+  background: #f5f7ef;
+}
+.wechat-field-help {
+  color: var(--inbox-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
 .wechat-chat-field select:disabled {
   color: var(--inbox-muted);
   background: #f5f7ef;

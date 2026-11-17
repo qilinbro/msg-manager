@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/qilinbro/msg-manager/internal/connector/wechatdb"
 	"github.com/qilinbro/msg-manager/internal/store"
@@ -16,6 +17,10 @@ type wechatReader interface {
 	Probe(context.Context) (wechatdb.Info, error)
 	Sessions(context.Context) ([]wechatdb.Session, error)
 	Read(context.Context, string) (wechatdb.Batch, error)
+}
+
+type wechatKeywordReader interface {
+	ReadMatching(context.Context, string, string) (wechatdb.Batch, error)
 }
 
 type wechatSessionsReader interface {
@@ -40,6 +45,7 @@ type WechatReadResult struct {
 	store.ImportResult
 	Skipped        int    `json:"skipped"`
 	Limited        bool   `json:"limited"`
+	Keyword        string `json:"keyword,omitempty"`
 	ReadAt         string `json:"read_at"`
 	ReadOnly       bool   `json:"read_only"`
 	SendingEnabled bool   `json:"sending_enabled"`
@@ -197,7 +203,8 @@ func (h *handler) wechatSessions(w http.ResponseWriter, r *http.Request, traceID
 
 func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID string) {
 	var input struct {
-		PeerID string `json:"peer_id"`
+		PeerID  string `json:"peer_id"`
+		Keyword string `json:"keyword"`
 	}
 	if !readInboxJSON(w, r, &input, traceID) {
 		return
@@ -206,6 +213,11 @@ func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID str
 		writeError(w, 400, "INVALID_INPUT", "请选择本机已配置账号中的一个私聊或群聊。", traceID)
 		return
 	}
+	if len([]rune(strings.TrimSpace(input.Keyword))) > 128 || strings.IndexFunc(input.Keyword, unicode.IsControl) >= 0 {
+		writeError(w, 400, "INVALID_INPUT", "关键词最多128个字符，且不能包含控制字符。", traceID)
+		return
+	}
+	input.Keyword = strings.TrimSpace(input.Keyword)
 	if h.inbox == nil {
 		writeError(w, 503, "STORAGE_DISABLED", "请先启用本产品的加密消息存储。", traceID)
 		return
@@ -216,7 +228,7 @@ func (h *handler) readWechat(w http.ResponseWriter, r *http.Request, traceID str
 	defer func() { <-h.wechat.gate }()
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
-	response, err := h.readWechatPeer(ctx, input.PeerID)
+	response, err := h.readWechatPeerKeyword(ctx, input.PeerID, input.Keyword)
 	if err != nil {
 		var importFailure wechatImportFailure
 		if errors.As(err, &importFailure) {
@@ -240,10 +252,34 @@ func (e wechatImportFailure) Unwrap() error { return e.err }
 // Caller owns the connector gate. Both foreground and background reads use the
 // same account checks and context-aware atomic import.
 func (h *handler) readWechatPeer(ctx context.Context, peerID string) (WechatReadResult, error) {
+	return h.readWechatPeerKeyword(ctx, peerID, "")
+}
+
+func (h *handler) readWechatPeerKeyword(ctx context.Context, peerID, keyword string) (WechatReadResult, error) {
 	if err := ctx.Err(); err != nil {
 		return WechatReadResult{}, err
 	}
-	batch, err := h.wechat.reader.Read(ctx, peerID)
+	var batch wechatdb.Batch
+	var err error
+	if keyword != "" {
+		if reader, ok := h.wechat.reader.(wechatKeywordReader); ok {
+			batch, err = reader.ReadMatching(ctx, peerID, keyword)
+		} else {
+			batch, err = h.wechat.reader.Read(ctx, peerID)
+			if err == nil {
+				lower := strings.ToLower(keyword)
+				filtered := batch.Messages[:0]
+				for _, item := range batch.Messages {
+					if strings.Contains(strings.ToLower(item.Body), lower) {
+						filtered = append(filtered, item)
+					}
+				}
+				batch.Messages = filtered
+			}
+		}
+	} else {
+		batch, err = h.wechat.reader.Read(ctx, peerID)
+	}
 	if ctx.Err() != nil {
 		return WechatReadResult{}, ctx.Err()
 	}
@@ -271,7 +307,7 @@ func (h *handler) readWechatPeer(ctx context.Context, peerID string) (WechatRead
 		}
 	}
 	now := time.Now().UTC().Format(time.RFC3339Nano)
-	response := WechatReadResult{ImportResult: result, Skipped: batch.Skipped, Limited: batch.Limited, ReadAt: now, ReadOnly: true}
+	response := WechatReadResult{ImportResult: result, Skipped: batch.Skipped, Limited: batch.Limited, Keyword: keyword, ReadAt: now, ReadOnly: true}
 	h.wechat.mu.Lock()
 	h.wechat.status.State, h.wechat.status.LastReadAt, h.wechat.status.LastResult = "read", &now, &response
 	h.wechat.mu.Unlock()

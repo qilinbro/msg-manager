@@ -34,16 +34,18 @@ var (
 	ErrInvalidKey        = errors.New("local WeChat database key or encryption format is invalid")
 	ErrUnsupportedSchema = errors.New("unsupported local WeChat database schema")
 	ErrNotFound          = errors.New("local WeChat conversation not found")
+	ErrInvalidKeyword    = errors.New("invalid local WeChat message keyword")
 	ErrChanged           = errors.New("local WeChat database changed; read again after activity stops")
 )
 
 const (
-	DefaultLimit = 100
-	MaxLimit     = 500
-	maxShards    = 64
-	maxSessions  = 10000
-	maxNameBatch = 500
-	driverName   = "social-wechatdb-readonly"
+	DefaultLimit    = 100
+	MaxLimit        = 500
+	maxShards       = 64
+	maxSessions     = 10000
+	maxNameBatch    = 500
+	maxKeywordRunes = 128
+	driverName      = "social-wechatdb-readonly"
 )
 
 var (
@@ -132,6 +134,20 @@ func chatKind(id string) string {
 		return "group"
 	}
 	return "private"
+}
+
+func normalizeKeyword(keyword string) (string, error) {
+	if !utf8.ValidString(keyword) || strings.IndexFunc(keyword, unicode.IsControl) >= 0 {
+		return "", ErrInvalidKeyword
+	}
+	keyword = strings.TrimSpace(keyword)
+	if keyword == "" {
+		return "", nil
+	}
+	if len([]rune(keyword)) > maxKeywordRunes {
+		return "", ErrInvalidKeyword
+	}
+	return keyword, nil
 }
 
 func NewReader(c Config) (*Reader, error) {
@@ -534,6 +550,21 @@ func (r *Reader) SessionsWithInfo(ctx context.Context) (Info, []Session, error) 
 }
 
 func (r *Reader) Read(ctx context.Context, peerID string) (Batch, error) {
+	return r.read(ctx, peerID, "")
+}
+
+// ReadMatching reads the same bounded source window as Read and keeps only
+// decodable text messages containing keyword. It never expands the source
+// window or changes the read-only boundary.
+func (r *Reader) ReadMatching(ctx context.Context, peerID, keyword string) (Batch, error) {
+	keyword, err := normalizeKeyword(keyword)
+	if err != nil {
+		return Batch{}, err
+	}
+	return r.read(ctx, peerID, keyword)
+}
+
+func (r *Reader) read(ctx context.Context, peerID, keyword string) (Batch, error) {
 	if r == nil || !chatID(peerID) || peerID == r.config.AccountID {
 		return Batch{}, ErrInvalidConfig
 	}
@@ -558,6 +589,7 @@ func (r *Reader) Read(ctx context.Context, peerID string) (Batch, error) {
 	var raw []rawMessage
 	identities := map[string][32]byte{}
 	sourceLimited := false
+	keywordLower := strings.ToLower(keyword)
 	for _, s := range op.shards {
 		messages, err := r.readShard(ctx, s, peerID)
 		if err != nil {
@@ -570,6 +602,9 @@ func (r *Reader) Read(ctx context.Context, peerID string) (Batch, error) {
 			msg, err := r.normalize(message, peerID)
 			if err != nil {
 				return Batch{}, err
+			}
+			if keywordLower != "" && message.kind == 1 && !strings.Contains(strings.ToLower(msg.Body), keywordLower) {
+				continue
 			}
 			// Fingerprint before deduplicating: conflicting cross-shard server
 			// identities fail the batch instead of choosing one silently.

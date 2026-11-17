@@ -74,7 +74,8 @@ assert.equal(spec.components.schemas.WechatMonitorStatus.properties.sending_enab
 assert.equal(spec.components.schemas.WechatMonitorSettings.properties.interval_seconds.minimum,10);
 assert.equal(spec.components.schemas.WechatMonitorSettings.properties.peer_ids.maxItems,20);
 assert.ok(spec.components.schemas.WechatStatus.required.includes('monitor'));
-assert.deepEqual(Object.keys(spec.paths['/api/v1/connections/wechat-db/read'].post.requestBody.content['application/json'].schema.properties),['peer_id']);
+assert.deepEqual(Object.keys(spec.paths['/api/v1/connections/wechat-db/read'].post.requestBody.content['application/json'].schema.properties),['peer_id','keyword']);
+assert.equal(spec.paths['/api/v1/connections/wechat-db/read'].post.requestBody.content['application/json'].schema.properties.keyword.maxLength,128);
 assert.equal(spec.components.schemas.AIStatus.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.AIAnalysis.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.AIAnalyzeRequest.properties.confirmed.const, true);

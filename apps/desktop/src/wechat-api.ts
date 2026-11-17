@@ -17,6 +17,7 @@ export interface WechatReadResult {
   conversations: number;
   skipped: number;
   limited: boolean;
+  keyword?: string;
   read_at: string;
   read_only: true;
   sending_enabled: false;
@@ -86,7 +87,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   STORE_UNAVAILABLE: '本地消息存储暂不可用，请更新状态后重试。',
   IMPORT_CONFLICT:
     '消息标识与已有记录存在冲突，此次未保存。请核对本机数据库来源。',
-  INVALID_INPUT: '会话选择无效，请重新读取列表并选择一个私聊。',
+  INVALID_INPUT: '会话或关键词无效，请重新读取列表并检查输入。',
   INVALID_REQUEST: '微信读取请求无法处理，请刷新工作台后重试。',
   NOT_IMPLEMENTED: '后台尚未更新，请更新后重启后台，再开启自动读取。',
 };
@@ -113,6 +114,10 @@ const isResult = (value: unknown): value is WechatReadResult =>
   isCount(value.conversations) &&
   isCount(value.skipped) &&
   typeof value.limited === 'boolean' &&
+  (value.keyword === undefined ||
+    (typeof value.keyword === 'string' &&
+      Array.from(value.keyword).length <= 128 &&
+      !/[\u0000-\u001f\u007f]/.test(value.keyword))) &&
   validDate(value.read_at);
 
 const validPeer = (value: unknown): value is string =>
@@ -307,13 +312,27 @@ export async function readWechatMessages(
   token: string,
   signal: AbortSignal,
   peerID: string,
+  keyword = '',
 ): Promise<WechatReadResult> {
   if (!validLabel(peerID, 128))
     throw new ServiceError(
       '请先选择一个有效的微信私聊或群聊。',
       'INVALID_INPUT',
     );
-  const value = await request(token, signal, 'read', { peer_id: peerID });
+  const normalizedKeyword = keyword.trim();
+  if (
+    Array.from(normalizedKeyword).length > 128 ||
+    keyword.includes('\u0000') ||
+    /[\u0001-\u001f\u007f]/.test(keyword)
+  )
+    throw new ServiceError(
+      '关键词最多128个字符，且不能包含换行或控制字符。',
+      'INVALID_INPUT',
+    );
+  const value = await request(token, signal, 'read', {
+    peer_id: peerID,
+    ...(normalizedKeyword ? { keyword: normalizedKeyword } : {}),
+  });
   if (!isResult(value))
     throw new ServiceError(
       '微信读取结果暂时无法确认，请先更新状态并查看消息。',

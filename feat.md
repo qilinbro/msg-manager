@@ -32,7 +32,7 @@
 | FEAT-T03 | T03 存储与加密 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 待审查 | 2026-11-13 | 2026-11-16 | — | CHG-T03-001；原型检查通过，待joey审查 |
 | FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-004；全部已实现功能整合main |
 | FEAT-T05 | T05 数据模型 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-17 | 2026-11-18 | — | CHG-T05-005；模型设置和档案关联加密存储已实现并检查，子项待指定审查/真实验收 |
-| FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-009；私聊/群聊文本读取、conversation_kind 与后台名单工程检查通过，待指定审查及真实验收 |
+| FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-010；微信私聊/群聊文本读取、正文关键词筛选与后台名单工程检查通过，待指定审查及真实验收 |
 | FEAT-T07 | T07 联系人与导入 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-20 | — | CHG-T07-002；导入后授权自动整理已实现并检查，子项待指定审查/真实验收 |
 | FEAT-T08 | T08 消息工作台 | joey（前端 / 桌面 / UI） | angjustinl（代码审查），kirinbao（交互验收） | 进行中 | 2026-11-17 | 2026-11-20 | — | CHG-T08-004；11组会话回归/前端检查通过，待指定审查/真实页面验收 |
 | FEAT-T09 | T09 长期记忆 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-23 | 2026-11-24 | — | CHG-T09-003；全历史档案与资料归类已实现并检查，子项待指定审查/真实验收 |
@@ -420,3 +420,9 @@
 - 验证：群聊身份/成员发送方向、群会话导入与类型冲突回滚的 Go 测试通过；针对性 store/API 测试、`node scripts/test-wechat-monitor.mjs`、`node scripts/check-contract.mjs` 通过。真实 Windows 微信群聊库、后台周期读取和页面验收尚未完成。
 - 边界：只读文本；不提供成员目录、@提及结构化、群权限/管理、媒体本体、历史补齐或发送。负责人 angjustinl，后端审查 joey；前端 joey，前端审查 angjustinl；kirinbao 组织验收。指定审查人与实际完成日期均为 —。
 - 已直接推送到远端 `main`：[`e6a1b61`](https://github.com/qilinbro/msg-manager/commit/e6a1b61)；未创建 PR。推送只代表代码交付，不代表真实群聊验收完成。
+
+### CHG-T06-010｜微信正文关键词筛选（2026-11-17）
+
+- 关联 `FEAT-T06`。微信手动读取接口和读取器增加可选 `keyword`，在同一最近记录窗口内按 Unicode 不区分大小写正文子串筛选；空值保持原读取行为，筛选结果仍按 `wechatdb` 原子入库。
+- 交付：`internal/connector/wechatdb/reader.go`、`internal/api/wechat.go`、`apps/desktop/src/{wechat-api,WechatPanel}.ts(x)`、`apps/desktop/src/inbox.css`、OpenAPI、[关键词验收记录](docs/acceptance/T06-wechat-keyword-validation.md)。关键词限制128字符并拒绝控制字符，不改变微信库只读、账号/会话限域和自动发送关闭边界。
+- 验证：关键词读取器与 API 测试通过；完整 `scripts/check.ps1`（Go 测试/vet、契约、客户端回归、前端格式/类型/生产构建）通过。真实微信关键词/群聊验收待执行；实际审查人和实际完成日期均为 —。

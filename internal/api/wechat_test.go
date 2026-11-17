@@ -113,6 +113,30 @@ func TestWechatReadScopeAuthenticationAndDedup(t *testing.T) {
 	}
 }
 
+func TestWechatReadKeywordFiltersBeforeImport(t *testing.T) {
+	h := newEmailTestHandler(t)
+	bindWechat(h, &fakeWechatReader{batch: wechatBatch()})
+	w := emailTestRequest(h, "POST", "/api/v1/connections/wechat-db/read", `{"peer_id":"wxid_peer","keyword":"合成入站"}`, true)
+	var result WechatReadResult
+	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &result) != nil || result.Keyword != "合成入站" || result.Inserted != 1 {
+		t.Fatalf("keyword read mismatch: %d %s", w.Code, w.Body.String())
+	}
+	page, err := h.inbox.Conversations(store.Filter{Platform: "weixin"})
+	if err != nil || len(page.Items) != 1 {
+		t.Fatal("keyword conversation missing", err)
+	}
+	messages, err := h.inbox.Messages(page.Items[0].ID, "", 50)
+	if err != nil || len(messages.Items) != 1 || messages.Items[0].Body != "微信合成入站" {
+		t.Fatalf("keyword imported wrong messages: %+v, %v", messages.Items, err)
+	}
+	for _, keyword := range []string{"\n", strings.Repeat("词", 129)} {
+		body := `{"peer_id":"wxid_peer","keyword":"` + keyword + `"}`
+		if w := emailTestRequest(h, "POST", "/api/v1/connections/wechat-db/read", body, true); w.Code != 400 {
+			t.Fatalf("invalid keyword accepted: %q -> %d", keyword, w.Code)
+		}
+	}
+}
+
 func TestWechatMismatchErrorsAndConflictDoNotPartiallySave(t *testing.T) {
 	const route = "/api/v1/connections/wechat-db/read"
 	for _, change := range []func(*wechatdb.Batch){func(b *wechatdb.Batch) { b.Info.AccountID = "another_account" }, func(b *wechatdb.Batch) { b.Info.ReadOnly = false }, func(b *wechatdb.Batch) { b.PeerID = "another_peer" }} {

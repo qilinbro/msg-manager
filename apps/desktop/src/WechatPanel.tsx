@@ -80,6 +80,7 @@ export default function WechatPanel({
   const [statusRevision, setStatusRevision] = useState(0);
   const [sessions, setSessions] = useState<WechatSession[] | null>(null);
   const [peerID, setPeerID] = useState('');
+  const [keyword, setKeyword] = useState('');
   const [busy, setBusy] = useState<'sessions' | 'read' | 'monitor' | null>(
     null,
   );
@@ -108,6 +109,8 @@ export default function WechatPanel({
     setStatusError(null);
     setSessions(null);
     setPeerID('');
+    setKeyword('');
+    setKeyword('');
     setBusy(null);
     setUncertain(false);
     setError(null);
@@ -146,6 +149,7 @@ export default function WechatPanel({
         if (changedAccount || !value.configured) {
           setSessions(null);
           setPeerID('');
+          setKeyword('');
           sessionsAccount.current = value.account_id;
         }
         if (changedAccount || !monitorDirtyRef.current) {
@@ -325,7 +329,12 @@ export default function WechatPanel({
     const controller = beginOperation('read');
     if (!controller) return;
     try {
-      const result = await readWechatMessages(token, controller.signal, peerID);
+      const result = await readWechatMessages(
+        token,
+        controller.signal,
+        peerID,
+        keyword,
+      );
       if (controller.signal.aborted || !mounted.current) return;
       invalidateStatus();
       lastResultDigest.current = resultDigest(result);
@@ -339,8 +348,11 @@ export default function WechatPanel({
             }
           : previous,
       );
+      const keywordNotice = keyword.trim()
+        ? `关键词“${keyword.trim()}”已在本次读取窗口内筛选。`
+        : '';
       setNotice(
-        `本次保存 ${result.inserted} 条，重复 ${result.duplicates} 条，跳过 ${result.skipped} 条。已保存的消息可在下方微信筛选中查看。`,
+        `本次保存 ${result.inserted} 条，重复 ${result.duplicates} 条，跳过 ${result.skipped} 条。${keywordNotice}已保存的消息可在下方微信筛选中查看。`,
       );
       onSyncedRef.current();
     } catch (failure: unknown) {
@@ -405,7 +417,7 @@ export default function WechatPanel({
           </svg>
           <div>
             <h2 id="wechat-panel-title">读取本机微信消息</h2>
-            <p>按需保存私聊，也可以交给后台定时读取。</p>
+            <p>按需保存私聊或群聊，可按正文关键词筛选，也可以交给后台定时读取。</p>
           </div>
         </div>
         <div className="email-panel-actions">
@@ -498,6 +510,26 @@ export default function WechatPanel({
                 </option>
               ))}
             </select>
+          </div>
+          <div className="wechat-chat-field">
+            <label htmlFor="wechat-keyword">正文关键词（可选）</label>
+            <input
+              id="wechat-keyword"
+              type="search"
+              value={keyword}
+              maxLength={128}
+              placeholder="仅筛选本次读取窗口"
+              onChange={(event) => {
+                setKeyword(event.target.value);
+                setNotice(null);
+                setError(null);
+              }}
+              disabled={blocked}
+              aria-describedby="wechat-keyword-help"
+            />
+            <span id="wechat-keyword-help" className="wechat-field-help">
+              只匹配微信本地库本次读取窗口内的文本，不改变源库。
+            </span>
           </div>
           <button
             className="button button-secondary"

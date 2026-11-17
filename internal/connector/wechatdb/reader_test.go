@@ -170,6 +170,24 @@ func TestEncryptedReadPrivateTextMultipleShardsAndIsolation(t *testing.T) {
 	}
 }
 
+func TestReadMatchingFiltersTextWithinBoundedSourceWindow(t *testing.T) {
+	f := newFixture(t, 1)
+	f.add(0, 1, 1, 2, 1700000000, "项目安排已确认", nil)
+	f.add(0, 2, 1, 2, 1700000001, "普通问候", nil)
+	f.close()
+	r := f.reader()
+	batch, err := r.ReadMatching(context.Background(), fixturePeer, "项目")
+	if err != nil || len(batch.Messages) != 1 || batch.Messages[0].Body != "项目安排已确认" {
+		t.Fatalf("keyword filter mismatch: %+v, %v", batch, err)
+	}
+	if _, err := r.ReadMatching(context.Background(), fixturePeer, "\n"); !errors.Is(err, ErrInvalidKeyword) {
+		t.Fatalf("control keyword accepted: %v", err)
+	}
+	if _, err := r.ReadMatching(context.Background(), fixturePeer, strings.Repeat("词", maxKeywordRunes+1)); !errors.Is(err, ErrInvalidKeyword) {
+		t.Fatalf("oversized keyword accepted: %v", err)
+	}
+}
+
 func TestGroupChatIdentityAndSenderNormalization(t *testing.T) {
 	for _, id := range []string{"@@room_123", "@@group-member_9"} {
 		if !groupID(id) || !chatID(id) || chatKind(id) != "group" {

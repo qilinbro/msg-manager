@@ -953,7 +953,7 @@
     },
     "/api/v1/conversations/{conversation_id}/messages": {
       "get": {
-        "description": "取会话最新一页历史；页内按时间升序，next_cursor用于读取更早历史。",
+        "description": "取会话最新一页历史；页内按时间升序，next_cursor用于读取更早历史。可用 q 对该会话已入库的消息正文做字面关键词筛选，搜索仍受会话和工作区权限限制。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -1044,6 +1044,16 @@
               "minimum": 1,
               "maximum": 100,
               "default": 50
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "消息正文关键词，按字面子串匹配；支持中文，最大256字节。",
+            "schema": {
+              "type": "string",
+              "maxLength": 256
             }
           }
         ]
@@ -2764,7 +2774,7 @@
     },
     "/api/v1/connections/wechat-db/read": {
       "post": {
-        "description": "手动读取所选私聊或群聊最近一批文本，原子保存到产品加密库。默认100/最大500个源记录窗口，跳过媒体；不是全历史、持续接收或密钥提取。群聊首版不提供成员列表、@提及解析或发送能力。",
+        "description": "手动读取所选私聊或群聊最近一批文本，原子保存到产品加密库。可选keyword按正文子串筛选同一读取窗口；默认100/最大500个源记录窗口，跳过媒体；不是全历史、持续接收或密钥提取。群聊首版不提供成员列表、@提及解析或发送能力。",
         "x-implementation-status": "implemented",
         "requestBody": {
           "required": true,
@@ -2781,6 +2791,11 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 128
+                  },
+                  "keyword": {
+                    "type": "string",
+                    "maxLength": 128,
+                    "description": "可选正文关键词；按Unicode不区分大小写匹配同一读取窗口，空值省略"
                   }
                 }
               }
@@ -5777,6 +5792,10 @@
           },
           "limited": {
             "type": "boolean"
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 128
           },
           "read_at": {
             "type": "string",

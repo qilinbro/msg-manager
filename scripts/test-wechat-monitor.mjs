@@ -44,6 +44,18 @@ assert.equal(requests.at(-1).method, 'GET');
 assert.equal(requests.at(-1).body, undefined);
 response = structuredClone(status);
 assert.equal((await api.getWechatStatus('synthetic', signal())).monitor.interval_seconds, 30);
+response = structuredClone(readResult);
+await api.readWechatMessages('synthetic', signal(), 'wxid_synthetic_peer', '项目安排');
+assert.deepEqual(
+  JSON.parse(requests.at(-1).body),
+  { peer_id: 'wxid_synthetic_peer', keyword: '项目安排' },
+  'wechat reads must send the optional body keyword',
+);
+await assert.rejects(
+  api.readWechatMessages('synthetic', signal(), 'wxid_synthetic_peer', 'bad\nterm'),
+  (error) => error.code === 'INVALID_INPUT',
+);
+response = structuredClone(status);
 response.monitor.sending_enabled = true;
 await assert.rejects(api.getWechatStatus('synthetic', signal()), (error) => error.code === 'INVALID_RESPONSE');
 response = { ...structuredClone(monitor), enabled: true, state: 'waiting' };
@@ -118,11 +130,12 @@ function find(harness, predicate) { const node = nodes(harness.tree).find(predic
 let componentStatus = structuredClone(status);
 const calls = [];
 const saves = [];
+const readKeywords = [];
 let softRefreshes = 0;
 const panel = hookHarness('WechatPanel.tsx', 'WechatPanel', {
   getWechatStatus: async (_token, requestSignal) => { calls.push({ action: 'status', signal: requestSignal }); return structuredClone(componentStatus); },
   getWechatSessions: async () => { calls.push({ action: 'sessions' }); return [{ peer_id: 'wxid_synthetic_peer', name: '合成联系人', conversation_kind: 'private' }]; },
-  readWechatMessages: async () => { calls.push({ action: 'read' }); return structuredClone(readResult); },
+  readWechatMessages: async (_token, _signal, _peerID, keyword) => { calls.push({ action: 'read' }); readKeywords.push(keyword ?? ''); return structuredClone(readResult); },
   saveWechatMonitor: async (_token, _signal, settings) => { saves.push(structuredClone(settings)); componentStatus.monitor = { ...componentStatus.monitor, ...settings, state: settings.enabled ? 'waiting' : 'disabled' }; return structuredClone(componentStatus.monitor); },
   wechatMonitorError: () => 'synthetic error',
 }, { token: 'synthetic', storageEnabled: true, revision: 0, onSynced() {}, onBackgroundSynced() { softRefreshes++; }, onAuthFailure() { throw Error('unexpected authentication failure'); } });
@@ -131,6 +144,17 @@ const tick = async () => { for (const timer of panel.intervals.values()) { asser
 await tick();
 assert.ok(calls.every((call) => call.action === 'status'), 'mount and polling must never start a source read');
 assert.equal(saves.length, 0, 'mount must not enable automation');
+find(panel, (node) => node.type === 'button' && text(node) === '读取会话列表').props.onClick();
+await panel.flush();
+const keywordInput = find(panel, (node) => node.props.id === 'wechat-keyword');
+keywordInput.props.onChange({ target: { value: '项目安排' } });
+await panel.flush();
+const peerSelect = find(panel, (node) => node.props.id === 'wechat-peer');
+peerSelect.props.onChange({ target: { value: 'wxid_synthetic_peer' } });
+await panel.flush();
+await find(panel, (node) => node.type === 'form' && node.props.className === 'wechat-read-form').props.onSubmit({ preventDefault() {} });
+await panel.flush();
+assert.deepEqual(readKeywords, ['项目安排'], 'wechat reads must forward the optional body keyword');
 const intervalInput = find(panel, (node) => node.props.id === 'wechat-monitor-interval');
 intervalInput.props.onChange({ target: { value: '60' } }); await panel.flush(); await tick();
 assert.equal(find(panel, (node) => node.props.id === 'wechat-monitor-interval').props.value, '60', 'polling must preserve unsaved settings');
@@ -139,9 +163,10 @@ await tick(); await tick();
 assert.equal(softRefreshes, 1, 'an unchanged result must not repeatedly refresh messages');
 componentStatus.monitor.last_result = { ...readResult, inserted: 0, read_at: '2026-01-01T00:01:00Z' };
 await tick(); assert.equal(softRefreshes, 1, 'zero new messages must preserve the reading view');
+const beforeVisibilityCalls = calls.length;
 panel.dispatch('visibilitychange'); await panel.flush();
 assert.equal(softRefreshes, 2, 'returning to a throttled tab must reconcile messages even after a duplicate-only cycle');
-assert.ok(calls.every((call) => call.action === 'status'), 'returning to the page must only read cached status');
+assert.ok(calls.slice(beforeVisibilityCalls).every((call) => call.action === 'status'), 'returning to the page must only read cached status');
 componentStatus.state = 'reading'; componentStatus.monitor.enabled = true; componentStatus.monitor.state = 'reading';
 await tick();
 const pause = find(panel, (node) => node.type === 'button' && text(node) === '暂停后台读取');
