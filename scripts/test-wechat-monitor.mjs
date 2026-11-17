@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -21,7 +22,7 @@ let timeoutID = 0;
 const apiModule = { exports: {} };
 const apiSource = stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/wechat-api.ts', import.meta.url), 'utf8'))
   .replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n')
-  .replace(/^export /gm, '') + '\nmodule.exports={getWechatStatus,getWechatSessions,readWechatMessages,saveWechatMonitor};';
+  .replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm, '') + '\nmodule.exports={getWechatStatus,getWechatSessions,readWechatMessages,saveWechatMonitor};';
 runInNewContext(apiSource, {
   module: apiModule, AbortController, DOMException, Date, Number,
   transport: { SERVICE: { url: 'http://127.0.0.1:17890', error: null }, ServiceError },
@@ -35,7 +36,7 @@ runInNewContext(apiSource, {
 const api = apiModule.exports;
 const signal = () => new AbortController().signal;
 const profileCategoriesModule = { exports: {} };
-const profileCategoriesSource = stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-api.ts', import.meta.url), 'utf8')).replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n').replace(/^export /gm, '') + '\nmodule.exports={PROFILE_CATEGORIES,CATEGORY_NAMES};';
+const profileCategoriesSource = stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-api.ts', import.meta.url), 'utf8')).replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n').replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm, '') + '\nmodule.exports={PROFILE_CATEGORIES,CATEGORY_NAMES};';
 runInNewContext(profileCategoriesSource, { module: profileCategoriesModule, transport: { SERVICE: { url: 'http://127.0.0.1:17890', error: null }, ServiceError } }, { filename: 'profile-api.ts' });
 let legacy = structuredClone(status); delete legacy.monitor;
 response = legacy;

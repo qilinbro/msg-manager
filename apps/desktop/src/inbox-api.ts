@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 import { isProfileCategory } from './profile-api';
 import type { ProfileCategory } from './profile-api';
 
@@ -135,19 +136,23 @@ async function request(
     controller.abort();
   }, 15_000);
   try {
-    const response = await fetch(`${SERVICE.url}/api/v1/${path}`, {
-      method,
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+    const response = await authorizedFetch(
+      `${SERVICE.url}/api/v1/${path}`,
+      token,
+      {
+        method,
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`,
+          ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        },
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller.signal,
+        credentials: 'omit',
+        redirect: 'error',
+        cache: 'no-store',
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: controller.signal,
-      credentials: 'omit',
-      redirect: 'error',
-      cache: 'no-store',
-    });
+    );
     const payload: unknown = await response.json().catch(() => null);
     if (controller.signal.aborted)
       throw new DOMException('请求已取消', 'AbortError');
@@ -164,11 +169,14 @@ async function request(
         isString(payload.error.code)
           ? payload.error.code
           : 'SERVICE_ERROR';
-      const message = Object.hasOwn(ERROR_MESSAGES, code)
-        ? ERROR_MESSAGES[code]
-        : response.status === 413
-          ? ERROR_MESSAGES.PAYLOAD_TOO_LARGE
-          : '暂时无法完成操作，请刷新后重试。';
+      const message = authErrorMessage(
+        code,
+        Object.hasOwn(ERROR_MESSAGES, code)
+          ? ERROR_MESSAGES[code]
+          : response.status === 413
+            ? ERROR_MESSAGES.PAYLOAD_TOO_LARGE
+            : '暂时无法完成操作，请刷新后重试。',
+      );
       throw new ServiceError(message, code, response.status);
     }
     return payload;

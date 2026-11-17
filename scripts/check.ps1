@@ -52,6 +52,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'AI profile client/component regression checks failed.' }
         node scripts/test-service-session.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Service session regression checks failed.' }
+        node scripts/test-device-auth.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Persistent device authorization regression checks failed.' }
         node scripts/test-wechat-monitor.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Wechat monitor client regression checks failed.' }
         node scripts/test-inbox-import.mjs

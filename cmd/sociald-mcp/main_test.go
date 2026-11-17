@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"sync/atomic"
@@ -57,6 +58,9 @@ func processCommand(t *testing.T, ctx context.Context, baseURL, token string) *e
 		processTestFlag + "=1",
 		"SOCIALD_URL=" + baseURL,
 		"SOCIALD_API_TOKEN=" + token,
+		// A stripped child environment alone does not isolate Windows Known
+		// Folder APIs. Always pin a synthetic path, even in env-only tests.
+		"SOCIALD_CREDENTIAL_FILE=" + filepath.Join(t.TempDir(), "missing-synthetic.dpapi"),
 	}
 	return cmd
 }

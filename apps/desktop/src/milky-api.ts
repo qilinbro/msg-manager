@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export interface MilkyGap {
   at: number;
@@ -98,8 +99,9 @@ async function request<T>(
     action === 'status' ? 10_000 : 45_000,
   );
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${SERVICE.url}/api/v1/connections/qq-milky/${action}`,
+      token,
       {
         method: mutation ? 'POST' : 'GET',
         headers: {
@@ -132,9 +134,12 @@ async function request<T>(
           ? payload.error.code
           : 'MILKY_SERVICE_ERROR';
       throw new ServiceError(
-        Object.hasOwn(ERROR_MESSAGES, code)
-          ? ERROR_MESSAGES[code]
-          : 'QQ Milky 操作未完成，请刷新状态后重试。',
+        authErrorMessage(
+          code,
+          Object.hasOwn(ERROR_MESSAGES, code)
+            ? ERROR_MESSAGES[code]
+            : 'QQ Milky 操作未完成，请刷新状态后重试。',
+        ),
         code,
         response.status,
       );

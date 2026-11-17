@@ -32,6 +32,8 @@ type handler struct {
 	profiles    *profileWorker
 	aiMu        sync.RWMutex
 	modelConfig store.ModelConfig
+	deviceAuth  localDeviceAuth
+	listenAddr  string
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -66,7 +68,11 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, qq: qq, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	if err := h.restoreLocalDevices(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted device authorizations could not be restored")
+	}
 	h.modelConfig = store.ModelConfig{BaseURL: cfg.AI.BaseURL, Model: cfg.AI.Model, APIKey: cfg.AI.APIKey, DailyLimit: ai.dailyLimit}
 	if err := h.restoreModelConfig(); err != nil {
 		_ = h.Close()
@@ -93,6 +99,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 }
 
 func (h *handler) Close() error {
+	h.closeLocalDevices()
 	if h.profiles != nil {
 		h.profiles.stop()
 	}
@@ -125,12 +132,13 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
 	apiPath := r.URL.Path == "/api/v1" || strings.HasPrefix(r.URL.Path, "/api/v1/")
-	// Browsers omit credentials in CORS preflight. This exception returns no
-	// business data. Only exact inbox/AI mutation routes are permitted in addition
-	// to GET, and every actual request must authenticate.
+	// Browsers omit credentials in CORS preflight. This returns no business
+	// data; only exact implemented mutation routes are permitted besides GET.
+	// Actual business requests authenticate; anonymous device proof endpoints
+	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -141,15 +149,22 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+	if publicDeviceAuth(r.Method, r.URL.Path) {
+		h.serveDeviceAuth(w, r, traceID)
+		return
+	}
 	if apiPath {
-		if !validToken(r, h.tokenHash) {
-			w.Header().Set("WWW-Authenticate", "Bearer")
-			writeError(w, http.StatusUnauthorized, "UNAUTHORIZED", "需要有效的本机访问令牌。", traceID)
+		var authenticated bool
+		r, authenticated = h.authenticateRequest(w, r, traceID)
+		if !authenticated {
 			return
 		}
-		r = r.WithContext(withLocalPrincipal(r.Context()))
 		if !validScopeClaims(r, authenticatedWorkspace(r.Context())) {
 			writeError(w, http.StatusForbidden, "SCOPE_DENIED", "请求不属于当前工作区。", traceID)
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/api/v1/auth/") {
+			h.serveDeviceAuth(w, r, traceID)
 			return
 		}
 		if r.URL.Path == modelConfigPath {

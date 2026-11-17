@@ -733,6 +733,12 @@ function Settings({
   tokenDraft,
   hasToken,
   storageAvailable,
+  rememberDevice,
+  remembered,
+  deviceExpiresAt,
+  persistenceNotice,
+  forgetting,
+  onRememberChange,
   onDraftChange,
   onConnect,
   onClear,
@@ -745,6 +751,12 @@ function Settings({
   tokenDraft: string;
   hasToken: boolean;
   storageAvailable: boolean;
+  rememberDevice: boolean;
+  remembered: boolean;
+  deviceExpiresAt: string | null;
+  persistenceNotice: string | null;
+  forgetting: boolean;
+  onRememberChange: (value: boolean) => void;
   onDraftChange: (value: string) => void;
   onConnect: (event: FormEvent<HTMLFormElement>) => void;
   onClear: () => void;
@@ -770,41 +782,70 @@ function Settings({
           </div>
           <div>
             <h2 id="service-settings-title">本地服务</h2>
-            <p>使用服务启动时配置的访问令牌，读取当前运行状态。</p>
+            <p>首次使用主令牌授权，再读取本地服务的运行状态。</p>
           </div>
           <Status connected={session.status === 'connected'} />
         </div>
         <form onSubmit={onConnect} className="connection-form">
-          <label htmlFor="service-token">访问令牌</label>
+          <label htmlFor="service-token">主令牌</label>
           <input
             id="service-token"
             name="service-token"
             type="password"
             value={tokenDraft}
             onChange={(event) => onDraftChange(event.target.value)}
-            placeholder="输入本地服务令牌"
+            placeholder={
+              remembered
+                ? '已使用本机授权；仅更换连接时输入主令牌'
+                : '输入本地服务启动时配置的主令牌'
+            }
             autoComplete="off"
             spellCheck={false}
-            disabled={connecting}
+            disabled={connecting || forgetting}
             aria-describedby="token-description"
           />
           <p id="token-description" className="input-help">
             <Icon name="lock" size={14} />
-            {storageAvailable
-              ? '连接信息仅在本标签页会话内保留，刷新后自动验证，可随时清除。'
-              : '当前浏览器无法保存会话，连接仅在本窗口内存中保留；刷新后需重新连接。'}
+            <span>
+              {remembered
+                ? `已记住此浏览器，关闭页面后可自动恢复。${deviceExpiresAt ? `有效期至 ${new Date(deviceExpiresAt).toLocaleDateString('zh-CN')}。` : '授权最长 90 天。'}`
+                : '未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。'}
+              {!storageAvailable
+                ? ' 无法清理旧版连接记录，请手动清除此站点数据；不会读取或恢复旧令牌。'
+                : ''}
+            </span>
           </p>
+          {!remembered || tokenDraft.trim() ? (
+            <div className="remember-device">
+              <label className="remember-device-choice">
+                <input
+                  type="checkbox"
+                  checked={rememberDevice}
+                  onChange={(event) => onRememberChange(event.target.checked)}
+                  disabled={connecting || forgetting}
+                  aria-describedby="remember-description"
+                />
+                <span>记住这台可信任的电脑（90 天）</span>
+              </label>
+              <p id="remember-description">
+                浏览器保存不可导出的签名密钥，而非主令牌。请勿在共享电脑上勾选；清除站点数据或更换地址后需重新授权。
+              </p>
+            </div>
+          ) : null}
           <div className="form-actions">
             <button
               className="button button-primary"
               type="submit"
               disabled={
-                connecting || !tokenDraft.trim() || Boolean(SERVICE.error)
+                connecting ||
+                forgetting ||
+                (!tokenDraft.trim() && !hasToken) ||
+                Boolean(SERVICE.error)
               }
             >
               {connecting
                 ? '正在连接…'
-                : session.status === 'connected'
+                : hasToken
                   ? '重新检查连接'
                   : '连接服务'}
               {!connecting ? <Icon name="arrow" size={16} /> : null}
@@ -817,16 +858,19 @@ function Settings({
               >
                 取消连接
               </button>
-            ) : (
-              <button
-                className="button button-quiet"
-                type="button"
-                onClick={onClear}
-                disabled={!tokenDraft && !hasToken}
-              >
-                清除令牌与连接
-              </button>
-            )}
+            ) : null}
+            <button
+              className="button button-quiet"
+              type="button"
+              onClick={onClear}
+              disabled={forgetting || (!tokenDraft && !hasToken)}
+            >
+              {forgetting
+                ? '正在忘记…'
+                : remembered
+                  ? '忘记本机并断开'
+                  : '清除令牌与连接'}
+            </button>
           </div>
           <div aria-live="polite" aria-atomic="true">
             {SERVICE.error || session.error ? (
@@ -839,6 +883,9 @@ function Settings({
                 服务可访问，状态已更新。
                 {session.checkedAt ? `检查于 ${session.checkedAt}` : ''}
               </p>
+            ) : null}
+            {persistenceNotice ? (
+              <p className="connection-notice">{persistenceNotice}</p>
             ) : null}
           </div>
         </form>
@@ -940,7 +987,14 @@ export default function App() {
     tokenDraft,
     setTokenDraft,
     activeToken,
+    hasCredential,
     storageAvailable,
+    rememberDevice,
+    setRememberDevice,
+    remembered,
+    deviceExpiresAt,
+    persistenceNotice,
+    forgetting,
     connect,
     clear,
     cancel,
@@ -1044,8 +1098,14 @@ export default function App() {
               session={session}
               activeToken={activeToken}
               tokenDraft={tokenDraft}
-              hasToken={Boolean(activeToken)}
+              hasToken={hasCredential}
               storageAvailable={storageAvailable}
+              rememberDevice={rememberDevice}
+              remembered={remembered}
+              deviceExpiresAt={deviceExpiresAt}
+              persistenceNotice={persistenceNotice}
+              forgetting={forgetting}
+              onRememberChange={setRememberDevice}
               onDraftChange={setTokenDraft}
               onConnect={connect}
               onClear={clear}

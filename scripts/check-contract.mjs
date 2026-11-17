@@ -13,14 +13,34 @@ const events = spec.paths['/api/v1/events']?.get;
 assert.ok(events?.responses['501'], 'Event streaming is reserved until persistence exists');
 assert.ok(!events.responses['200'], 'Do not advertise an implemented event stream');
 assert.equal(events['x-implementation-status'], 'planned');
-for (const path of Object.keys(spec.paths)) {
-  if (path.startsWith('/api/v1/')) {
-    assert.deepEqual(spec.security, [{ localBearer: [] }]);
-    for (const operation of Object.values(spec.paths[path])) {
-      assert.ok(operation.responses['401'], path + ' must document authentication failure');
+const anonymousDeviceProofs = new Set([
+  'post /api/v1/auth/challenges',
+  'post /api/v1/auth/sessions',
+]);
+assert.deepEqual(spec.security, [{ localBearer: [] }]);
+for (const [path, operations] of Object.entries(spec.paths)) {
+  if (!path.startsWith('/api/v1/')) continue;
+  for (const [method, operation] of Object.entries(operations)) {
+    assert.ok(operation.responses['401'], path + ' must document authentication/proof failure');
+    if (anonymousDeviceProofs.has(`${method} ${path}`)) {
+      assert.deepEqual(operation.security, [], 'Only explicit origin-bound proof endpoints omit bearer authentication');
+    } else if (operation.security !== undefined) {
+      assert.deepEqual(operation.security, spec.security, path + ' must not weaken bearer authentication');
     }
   }
 }
+const pairDevice = spec.paths['/api/v1/auth/devices']?.post;
+assert.equal(pairDevice?.['x-master-only'], true);
+assert.ok(pairDevice.responses['201']);
+assert.ok(spec.paths['/api/v1/auth/challenges']?.post.responses['429']);
+assert.ok(spec.paths['/api/v1/auth/sessions']?.post.responses['200']);
+assert.ok(spec.paths['/api/v1/auth/devices/{device_id}']?.delete.responses['204']);
+assert.deepEqual(spec.components.schemas.DevicePairRequest.required, ['public_key']);
+assert.equal(spec.components.schemas.DevicePairRequest.additionalProperties, false);
+assert.equal(spec.components.schemas.DeviceSessionRequest.properties.signature.minLength, 86);
+assert.equal(spec.components.schemas.DeviceID.maxLength, 22);
+assert.equal(spec.components.parameters.DeviceOrigin.required, true);
+assert.ok(!spec.components.parameters.DeviceOrigin.schema.enum.includes('null'));
 function checkRefs(value) {
   if (!value || typeof value !== 'object') return;
   if (value.$ref) {
@@ -40,6 +60,10 @@ for (const path of Object.values(spec.paths)) {
 const implementedMutations = Object.entries(spec.paths).flatMap(([path, operations]) =>
   Object.entries(operations).filter(([method, op]) => ['post', 'patch', 'put', 'delete'].includes(method) && op['x-implementation-status'] === 'implemented').map(([method]) => `${method} ${path}`));
 assert.deepEqual(implementedMutations.sort(), [
+  'post /api/v1/auth/devices',
+  'post /api/v1/auth/challenges',
+  'post /api/v1/auth/sessions',
+  'delete /api/v1/auth/devices/{device_id}',
   'patch /api/v1/conversations/{conversation_id}',
   'post /api/v1/imports/messages',
   'post /api/v1/imports/telegram',

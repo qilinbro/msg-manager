@@ -29,16 +29,13 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	handler, err := api.NewHandler(cfg)
+	listener, handler, err := bindLocalHandler(cfg)
 	if err != nil {
 		return err
 	}
+	defer listener.Close()
 	if closer, ok := handler.(interface{ Close() error }); ok {
 		defer closer.Close()
-	}
-	listener, err := net.Listen("tcp", cfg.Addr)
-	if err != nil {
-		return err
 	}
 	if background, ok := handler.(interface{ StartBackground(context.Context) error }); ok {
 		if err := background.StartBackground(ctx); err != nil {
@@ -70,4 +67,22 @@ func run(ctx context.Context) error {
 		slog.Info("sociald stopped gracefully")
 		return nil
 	}
+}
+
+func bindLocalHandler(cfg config.Config) (net.Listener, http.Handler, error) {
+	if err := cfg.Validate(); err != nil {
+		return nil, nil, err
+	}
+	// Handler construction can permanently prune grants after an issuer change.
+	// A duplicate startup that cannot own the port must not touch that state.
+	listener, err := net.Listen("tcp", cfg.Addr)
+	if err != nil {
+		return nil, nil, err
+	}
+	handler, err := api.NewHandler(cfg)
+	if err != nil {
+		_ = listener.Close()
+		return nil, nil, err
+	}
+	return listener, handler, nil
 }

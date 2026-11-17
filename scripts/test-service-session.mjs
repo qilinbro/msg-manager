@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { pathToFileURL } from 'node:url';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
 
 // Execute the shipped storage, connection hook, API client and app with fake
@@ -18,13 +19,13 @@ const system = (version = 'synthetic') => ({
 });
 
 function syntheticStorage(initial = new Map()) {
-  const values = new Map(initial);
+  const values = new Map(initial), reads = [], writes = [], removals = [];
   return {
-    values,
+    values, reads, writes, removals,
     denied: false,
-    getItem(key) { if (this.denied) throw Error('synthetic storage denial'); return values.get(key) ?? null; },
-    setItem(key, value) { if (this.denied) throw Error('synthetic storage denial'); values.set(key, String(value)); },
-    removeItem(key) { if (this.denied) throw Error('synthetic storage denial'); values.delete(key); },
+    getItem(key) { reads.push(key); if (this.denied) throw Error('synthetic storage denial'); return values.get(key) ?? null; },
+    setItem(key, value) { writes.push({ key, value }); if (this.denied) throw Error('synthetic storage denial'); values.set(key, String(value)); },
+    removeItem(key) { removals.push(key); if (this.denied) throw Error('synthetic storage denial'); values.delete(key); },
   };
 }
 
@@ -42,7 +43,7 @@ function sourceFor(file) {
     .replace(/^export /gm, '');
 }
 
-function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply = system() } = {}) {
+function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply = system(), authBrowser = null } = {}) {
   const slots = [];
   let cursor = 0;
   let dirty = true;
@@ -104,13 +105,17 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
     setTimeout(callback, ms) { timers.set(++nextTimer, { callback, ms }); return nextTimer; },
     clearTimeout(id) { timers.delete(id); },
   };
+  if (authBrowser) Object.defineProperties(fakeWindow, Object.getOwnPropertyDescriptors(authBrowser.window));
   const fakeDocument = { visibilityState: 'visible', addEventListener: addListener, removeEventListener: removeListener };
   const environment = {
+    ...(authBrowser?.globals ?? {}),
     ...hooks, jsx, Fragment: 'fragment',
+    MilkyPanel: 'MilkyPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub',
     module: { exports: {} },
     window: fakeWindow, document: fakeDocument,
     URL, AbortController, DOMException, Date, Map,
     fetch(url, options) {
+      if (authBrowser) return authBrowser.fetch(url, options);
       const request = { url, options, settled: false };
       requests.push(request);
       assert.equal(url, `${SERVICE_URL}/api/v1/system`, 'restoring a session must only inspect local system metadata');
@@ -142,6 +147,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
     Object.assign(environment, result);
     return result;
   }
+  const auth = evaluate('device-auth.ts', ['DeviceAuthError', 'authorizedFetch', 'authErrorMessage', 'deviceAuthAvailable', 'isDeviceHandle', 'loadDeviceSession', 'pairDevice', 'forgetDevice', 'subscribeDeviceForget']);
   const api = evaluate('api.ts', ['SERVICE', 'ServiceError', 'getSystem', 'getCollection', 'getQQVerification']);
   const sessions = evaluate('service-session.ts', ['SERVICE_SESSION_KEY', 'loadServiceSession', 'saveServiceSession', 'clearServiceSession']);
   const { useServiceSession } = evaluate('useServiceSession.ts', ['useServiceSession']);
@@ -152,7 +158,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
     render = () => App();
   }
   return {
-    storage, api, sessions, aiDrafts, requests, timers,
+    storage, api, auth, sessions, aiDrafts, requests, timers, evaluate,
     get value() { return rendered; },
     get localStorageReads() { return localStorageReads; },
     get postUnmountStateWrites() { return postUnmountStateWrites; },
@@ -207,31 +213,47 @@ async function connect(harness, token) {
 }
 const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Authorization;
 
-// Storage is versioned, origin-bound and restricted to this tab session.
+export { browserHarness, syntheticStorage, system, nodes, find, settings };
+
+// New device tests reuse this unchanged React lifecycle harness. Importing it
+// does not rerun the original eleven groups; its standalone command still does.
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+// The fallback is exact-origin-bound page memory, never Web Storage. Startup
+// purges the legacy key without reading/importing any obsolete master token.
 {
-  const h = browserHarness();
-  const { SERVICE_SESSION_KEY: key, loadServiceSession: load, saveServiceSession: save, clearServiceSession: clear } = h.sessions;
-  assert.equal(key, 'social-intelligence.service-session.v1');
-  assert.equal(load(SERVICE_URL).token, null);
+  const key = 'social-intelligence.service-session.v1';
+  const legacy = { version: 1, service_url: SERVICE_URL, token: TOKEN_A };
+  const storage = syntheticStorage(new Map([[key, JSON.stringify(legacy)], ['unrelated-session', 'keep']]));
+  const h = browserHarness({ storage });
+  const { SERVICE_SESSION_KEY, loadServiceSession: load, saveServiceSession: save, clearServiceSession: clear } = h.sessions;
+  assert.equal(SERVICE_SESSION_KEY, key);
+  assert.equal(storage.values.has(key), false, 'legacy master must be removed immediately at module startup');
+  assert.equal(storage.values.get('unrelated-session'), 'keep');
+  assert.equal(load(SERVICE_URL).token, null, 'legacy content is never accepted as a credential');
   assert.equal(save(SERVICE_URL, TOKEN_A), true);
   assert.equal(load(SERVICE_URL).token, TOKEN_A);
-  assert.equal(load('http://localhost:17890').token, null, 'other service origins must not inherit credentials');
+  assert.equal(storage.values.has(key), false);
+  assert.equal(load('http://localhost:17890').token, null, 'other service URLs must not inherit memory credentials');
   assert.equal(clear(SERVICE_URL, TOKEN_B), true);
-  assert.equal(load(SERVICE_URL).token, TOKEN_A, 'a stale token must not erase the current saved credential');
+  assert.equal(load(SERVICE_URL).token, TOKEN_A, 'a stale token must not erase the current memory credential');
   for (const invalid of ['', ' leading', 'trailing ', 'two words', 'line\nbreak', '\u0000', '\u007f', '中文', 'x'.repeat(4097)]) assert.equal(save(SERVICE_URL, invalid), false);
   assert.equal(load(SERVICE_URL).token, TOKEN_A, 'invalid input must not replace a verified credential');
-  const valid = JSON.parse(h.storage.values.get(key));
-  for (const value of ['{', 'null', '[]', JSON.stringify({ ...valid, version: 2 }), JSON.stringify({ ...valid, service_url: 'https://untrusted.invalid' }), JSON.stringify({ ...valid, token: 'unsafe\nvalue' })]) {
-    h.storage.values.set(key, value);
-    assert.equal(load(SERVICE_URL).token, null, 'malformed saved state must never become a credential');
+  for (const value of [JSON.stringify(legacy), '{', 'null', '[]', JSON.stringify({ ...legacy, version: 2 }), JSON.stringify({ ...legacy, service_url: 'https://untrusted.invalid' }), JSON.stringify({ ...legacy, token: 'unsafe\nvalue' })]) {
+    storage.values.set(key, value);
+    assert.equal(load(SERVICE_URL).token, TOKEN_A, 'legacy contents cannot overwrite the page-memory credential');
+    assert.equal(storage.values.has(key), false);
   }
-  h.storage.values.set(key, JSON.stringify(valid));
   assert.equal(clear(SERVICE_URL), true);
   assert.equal(load(SERVICE_URL).token, null);
-  h.storage.denied = true;
-  assert.equal(load(SERVICE_URL).available, false);
+  storage.denied = true;
+  assert.equal(load(SERVICE_URL).available, false, 'cleanup denial is reported truthfully');
   assert.equal(save(SERVICE_URL, TOKEN_A), false);
+  assert.equal(load(SERVICE_URL).token, TOKEN_A, 'memory connection still works when Web Storage is denied');
   assert.equal(clear(SERVICE_URL), false);
+  assert.equal(load(SERVICE_URL).token, null, 'Web Storage denial cannot stop an in-memory clear');
+  assert.equal(storage.reads.length, 0);
+  assert.equal(storage.writes.length, 0);
+  assert.ok(storage.removals.every((entry) => entry === key), 'only our obsolete session key may be removed');
   assert.equal(h.localStorageReads, 0);
   assert.equal(h.locationReads, 0);
   h.unmount();
@@ -259,13 +281,22 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
   h.unmount();
 }
 
-// Reload restores only after validation; focus and visibility coalesce into one
-// metadata request while leaving the valid connected screen available.
+// Reload cannot restore a master; a same-page module-memory remount validates
+// again. Focus/visibility share one metadata request without blanking the UI.
 {
   const storage = syntheticStorage();
-  let h = browserHarness({ storage });
+  const previousPage = browserHarness({ storage });
+  previousPage.sessions.saveServiceSession(SERVICE_URL, TOKEN_A);
+  previousPage.unmount();
+  const reloadedPage = browserHarness({ storage });
+  await reloadedPage.flush();
+  assert.equal(reloadedPage.requests.length, 0, 'a reload must not recover any bearer from Web Storage');
+  assert.equal(reloadedPage.value.activeToken, '');
+  assert.equal(reloadedPage.value.tokenDraft, '');
+  reloadedPage.unmount();
+  const h = browserHarness({ storage, autoReply: null });
+  // Explicitly seed this VM's module-memory cache, as a same-page remount does.
   h.sessions.saveServiceSession(SERVICE_URL, TOKEN_A);
-  h = browserHarness({ storage, autoReply: null });
   await h.flush();
   assert.equal(h.value.activeToken, '');
   assert.equal(h.requests.length, 1);
@@ -408,8 +439,8 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
   h.unmount();
 }
 
-// A stale child callback from an unmounted app must not clear the tab record
-// after a replacement app has restored the same authenticated connection.
+// A stale child callback from an unmounted app must not clear the memory cache
+// after a same-page replacement app verifies the same authenticated connection.
 {
   const old = browserHarness();
   await old.flush(); await connect(old, TOKEN_A);
@@ -417,6 +448,7 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
   const oldSystemUpdate = old.value.onSystemUpdate;
   old.unmount();
   const current = browserHarness({ storage: old.storage, autoReply: system('replacement-app') });
+  current.sessions.saveServiceSession(SERVICE_URL, TOKEN_A); // same-page memory cache, not disk/sessionStorage
   await current.flush();
   assert.equal(current.value.activeToken, TOKEN_A);
   oldSystemUpdate(system('unmounted-app-response'));
@@ -466,4 +498,5 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
   h.unmount();
 }
 
-console.log('Service session synthetic checks passed: origin-bound tab storage, verified restoration, metadata-only focus recovery, transient failure retention, 401/clear invalidation, stale and unmounted callbacks, same-token authentication epochs, StrictMode replay, draft preservation, storage denial and actual app navigation.');
+console.log('Service session synthetic checks passed (11 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.');
+}

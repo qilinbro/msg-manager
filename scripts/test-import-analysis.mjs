@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -19,7 +20,7 @@ const module = { exports: {} };
 const clientSource = stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/inbox-api.ts', import.meta.url), 'utf8'))
   .replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n')
   .replace(/^import .* from '\.\/profile-api';\r?\n/m, 'const isProfileCategory=()=>true;\n')
-  .replace(/^export /gm, '') + '\nmodule.exports={importMessages,importTelegram,parseImport,PLATFORM_NAMES};';
+  .replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm, '') + '\nmodule.exports={importMessages,importTelegram,parseImport,PLATFORM_NAMES};';
 let responder = null;
 runInNewContext(clientSource, { module, TextEncoder, URLSearchParams, AbortController, DOMException, transport: { SERVICE: { url: 'http://127.0.0.1:17890', error: null }, ServiceError },
   window: { setTimeout: () => 1, clearTimeout() {} }, fetch: async (url, options) => {

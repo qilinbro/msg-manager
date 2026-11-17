@@ -16,6 +16,102 @@
     }
   ],
   "paths": {
+    "/api/v1/auth/devices": {
+      "post": {
+        "operationId": "pairLocalDevice",
+        "summary": "Pair a trusted browser using the master bearer, never a device bearer.",
+        "description": "Exact trusted non-null Origin required. JSON is at most 4096 bytes, exact case-sensitive fields, no duplicates or extra values. Stores only a public P-256 SPKI and bound metadata in SQLCipher. Grant lasts at most 90 days; at most 32 active grants. No cookie or master token is returned.",
+        "x-master-only": true,
+        "x-implementation-status": "implemented",
+        "parameters": [{ "$ref": "#/components/parameters/DeviceOrigin" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DevicePairRequest" } } }
+        },
+        "responses": {
+          "201": {
+            "description": "Public device grant bound to this service and frontend origin.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeviceGrant" } } }
+          },
+          "400": { "$ref": "#/components/responses/DeviceBadRequest" },
+          "401": { "$ref": "#/components/responses/DeviceUnauthorized" },
+          "403": { "$ref": "#/components/responses/DeviceForbidden" },
+          "409": { "description": "DEVICE_LIMIT_REACHED: the workspace already has 32 active devices." },
+          "413": { "description": "Auth JSON exceeds 4096 bytes." },
+          "503": { "$ref": "#/components/responses/DeviceUnavailable" }
+        }
+      }
+    },
+    "/api/v1/auth/challenges": {
+      "post": {
+        "operationId": "challengeLocalDevice",
+        "summary": "Issue a short-lived proof challenge, not a business session.",
+        "description": "No bearer required; strict Host, exact trusted Origin and a matching live device grant are still required. Challenge expires after 60 seconds and is held only in a bounded in-memory cache (256); restart discards it. Message is exactly seven newline-separated values: sociald-device-auth-v1, canonical service origin, frontend origin, device ID, challenge ID, nonce, RFC3339 UTC expiry. Client must reconstruct and validate it before signing.",
+        "security": [],
+        "x-implementation-status": "implemented",
+        "parameters": [{ "$ref": "#/components/parameters/DeviceOrigin" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeviceChallengeRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Origin/service-bound one-use challenge.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeviceChallenge" } } }
+          },
+          "400": { "$ref": "#/components/responses/DeviceBadRequest" },
+          "401": { "$ref": "#/components/responses/DeviceUnauthorized" },
+          "403": { "$ref": "#/components/responses/DeviceForbidden" },
+          "413": { "description": "Auth JSON exceeds 4096 bytes." },
+          "429": { "$ref": "#/components/responses/DeviceBusy" },
+          "503": { "$ref": "#/components/responses/DeviceUnavailable" }
+        }
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "post": {
+        "operationId": "openLocalDeviceSession",
+        "summary": "Exchange one ECDSA proof for a memory-only short-lived bearer.",
+        "description": "No master bearer or cookie. Verify ECDSA P-256/SHA-256 over the exact challenge message with 64-byte P1363 r||s signature. A matching challenge is atomically consumed before verification, including failed signatures; it cannot be replayed. Grant is reloaded and checked. Access expires in at most 15 minutes, never after grant expiry; every business request reloads its grant so subsequent requests fail immediately after revocation. Device bearer cannot enroll another device.",
+        "security": [],
+        "x-implementation-status": "implemented",
+        "parameters": [{ "$ref": "#/components/parameters/DeviceOrigin" }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeviceSessionRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Bearer for this service/frontend only; retain in memory, never persist or log.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeviceSession" } } }
+          },
+          "400": { "$ref": "#/components/responses/DeviceBadRequest" },
+          "401": { "$ref": "#/components/responses/DeviceUnauthorized" },
+          "403": { "$ref": "#/components/responses/DeviceForbidden" },
+          "413": { "description": "Auth JSON exceeds 4096 bytes." },
+          "503": { "$ref": "#/components/responses/DeviceUnavailable" }
+        }
+      }
+    },
+    "/api/v1/auth/devices/{device_id}": {
+      "delete": {
+        "operationId": "revokeLocalDevice",
+        "summary": "Revoke this device, or any device when using the master bearer.",
+        "description": "Exact trusted Origin required. Master revocation is idempotent even for a missing ID; a device may revoke only itself and still must be currently authenticated. Deletes the persisted grant and pending challenges; already-authorized in-flight requests are not undone. Browser must also remove its local descriptor and CryptoKey, including offline, and report remote revocation as unconfirmed if unavailable.",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          { "$ref": "#/components/parameters/DeviceOrigin" },
+          { "name": "device_id", "in": "path", "required": true, "schema": { "$ref": "#/components/schemas/DeviceID" } }
+        ],
+        "responses": {
+          "204": { "description": "Grant removed; no response body." },
+          "401": { "$ref": "#/components/responses/DeviceUnauthorized" },
+          "403": { "$ref": "#/components/responses/DeviceForbidden" },
+          "404": { "description": "Malformed or unknown authentication route." },
+          "503": { "$ref": "#/components/responses/DeviceUnavailable" }
+        }
+      }
+    },
     "/health/live": {
       "get": {
         "operationId": "getLiveness",
@@ -4290,14 +4386,117 @@
     }
   },
   "components": {
+    "parameters": {
+      "DeviceOrigin": {
+        "name": "Origin",
+        "in": "header",
+        "required": true,
+        "description": "Browser origin must match exactly. Missing, null, duplicate or mismatched origins are rejected; this is not cookie authentication.",
+        "schema": {
+          "type": "string",
+          "enum": ["http://127.0.0.1:1420", "http://localhost:1420", "tauri://localhost", "http://tauri.localhost", "https://tauri.localhost"]
+        }
+      }
+    },
+    "responses": {
+      "DeviceBadRequest": {
+        "description": "AUTH_INVALID_REQUEST: invalid, duplicate, mis-cased or extra JSON fields, non-UTF8 input, invalid key or noncanonical URL/query.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "DeviceUnauthorized": {
+        "description": "Missing/invalid bearer, or unknown, expired, revoked, wrong-origin device or invalid/replayed proof. No secret is echoed.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "DeviceForbidden": {
+        "description": "Rejected Host/Origin/workspace, device attempted master-only pairing, or attempted to revoke another device.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "DeviceBusy": {
+        "description": "AUTH_BUSY: bounded challenge cache full. Keep the local key and retry later, not the original business mutation.",
+        "headers": { "Retry-After": { "schema": { "type": "integer", "const": 60 } } },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "DeviceUnavailable": {
+        "description": "AUTH_UNAVAILABLE: encrypted storage/crypto unavailable, request canceled, or listener is not canonical 127.0.0.1. Only 127.0.0.1:<port> supports browser grants; other validated loopback listeners retain master-only API. A temporary 503 is not proof of revocation; retain the browser key for later recovery. Changing the actual listener address, including IP at the same port, or master token permanently prunes old grants at startup.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      }
+    },
     "securitySchemes": {
       "localBearer": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Random local pairing token, at least 32 characters; provided by SOCIALD_API_TOKEN."
+        "description": "Either the 32–4096 printable-ASCII master token (explicit SOCIALD_API_TOKEN or Windows protected launcher credential), or a short-lived origin-bound device access bearer. Only master can enroll devices. Device grants are reloaded for every business request; device bearers require their exact frontend Origin. No cookies or plaintext persistent browser master token."
       }
     },
     "schemas": {
+      "DeviceID": {
+        "type": "string",
+        "minLength": 22,
+        "maxLength": 22,
+        "pattern": "^[A-Za-z0-9_-]{21}[AQgw]$",
+        "description": "Canonical unpadded base64url encoding of 16 random bytes; not a bearer credential."
+      },
+      "DevicePairRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["public_key"],
+        "properties": {
+          "public_key": {
+            "type": "string",
+            "minLength": 122,
+            "maxLength": 122,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "description": "Canonical unpadded base64url of 91-byte P-256 SPKI public key. Private key is nonextractable in browser IndexedDB and never sent."
+          }
+        }
+      },
+      "DeviceGrant": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["device_id", "expires_at", "service_origin", "frontend_origin"],
+        "properties": {
+          "device_id": { "$ref": "#/components/schemas/DeviceID" },
+          "expires_at": { "type": "string", "format": "date-time", "description": "UTC expiry, at most 90 days after creation; not sliding." },
+          "service_origin": { "type": "string", "pattern": "^http://127\\.0\\.0\\.1:[1-9][0-9]{0,4}$" },
+          "frontend_origin": { "type": "string" }
+        }
+      },
+      "DeviceChallengeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["device_id"],
+        "properties": { "device_id": { "$ref": "#/components/schemas/DeviceID" } }
+      },
+      "DeviceChallenge": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["challenge_id", "nonce", "expires_at", "message"],
+        "properties": {
+          "challenge_id": { "type": "string", "minLength": 43, "maxLength": 43, "pattern": "^[A-Za-z0-9_-]+$" },
+          "nonce": { "type": "string", "minLength": 43, "maxLength": 43, "pattern": "^[A-Za-z0-9_-]+$" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "message": { "type": "string", "maxLength": 1024, "description": "Exact seven-line version/service/frontend/device/challenge/nonce/expiry message. Validate all fields and short expiry before signing; never sign arbitrary service text." }
+        }
+      },
+      "DeviceSessionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["device_id", "challenge_id", "signature"],
+        "properties": {
+          "device_id": { "$ref": "#/components/schemas/DeviceID" },
+          "challenge_id": { "type": "string", "minLength": 43, "maxLength": 43, "pattern": "^[A-Za-z0-9_-]+$" },
+          "signature": { "type": "string", "minLength": 86, "maxLength": 86, "pattern": "^[A-Za-z0-9_-]+$", "description": "Canonical base64url of P1363 64-byte r||s, ECDSA P-256 SHA-256; ASN.1 DER signatures are not accepted." }
+        }
+      },
+      "DeviceSession": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["access_token", "expires_at"],
+        "properties": {
+          "access_token": { "type": "string", "maxLength": 256, "description": "Opaque bearer, memory-only, at most 15 minutes. Never persist/log/use as React identity. Not the public device handle." },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      },
       "PlannedEvent": {
         "type": "object",
         "description": "Design-only notification payload. No endpoint emits this schema yet. Events will reference resources instead of including chat bodies or credentials.",

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {runInNewContext} from 'node:vm';
@@ -7,9 +8,9 @@ import {runInNewContext} from 'node:vm';
 // network requests. Only the service transport dependency is replaced.
 const source=readFileSync(new URL('../apps/desktop/src/inbox-api.ts',import.meta.url),'utf8');
 const profileModule={exports:{}};
-const profileSource=stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-api.ts',import.meta.url),'utf8')).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^export /gm,'')+'\nmodule.exports={isProfileCategory};';
+const profileSource=stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-api.ts',import.meta.url),'utf8')).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm,'')+'\nmodule.exports={isProfileCategory};';
 runInNewContext(profileSource,{module:profileModule,transport:{SERVICE:{url:'http://127.0.0.1:17890',error:null},ServiceError:class extends Error{}}},{filename:'profile-api.ts'});
-const compiled=stripTypeScriptTypes(source).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^import .* from '\.\/profile-api';\r?\n/m,'const {isProfileCategory}=profileDependency;\n').replace(/^export /gm,'')+'\nmodule.exports={parseImport};';
+const compiled=stripTypeScriptTypes(source).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^import .* from '\.\/profile-api';\r?\n/m,'const {isProfileCategory}=profileDependency;\n').replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm,'')+'\nmodule.exports={parseImport};';
 const compiledModule={exports:{}};
 runInNewContext(compiled,{module:compiledModule,profileDependency:profileModule.exports,TextEncoder,URLSearchParams,transport:{SERVICE:{url:'http://127.0.0.1:17890',error:null},ServiceError:class extends Error{}}},{filename:'inbox-api.ts'});
 const {parseImport}=compiledModule.exports;

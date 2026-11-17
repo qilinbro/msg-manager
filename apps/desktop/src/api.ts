@@ -1,3 +1,5 @@
+import { authorizedFetch, authErrorMessage } from './device-auth';
+
 export interface Connector {
   id: string;
   display_name: string;
@@ -139,14 +141,21 @@ async function request(
     controller.abort();
   }, 10_000);
   try {
-    const response = await fetch(`${SERVICE.url}/api/v1/${path}`, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-      signal: controller.signal,
-      credentials: 'omit',
-      redirect: 'error',
-      cache: 'no-store',
-    });
+    const response = await authorizedFetch(
+      `${SERVICE.url}/api/v1/${path}`,
+      token,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+        credentials: 'omit',
+        redirect: 'error',
+        cache: 'no-store',
+      },
+    );
     const payload: unknown = await response.json().catch(() => null);
     if (!response.ok) {
       if (response.status === 401) {
@@ -163,12 +172,15 @@ async function request(
           ? payload.error.code
           : 'SERVICE_ERROR';
       throw new ServiceError(
-        path === 'connections/qq-onebot/verify' &&
-          Object.hasOwn(QQ_ERRORS, code)
-          ? QQ_ERRORS[code]
-          : response.status === 503
-            ? '服务暂未就绪，请稍后重试。'
-            : '服务暂时无法完成读取，请稍后重试。',
+        authErrorMessage(
+          code,
+          path === 'connections/qq-onebot/verify' &&
+            Object.hasOwn(QQ_ERRORS, code)
+            ? QQ_ERRORS[code]
+            : response.status === 503
+              ? '服务暂未就绪，请稍后重试。'
+              : '服务暂时无法完成读取，请稍后重试。',
+        ),
         code,
         response.status,
       );

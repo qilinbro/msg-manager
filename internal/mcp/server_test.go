@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -54,6 +56,7 @@ func TestToolsForwardOnlyExpectedRequests(t *testing.T) {
 			defer backend.Close()
 			t.Setenv("SOCIALD_URL", backend.URL)
 			t.Setenv("SOCIALD_API_TOKEN", testToken)
+			t.Setenv("SOCIALD_CREDENTIAL_FILE", filepath.Join(t.TempDir(), "unused-synthetic.dpapi"))
 			s, err := NewFromEnv()
 			if err != nil {
 				t.Fatal(err)
@@ -119,6 +122,7 @@ func TestInvalidArgumentsNeverReachBackend(t *testing.T) {
 
 func TestEnvironmentBoundary(t *testing.T) {
 	t.Setenv("SOCIALD_API_TOKEN", testToken)
+	t.Setenv("SOCIALD_CREDENTIAL_FILE", filepath.Join(t.TempDir(), "unused-synthetic.dpapi"))
 	for _, base := range []string{"http://example.com:17890", "https://127.0.0.1:17890", "http://127.0.0.1:17890/path", "http://u:p@localhost:17890", "http://localhost:17890?", "http://localhost:17890?q=1", "http://localhost:17890/#secret", "http://localhost:17890#", "http://localhost:17890/#", "http://localhost:17890/%2f", "http://localhost:0", "http://localhost:65536", "http://localhost", "http://[::1]:17890", "http:localhost:17890"} {
 		t.Setenv("SOCIALD_URL", base)
 		if _, err := NewFromEnv(); err == nil {
@@ -135,6 +139,39 @@ func TestEnvironmentBoundary(t *testing.T) {
 		if _, err := NewFromEnv(); err == nil {
 			t.Error("invalid token accepted")
 		}
+	}
+}
+
+func TestCredentialEnvironmentPrecedence(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "synthetic-invalid-credential.dpapi")
+	marker := []byte("synthetic-invalid-ciphertext-never-replace")
+	if err := os.WriteFile(path, marker, 0600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("SOCIALD_CREDENTIAL_FILE", path)
+	t.Setenv("SOCIALD_URL", "http://localhost:017890/")
+	t.Setenv("SOCIALD_API_TOKEN", testToken)
+	server, err := NewFromEnv()
+	if err != nil || server.token != testToken || server.baseURL != "http://127.0.0.1:17890" {
+		t.Fatal("explicit environment token did not bypass invalid stored credentials")
+	}
+	defer server.http.CloseIdleConnections()
+	for _, token := range []string{"", "short-synthetic-token", testToken + " "} {
+		t.Setenv("SOCIALD_API_TOKEN", token)
+		if _, err := NewFromEnv(); err == nil || !strings.Contains(err.Error(), "SOCIALD_API_TOKEN") || strings.Contains(err.Error(), "SOCIALD_CREDENTIAL_FILE") {
+			t.Fatal("invalid explicit token fell back to storage")
+		}
+	}
+	// A bad URL wins even when the token is truly absent and storage is bad.
+	if err := os.Unsetenv("SOCIALD_API_TOKEN"); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("SOCIALD_URL", "http://example.com:17890")
+	if _, err := NewFromEnv(); err == nil || !strings.Contains(err.Error(), "SOCIALD_URL") {
+		t.Fatal("credential fallback occurred before URL validation")
+	}
+	if got, err := os.ReadFile(path); err != nil || string(got) != string(marker) {
+		t.Fatal("read-only resolution changed stored bytes")
 	}
 }
 

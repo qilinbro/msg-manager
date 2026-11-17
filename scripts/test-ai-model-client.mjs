@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -9,7 +10,7 @@ class ServiceError extends Error { constructor(message, code, status) { super(me
 const value={base_url:'https://api.deepseek.com',model:'deepseek-chat',daily_limit:50,key_configured:false,revision:0,configured:false,model_config_id:'',sending_enabled:false};
 let response=structuredClone(value), code=200;
 const requests=[];
-const source=stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/model-config-api.ts',import.meta.url),'utf8')).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^export /gm,'')+'\nmodule.exports={getModelConfig,saveModelConfig};';
+const source=stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/model-config-api.ts',import.meta.url),'utf8')).replace(/^import .* from '\.\/api';\r?\n/m,'const {SERVICE,ServiceError}=transport;\n').replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm,'')+'\nmodule.exports={getModelConfig,saveModelConfig};';
 const module={exports:{}};
 runInNewContext(source,{module,transport:{SERVICE:{url:'http://127.0.0.1:17890',error:null},ServiceError},AbortController,DOMException,window:{setTimeout:()=>1,clearTimeout(){}},fetch:async(url,options)=>{requests.push({url,...options});return {ok:code===200,status:code,json:async()=>structuredClone(response)}}});
 const api=module.exports, signal=()=>new AbortController().signal;

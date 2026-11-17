@@ -1,5 +1,7 @@
-// Only the verified local-service credential is kept for this browser tab.
-// Platform credentials, chat content and AI drafts never enter this record.
+// Credentials in this fallback cache live only in the current JavaScript page.
+// A reload/new page starts empty; durable recovery belongs exclusively to the
+// nonextractable IndexedDB device key. Never store any bearer or public handle
+// in Web Storage, and never import a legacy stored master into device pairing.
 export const SERVICE_SESSION_KEY = 'social-intelligence.service-session.v1';
 
 const validOrigin = (value: string) =>
@@ -10,69 +12,50 @@ const validToken = (value: unknown): value is string =>
   value.length <= 4096 &&
   /^[\x21-\x7e]+$/.test(value);
 
-function storage(): Storage {
-  return window.sessionStorage;
-}
+let cached: { serviceURL: string; token: string } | null = null;
 
-export function loadServiceSession(serviceURL: string): {
-  token: string | null;
-  available: boolean;
-} {
-  if (!validOrigin(serviceURL)) return { token: null, available: false };
+function purgeLegacySession(): boolean {
   try {
-    const raw = storage().getItem(SERVICE_SESSION_KEY);
-    if (!raw || raw.length > 16384) return { token: null, available: true };
-    let record: unknown;
-    try {
-      record = JSON.parse(raw);
-    } catch {
-      return { token: null, available: true };
-    }
-    if (typeof record !== 'object' || record === null || Array.isArray(record))
-      return { token: null, available: true };
-    const value = record as Record<string, unknown>;
-    return {
-      token:
-        value.version === 1 &&
-        value.service_url === serviceURL &&
-        validToken(value.token)
-          ? value.token
-          : null,
-      available: true,
-    };
-  } catch {
-    return { token: null, available: false };
-  }
-}
-
-export function saveServiceSession(serviceURL: string, token: string): boolean {
-  if (!validOrigin(serviceURL) || !validToken(token)) return false;
-  try {
-    storage().setItem(
-      SERVICE_SESSION_KEY,
-      JSON.stringify({ version: 1, service_url: serviceURL, token }),
-    );
+    // Remove our own obsolete key without reading/parsing its credential.
+    window.sessionStorage.removeItem(SERVICE_SESSION_KEY);
     return true;
   } catch {
     return false;
   }
+}
+purgeLegacySession();
+
+export function loadServiceSession(serviceURL: string): {
+  token: string | null;
+  // Compatibility name: reports whether legacy cleanup was possible, not
+  // whether credentials are persisted (they never are).
+  available: boolean;
+} {
+  const available = purgeLegacySession();
+  if (!validOrigin(serviceURL)) return { token: null, available: false };
+  return {
+    token: cached?.serviceURL === serviceURL ? cached.token : null,
+    available,
+  };
+}
+
+export function saveServiceSession(serviceURL: string, token: string): boolean {
+  const available = purgeLegacySession();
+  if (!validOrigin(serviceURL) || !validToken(token)) return false;
+  cached = { serviceURL, token };
+  return available;
 }
 
 export function clearServiceSession(
   serviceURL: string,
   expectedToken?: string,
 ): boolean {
+  const available = purgeLegacySession();
   if (!validOrigin(serviceURL)) return false;
-  try {
-    const target = storage();
-    if (expectedToken !== undefined) {
-      const saved = loadServiceSession(serviceURL);
-      if (!saved.available) return false;
-      if (saved.token !== expectedToken) return true;
-    }
-    target.removeItem(SERVICE_SESSION_KEY);
-    return true;
-  } catch {
-    return false;
-  }
+  if (
+    cached?.serviceURL === serviceURL &&
+    (expectedToken === undefined || cached.token === expectedToken)
+  )
+    cached = null;
+  return available;
 }

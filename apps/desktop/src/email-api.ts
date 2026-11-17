@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export type EmailState =
   | 'not_configured'
@@ -80,8 +81,9 @@ async function request(
     sync ? 40_000 : 10_000,
   );
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${SERVICE.url}/api/v1/connections/email-imap/${sync ? 'sync' : 'status'}`,
+      token,
       {
         method: sync ? 'POST' : 'GET',
         headers: {
@@ -113,9 +115,12 @@ async function request(
           ? payload.error.code
           : 'EMAIL_SERVICE_ERROR';
       throw new ServiceError(
-        Object.hasOwn(ERROR_MESSAGES, code)
-          ? ERROR_MESSAGES[code]
-          : '暂时无法处理邮箱，请稍后更新状态。',
+        authErrorMessage(
+          code,
+          Object.hasOwn(ERROR_MESSAGES, code)
+            ? ERROR_MESSAGES[code]
+            : '暂时无法处理邮箱，请稍后更新状态。',
+        ),
         code,
         response.status,
       );

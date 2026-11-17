@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -27,7 +28,7 @@ function client(file, exports, extras = {}) {
   const source = stripTypeScriptTypes(readFileSync(new URL(`../apps/desktop/src/${file}`, import.meta.url), 'utf8'))
     .replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n')
     .replace(/^import .* from '\.\/profile-api';\r?\n/m, 'const {isProfileCategory}=profileDependency;\n')
-    .replace(/^export /gm, '') + `\nmodule.exports={${exports}};`;
+    .replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm, '') + `\nmodule.exports={${exports}};`;
   runInNewContext(source, { module, transport, TextEncoder, URL, URLSearchParams, AbortController, DOMException,
     window: { setTimeout: (callback) => { timeouts.set(++timeoutID, callback); return timeoutID; }, clearTimeout: (id) => timeouts.delete(id) },
     fetch: async (url, options) => { requests.push({ url, ...options }); if (fetchAction) return fetchAction(url, options); return { ok: responseStatus >= 200 && responseStatus < 300, status: responseStatus, json: async () => structuredClone(response) }; }, ...extras,

@@ -30,11 +30,11 @@
 | FEAT-T01 | T01 项目管理 | kirinbao（产品 / 交付） | angjustinl（技术审阅）、joey（前端与 UI 审阅） | 进行中 | 2026-11-13 | 2026-11-13 | — | CHG-T01-004；公开协作标识隐私修订 |
 | FEAT-T02 | T02 QQ 个人号适配 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-13 | 2026-11-16 | — | CHG-T02-005；QQ Milky 客户端恢复授权名单/待核验状态检查通过，待指定审查与真实账号验收 |
 | FEAT-T03 | T03 存储与加密 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 待审查 | 2026-11-13 | 2026-11-16 | — | CHG-T03-001；原型检查通过，待joey审查 |
-| FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-005；官方 SDK 本地 MCP 查询/显式导入、进程/加密后台联调与完整检查通过，待指定审查和真实验收 |
+| FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-006；DPAPI/MCP 自动加载及可撤销设备授权已实现，最终工程回归通过，子项待审查/待验收 |
 | FEAT-T05 | T05 数据模型 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-17 | 2026-11-18 | — | CHG-T05-005；模型设置和档案关联加密存储已实现并检查，子项待指定审查/真实验收 |
 | FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-010；微信私聊/群聊文本读取、正文关键词筛选与后台名单工程检查通过，待指定审查及真实验收 |
 | FEAT-T07 | T07 联系人与导入 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-20 | — | CHG-T07-002；导入后授权自动整理已实现并检查，子项待指定审查/真实验收 |
-| FEAT-T08 | T08 消息工作台 | joey（前端 / 桌面 / UI） | angjustinl（代码审查），kirinbao（交互验收） | 进行中 | 2026-11-17 | 2026-11-20 | — | CHG-T08-005；修复微信配置后 Milky 状态 null 导致的白屏，工程回归通过，待指定审查/真实页面验收 |
+| FEAT-T08 | T08 消息工作台 | joey（前端 / 桌面 / UI） | angjustinl（代码审查），kirinbao（交互验收） | 进行中 | 2026-11-17 | 2026-11-20 | — | CHG-T08-006；设备记住/恢复/忘记已实现，31 组设备回归及桌面/窄屏隔离浏览器通过，子项待审查/待验收 |
 | FEAT-T09 | T09 长期记忆 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-23 | 2026-11-24 | — | CHG-T09-003；全历史档案与资料归类已实现并检查，子项待指定审查/真实验收 |
 | FEAT-T10 | T10 检索 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-24 | 2026-11-25 | — | CHG-T10-003；全历史分批与身份限域已实现并检查，子项待指定审查/真实验收 |
 | FEAT-T11 | T11 模型接入 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-20 | 2026-11-24 | — | CHG-T11-003；可保存模型配置界面已实现并检查，子项待指定审查/真实验收 |
@@ -443,3 +443,17 @@
 - 本轮追加验证：真实 main/OS stdio 子进程六工具转发、非法参数零 HTTP、取消/EOF/退出码、实际 HTTP 鉴权及临时 SQLCipher 搜索/消息分页联调通过；完整 [scripts/check.ps1](scripts/check.ps1)、MCP/命令/integration 包 `-race`、`go mod verify` 均通过；无 CGO 独立桥接构建/EOF 冒烟及命令测试乱序 10 轮通过。AI 只读辅助复核未发现剩余实际阻断问题，不构成指定非作者审批。
 - 本轮修复：微信导入保持 `ReadOnlyHint=false`，将 `OpenWorldHint` 改为 `true`，明确产品库联系人/消息/未读写入及既有授权整理/日报的外部模型与费用风险；增加服务 lifetime→工具 HTTP context 绑定，修复停服时 HTTP 未及时取消的回归。其他五个工具只读；token 覆盖整个工作区而非联系人 allowlist。
 - 当前交付分支为 `feat/mcp-service`，不新建 PR；joey 后端正式审查、kirinbao 真实客户端/本人微信验收仍待执行，实际完成日期 —，已验收统计 MVP `0/27`、扩展 `0/5` 不变。原生 Tauri 与 T04 整项验收未被本轮检查替代。
+
+### CHG-T04-006 / CHG-T08-006｜可撤销的工作台与 MCP 持久连接（2026-11-17）
+
+- 关联 `FEAT-T04` / `FEAT-T08`。用户选择工作台与 MCP 两处持久连接；不关闭鉴权、不把主令牌写浏览器或客户端 JSON，不操作正在运行的后台实例。
+- Windows 启动器稳定复用 CurrentUser DPAPI 保护的服务凭据；MCP 未显式 token env 时原生只读加载。显式 env 存在即优先，空/非法值失败；路径、ACL、URL 不符拒绝且保留原文件。默认不动剪贴板，仅显式 `-CopyApiToken`；正常停后台后才允许 `-RotateApiToken`，不自动杀进程。
+- 工作台默认记住设备 90 天，IndexedDB 保存不可导出 P-256 私钥及非秘密 descriptor，短 bearer 仅内存。SQLCipher v12 最多 32 个 grant、60 秒单次挑战、15 分钟访问；每请求查撤销，真实监听 IP/端口/主令牌变化启动物理清理，A→B→A 不复活。
+- 旧主令牌 sessionStorage 实现明确退役：启动即 remove，不读/解析/自动迁移，不将 root/access/handle 写入 SS 或 localStorage。手动/不支持时只有当前页面内存，刷新需要再输入；旧历史检查原文保留并加替代说明。
+- 统一十个业务 fetch 域，单飞刷新、迟到请求与跨标签页隔离；GET/HEAD 最多一次重试，变更不自动重放。忘记先取消、按 ID 删除再尽力远端撤销，离线不声称远端成功；未知注册响应可能留下到期前残留授权，恢复限制如实记录。
+- 交付：[ADR 0013](<docs/adr/0013-persistent-local-connections.md>)、[设备验证](<docs/acceptance/T08-persistent-device-validation.md>)、[MCP 验证](<docs/acceptance/T04-mcp-validation.md>)、[工作台连接说明](<docs/unified-inbox.md>) 与 [MCP 接入](<docs/mcp-setup.md>)；任务/feat/技术状态同步，历史变更不被新版结果覆盖。
+- 辅助复核 3 项 P2 已定点闭环：先 bind 后 prune、短 proof 401 有界重签不误删长期密钥、失败重配保留旧 descriptor；另补唯一业务 read retry 401 不删密钥。先前 listener IP 绑定缺口亦已修复；保留返工历史，不以首轮全检代替修复后检查。
+- 最终完整工程检查 PASS（38.34s，18:34:23 +08:00 结束）：Go/vet/契约、bootstrap 9 子用例、53 次隔离启动、设备 31 组/内存会话 11 组/7 个业务脚本、格式/tsc/Vite；mod verify、非缓存扩大 race、CGO0 MCP 构建/EOF 均通过。
+- 最终构建隔离 Chromium 6 项通过：1440×1000 / 390×844、真实不可导出 WebCrypto/IDB 密钥、刷新同钥新 proof、离线忘记诚实提示与不复活、在线一次 DELETE；2 次合成注册/3 次签名会话/1 次撤销，零业务写入。一次截图等待确认后 5 张图已查看。无真实后台/凭据/聊天/模型调用，非真实客户端或原生 Tauri 验收。
+- 子项实现及工程检查通过，待审查 / 待验收。joey 审后端/脚本、angjustinl 审前端及 kirinbao 真实浏览器/MCP/原生 Tauri 验收待进行；实际完成日期 —，T04/T08 整项进行中，MVP `0/27`、扩展 `0/5` 不变。DPAPI 只保落盘，loopback HTTP 不提供多用户/服务身份隔离，应限可信个人机；AI 辅助复核不当作指定审批。
+- 只提交推送当前 `feat/mcp-service`，不建 PR、不合并 main；提交哈希生成后可在后续记录补登，不预填。

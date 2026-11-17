@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export interface ProfileLinkIdentity {
   conversation_id: string;
@@ -58,8 +59,9 @@ async function request(
     controller.abort();
   }, 20000);
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${SERVICE.url}/api/v1/conversations/${conversation}/profile-links${method === 'DELETE' ? `/${target}` : ''}`,
+      token,
       {
         method,
         headers: {
@@ -103,7 +105,10 @@ async function request(
         PROFILE_INVALID_INPUT: '请选择两份不同且有效的联系人档案。',
       };
       throw new ServiceError(
-        messages[code] ?? '无法处理档案关联，请刷新状态后重试。',
+        authErrorMessage(
+          code,
+          messages[code] ?? '无法处理档案关联，请刷新状态后重试。',
+        ),
         code,
         response.status,
       );

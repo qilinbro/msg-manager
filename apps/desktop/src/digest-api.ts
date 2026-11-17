@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export interface DigestSchedule {
   enabled: boolean;
@@ -63,18 +64,22 @@ async function request<T>(
   body?: unknown,
 ): Promise<T> {
   if (SERVICE.error) throw new ServiceError(SERVICE.error, 'CONFIG_ERROR');
-  const response = await fetch(`${SERVICE.url}/api/v1/${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
+  const response = await authorizedFetch(
+    `${SERVICE.url}/api/v1/${path}`,
+    token,
+    {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: 'omit',
+      redirect: 'error',
+      cache: 'no-store',
     },
-    body: body ? JSON.stringify(body) : undefined,
-    credentials: 'omit',
-    redirect: 'error',
-    cache: 'no-store',
-  });
+  );
   const value: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     if (response.status === 401)
@@ -90,9 +95,12 @@ async function request<T>(
         ? value.error.code
         : 'DIGEST_UNAVAILABLE';
     throw new ServiceError(
-      code === 'AI_NOT_CONFIGURED'
-        ? '请先配置模型。'
-        : '每日摘要暂时不可用，请稍后重试。',
+      authErrorMessage(
+        code,
+        code === 'AI_NOT_CONFIGURED'
+          ? '请先配置模型。'
+          : '每日摘要暂时不可用，请稍后重试。',
+      ),
       code,
       response.status,
     );

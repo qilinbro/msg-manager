@@ -41,6 +41,14 @@ func TestMCPBridgeSubprocess(t *testing.T) {
 
 func mcpBridgeClient(t *testing.T, baseURL, apiToken string) (*sdk.ClientSession, func()) {
 	t.Helper()
+	return mcpBridgeClientCredentials(t, baseURL, &apiToken, filepath.Join(t.TempDir(), "missing-synthetic.dpapi"))
+}
+
+func mcpBridgeClientCredentials(t *testing.T, baseURL string, apiToken *string, credentialFile string) (*sdk.ClientSession, func()) {
+	t.Helper()
+	if credentialFile == "" || !filepath.IsAbs(credentialFile) {
+		t.Fatal("MCP integration subprocesses must pin an absolute synthetic credential file, never the real Known Folder")
+	}
 	executable, err := os.Executable()
 	if err != nil {
 		t.Fatal(err)
@@ -48,7 +56,10 @@ func mcpBridgeClient(t *testing.T, baseURL, apiToken string) (*sdk.ClientSession
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Second)
 	t.Cleanup(cancel)
 	command := exec.CommandContext(ctx, executable, "-test.run=^TestMCPBridgeSubprocess$")
-	command.Env = []string{"SOCIALD_MCP_INTEGRATION_HELPER=1", "SOCIALD_URL=" + baseURL, "SOCIALD_API_TOKEN=" + apiToken}
+	command.Env = []string{"SOCIALD_MCP_INTEGRATION_HELPER=1", "SOCIALD_URL=" + baseURL, "SOCIALD_CREDENTIAL_FILE=" + credentialFile}
+	if apiToken != nil {
+		command.Env = append(command.Env, "SOCIALD_API_TOKEN="+*apiToken)
+	}
 	command.WaitDelay = 2 * time.Second
 	var stderr bytes.Buffer
 	command.Stderr = &stderr

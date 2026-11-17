@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export type WechatState =
   | 'not_configured'
@@ -177,8 +178,9 @@ async function request(
     action === 'status' ? 10_000 : 45_000,
   );
   try {
-    const response = await fetch(
+    const response = await authorizedFetch(
       `${SERVICE.url}/api/v1/connections/wechat-db/${action}`,
+      token,
       {
         method: mutation ? 'POST' : 'GET',
         headers: {
@@ -210,9 +212,12 @@ async function request(
           ? payload.error.code
           : 'WECHAT_SERVICE_ERROR';
       throw new ServiceError(
-        Object.hasOwn(ERROR_MESSAGES, code)
-          ? ERROR_MESSAGES[code]
-          : '暂时无法读取微信数据，请更新状态后重试。',
+        authErrorMessage(
+          code,
+          Object.hasOwn(ERROR_MESSAGES, code)
+            ? ERROR_MESSAGES[code]
+            : '暂时无法读取微信数据，请更新状态后重试。',
+        ),
         code,
         response.status,
       );

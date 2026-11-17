@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -19,7 +20,7 @@ const source = stripTypeScriptTypes(
   readFileSync(new URL('../apps/desktop/src/milky-api.ts', import.meta.url), 'utf8'),
 )
   .replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n')
-  .replace(/^export /gm, '')
+  .replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm, '')
   .concat('\nmodule.exports={getMilkyStatus,configureMilkyMonitor};');
 const module = { exports: {} };
 const requests = [];

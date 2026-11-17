@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -12,7 +13,7 @@ let response = structuredClone(base), responseStatus = 200;
 const requests = [];
 const source = stripTypeScriptTypes(readFileSync(new URL('../apps/desktop/src/profile-links-api.ts', import.meta.url), 'utf8'))
   .replace(/^import .* from '\.\/api';\r?\n/m, 'const {SERVICE,ServiceError}=transport;\n')
-  .replace(/^export /gm, '') + '\nmodule.exports={getProfileLinks,confirmProfileLink,removeProfileLink};';
+  .replace(/^import .* from '\.\/device-auth';\r?\n/m, () => deviceAuthSource).replace(/^export /gm, '') + '\nmodule.exports={getProfileLinks,confirmProfileLink,removeProfileLink};';
 const module = { exports: {} };
 runInNewContext(source, { module, AbortController, DOMException, transport: { SERVICE: { url: 'http://127.0.0.1:17890', error: null }, ServiceError },
   window: { setTimeout: () => 1, clearTimeout() {} },

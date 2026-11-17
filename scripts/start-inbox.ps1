@@ -1,6 +1,6 @@
 #requires -Version 5.1
 [CmdletBinding()]
-param()
+param([switch]$CopyApiToken, [switch]$RotateApiToken)
 $ErrorActionPreference = 'Stop'
 $core = Join-Path $PSScriptRoot 'start-inbox-core.ps1'
 if ($PSVersionTable.PSVersion -ge [Version]'7.2' -and [IntPtr]::Size -eq 8) {

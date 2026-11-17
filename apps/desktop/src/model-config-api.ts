@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export interface ModelConfig {
   base_url: string;
@@ -69,28 +70,32 @@ async function request(
     input ? 55_000 : 12_000,
   );
   try {
-    const response = await fetch(`${SERVICE.url}/api/v1/ai/model-config`, {
-      method: input ? 'PATCH' : 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-        ...(input ? { 'Content-Type': 'application/json' } : {}),
+    const response = await authorizedFetch(
+      `${SERVICE.url}/api/v1/ai/model-config`,
+      token,
+      {
+        method: input ? 'PATCH' : 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+          ...(input ? { 'Content-Type': 'application/json' } : {}),
+        },
+        body: input
+          ? JSON.stringify({
+              expected_revision: input.expected_revision,
+              base_url: input.base_url,
+              model: input.model,
+              daily_limit: input.daily_limit,
+              api_key: input.api_key,
+              confirmed: input.confirmed,
+            })
+          : undefined,
+        signal: controller.signal,
+        credentials: 'omit',
+        cache: 'no-store',
+        redirect: 'error',
       },
-      body: input
-        ? JSON.stringify({
-            expected_revision: input.expected_revision,
-            base_url: input.base_url,
-            model: input.model,
-            daily_limit: input.daily_limit,
-            api_key: input.api_key,
-            confirmed: input.confirmed,
-          })
-        : undefined,
-      signal: controller.signal,
-      credentials: 'omit',
-      cache: 'no-store',
-      redirect: 'error',
-    });
+    );
     const payload: unknown = await response.json().catch(() => null);
     if (controller.signal.aborted)
       throw new DOMException('aborted', 'AbortError');
@@ -112,7 +117,10 @@ async function request(
           ? payload.error.code
           : 'AI_CONFIG_UNAVAILABLE';
       throw new ServiceError(
-        messages[code] ?? '无法读取或保存模型配置，请刷新后核对。',
+        authErrorMessage(
+          code,
+          messages[code] ?? '无法读取或保存模型配置，请刷新后核对。',
+        ),
         code,
         response.status,
       );

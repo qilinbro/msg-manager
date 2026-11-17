@@ -18,6 +18,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/qilinbro/msg-manager/internal/localcredentials"
 )
 
 const (
@@ -53,13 +55,23 @@ func NewFromEnv() (*Server, error) {
 	if err != nil || n < 1 || n > 65535 || parsed.Host != net.JoinHostPort(host, port) {
 		return nil, errors.New("SOCIALD_URL requires an explicit port between 1 and 65535")
 	}
-	token := os.Getenv("SOCIALD_API_TOKEN")
+	// Validate and canonicalize the endpoint before touching any credentials.
+	// Stored tokens are bound to this exact URL, including the port.
+	base = "http://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(n))
+	token, explicit := os.LookupEnv("SOCIALD_API_TOKEN")
+	if !explicit {
+		token, err = localcredentials.LoadToken(base)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if len(token) < 32 || len(token) > 4096 || strings.IndexFunc(token, func(r rune) bool { return r < 33 || r > 126 }) >= 0 {
 		return nil, errors.New("SOCIALD_API_TOKEN requires 32 to 4096 printable ASCII characters without whitespace")
 	}
 	// Normalize localhost to a literal address: no DNS, proxy or redirect can
-	// move the bearer token outside the configured local service.
-	return &Server{baseURL: "http://" + net.JoinHostPort("127.0.0.1", port), token: token, http: localHTTPClient(), gate: make(chan struct{}, 4)}, nil
+	// move the bearer token outside the configured local service. An explicit
+	// environment value (including an invalid empty one) never reads a file.
+	return &Server{baseURL: base, token: token, http: localHTTPClient(), gate: make(chan struct{}, 4)}, nil
 }
 
 func localHTTPClient() *http.Client {

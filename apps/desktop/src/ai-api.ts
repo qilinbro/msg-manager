@@ -1,4 +1,5 @@
 import { SERVICE, ServiceError } from './api';
+import { authorizedFetch, authErrorMessage } from './device-auth';
 
 export interface AIStatus {
   configured: boolean;
@@ -118,19 +119,23 @@ async function request(
     method === 'POST' ? 35_000 : 10_000,
   );
   try {
-    const response = await fetch(`${SERVICE.url}/api/v1/${path}`, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+    const response = await authorizedFetch(
+      `${SERVICE.url}/api/v1/${path}`,
+      token,
+      {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+          ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        signal: controller.signal,
+        credentials: 'omit',
+        redirect: 'error',
+        cache: 'no-store',
       },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-      signal: controller.signal,
-      credentials: 'omit',
-      redirect: 'error',
-      cache: 'no-store',
-    });
+    );
     const payload: unknown = await response.json().catch(() => null);
     if (controller.signal.aborted)
       throw new DOMException('请求已取消', 'AbortError');
@@ -146,9 +151,12 @@ async function request(
           ? payload.error.code
           : 'AI_SERVICE_ERROR';
       throw new ServiceError(
-        Object.hasOwn(ERRORS, code)
-          ? ERRORS[code]
-          : '暂时无法完成 AI 操作，请刷新后重试。',
+        authErrorMessage(
+          code,
+          Object.hasOwn(ERRORS, code)
+            ? ERRORS[code]
+            : '暂时无法完成 AI 操作，请刷新后重试。',
+        ),
         code,
         response.status,
       );
