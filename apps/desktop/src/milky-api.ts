@@ -167,7 +167,16 @@ export function getMilkyStatus(
   token: string,
   signal: AbortSignal,
 ): Promise<MilkyStatus> {
-  return request<MilkyStatus>(token, signal, 'status');
+  return request<MilkyStatus>(token, signal, 'status').then((value) => ({
+    ...value,
+    gaps: Array.isArray(value.gaps) ? value.gaps : [],
+    monitor: {
+      ...value.monitor,
+      peer_ids: Array.isArray(value.monitor?.peer_ids)
+        ? value.monitor.peer_ids
+        : [],
+    },
+  }));
 }
 
 export function verifyMilky(

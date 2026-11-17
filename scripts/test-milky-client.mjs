@@ -6,7 +6,7 @@ import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experi
 
 // Synthetic client smoke checks only: no browser, service, account or token.
 const panel = readFileSync(new URL('../apps/desktop/src/MilkyPanel.tsx', import.meta.url), 'utf8');
-assert.match(panel, /next\.monitor\.peer_ids\.join/);
+assert.match(panel, /next\.monitor\.peer_ids \?\? \[\]\)\.join/);
 assert.match(panel, /pending_verification/);
 assert.match(panel, /已保存，待重新核验/);
 assert.match(panel, /清除已保存的后台接收/);
@@ -36,11 +36,11 @@ const response = {
   last_sync_at: '',
   last_sync_result: '',
   skipped: 0,
-  gaps: [],
+  gaps: null,
   monitor: {
     enabled: true,
     state: 'pending_verification',
-    peer_ids: ['987654321'],
+    peer_ids: null,
     read_only: true,
     last_error: '',
   },
@@ -69,7 +69,8 @@ const api = module.exports;
 const signal = () => new AbortController().signal;
 const status = await api.getMilkyStatus('synthetic-token', signal());
 assert.equal(status.monitor.state, 'pending_verification');
-assert.deepEqual(status.monitor.peer_ids, ['987654321']);
+assert.equal(status.monitor.peer_ids.length, 0);
+assert.equal(status.gaps.length, 0);
 await api.configureMilkyMonitor('synthetic-token', signal(), false, ['987654321']);
 assert.equal(requests.at(-1).method, 'POST');
 assert.deepEqual(JSON.parse(requests.at(-1).body), {

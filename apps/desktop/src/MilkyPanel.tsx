@@ -43,7 +43,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
       const next = await getMilkyStatus(token, controller.signal);
       setStatus(next);
       if (!peersDirty.current) {
-        setPeers(next.monitor.peer_ids.join(', '));
+        setPeers((next.monitor.peer_ids ?? []).join(', '));
       }
       return next;
     },
@@ -134,7 +134,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
       );
       setStatus(next);
       peersDirty.current = false;
-      setPeers(next.monitor.peer_ids.join(', '));
+      setPeers((next.monitor.peer_ids ?? []).join(', '));
       setNotice(
         enabled
           ? '已开启所选私聊的后台接收；断线会记录缺口，不承诺补齐全部历史。'
@@ -230,7 +230,9 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           <div>
             <dt>跳过 / 缺口</dt>
             <dd>
-              {status ? `${status.skipped} / ${status.gaps.length}` : '—'}
+              {status
+                ? `${status.skipped} / ${(status.gaps ?? []).length}`
+                : '—'}
             </dd>
           </div>
         </dl>

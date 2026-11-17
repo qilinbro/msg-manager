@@ -194,8 +194,8 @@ func (h *handler) applyMilky(items []connector.Descriptor) {
 func (h *handler) milkyStatus(w http.ResponseWriter) {
 	h.milky.mu.RLock()
 	status := h.milky.status
-	status.Gaps = append([]milkyGap(nil), status.Gaps...)
-	status.Monitor.PeerIDs = append([]string(nil), status.Monitor.PeerIDs...)
+	status.Gaps = append([]milkyGap{}, status.Gaps...)
+	status.Monitor.PeerIDs = append([]string{}, status.Monitor.PeerIDs...)
 	h.milky.mu.RUnlock()
 	writeJSON(w, http.StatusOK, status)
 }
