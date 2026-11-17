@@ -4,6 +4,8 @@
 - 任务：FEAT-T02 / CHG-T02-001
 - 来源：用户要求 QQ 接入、参考 AstrBot 的个人账号适配，并明确以自己的产品服务为主。
 
+> 当前决定（2026-11-17，`CHG-T02-006`）：QQ 个人号仅使用 Milky 1.3，取消 OneBot 运行时、配置、API 与界面入口。下方 2026-11-12 / 2026-11-15 内容保留为历史决策；其中“保留 OneBot”的条款已由文末决定取代。当前操作见 [Milky 接入](../qq-milky-setup.md)。
+
 ## 产品与连接层
 
 联系人、记忆、检索、权限、任务、审计和工作台由本项目实现。外部协议端仅承担既有 QQ 账号登录与协议通信，不承担本产品的决策，不接收模型密钥，也不替代本产品。
@@ -76,3 +78,14 @@ AstrBot 的 aiocqhttp 适配器使用 OneBot v11 **反向 WebSocket**：协议�
 已知限制：schema v6 的 `source` 兼容列仍记为 `import`，协议同步来源由服务端生成的 `milky:friend:` 前缀与连接显示名保证可追溯，独立来源枚举待 v7 迁移；后台接收设置不持久化；事件流无补发，缺口显式记录并用历史接口有界补查；`friend` 场景 `start_message_seq` 为空的行为需在真实协议端验证。
 
 本补记只说明实现与工程检查，不含真实账号授权、joey 正式代码审查或 kirinbao 验收；实际完成日期仍为 `—`。
+
+## 2026-11-17 决定：QQ 个人号仅使用 Milky（CHG-T02-006）
+
+用户明确要求取消 OneBot，只保留 Milky。采用 `工作台 → 自有 Go API → qqmilky + adapter → 本机 Milky 1.3 协议端`，取代历史并行保留两套 QQ 接入的方案。
+
+- 移除 `internal/connector/onebot`、OneBot 后台连接状态与核验路由，取消 `QQ_ONEBOT_*` 配置读取和设置面板；系统连接器目录只保留一个 QQ 个人号连接器 `qq-milky`。
+- Milky 的本人账号/版本核验、好友私聊历史同步、加密授权名单和显式后台接收继续沿用现有实现。旧 OneBot 地址、令牌不能自动转换为 Milky 配置，也不能用 WebUI 密码替代 Milky 访问令牌。
+- 仅取消接入能力，不删除已导入聊天、联系人、加密数据库或历史审查记录。旧环境变量不再驱动连接；迁移时应从本机启动环境移除，再配置 `QQ_MILKY_URL`、`QQ_MILKY_ACCESS_TOKEN`、`QQ_MILKY_ACCOUNT_ID`，核验本人账号后重新确认接收名单。
+- 发送仍关闭，未新开群聊、媒体、自动分析权限或对外平台连接。真实协议端、本人账号及非作者审查仍按原边界验收。
+
+本变更在独立分支 `feat/qq-milky-only` 实施，不并入其他开发中的功能；工程结果见 [移除验证记录](../acceptance/T02-milky-only-validation.md)。负责人 angjustinl（后端）/joey（前端），指定审查 joey（后端）/angjustinl（前端），kirinbao 组织验收。正式审查、真实验收与实际完成日期均为 —。

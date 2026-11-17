@@ -28,27 +28,6 @@ export interface Collection {
   next_cursor: string | null;
 }
 
-export interface QQVerification {
-  connection_id: 'qq-onebot';
-  state: 'identity_verified';
-  account_id: string;
-  nickname: string;
-  online: true;
-  checked_at: string;
-  receiving_enabled: false;
-  sending_enabled: false;
-}
-
-const QQ_ERRORS: Record<string, string> = {
-  QQ_NOT_CONFIGURED: 'QQ 协议端尚未配置，请先在本地服务中设置连接信息。',
-  QQ_UNREACHABLE: '暂时无法访问 QQ 协议端，请确认协议端正在运行。',
-  QQ_AUTH_FAILED: 'QQ 协议端鉴权失败，请检查服务端配置的访问令牌。',
-  QQ_IDENTITY_MISMATCH: '登录的 QQ 与预期账号不一致，请在协议端确认登录账号。',
-  QQ_LOGGED_OUT: 'QQ 协议端当前未登录或不在线，请先完成登录。',
-  QQ_PROTOCOL_ERROR: 'QQ 协议端返回的数据无法核验，请检查协议版本与运行状态。',
-  QQ_BUSY: '已有 QQ 账号核验正在进行，请稍后重试。',
-};
-
 export class ServiceError extends Error {
   constructor(
     message: string,
@@ -174,12 +153,9 @@ async function request(
       throw new ServiceError(
         authErrorMessage(
           code,
-          path === 'connections/qq-onebot/verify' &&
-            Object.hasOwn(QQ_ERRORS, code)
-            ? QQ_ERRORS[code]
-            : response.status === 503
-              ? '服务暂未就绪，请稍后重试。'
-              : '服务暂时无法完成读取，请稍后重试。',
+          response.status === 503
+            ? '服务暂未就绪，请稍后重试。'
+            : '服务暂时无法完成读取，请稍后重试。',
         ),
         code,
         response.status,
@@ -232,30 +208,4 @@ export async function getCollection(
     );
   }
   return payload as unknown as Collection;
-}
-
-export async function getQQVerification(
-  token: string,
-  signal: AbortSignal,
-): Promise<QQVerification> {
-  const payload = await request('connections/qq-onebot/verify', token, signal);
-  if (
-    !record(payload) ||
-    payload.connection_id !== 'qq-onebot' ||
-    payload.state !== 'identity_verified' ||
-    typeof payload.account_id !== 'string' ||
-    !/^\d+$/.test(payload.account_id) ||
-    typeof payload.nickname !== 'string' ||
-    payload.online !== true ||
-    typeof payload.checked_at !== 'string' ||
-    !Number.isFinite(Date.parse(payload.checked_at)) ||
-    payload.receiving_enabled !== false ||
-    payload.sending_enabled !== false
-  ) {
-    throw new ServiceError(
-      'QQ 账号核验数据不符合当前版本，尚未确认账号状态。',
-      'QQ_PROTOCOL_ERROR',
-    );
-  }
-  return payload as unknown as QQVerification;
 }

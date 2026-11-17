@@ -102,14 +102,11 @@ func TestSystemReportsOnlyPlannedCapabilities(t *testing.T) {
 
 func assertPlannedConnectors(t *testing.T, items []connector.Descriptor) {
 	t.Helper()
-	if len(items) != 6 || items[0].ID != "qq-onebot" || items[1].ID != "qq-milky" || items[2].ID != "weixin-clawbot" || items[3].ID != "telegram-bot" || items[4].ID != "email-imap" || items[5].ID != "wechat-db" {
+	if len(items) != 5 || items[0].ID != "qq-milky" || items[1].ID != "weixin-clawbot" || items[2].ID != "telegram-bot" || items[3].ID != "email-imap" || items[4].ID != "wechat-db" {
 		t.Fatalf("unexpected connector catalog: %+v", items)
 	}
 	for _, item := range items {
 		expectedImplementation := "planned"
-		if item.ID == "qq-onebot" {
-			expectedImplementation = "probe_ready"
-		}
 		if item.ID == "email-imap" || item.ID == "qq-milky" {
 			expectedImplementation = "manual_sync_ready"
 		}

@@ -1,5 +1,7 @@
 # T02 QQ OneBot 适配验证记录
 
+> 历史记录：用户于 2026-11-17 决定取消 QQ OneBot 接入，仅使用 Milky（`CHG-T02-006`）。以下保留当时交付与检查证据，不代表当前仍提供 OneBot 代码、配置或接口。当前说明见 [Milky 接入](../qq-milky-setup.md) 与 [移除验证记录](T02-milky-only-validation.md)。
+
 - 日期：2026-11-12（Asia/Shanghai）。
 - 关联：FEAT-T02 / CHG-T02-001。
 - 状态：进行中；实际开始日期：2026-11-12；实际完成日期：—。

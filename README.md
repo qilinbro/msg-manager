@@ -1,16 +1,15 @@
 # Social Intelligence OS
 
-多平台社交关系助手。当前实现为 **统一消息中心 + QQ Milky 协议同步 + 微信本地库读取 + 邮箱只读同步 + QQ 账号核验 + AI 分类与联系人档案**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
+多平台社交关系助手。当前实现为 **统一消息中心 + QQ Milky 账号核验与协议同步 + 微信本地库读取 + 邮箱只读同步 + AI 分类与联系人档案**：独立 Go 后台、加密本地存储、React 工作台与 Tauri 外壳。
 
 历史 main 整合的检查与同步记录见 [main整合记录](<docs/acceptance/main-integration.md>)。本功能分支新增的 MCP 与持久本机连接以各自验证记录为准，不因此视为已合入 main；真实服务、正式审查和产品验收状态继续单独登记。
 
 ## 当前能运行的内容
 
 - 本机 HTTP 服务、主令牌与可撤销设备鉴权、来源校验、健康检查和统一错误结构。Windows 启动器/MCP 共用 DPAPI 受保护的稳定服务凭据；浏览器可记住设备 90 天，不持久化主令牌，见 [持久连接说明](<docs/adr/0013-persistent-local-connections.md>)。
-- 读取真实服务状态，优先展示 QQ Milky 主线连接器；原 OneBot 只读核验保留，微信 Clawbot / Telegram 保留待接入声明。
+- 读取真实服务状态，QQ 个人号仅展示 Milky 连接器；微信 Clawbot / Telegram 保留待接入声明。
 - QQ、微信、Telegram、闪聊的导入文本在同一消息中心管理：平台筛选、搜索、未读、置顶、归档、会话详情与历史分页。
 - 用户确认后导入统一 JSON，支持 Telegram Desktop 单个个人私聊导出；稳定标识去重、冲突整批回滚，SQLCipher 加密保存。
-- QQ 支持 HTTP/正向 WS 只读账号核验与私聊文本转换（OneBot 保留）。
 - QQ Milky 1.3 协议端可核验本人账号与版本、按联系人同步好友私聊历史、显式开启后台接收；加密入库去重、缺口显式记录并有界补查。发送保持关闭，真实账号验收待进行，见[QQ Milky 接入说明](docs/qq-milky-setup.md)。
 - 当前会话可先预览确认，再调用 DeepSeek/兼容接口整理摘要、风险、草稿和待核实记忆；用户确认记忆后才进入后续上下文。真实模型与界面验收待进行。
 - 联系人档案支持人工资料、AI 分类/摘要、事实候选、证据来源及 Markdown 导出。明确授权后可后台自动整理新消息、按公开姓名/公司搜索资料；公开结果待核实后确认，默认不开自动整理或联网。模型与 Tavily 密钥只在本机配置，见[档案配置](docs/ai-profiles-setup.md)。正式审查和真实模型/搜索验收待进行。
@@ -21,7 +20,7 @@
 - 微信支持配置本机4.x数据库和密钥后手动读取私聊，或明确选择私聊开启后台定时只读、去重入库；默认关闭，设置加密保存，关闭页面后后台可继续。仍是最近记录窗口，不保证全历史或离线补漏。配置见[微信本地记录接入](docs/wechat-db-setup.md)，真实私聊验收待进行。
 - 微信4.1.15.56另有用户主动确认的一次性本机初始化入口 `scripts/initialize-wechat.ps1`，在重新登录时临时挂钩指定进程，密钥验证后DPAPI保存。用户已回传真实初始化成功日志；后台工作台读取另行验收，依赖准备和操作步骤见同一接入说明。
 
-自动发送始终关闭。QQ Milky 可在明确授权后开启后台接收，微信可对明确私聊开启本地库周期读取；QQ 可靠历史水位、Telegram 在线授权、通用任务/发件箱恢复、Windows服务安装和真实消息发送仍未实现。电脑及后台需要保持运行；邮箱仍按需同步，不表示各平台都已持续在线。QQ Milky 见[接入说明](docs/qq-milky-setup.md)，原 OneBot 核验见[个人QQ接入说明](docs/qq-onebot-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。
+自动发送始终关闭。QQ Milky 可在明确授权后开启后台接收，微信可对明确私聊开启本地库周期读取；QQ 可靠历史水位、Telegram 在线授权、通用任务/发件箱恢复、Windows服务安装和真实消息发送仍未实现。电脑及后台需要保持运行；邮箱仍按需同步，不表示各平台都已持续在线。QQ 个人号统一使用 [Milky 接入说明](docs/qq-milky-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。旧 OneBot 环境变量与核验入口已退役，迁移说明见[历史入口](docs/qq-onebot-setup.md)。
 
 推荐先按[统一消息中心使用说明](docs/unified-inbox.md)运行 `scripts/start-inbox.ps1`，自动准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录。源码不含预置消息或真人聊天数据。
 
@@ -94,8 +93,6 @@ Go 后台需独立启动。Tauri 不以 sidecar 启停它；Windows 服务注册
 ```mermaid
 flowchart LR
     UI[React / Tauri 工作台] -->|本机 Bearer API| API[Go sociald]
-    API -->|只读账号核验| QQ[QQ OneBot v11 适配器]
-    QQ -->|HTTP / 正向 WS| PROVIDER[用户已有的个人 QQ 协议端]
     API -->|Milky 1.3 核验/历史/事件| MILKY[QQ Milky 独立协议端 GPL-3.0]
     MILKY --> INBOX
     API --> DOMAIN[领域 Scope / 消息 / 决策接口]
@@ -124,7 +121,7 @@ flowchart LR
 - [联系人档案接入](docs/ai-profiles-setup.md)：后台自动分类、公开来源候选确认、配额及导出；[架构决定](docs/adr/0009-ai-contact-profiles.md)。
 - [AI 管理接入](docs/ai-setup.md)：DeepSeek/兼容服务本机配置、预览确认、记忆核对与草稿。
 - [首轮架构决定](docs/adr/0001-initial-architecture.md)：工程范围、权限与未实现边界。
-- [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：自有服务与 OneBot 连接层分离，优先 QQ 个人号。
+- [个人账号适配决定](docs/adr/0003-personal-account-adapters.md)：QQ 个人号仅使用 Milky；保留历史决策及迁移边界。
 - [技术文档](技术文档.md)、[逐项任务](任务规划.md)、[feat 进度](feat.md)。
 - [参考项目](参考项目/README.md)：上游源码仅用于静态参考。
 - [本地交付与待办](docs/acceptance/T04-handoff.md)：源码包生成方式、GitHub 同步状态和剩余验收条件。

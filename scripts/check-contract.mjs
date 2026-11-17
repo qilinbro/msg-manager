@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 const spec = JSON.parse(readFileSync(new URL('../api/openapi.yaml', import.meta.url), 'utf8'));
 assert.equal(spec.openapi, '3.1.0');
 assert.ok(spec.paths['/api/v1/system']);
-const qqVerify = spec.paths['/api/v1/connections/qq-onebot/verify']?.get;
-assert.ok(qqVerify?.responses['200'], 'QQ identity verification must document its real response');
-assert.ok(qqVerify.responses['503'], 'QQ configuration and provider failures must be explicit');
-assert.equal(spec.components.schemas.QQVerification.properties.sending_enabled.const, false);
-assert.equal(spec.components.schemas.QQVerification.properties.receiving_enabled.const, false);
+assert.ok(!spec.paths['/api/v1/connections/qq-onebot/verify'], 'The retired OneBot endpoint must not be advertised');
+assert.ok(!spec.components.schemas.QQVerification, 'The retired OneBot response schema must be removed');
+assert.deepEqual(spec.components.schemas.Connector.properties.id.enum, [
+  'qq-milky', 'weixin-clawbot', 'telegram-bot', 'email-imap', 'wechat-db',
+], 'The connector catalog must expose Milky as its only QQ integration');
 const events = spec.paths['/api/v1/events']?.get;
 assert.ok(events?.responses['501'], 'Event streaming is reserved until persistence exists');
 assert.ok(!events.responses['200'], 'Do not advertise an implemented event stream');

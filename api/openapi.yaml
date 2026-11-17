@@ -738,55 +738,6 @@
         ]
       }
     },
-    "/api/v1/connections/qq-onebot/verify": {
-      "get": {
-        "operationId": "verifyQQAccount",
-        "summary": "Verify the existing personal QQ login through configured OneBot v11.",
-        "description": "Read-only diagnostic. Endpoint and credentials come exclusively from local backend environment; request parameters cannot select a provider. A successful check is a past observation, not a live account subscription. Auto-send and message ingestion remain disabled.",
-        "responses": {
-          "200": {
-            "description": "Identity and online state verified.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QQVerification"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid product API bearer token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Host, Origin, or workspace rejected.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "QQ_NOT_CONFIGURED, QQ_UNREACHABLE, QQ_AUTH_FAILED, QQ_IDENTITY_MISMATCH, QQ_LOGGED_OUT, QQ_PROTOCOL_ERROR or QQ_BUSY.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/inbox": {
       "get": {
         "description": "四个平台的导入管理能力和实际消息数；不表示平台已在线。",
@@ -4604,10 +4555,11 @@
           "id": {
             "type": "string",
             "enum": [
-              "qq-onebot",
+              "qq-milky",
               "weixin-clawbot",
               "telegram-bot",
-              "qq-milky"
+              "email-imap",
+              "wechat-db"
             ]
           },
           "display_name": {
@@ -4772,52 +4724,6 @@
           "cancelled"
         ],
         "description": "Reserved domain state; no outbox persistence or send operation is implemented."
-      },
-      "QQVerification": {
-        "type": "object",
-        "required": [
-          "connection_id",
-          "state",
-          "account_id",
-          "nickname",
-          "online",
-          "checked_at",
-          "receiving_enabled",
-          "sending_enabled"
-        ],
-        "properties": {
-          "connection_id": {
-            "type": "string",
-            "const": "qq-onebot"
-          },
-          "state": {
-            "type": "string",
-            "const": "identity_verified"
-          },
-          "account_id": {
-            "type": "string",
-            "pattern": "^[1-9][0-9]*$"
-          },
-          "nickname": {
-            "type": "string"
-          },
-          "online": {
-            "type": "boolean",
-            "const": true
-          },
-          "checked_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "receiving_enabled": {
-            "type": "boolean",
-            "const": false
-          },
-          "sending_enabled": {
-            "type": "boolean",
-            "const": false
-          }
-        }
       },
       "InboxStatus": {
         "type": "object",

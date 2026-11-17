@@ -1,13 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import {
-  getCollection,
-  getQQVerification,
-  getSystem,
-  SERVICE,
-  ServiceError,
-} from './api';
-import type { Connector, QQVerification, SystemStatus } from './api';
+import { getCollection, SERVICE, ServiceError } from './api';
+import type { Connector, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
 import { AIModelPanel } from './AIModelPanel';
@@ -43,22 +37,9 @@ const PAGE_TITLES: Record<Page, string> = {
 };
 const PLANNED_CONNECTORS: Connector[] = [
   {
-    id: 'qq-onebot',
-    platform: 'qq',
-    display_name: 'QQ 个人号（OneBot）',
-    status: 'not_configured',
-    implementation_status: 'probe_ready',
-    description: '优先接入个人 QQ；当前仅支持账号核验，尚未启用收发。',
-    capabilities: {
-      receive_text: false,
-      send_text: false,
-      history_import: false,
-    },
-  },
-  {
     id: 'qq-milky',
     platform: 'qq',
-    display_name: 'QQ 个人号（Milky 主线）',
+    display_name: 'QQ 个人号（Milky）',
     status: 'not_configured',
     implementation_status: 'manual_sync_ready',
     description:
@@ -546,187 +527,6 @@ function CollectionView({
   );
 }
 
-function QQSettings({
-  token,
-  onSystemUpdate,
-  onAuthFailure,
-}: {
-  token: string;
-  onSystemUpdate: (system: SystemStatus) => void;
-  onAuthFailure: () => void;
-}) {
-  const [result, setResult] = useState<QQVerification | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const pending = useRef<AbortController | null>(null);
-  useEffect(() => {
-    setResult(null);
-    setError(null);
-    setBusy(false);
-    return () => {
-      pending.current?.abort();
-      pending.current = null;
-    };
-  }, [token]);
-  const cancel = () => {
-    pending.current?.abort();
-    pending.current = null;
-    setBusy(false);
-    setResult(null);
-    setError(null);
-  };
-  const verify = async () => {
-    if (!token) return;
-    pending.current?.abort();
-    const controller = new AbortController();
-    pending.current = controller;
-    setResult(null);
-    setError(null);
-    setBusy(true);
-    try {
-      const verified = await getQQVerification(token, controller.signal);
-      const system = await getSystem(token, controller.signal);
-      if (controller.signal.aborted) return;
-      onSystemUpdate(system);
-      setResult(verified);
-    } catch (failure: unknown) {
-      if (controller.signal.aborted) return;
-      if (failure instanceof ServiceError && failure.status === 401) {
-        onAuthFailure();
-        return;
-      }
-      setError(
-        failure instanceof Error
-          ? failure.message
-          : 'QQ 账号核验失败，请重试。',
-      );
-      try {
-        const system = await getSystem(token, controller.signal);
-        if (!controller.signal.aborted) onSystemUpdate(system);
-      } catch (refreshError: unknown) {
-        if (
-          !controller.signal.aborted &&
-          refreshError instanceof ServiceError &&
-          refreshError.status === 401
-        )
-          onAuthFailure();
-      }
-    } finally {
-      if (pending.current === controller) {
-        pending.current = null;
-        setBusy(false);
-      }
-    }
-  };
-  return (
-    <section
-      className="settings-panel qq-settings"
-      aria-labelledby="qq-settings-title"
-      aria-busy={busy}
-    >
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">PERSONAL ACCOUNT · PRIORITY</p>
-          <h2 id="qq-settings-title">QQ 个人号</h2>
-        </div>
-        <span className="label">OneBot v11</span>
-      </div>
-      <p className="qq-intro">
-        通过已登录的个人 QQ
-        协议端核验账号。当前只识别账号与在线状态，不接收聊天、不导入历史，也不发送消息。
-      </p>
-      <div className="qq-configuration">
-        <p>在启动本地服务前，由技术开发配置：</p>
-        <dl>
-          <div>
-            <dt>
-              <code>QQ_ONEBOT_URL</code>
-            </dt>
-            <dd>本机 OneBot 服务地址</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_ONEBOT_ACCESS_TOKEN</code>
-            </dt>
-            <dd>协议端令牌，仅保留在服务端环境</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_ONEBOT_ACCOUNT_ID</code>
-            </dt>
-            <dd>预期登录的 QQ 号</dd>
-          </div>
-        </dl>
-        <p>QQ 登录在协议端完成。工作台不收集 QQ 密码或协议端令牌。</p>
-      </div>
-      <div className="form-actions">
-        <button
-          type="button"
-          className="button button-primary"
-          onClick={verify}
-          disabled={!token || busy}
-        >
-          {busy ? '正在核验…' : '核验 QQ 账号'}
-          {!busy ? <Icon name="arrow" size={16} /> : null}
-        </button>
-        {busy ? (
-          <button
-            type="button"
-            className="button button-quiet"
-            onClick={cancel}
-          >
-            取消核验
-          </button>
-        ) : null}
-      </div>
-      {!token ? (
-        <p className="input-help">请先连接上方的本地服务，再核验 QQ 账号。</p>
-      ) : null}
-      <div aria-live="polite" aria-atomic="true">
-        {error ? (
-          <p className="form-message error-message" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {result ? (
-          <div className="qq-result">
-            <div className="qq-result-heading">
-              <Icon name="check" size={18} />
-              <strong>账号已核验，尚未启用收发</strong>
-            </div>
-            <dl>
-              <div>
-                <dt>QQ 账号</dt>
-                <dd>{result.account_id}</dd>
-              </div>
-              <div>
-                <dt>昵称</dt>
-                <dd>{result.nickname || '未提供昵称'}</dd>
-              </div>
-              <div>
-                <dt>本次在线状态</dt>
-                <dd>在线</dd>
-              </div>
-              <div>
-                <dt>核验时间</dt>
-                <dd>
-                  {new Date(result.checked_at).toLocaleString('zh-CN', {
-                    hour12: false,
-                    timeZone: 'Asia/Shanghai',
-                  })}
-                </dd>
-              </div>
-            </dl>
-            <p>
-              此结果仅确认本次身份检查成功。消息接收、历史导入与发送仍未启用。
-            </p>
-          </div>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
 function Settings({
   session,
   activeToken,
@@ -890,12 +690,6 @@ function Settings({
           </div>
         </form>
       </section>
-      <QQSettings
-        key={activeToken}
-        token={activeToken}
-        onSystemUpdate={onSystemUpdate}
-        onAuthFailure={onAuthFailure}
-      />
       <MilkyPanel
         key={`milky-${activeToken}`}
         token={activeToken}
@@ -928,7 +722,10 @@ function Settings({
         <div className="settings-row">
           <div>
             <h3>后台自动化</h3>
-            <p>当前仅读取状态与核验 QQ 身份，不执行收发或审批操作。</p>
+            <p>
+              QQ 可通过 Milky
+              同步私聊，并按明确授权在后台接收；发送和审批尚未启用。
+            </p>
           </div>
           <span className="subtle-note">
             {session.system
@@ -968,11 +765,10 @@ function Settings({
           </div>
         </dl>
         <p>
-          当前支持本地加密消息管理、记录导入、邮箱手动收取与 QQ
-          身份核验。持续收件、AI
-          回复和发送尚未实现；账号核验成功不代表已接入消息。个人微信 ClawBot
-          仍仅针对 Bot
-          联系人，不接管已有好友或聊天。关闭工作台后是否继续处理，取决于独立后台服务的后续部署。
+          当前支持本地加密消息管理、记录导入、邮箱手动收取，以及 QQ Milky
+          账号核验、私聊历史同步和授权后台接收。账号核验成功不会自动开启接收，发送保持关闭。
+          个人微信 ClawBot 仍仅针对 Bot 联系人，不接管已有好友或聊天。
+          已开启的后台接收独立于工作台窗口，需要电脑和后台服务保持运行。
         </p>
       </details>
     </>

@@ -13,7 +13,6 @@ import (
 	"github.com/qilinbro/msg-manager/internal/agent"
 	"github.com/qilinbro/msg-manager/internal/connector/adapter"
 	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
-	"github.com/qilinbro/msg-manager/internal/connector/onebot"
 	"github.com/qilinbro/msg-manager/internal/connector/qqmilky"
 	"github.com/qilinbro/msg-manager/internal/connector/wechatdb"
 	"github.com/qilinbro/msg-manager/internal/publicinfo"
@@ -24,7 +23,6 @@ const DefaultAddr = "127.0.0.1:17890"
 type Config struct {
 	Addr             string
 	APIToken         string
-	QQOneBot         onebot.Config
 	QQMilky          qqmilky.Config
 	Email            mailbox.Config
 	DatabasePath     string
@@ -47,11 +45,6 @@ func LoadFromEnv() (Config, error) {
 	cfg := Config{
 		Addr: addr, APIToken: os.Getenv("SOCIALD_API_TOKEN"),
 		DatabasePath: os.Getenv("SOCIALD_DATABASE_PATH"), DatabaseKey: os.Getenv("SOCIALD_DATABASE_KEY"),
-		QQOneBot: onebot.Config{
-			URL:            os.Getenv("QQ_ONEBOT_URL"),
-			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
-			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
-		},
 		QQMilky: qqmilky.Config{Endpoint: adapter.Endpoint{
 			URL:            os.Getenv("QQ_MILKY_URL"),
 			AccessToken:    os.Getenv("QQ_MILKY_ACCESS_TOKEN"),

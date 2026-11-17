@@ -114,3 +114,22 @@ func TestWechatEnvironmentLimitAndRedaction(t *testing.T) {
 		}
 	}
 }
+
+func TestQQMilkyIsTheOnlyLoadedQQConfiguration(t *testing.T) {
+	for _, key := range []string{"SOCIALD_DATABASE_PATH", "SOCIALD_DATABASE_KEY", "SOCIALD_ADDR", "EMAIL_IMAP_PORT", "EMAIL_IMAP_LIMIT", "AI_DAILY_LIMIT", "WECHAT_DB_LIMIT", "PUBLIC_SEARCH_DAILY_LIMIT", "QQ_MILKY_HISTORY_LIMIT"} {
+		t.Setenv(key, "")
+	}
+	t.Setenv("SOCIALD_API_TOKEN", strings.Repeat("t", 32))
+	// Stale settings from the retired connector are ignored, never copied into
+	// Milky settings or parsed as a second QQ transport.
+	t.Setenv("QQ_ONEBOT_URL", "not-a-valid-provider-url")
+	t.Setenv("QQ_ONEBOT_ACCESS_TOKEN", "synthetic-old-token")
+	t.Setenv("QQ_ONEBOT_ACCOUNT_ID", "invalid-old-account")
+	t.Setenv("QQ_MILKY_URL", "http://127.0.0.1:3000")
+	t.Setenv("QQ_MILKY_ACCESS_TOKEN", "synthetic-milky-token")
+	t.Setenv("QQ_MILKY_ACCOUNT_ID", "123456")
+	cfg, err := config.LoadFromEnv()
+	if err != nil || cfg.QQMilky.URL != "http://127.0.0.1:3000" || cfg.QQMilky.AccessToken != "synthetic-milky-token" || cfg.QQMilky.ExpectedSelfID != "123456" {
+		t.Fatalf("Milky config was not loaded independently of retired settings: %v", err)
+	}
+}
