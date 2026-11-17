@@ -91,7 +91,6 @@ export function DigestPanel({
     <section className="settings-panel" aria-labelledby="digest-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">DAILY DIGEST</p>
           <h2 id="digest-title">每日消息整理</h2>
         </div>
         <span className="label">工作台提醒</span>

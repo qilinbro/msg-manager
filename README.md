@@ -137,3 +137,7 @@ flowchart LR
 - kirinbao：产品、测试验收与交付。
 
 前后端由非作者交叉审查；辅助审查和构建通过不替代指定成员的正式审查与验收。
+
+### 前端更新后仍显示旧界面
+
+先核对 1420 服务所在目录。当前本机运行目录为 `D:\msg_manager\apps\desktop`，其他 Git 工作树的更新需先合并或经检查同步后才会生效。17890 后台重启不会同步前端文件；处理记录见[工作台 UI 同步验证](docs/acceptance/T08-ui-runtime-sync-validation.md)。

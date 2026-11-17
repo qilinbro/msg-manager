@@ -16,7 +16,7 @@
 .milky-setup-steps p {
   margin: 5px 0;
   line-height: 1.75;
-  color: var(--text-muted, #64645f);
+  color: var(--secondary);
   font-size: 13px;
 }
 .milky-setup-steps a {

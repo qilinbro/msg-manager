@@ -1109,7 +1109,6 @@ export default function Inbox({
         </div>
       </div>
       <div className="inbox-source-note">
-        <span className="inbox-status-dot" />
         <span>
           这里汇集导入记录、微信后台读取结果与邮件。工作台不会自动发送消息或邮件。
         </span>
@@ -1671,9 +1670,6 @@ export default function Inbox({
               </>
             ) : (
               <div className="inbox-detail-empty">
-                <div className="inbox-detail-emblem">
-                  <Symbol name="mail" size={31} />
-                </div>
                 <h2>
                   打开一段对话，
                   <br />

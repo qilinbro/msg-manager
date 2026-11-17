@@ -124,7 +124,6 @@ function UnattendedReceipt({
     >
       <div className="unattended-receipt-heading">
         <div>
-          <p className="eyebrow">WHILE YOU&apos;RE AWAY</p>
           <h4 id="unattended-receipt-title">不在场回执</h4>
         </div>
         <span className={`unattended-state is-${state}`}>

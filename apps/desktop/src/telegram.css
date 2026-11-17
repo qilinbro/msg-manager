@@ -2,7 +2,7 @@
 .telegram-setup-steps p {
   font-size: 13px;
   line-height: 1.75;
-  color: var(--text-muted, #64645f);
+  color: var(--secondary);
 }
 .telegram-setup-steps {
   display: grid;
@@ -22,7 +22,7 @@
   padding: 12px 14px;
   overflow-x: auto;
   line-height: 1.8;
-  background: var(--surface-soft, #f6f6f3);
+  background: var(--surface);
   border: 1px solid var(--border, #e4e4dd);
   border-radius: 8px;
   font-size: 12px;
@@ -40,7 +40,7 @@
 }
 .telegram-status dt {
   min-width: 80px;
-  color: var(--text-muted, #64645f);
+  color: var(--secondary);
 }
 .telegram-status dd {
   margin: 0;
