@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 const spec = JSON.parse(readFileSync(new URL('../api/openapi.yaml', import.meta.url), 'utf8'));
 assert.equal(spec.openapi, '3.1.0');
 assert.ok(spec.paths['/api/v1/system']);
-const qqVerify = spec.paths['/api/v1/connections/qq-onebot/verify']?.get;
-assert.ok(qqVerify?.responses['200'], 'QQ identity verification must document its real response');
-assert.ok(qqVerify.responses['503'], 'QQ configuration and provider failures must be explicit');
-assert.equal(spec.components.schemas.QQVerification.properties.sending_enabled.const, false);
-assert.equal(spec.components.schemas.QQVerification.properties.receiving_enabled.const, false);
+assert.ok(!spec.paths['/api/v1/connections/qq-onebot/verify'], 'The retired OneBot endpoint must not be advertised');
+assert.ok(!spec.components.schemas.QQVerification, 'The retired OneBot response schema must be removed');
+assert.deepEqual(spec.components.schemas.Connector.properties.id.enum, [
+  'qq-milky', 'weixin-clawbot', 'telegram-bot', 'email-imap', 'wechat-db',
+], 'The connector catalog must expose Milky as its only QQ integration');
 const events = spec.paths['/api/v1/events']?.get;
 assert.ok(events?.responses['501'], 'Event streaming is reserved until persistence exists');
 assert.ok(!events.responses['200'], 'Do not advertise an implemented event stream');
@@ -86,6 +86,9 @@ assert.deepEqual(implementedMutations.sort(), [
   'patch /api/v1/conversations/{conversation_id}/profile/facts/{fact_id}',
   'patch /api/v1/digest/schedule',
   'post /api/v1/digest/run',
+  'post /api/v1/assistant/runs',
+  'post /api/v1/assistant/runs/{run_id}/confirm',
+  'post /api/v1/assistant/runs/{run_id}/reject',
 ].sort());
 assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
 assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);
@@ -120,4 +123,46 @@ assert.equal(spec.components.schemas.MilkyMonitor.properties.read_only.const, tr
 assert.equal(spec.components.schemas.MilkySyncRequest.properties.limit.maximum, 30);
 assert.equal(spec.components.schemas.MilkyMonitorRequest.properties.peer_ids.maxItems, 20);
 assert.ok(spec.paths['/api/v1/connections/qq-milky/verify'].get.responses['200']);
-console.log('API contract references, inbox routes and disabled sender boundaries verified.');
+const schemas = spec.components.schemas;
+for (const name of ['AIStatus', 'AssistantStatus', 'AssistantRun', 'AssistantStartRequest', 'AssistantConfirmRequest', 'DigestSchedule', 'DigestRunRequest']) {
+  assert.ok(schemas[name].required.includes('model_config_id'), name + ' must bind consent to the target');
+  assert.ok(schemas[name].required.includes('model_config_revision'), name + ' must reject ABA config changes');
+  assert.equal(schemas[name].additionalProperties, false, name + ' must have an explicit contract');
+  assert.equal(schemas[name].properties.model_config_revision.minimum, 0, 'Environment-only model config revision zero is valid');
+}
+for (const name of ['AssistantStartRequest', 'AssistantConfirmRequest', 'DigestRunRequest', 'DigestScheduleSave']) {
+  assert.equal(schemas[name].properties.confirmed.const, true, name + ' must require fresh explicit consent');
+}
+assert.deepEqual(schemas.AssistantRejectRequest.required, ['action_id']);
+assert.deepEqual(schemas.AssistantConfirmRequest.required, ['action_id', 'model_config_id', 'model_config_revision', 'confirmed']);
+assert.ok(!schemas.AssistantConfirmRequest.properties.arguments, 'Confirmation may not replace frozen arguments');
+assert.ok(!schemas.AssistantStartRequest.properties.tools, 'Clients may not inject tool definitions');
+assert.ok(!schemas.AssistantStartRequest.properties.history, 'Clients may not inject model roles or history');
+assert.deepEqual(schemas.AssistantOperation.properties.availability.enum, ['available', 'confirmation_required', 'human_only', 'not_implemented']);
+assert.equal(schemas.AssistantStatus.properties.sending_enabled.const, false);
+assert.equal(schemas.AssistantStatus.properties.session_ttl_seconds.const, 1800);
+assert.ok(schemas.AssistantRun.properties.state.enum.includes('unknown'));
+assert.ok(schemas.AssistantToolResult.properties.state.enum.includes('unknown'));
+const assistantMethods = Object.entries(spec.paths).filter(([path]) => path.startsWith('/api/v1/assistant/')).flatMap(([path, ops]) => Object.entries(ops).map(([method, op]) => ({ path, method, op })));
+assert.equal(assistantMethods.length, 5, 'Only bounded status/start/recover/confirm/reject control methods may exist');
+for (const { path, method, op } of assistantMethods) {
+  assert.equal(op['x-implementation-status'], 'implemented', `${method} ${path}`);
+  assert.ok(op.responses['200']);
+  if (method === 'post') {
+    assert.ok(op.responses['413'], 'Assistant JSON must document the 16 KiB body limit');
+    assert.ok(op.responses['415'], 'Assistant JSON must document media-type rejection');
+  }
+  if (path !== '/api/v1/assistant/status') {
+    assert.ok(op.responses['202'], 'Nonterminal snapshots must not masquerade as completion');
+    assert.ok(op.responses['404'] && op.responses['410'], 'Run absence/expiry must not revoke devices via 401');
+  }
+}
+assert.equal(schemas.DigestLatest.properties.sending_enabled.const, false);
+assert.ok(schemas.DigestLatest.required.includes('sending_enabled'));
+assert.equal(schemas.DigestScheduleSave.additionalProperties, false);
+assert.ok(schemas.DigestScheduleSave.allOf[0].then.required.includes('model_config_id'));
+assert.ok(!schemas.DigestScheduleSave.required.includes('model_config_id'), 'Disabling must work without configured model credentials');
+assert.deepEqual(schemas.DigestReport.properties.state.enum, ['running', 'succeeded', 'failed', 'unknown']);
+assert.equal(spec.paths['/api/v1/digest/run'].post.requestBody.content['application/json'].schema.$ref, '#/components/schemas/DigestRunRequest');
+assert.equal(spec.paths['/api/v1/digest/run'].post.responses['200'].content['application/json'].schema.$ref, '#/components/schemas/DigestLatest');
+console.log('API contracts, Assistant confirmation/unknown states, bound digest consent and disabled sender boundaries verified.');

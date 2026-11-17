@@ -104,6 +104,11 @@ ON CONFLICT(conversation_id) DO UPDATE SET revision=ai_preferences.revision+1`, 
 			return ModelConfig{}, wechatMonitorDBError(ctx)
 		}
 	}
+	// Recurring digest consent binds to the exact model configuration revision,
+	// including key-only or quota-only saves. A→B→A must not revive an old grant.
+	if _, err = tx.ExecContext(ctx, `UPDATE digest_schedules SET enabled=0,model_config_id='',model_config_revision=0,revision=revision+1 WHERE workspace_id=? AND (enabled<>0 OR model_config_id<>'' OR model_config_revision<>0)`, workspaceID); err != nil {
+		return ModelConfig{}, wechatMonitorDBError(ctx)
+	}
 	if err = tx.Commit(); err != nil {
 		return ModelConfig{}, wechatMonitorDBError(ctx)
 	}

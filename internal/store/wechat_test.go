@@ -354,7 +354,9 @@ func TestV3ToV4PreservesAIDataForeignKeysAndMessageIdentity(t *testing.T) {
 	if err = legacy.UpdateAIDraft(conversation, analysis.ID, "迁移保留的编辑草稿", result.ConfigID); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = legacy.ReserveAICall("2026-11-14", conversation, 50); err != nil {
+	// Seed the actual v3 ledger directly. Current quota methods intentionally
+	// require the current schema so a missing assistant ledger cannot hide usage.
+	if _, err = legacy.db.Exec(`INSERT INTO ai_call_reservations(id,workspace_id,conversation_id,day,created_at) VALUES(?,?,?,?,?)`, "synthetic-v3-reservation", workspaceID, conversation, "2026-11-14", "2026-11-14T00:00:00Z"); err != nil {
 		t.Fatal(err)
 	}
 	before := snapshotV3Data(t, legacy.db)
@@ -374,7 +376,7 @@ func TestV3ToV4PreservesAIDataForeignKeysAndMessageIdentity(t *testing.T) {
 		}
 	}
 	var version, oldVersions int
-	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 12 {
+	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != currentSchemaVersion {
 		t.Fatal("v4 version missing")
 	}
 	if s.db.QueryRow(`SELECT count(*) FROM schema_migrations WHERE version<=3 AND applied_at='2026-01-01T00:00:00Z'`).Scan(&oldVersions) != nil || oldVersions != 3 {

@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// aiCallCountSQL is shared by conversation analysis, profiles, digests and the
+// global assistant. Reserving either kind must see every persisted attempt.
+const aiCallCountSQL = `SELECT
+ (SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?) +
+ (SELECT count(*) FROM ai_assistant_call_reservations WHERE workspace_id=? AND day=?)`
+
 func validAIDay(day string) bool {
 	parsed, err := time.Parse("2006-01-02", day)
 	return err == nil && parsed.Format("2006-01-02") == day
@@ -33,7 +39,7 @@ func (s *Store) ReserveAICallContext(ctx context.Context, day, conversationID st
 		return "", err
 	}
 	var count int
-	if tx.QueryRowContext(ctx, `SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&count) != nil {
+	if tx.QueryRowContext(ctx, aiCallCountSQL, workspaceID, day, workspaceID, day).Scan(&count) != nil {
 		return "", ErrUnavailable
 	}
 	if count >= limit {
@@ -65,7 +71,7 @@ func (s *Store) CountAICallsContext(ctx context.Context, day string) (int, error
 	}
 	defer s.mu.Unlock()
 	var count int
-	if s.db.QueryRowContext(ctx, `SELECT count(*) FROM ai_call_reservations WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&count) != nil {
+	if s.db.QueryRowContext(ctx, aiCallCountSQL, workspaceID, day, workspaceID, day).Scan(&count) != nil {
 		if err := ctx.Err(); err != nil {
 			return 0, err
 		}

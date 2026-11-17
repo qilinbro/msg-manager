@@ -1,6 +1,6 @@
 .ai-model-form > input {
   margin-bottom: 18px;
-  font-size: 14px;
+  font-size: 1rem;
 }
 .ai-model-form .ai-model-consent {
   display: flex;

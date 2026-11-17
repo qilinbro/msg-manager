@@ -110,7 +110,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   const environment = {
     ...(authBrowser?.globals ?? {}),
     ...hooks, jsx, Fragment: 'fragment',
-    MilkyPanel: 'MilkyPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub',
+    MilkyPanel: 'MilkyPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub', AssistantPanel: 'AssistantPanelStub',
     module: { exports: {} },
     window: fakeWindow, document: fakeDocument,
     URL, AbortController, DOMException, Date, Map,
@@ -148,7 +148,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
     return result;
   }
   const auth = evaluate('device-auth.ts', ['DeviceAuthError', 'authorizedFetch', 'authErrorMessage', 'deviceAuthAvailable', 'isDeviceHandle', 'loadDeviceSession', 'pairDevice', 'forgetDevice', 'subscribeDeviceForget']);
-  const api = evaluate('api.ts', ['SERVICE', 'ServiceError', 'getSystem', 'getCollection', 'getQQVerification']);
+  const api = evaluate('api.ts', ['SERVICE', 'ServiceError', 'getSystem', 'getCollection']);
   const sessions = evaluate('service-session.ts', ['SERVICE_SESSION_KEY', 'loadServiceSession', 'saveServiceSession', 'clearServiceSession']);
   const { useServiceSession } = evaluate('useServiceSession.ts', ['useServiceSession']);
   let render = () => useServiceSession(aiDrafts);

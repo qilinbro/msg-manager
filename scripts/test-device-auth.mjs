@@ -956,7 +956,7 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   expired.unmount(); groups++;
 }
 
-// All nine shipped domain clients execute through the real device transport,
+// All shipped domain clients, including the Assistant control plane, execute through the real device transport,
 // not a replacement auth stub. Each mutation gets one rejected dispatch and a
 // recovered access token, but reports an explicit 409 instead of replaying.
 {
@@ -965,7 +965,10 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
     ['ai-api.ts', 'analyzeConversation', [handle, signal, 'synthetic-conversation', 'synthetic-context-hash'], 'POST'],
     ['inbox-api.ts', 'importMessages', [handle, signal, { platform: 'qq', connection_id: 'synthetic', messages: [] }], 'POST'],
     ['model-config-api.ts', 'saveModelConfig', [handle, signal, { expected_revision: 0, base_url: 'https://synthetic.invalid/v1', model: 'synthetic-model', api_key: 'synthetic-model-secret', daily_limit: 1, confirmed: true }], 'PATCH'],
-    ['digest-api.ts', 'runDigestNow', [handle], 'POST'],
+    ['digest-api.ts', 'runDigestNow', [handle, { model_config_id: 'd'.repeat(64), model_config_revision: 0, confirmed: true }], 'POST'],
+    ['assistant-api.ts', 'createAssistantRun', [handle, signal, { session_id: '', message: 'synthetic question', model_config_id: 'd'.repeat(64), model_config_revision: 0, confirmed: true }], 'POST'],
+    ['assistant-api.ts', 'confirmAssistantAction', [handle, 'ar_synthetic', signal, { action_id: 'aa_synthetic', model_config_id: 'd'.repeat(64), model_config_revision: 0, confirmed: true }], 'POST'],
+    ['assistant-api.ts', 'rejectAssistantAction', [handle, 'ar_synthetic', signal, 'aa_synthetic'], 'POST'],
     ['email-api.ts', 'syncEmail', [handle, signal], 'POST'],
     ['wechat-api.ts', 'saveWechatMonitor', [handle, signal, { enabled: true, peer_ids: ['synthetic-peer'], interval_seconds: 10 }], 'POST'],
     ['milky-api.ts', 'syncMilky', [handle, signal, '12345', 1], 'POST'],
@@ -1028,7 +1031,6 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   assert.ok(!text().includes(MASTER));
   assert.ok(!nodes(panel()).some((n) => n.type === 'input' && n.props.type === 'checkbox'));
   const callback = settings(h).onAuthFailure, update = settings(h).onSystemUpdate;
-  assert.equal(control((n) => typeof n.type === 'function' && n.type.name === 'QQSettings').props.key, handle);
   assert.equal(control((n) => n.type === 'MilkyPanelStub').props.key, `milky-${handle}`);
   navigate('消息'); await h.flush();
   const inbox = find(h, (n) => n.type === 'InboxStub'), drafts = inbox.props.aiDrafts;
@@ -1046,7 +1048,6 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   navigate('设置'); await h.flush();
   assert.equal(settings(h).onAuthFailure, callback);
   assert.equal(settings(h).onSystemUpdate, update);
-  assert.equal(control((n) => typeof n.type === 'function' && n.type.name === 'QQSettings').props.key, handle);
   assert.equal(control((n) => n.type === 'MilkyPanelStub').props.key, `milky-${handle}`);
   const gate = deferred(); h.server.before = (r) => r.method === 'DELETE' ? gate.promise : undefined;
   const forget = control((n) => n.type === 'button' && n.props.onClick === settings(h).onClear);

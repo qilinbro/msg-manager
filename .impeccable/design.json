@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T12:41:48.738Z",
+  "title": "Design System: 消息管理工作台",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "正文",
+        "canonical": "oklch(24.794% 0.00585 271.176)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00585 271.176)",
+          "oklch(26.43% 0.00585 271.176)",
+          "oklch(37.86% 0.00585 271.176)",
+          "oklch(49.29% 0.00585 271.176)",
+          "oklch(60.71% 0.00585 271.176)",
+          "oklch(72.14% 0.00585 271.176)",
+          "oklch(83.57% 0.00585 271.176)",
+          "oklch(95.00% 0.00585 271.176)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "次级文字",
+        "canonical": "oklch(50.480% 0.01272 256.738)",
+        "tonalRamp": [
+          "oklch(15.00% 0.01272 256.738)",
+          "oklch(26.43% 0.01272 256.738)",
+          "oklch(37.86% 0.01272 256.738)",
+          "oklch(49.29% 0.01272 256.738)",
+          "oklch(60.71% 0.01272 256.738)",
+          "oklch(72.14% 0.01272 256.738)",
+          "oklch(83.57% 0.01272 256.738)",
+          "oklch(95.00% 0.01272 256.738)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "深灰操作",
+        "canonical": "oklch(29.215% 0.01005 260.708)",
+        "tonalRamp": [
+          "oklch(15.00% 0.01005 260.708)",
+          "oklch(26.43% 0.01005 260.708)",
+          "oklch(37.86% 0.01005 260.708)",
+          "oklch(49.29% 0.01005 260.708)",
+          "oklch(60.71% 0.01005 260.708)",
+          "oklch(72.14% 0.01005 260.708)",
+          "oklch(83.57% 0.01005 260.708)",
+          "oklch(95.00% 0.01005 260.708)"
+        ]
+      },
+      "accent-hover": {
+        "role": "neutral",
+        "displayName": "深灰悬停",
+        "canonical": "oklch(19.933% 0.00678 258.368)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00678 258.368)",
+          "oklch(26.43% 0.00678 258.368)",
+          "oklch(37.86% 0.00678 258.368)",
+          "oklch(49.29% 0.00678 258.368)",
+          "oklch(60.71% 0.00678 258.368)",
+          "oklch(72.14% 0.00678 258.368)",
+          "oklch(83.57% 0.00678 258.368)",
+          "oklch(95.00% 0.00678 258.368)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "分隔线",
+        "canonical": "oklch(92.123% 0.00460 258.325)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00460 258.325)",
+          "oklch(26.43% 0.00460 258.325)",
+          "oklch(37.86% 0.00460 258.325)",
+          "oklch(49.29% 0.00460 258.325)",
+          "oklch(60.71% 0.00460 258.325)",
+          "oklch(72.14% 0.00460 258.325)",
+          "oklch(83.57% 0.00460 258.325)",
+          "oklch(95.00% 0.00460 258.325)"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "控件边缘",
+        "canonical": "oklch(63.771% 0.01388 255.542)",
+        "tonalRamp": [
+          "oklch(15.00% 0.01388 255.542)",
+          "oklch(26.43% 0.01388 255.542)",
+          "oklch(37.86% 0.01388 255.542)",
+          "oklch(49.29% 0.01388 255.542)",
+          "oklch(60.71% 0.01388 255.542)",
+          "oklch(72.14% 0.01388 255.542)",
+          "oklch(83.57% 0.01388 255.542)",
+          "oklch(95.00% 0.01388 255.542)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "页面白",
+        "canonical": "oklch(100.000% 0.00000 0.000)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00000 0.000)",
+          "oklch(26.43% 0.00000 0.000)",
+          "oklch(37.86% 0.00000 0.000)",
+          "oklch(49.29% 0.00000 0.000)",
+          "oklch(60.71% 0.00000 0.000)",
+          "oklch(72.14% 0.00000 0.000)",
+          "oklch(83.57% 0.00000 0.000)",
+          "oklch(95.00% 0.00000 0.000)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "近白分区",
+        "canonical": "oklch(97.893% 0.00287 264.542)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00287 264.542)",
+          "oklch(26.43% 0.00287 264.542)",
+          "oklch(37.86% 0.00287 264.542)",
+          "oklch(49.29% 0.00287 264.542)",
+          "oklch(60.71% 0.00287 264.542)",
+          "oklch(72.14% 0.00287 264.542)",
+          "oklch(83.57% 0.00287 264.542)",
+          "oklch(95.00% 0.00287 264.542)"
+        ]
+      },
+      "surface-hover": {
+        "role": "neutral",
+        "displayName": "浅灰悬停",
+        "canonical": "oklch(95.418% 0.00344 247.859)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00344 247.859)",
+          "oklch(26.43% 0.00344 247.859)",
+          "oklch(37.86% 0.00344 247.859)",
+          "oklch(49.29% 0.00344 247.859)",
+          "oklch(60.71% 0.00344 247.859)",
+          "oklch(72.14% 0.00344 247.859)",
+          "oklch(83.57% 0.00344 247.859)",
+          "oklch(95.00% 0.00344 247.859)"
+        ]
+      },
+      "nav-active": {
+        "role": "neutral",
+        "displayName": "当前位置",
+        "canonical": "oklch(94.241% 0.00457 258.325)",
+        "tonalRamp": [
+          "oklch(15.00% 0.00457 258.325)",
+          "oklch(26.43% 0.00457 258.325)",
+          "oklch(37.86% 0.00457 258.325)",
+          "oklch(49.29% 0.00457 258.325)",
+          "oklch(60.71% 0.00457 258.325)",
+          "oklch(72.14% 0.00457 258.325)",
+          "oklch(83.57% 0.00457 258.325)",
+          "oklch(95.00% 0.00457 258.325)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "错误",
+        "canonical": "oklch(47.454% 0.15447 25.298)",
+        "tonalRamp": [
+          "oklch(15.00% 0.15447 25.298)",
+          "oklch(26.43% 0.15447 25.298)",
+          "oklch(37.86% 0.15447 25.298)",
+          "oklch(49.29% 0.15447 25.298)",
+          "oklch(60.71% 0.15447 25.298)",
+          "oklch(72.14% 0.15447 25.298)",
+          "oklch(83.57% 0.15447 25.298)",
+          "oklch(95.00% 0.15447 25.298)"
+        ]
+      },
+      "danger-bg": {
+        "role": "semantic",
+        "displayName": "错误底色",
+        "canonical": "oklch(97.764% 0.01085 24.318)",
+        "tonalRamp": [
+          "oklch(15.00% 0.01085 24.318)",
+          "oklch(26.43% 0.01085 24.318)",
+          "oklch(37.86% 0.01085 24.318)",
+          "oklch(49.29% 0.01085 24.318)",
+          "oklch(60.71% 0.01085 24.318)",
+          "oklch(72.14% 0.01085 24.318)",
+          "oklch(83.57% 0.01085 24.318)",
+          "oklch(95.00% 0.01085 24.318)"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "风险",
+        "canonical": "oklch(50.281% 0.09214 79.074)",
+        "tonalRamp": [
+          "oklch(15.00% 0.09214 79.074)",
+          "oklch(26.43% 0.09214 79.074)",
+          "oklch(37.86% 0.09214 79.074)",
+          "oklch(49.29% 0.09214 79.074)",
+          "oklch(60.71% 0.09214 79.074)",
+          "oklch(72.14% 0.09214 79.074)",
+          "oklch(83.57% 0.09214 79.074)",
+          "oklch(95.00% 0.09214 79.074)"
+        ]
+      },
+      "warning-bg": {
+        "role": "semantic",
+        "displayName": "风险底色",
+        "canonical": "oklch(98.350% 0.01706 84.587)",
+        "tonalRamp": [
+          "oklch(15.00% 0.01706 84.587)",
+          "oklch(26.43% 0.01706 84.587)",
+          "oklch(37.86% 0.01706 84.587)",
+          "oklch(49.29% 0.01706 84.587)",
+          "oklch(60.71% 0.01706 84.587)",
+          "oklch(72.14% 0.01706 84.587)",
+          "oklch(83.57% 0.01706 84.587)",
+          "oklch(95.00% 0.01706 84.587)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "page-title": {
+        "displayName": "页面标题",
+        "purpose": "页面主任务，不是营销hero。"
+      },
+      "section-title": {
+        "displayName": "分节标题",
+        "purpose": "业务组与确认预览。"
+      },
+      "body": {
+        "displayName": "正文",
+        "purpose": "连续业务阅读。"
+      },
+      "action-label": {
+        "displayName": "操作文字",
+        "purpose": "紧凑文字按钮。"
+      },
+      "input": {
+        "displayName": "输入",
+        "purpose": "助手与模型配置可读输入。"
+      },
+      "status-label": {
+        "displayName": "状态标签",
+        "purpose": "仅用于真实业务状态。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "flat",
+        "value": "none",
+        "purpose": "细边框与近白分区，不使用装饰阴影。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "reduced-motion",
+        "value": "animation-duration:0.01ms;animation-iteration-count:1;transition-duration:0.01ms;scroll-behavior:auto",
+        "purpose": "仅在prefers-reduced-motion:reduce匹配时应用。"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "shell-compact",
+        "value": "1100px"
+      },
+      {
+        "name": "shell-stacked",
+        "value": "760px"
+      },
+      {
+        "name": "assistant-stacked",
+        "value": "600px"
+      },
+      {
+        "name": "narrow-gutter",
+        "value": "440px"
+      }
+    ],
+    "provenance": {
+      "observed": "2026-11-17",
+      "sources": [
+        "apps/desktop/src/styles.css",
+        "apps/desktop/src/assistant.css",
+        "apps/desktop/src/inbox.css"
+      ],
+      "evidence": "docs/acceptance/T13-native-assistant-validation.md",
+      "note": "Documentation and isolated visual samples only; no runtime token refactor, remote font or actual business request."
+    }
+  },
+  "components": [
+    {
+      "name": "主按钮",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "沿用实际紧凑按钮；hover、可见焦点和禁用状态不使用动效。",
+      "html": "<button type=\"button\" class=\"ds-button-primary\">提交请求</button>",
+      "css": ".ds-button-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 14px;border:1px solid transparent;border-radius:4px;font:500 .8125rem/1.5 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;background:var(--accent, #292c31);color:var(--paper, #ffffff);cursor:pointer}.ds-button-primary:hover:not(:disabled),.ds-button-primary:active:not(:disabled){background:var(--accent-hover, #141619);color:var(--paper, #ffffff)}.ds-button-primary:focus-visible{outline:2px solid var(--ink, #202124);outline-offset:3px}.ds-button-primary:disabled{opacity:.5;cursor:not-allowed}@media(pointer:coarse){.ds-button-primary{min-height:44px}}"
+    },
+    {
+      "name": "次按钮",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "沿用实际紧凑按钮；hover、可见焦点和禁用状态不使用动效。",
+      "html": "<button type=\"button\" class=\"ds-button-secondary\">读取运行结果</button>",
+      "css": ".ds-button-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 14px;border:1px solid var(--border-strong, #868c94);border-radius:4px;font:500 .8125rem/1.5 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;background:var(--paper, #ffffff);color:var(--ink, #202124);cursor:pointer}.ds-button-secondary:hover:not(:disabled),.ds-button-secondary:active:not(:disabled){background:var(--surface, #f7f8fa);color:var(--ink, #202124)}.ds-button-secondary:focus-visible{outline:2px solid var(--ink, #202124);outline-offset:3px}.ds-button-secondary:disabled{opacity:.5;cursor:not-allowed}@media(pointer:coarse){.ds-button-secondary{min-height:44px}}"
+    },
+    {
+      "name": "轻按钮",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "沿用实际紧凑按钮；hover、可见焦点和禁用状态不使用动效。",
+      "html": "<button type=\"button\" class=\"ds-button-quiet\">更新状态</button>",
+      "css": ".ds-button-quiet{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 14px;border:1px solid transparent;border-radius:4px;font:500 .8125rem/1.5 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;background:transparent;color:var(--secondary, #60656c);cursor:pointer}.ds-button-quiet:hover:not(:disabled),.ds-button-quiet:active:not(:disabled){background:var(--surface-hover, #eef0f2);color:var(--ink, #202124)}.ds-button-quiet:focus-visible{outline:2px solid var(--ink, #202124);outline-offset:3px}.ds-button-quiet:disabled{opacity:.5;cursor:not-allowed}@media(pointer:coarse){.ds-button-quiet{min-height:44px}}"
+    },
+    {
+      "name": "带标签输入",
+      "kind": "input",
+      "refersTo": "text-input",
+      "description": "助手恢复字段：系统字体、明确边缘和可见焦点；placeholder不替代标签。",
+      "html": "<label class=\"ds-field\">运行编号<input class=\"ds-input\" type=\"text\" placeholder=\"输入已知运行编号\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;font:400 .875rem/1.65 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;color:var(--ink, #202124)}.ds-input{min-width:0;min-height:44px;padding:10px 12px;border:1px solid var(--border-strong, #868c94);border-radius:4px;background:var(--paper, #ffffff);color:var(--ink, #202124);font:400 1rem/1.7 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif}.ds-input::placeholder{color:var(--secondary, #60656c)}.ds-input:hover{border-color:var(--border-strong, #868c94)}.ds-input:focus-visible{outline:2px solid var(--ink, #202124);outline-offset:3px}.ds-input:disabled{background:var(--surface, #f7f8fa)}"
+    },
+    {
+      "name": "工作区导航",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "浅灰当前位置与紧凑文字，不使用装饰徽标；选中不是业务成功。",
+      "html": "<nav class=\"ds-nav\" aria-label=\"工作区\"><button type=\"button\" class=\"ds-nav-item\">收件箱</button><button type=\"button\" class=\"ds-nav-item\" aria-current=\"page\">Agent 助手</button><button type=\"button\" class=\"ds-nav-item\">每日整理</button></nav>",
+      "css": ".ds-nav{display:grid;gap:4px;max-width:240px}.ds-nav-item{display:flex;align-items:center;min-height:42px;padding:10px 12px;border:0;border-radius:4px;background:transparent;color:var(--secondary, #60656c);font:400 .875rem/1.65 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;text-align:start;cursor:pointer}.ds-nav-item:hover,.ds-nav-item:active{background:var(--surface-hover, #eef0f2);color:var(--ink, #202124)}.ds-nav-item[aria-current=page]{background:var(--nav-active, #eaecef);color:var(--ink, #202124);font-weight:600}.ds-nav-item:focus-visible{outline:2px solid var(--ink, #202124);outline-offset:3px}@media(pointer:coarse){.ds-nav-item{min-height:44px}}"
+    },
+    {
+      "name": "普通内容面板",
+      "kind": "card",
+      "refersTo": "surface-panel",
+      "description": "白底、细线、小圆角；非交互容器不添加假hover或阴影。",
+      "html": "<section class=\"ds-panel\"><h2 class=\"ds-panel-title\">消息工作台</h2><p class=\"ds-panel-copy\">内容按来源与实际状态展示；接收能力以设置为准。</p></section>",
+      "css": ".ds-panel{padding:20px;border:1px solid var(--border, #e3e5e8);border-radius:4px;background:var(--paper, #ffffff);color:var(--ink, #202124);font:400 .875rem/1.65 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif}.ds-panel-title{margin:0 0 8px;font-size:1rem;font-weight:600}.ds-panel-copy{margin:0;color:var(--secondary, #60656c)}"
+    },
+    {
+      "name": "中性状态标签",
+      "kind": "chip",
+      "refersTo": "status-label",
+      "description": "已有的功能状态标签，不新增装饰徽标；非交互标签无假hover。",
+      "html": "<span class=\"ds-label\">尚未配置</span>",
+      "css": ".ds-label{display:inline-block;padding:3px 7px;border:1px solid var(--border, #e3e5e8);border-radius:3px;background:var(--surface, #f7f8fa);color:var(--ink, #202124);font:400 .75rem/1.5 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;white-space:nowrap}"
+    },
+    {
+      "name": "固定操作确认",
+      "kind": "custom",
+      "refersTo": "confirmation-panel",
+      "description": "视觉样本，不执行请求；参数固定、同意默认不勾选。真实界面还展示编号、目标版本和有效期。",
+      "html": "<section class=\"ds-confirm\"><h3 class=\"ds-confirm-title\">确认此项操作</h3><p>核对固定参数与影响；这里只是合成视觉样本。</p><pre class=\"ds-confirm-code\">{\n  \"conversation_id\": \"synthetic-qq\",\n  \"tone\": \"professional\"\n}</pre><p>仅修改会话AI语气，不发送消息。</p><label class=\"ds-confirm-check\"><input type=\"checkbox\">我已核对，仅确认这一项操作。</label></section>",
+      "css": ".ds-confirm{padding:18px;border:1px solid var(--border-strong, #868c94);border-radius:4px;background:var(--paper, #ffffff);color:var(--ink, #202124);font:400 .8125rem/1.8 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif}.ds-confirm-title{margin:0 0 12px;font-size:1rem;font-weight:600}.ds-confirm-code{padding:14px;border:1px solid var(--border, #e3e5e8);border-radius:4px;background:var(--surface, #f7f8fa);white-space:pre-wrap;overflow-wrap:anywhere;font:.8125rem/1.8 ui-monospace,'Cascadia Code',Consolas,monospace}.ds-confirm-check{display:flex;align-items:flex-start;gap:10px;min-height:44px;padding:8px 0;cursor:pointer}.ds-confirm-check input{flex:0 0 18px;width:18px;height:18px;margin:4px 0 0;accent-color:var(--accent, #292c31)}.ds-confirm-check input:hover{accent-color:var(--accent-hover, #141619)}.ds-confirm-check input:focus-visible{outline:2px solid var(--ink, #202124);outline-offset:3px}"
+    },
+    {
+      "name": "待核实提醒",
+      "kind": "custom",
+      "refersTo": "warning",
+      "description": "风险文字与轻量背景共同表达unknown，不能呈现为成功；非交互提示无假hover。",
+      "html": "<p class=\"ds-warning\" role=\"status\">至少一项结果未知。请先核实业务状态，不要把重新提交当作安全重试。</p>",
+      "css": ".ds-warning{padding:12px 14px;border:1px solid var(--border, #e3e5e8);border-radius:4px;background:var(--warning-bg, #fff9ed);color:var(--warning, #805d1b);font:400 .8125rem/1.8 system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;overflow-wrap:anywhere}"
+    },
+    {
+      "name": "参数与回执块",
+      "kind": "custom",
+      "refersTo": "code-panel",
+      "description": "本机等宽字体、可换行、有限高度；只展示数据，不把文本当HTML执行。",
+      "html": "<pre class=\"ds-code\">{\n  \"state\": \"unknown\",\n  \"http_status\": null\n}</pre>",
+      "css": ".ds-code{max-height:360px;padding:14px;border:1px solid var(--border, #e3e5e8);border-radius:4px;background:var(--surface, #f7f8fa);color:var(--ink, #202124);font:400 .8125rem/1.65 ui-monospace,'Cascadia Code',Consolas,monospace;white-space:pre-wrap;overflow:auto;overflow-wrap:anywhere}"
+    }
+  ],
+  "narrative": {
+    "northStar": "白色简约，不添加多余修饰",
+    "overview": "这是一个管理消息与操作的工作台，不是展示品牌故事的营销页面。以白色背景、近白分区、深灰文字和细线组织已有信息；密度由内容与任务决定，不为了填满空间增加装饰、统计或口号。\n\nAgent的状态与权限延续相同视觉语言：模型说明、工具回执、固定确认和未知结果都有直接文字，不用聊天气泡或颜色制造成功感。红/棕反馈只承担错误与风险提醒，不作为品牌点缀。字体沿用中文友好的系统无衬线栈，不下载外部字体。",
+    "keyCharacteristics": [
+      "白底与细线优先，内容层级清楚，装饰克制。",
+      "同意、操作、回执和未知状态彼此可分辨。",
+      "桌面保持紧凑工作区，窄屏按内容顺序堆叠。"
+    ],
+    "rules": [
+      {
+        "name": "The Functional Color Rule",
+        "body": "颜色只帮助识别交互或实际风险；成功与否必须由文字和业务回执说明，不能仅靠颜色暗示。",
+        "section": "colors"
+      },
+      {
+        "name": "The Flat Surface Rule",
+        "body": "保持平面信息层级；不要用悬浮、玻璃、渐变或夸张阴影制造无业务意义的深度。",
+        "section": "elevation"
+      },
+      {
+        "name": "The Honest State Rule",
+        "body": "未确认、等待、失败和未知必须保持可辨；不要用动画、装饰徽标或模型语气掩盖真实执行状态。",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** 保持白底、深灰文字与细分隔，优先把内容和操作放清楚。",
+      "**Do** 保留可见键盘焦点、真实标签、必要风险文字与未默认勾选的同意。",
+      "**Do** 让窄屏按业务顺序堆叠，长编号与参数可读，内部滚动范围明确。"
+    ],
+    "donts": [
+      "**Don't** 添加渐变、玻璃、光晕、植物装饰、装饰插画或夸张阴影。",
+      "**Don't** 添加假统计、装饰徽标、营销hero或为填空而造的卡片。",
+      "**Don't** 把模型回复、HTTP 202、本地停止或unknown渲染为业务成功。"
+    ]
+  }
+}

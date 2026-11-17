@@ -181,9 +181,15 @@ func (s *Store) AIContext(conversationID string) (AIContext, error) {
 }
 
 func (s *Store) AISettings(conversationID string) (AISettings, error) {
-	s.mu.Lock()
+	return s.AISettingsContext(context.Background(), conversationID)
+}
+
+func (s *Store) AISettingsContext(ctx context.Context, conversationID string) (AISettings, error) {
+	if err := s.lockContext(ctx); err != nil {
+		return AISettings{}, err
+	}
 	defer s.mu.Unlock()
-	tx, err := s.db.Begin()
+	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return AISettings{}, ErrUnavailable
 	}

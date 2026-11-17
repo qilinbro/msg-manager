@@ -7,14 +7,14 @@ import (
 )
 
 func TestDigestScheduleAPIRequiresConfirmationAndUsesCAS(t *testing.T) {
-	h := newEmailTestHandler(t)
+	h := newDigestTestHandler(t, &digestStubAnalyzer{})
 	if w := emailTestRequest(h, http.MethodGet, "/api/v1/digest/schedule", "", true); w.Code != http.StatusOK {
 		t.Fatal("schedule get", w.Code, w.Body.String())
 	}
 	if w := emailTestRequest(h, http.MethodPatch, "/api/v1/digest/schedule", `{"enabled":true,"local_time":"09:30","timezone":"Asia/Shanghai","expected_revision":1,"confirmed":false}`, true); w.Code != http.StatusBadRequest {
 		t.Fatal("unconfirmed schedule accepted", w.Code, w.Body.String())
 	}
-	w := emailTestRequest(h, http.MethodPatch, "/api/v1/digest/schedule", `{"enabled":true,"local_time":"09:30","timezone":"Asia/Shanghai","expected_revision":1,"confirmed":true}`, true)
+	w := emailTestRequest(h, http.MethodPatch, "/api/v1/digest/schedule", digestScheduleBody(h, true, 1), true)
 	if w.Code != http.StatusOK {
 		t.Fatal("schedule save", w.Code, w.Body.String())
 	}

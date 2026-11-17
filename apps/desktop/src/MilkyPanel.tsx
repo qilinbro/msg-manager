@@ -157,8 +157,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
     <section className="settings-panel" aria-labelledby="milky-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">QQ MILKY</p>
-          <h2 id="milky-title">QQ Milky 协议端（主线）</h2>
+          <h2 id="milky-title">QQ 个人号（Milky）</h2>
         </div>
       </div>
       <p className="qq-intro">

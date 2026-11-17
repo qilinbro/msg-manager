@@ -1,22 +1,19 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
-import {
-  getCollection,
-  getQQVerification,
-  getSystem,
-  SERVICE,
-  ServiceError,
-} from './api';
-import type { Connector, QQVerification, SystemStatus } from './api';
+import { getCollection, SERVICE, ServiceError } from './api';
+import type { Connector, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
 import { AIModelPanel } from './AIModelPanel';
 import { DigestPanel } from './DigestPanel';
+import { AssistantPanel } from './AssistantPanel';
+import type { AssistantWorkspace } from './AssistantPanel';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
 
-type Page = 'overview' | 'messages' | 'contacts' | 'approvals' | 'settings';
+type Page =
+  'overview' | 'messages' | 'contacts' | 'approvals' | 'assistant' | 'settings';
 type IconName =
   | 'overview'
   | 'messages'
@@ -26,39 +23,27 @@ type IconName =
   | 'arrow'
   | 'lock'
   | 'check'
-  | 'plug'
-  | 'leaf';
+  | 'plug';
 const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
   { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'messages', label: '消息', icon: 'messages' },
   { page: 'contacts', label: '联系人', icon: 'contacts' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
+  { page: 'assistant', label: 'Agent 助手', icon: 'messages' },
 ];
 const PAGE_TITLES: Record<Page, string> = {
   overview: '概览',
   messages: '消息',
   contacts: '联系人',
   approvals: '待审批',
+  assistant: 'Agent 助手',
   settings: '设置',
 };
 const PLANNED_CONNECTORS: Connector[] = [
   {
-    id: 'qq-onebot',
-    platform: 'qq',
-    display_name: 'QQ 个人号（OneBot）',
-    status: 'not_configured',
-    implementation_status: 'probe_ready',
-    description: '优先接入个人 QQ；当前仅支持账号核验，尚未启用收发。',
-    capabilities: {
-      receive_text: false,
-      send_text: false,
-      history_import: false,
-    },
-  },
-  {
     id: 'qq-milky',
     platform: 'qq',
-    display_name: 'QQ 个人号（Milky 主线）',
+    display_name: 'QQ 个人号（Milky）',
     status: 'not_configured',
     implementation_status: 'manual_sync_ready',
     description:
@@ -141,12 +126,6 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
         <path d="M9 3v4m6-4v4M7 7h10v4a5 5 0 0 1-10 0V7Zm5 9v5" />
       </>
     ),
-    leaf: (
-      <>
-        <path d="M20 4C10 3 4 8 5 14c1 5 9 7 12 1 2-3 2-6 3-11Z" />
-        <path d="M4 21C7 15 10 12 15 9" />
-      </>
-    ),
   };
   return (
     <svg
@@ -165,27 +144,29 @@ function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   );
 }
 
-function Status({ connected }: { connected: boolean }) {
+function Status({ state }: { state: Session['status'] }) {
+  const labels = {
+    idle: '服务未连接',
+    connecting: '正在连接服务…',
+    connected: '服务可访问',
+    error: '服务连接异常',
+  };
   return (
-    <span className={`service-status ${connected ? 'is-connected' : ''}`}>
-      <span className="status-dot" />
-      {connected ? '服务可访问' : '服务未连接'}
+    <span className="service-status" role="status">
+      {labels[state]}
     </span>
   );
 }
 
 function Heading({
-  eyebrow,
   title,
   description,
 }: {
-  eyebrow: string;
   title: string;
   description: string;
 }) {
   return (
     <div className="page-heading">
-      <p className="eyebrow">{eyebrow}</p>
       <h1>{title}</h1>
       <p className="page-description">{description}</p>
     </div>
@@ -214,16 +195,6 @@ function ConnectorCard({
   };
   return (
     <article className="connector-card">
-      <div
-        className={`platform-symbol ${connector.platform}`}
-        aria-hidden="true"
-      >
-        {connector.platform === 'qq'
-          ? 'Q'
-          : connector.platform === 'weixin'
-            ? '微'
-            : '↗'}
-      </div>
       <div className="connector-copy">
         <h3>{connector.display_name}</h3>
         <p>{verified ? connector.description : '连接本地服务后查看接入状态'}</p>
@@ -232,7 +203,7 @@ function ConnectorCard({
         ) : null}
       </div>
       <span
-        className={`label ${connected || identityVerified ? 'label-green' : ''}`}
+        className={`label ${connected || identityVerified ? 'label-neutral' : ''}`}
       >
         {verified
           ? Object.hasOwn(labels, connector.status)
@@ -255,187 +226,121 @@ function Overview({
 }) {
   const system = session.system;
   const connectors = system?.connectors ?? PLANNED_CONNECTORS;
-  const connectedCount = system
-    ? connectors.filter((item) => item.status === 'connected').length
-    : null;
   return (
     <>
       <Heading
-        eyebrow="YOUR RELATIONSHIPS, IN CONTEXT"
-        title="让每段关系，都有上下文。"
-        description="把分散的消息与重要的约定，慢慢整理成有记忆的联系。"
+        title="概览"
+        description="查看平台接入与存储状态，继续管理消息和联系人。"
       />
-      <section className="welcome-panel" aria-labelledby="welcome-title">
-        <div className="welcome-copy">
-          <span className="small-label">
-            <span className="little-line" />{' '}
-            {system ? '一步一步，建立连接' : '从这里开始'}
-          </span>
-          <h2 id="welcome-title">
-            {system ? (
-              <>
-                服务已连接，
-                <br />
-                {system.storage.configured
-                  ? '开始整理消息。'
-                  : '下一步配置消息存储。'}
-              </>
-            ) : (
-              <>
-                先连接，
-                <br />
-                再让沟通连续起来。
-              </>
-            )}
-          </h2>
-          <p>
-            {system ? (
-              <>
-                {system.storage.configured
-                  ? '统一消息中心已准备好。'
-                  : '消息存储尚未配置。'}
-                <br className="desktop-break" />
-                {system.storage.configured
-                  ? '导入已有记录，按平台查看和整理会话。'
-                  : '启用加密存储后，即可导入已有记录。'}
-              </>
-            ) : (
-              <>
-                你的工作台已经准备好。连接本地服务后，
-                <br className="desktop-break" />
-                就可以查看平台接入与消息状态。
-              </>
-            )}
-          </p>
+      <section
+        className="overview-summary"
+        aria-labelledby="workspace-state-title"
+      >
+        <div className="section-heading">
+          <h2 id="workspace-state-title">工作台状态</h2>
           <button
+            type="button"
             className="button button-primary"
             onClick={system?.storage.configured ? onMessages : onSettings}
           >
             {system?.storage.configured
-              ? '打开消息中心'
+              ? '打开消息'
               : system
-                ? '查看配置状态'
-                : '连接本地服务'}{' '}
-            <Icon name="arrow" size={17} />
+                ? '查看配置'
+                : '连接本地服务'}
           </button>
         </div>
-        <div className="relationship-art" aria-hidden="true">
-          <span className="art-orbit orbit-outer" />
-          <span className="art-orbit orbit-inner" />
-          <div className="art-center">
-            <Icon name="leaf" size={44} />
+        <dl className="overview-facts">
+          <div>
+            <dt>消息存储</dt>
+            <dd>
+              {system
+                ? system.storage.configured
+                  ? '已配置'
+                  : '尚未配置'
+                : '尚未读取'}
+            </dd>
           </div>
-          <span className="art-node node-one">
-            <Icon name="messages" size={22} />
-          </span>
-          <span className="art-node node-two">
-            <Icon name="contacts" size={23} />
-          </span>
-          <span className="art-node node-three">
-            <Icon name="check" size={19} />
-          </span>
-          <span className="art-small-dot" />
-          <span className="art-caption">每一次联系，值得被记住。</span>
-        </div>
-      </section>
-      <section className="status-grid" aria-label="当前工作台状态">
-        <article className="status-item">
-          <span className="status-item-label">本地服务</span>
-          <div className="status-item-value">
-            {system ? '可访问' : '未连接'}
-            <span className={`inline-dot ${system ? 'green' : ''}`} />
+          <div>
+            <dt>后台自动化</dt>
+            <dd>
+              {system
+                ? system.automation.paused
+                  ? '已暂停'
+                  : '运行中'
+                : '尚未读取'}
+            </dd>
           </div>
-          <p>{system ? '已读取服务的实时状态' : '在设置中输入令牌以连接'}</p>
-        </article>
-        <article className="status-item">
-          <span className="status-item-label">社交平台</span>
-          <div className="status-item-value">
-            {connectedCount === null ? '待检查' : `${connectedCount} 个已连接`}
-          </div>
-          <p>{system ? '仅显示平台实际接入状态' : '尚未读取平台连接状态'}</p>
-        </article>
-        <article className="status-item">
-          <span className="status-item-label">自动发送</span>
-          <div className="status-item-value">
-            {system?.automation.auto_send_enabled
-              ? '已启用'
-              : system
-                ? '已关闭'
+          <div>
+            <dt>自动发送</dt>
+            <dd>
+              {system
+                ? system.automation.auto_send_enabled
+                  ? '已启用'
+                  : '已关闭'
                 : '默认关闭'}
-            <Icon name="lock" size={17} />
+            </dd>
           </div>
-          <p>每次授权，都由你决定</p>
-        </article>
+        </dl>
+        <p className="section-footnote">
+          {system?.storage.configured
+            ? '可导入已有记录。实时接收需在对应平台中单独配置；当前未开放消息发送。'
+            : system
+              ? '在后台配置加密消息存储后，即可导入并整理已有记录。'
+              : '在设置中授权本地服务后读取实际状态。主令牌仅保留在当前页面内存中。'}
+        </p>
       </section>
-      <div className="overview-bottom">
-        <section aria-labelledby="platform-title">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">CONNECTIONS</p>
-              <h2 id="platform-title">平台接入</h2>
-            </div>
-            <span className="subtle-note">
-              {system ? '来自当前服务' : '计划接入'}
-            </span>
-          </div>
-          <div className="connector-list">
-            {connectors.map((connector) => (
-              <ConnectorCard
-                key={connector.id}
-                connector={connector}
-                verified={Boolean(system)}
-              />
-            ))}
-          </div>
-          <p className="section-footnote">
-            已导入记录可在消息中心统一管理；平台在线连接单独验证。
-          </p>
-        </section>
-        <aside className="principle-panel">
-          <Icon name="leaf" size={23} />
-          <h2>
-            关系的决定权，
-            <br />
-            始终在你。
-          </h2>
-          <p>
-            重要安排留给你确认，日常回复遵循明确授权。每次处理都应有迹可循。
-          </p>
-          <div className="principle-rule" />
-          <span>记忆有来源 · 操作有边界</span>
-        </aside>
-      </div>
+      <section aria-labelledby="platform-title">
+        <div className="section-heading">
+          <h2 id="platform-title">平台接入</h2>
+          <button
+            type="button"
+            className="button button-quiet"
+            onClick={onSettings}
+          >
+            连接设置
+          </button>
+        </div>
+        <div className="connector-list">
+          {connectors.map((connector) => (
+            <ConnectorCard
+              key={connector.id}
+              connector={connector}
+              verified={Boolean(system)}
+            />
+          ))}
+        </div>
+        <p className="section-footnote">
+          {system
+            ? '状态来自当前服务。账号核验、历史导入与持续接收是不同能力。'
+            : '以下为接入目录，连接服务后查看真实配置与可用能力。'}
+        </p>
+      </section>
     </>
   );
 }
 
 const COLLECTION_COPY = {
   messages: {
-    eyebrow: 'INBOX',
     title: '消息',
     description: '在一个地方，接住来自不同平台的对话。',
     emptyTitle: '第一条消息，还在路上。',
     emptyDescription:
       '平台尚未接入，当前没有消息。连接能力完成并获得授权后，新消息会出现在这里。',
-    icon: 'messages' as IconName,
   },
   contacts: {
-    eyebrow: 'PEOPLE',
     title: '联系人',
     description: '每个人的故事，都有独立的位置。',
     emptyTitle: '这里将记住你在意的人。',
     emptyDescription:
       '当前没有联系人。联系人管理和聊天导入接入后，可以在这里整理关系与记忆。',
-    icon: 'contacts' as IconName,
   },
   approvals: {
-    eyebrow: 'YOUR DECISIONS',
     title: '待审批',
-    description: '重要的回复，等你看过再决定。',
-    emptyTitle: '暂时没有需要确认的回复。',
+    description: '查看待审批记录。审批工作流尚未接入。',
+    emptyTitle: '暂无待审批记录',
     emptyDescription:
-      '回复生成与审批能力尚未接入。未来涉及承诺、金额或重要安排的消息，会留在这里等待你确认。',
-    icon: 'approvals' as IconName,
+      '此处暂未接入回复审批工作流。会话 AI 草稿在消息详情中管理，Agent 工具确认在助手页面中完成。',
   },
 };
 
@@ -482,11 +387,7 @@ function CollectionView({
   const error = token && result.status === 'error';
   return (
     <>
-      <Heading
-        eyebrow={copy.eyebrow}
-        title={copy.title}
-        description={copy.description}
-      />
+      <Heading title={copy.title} description={copy.description} />
       <section className="collection-surface" aria-busy={Boolean(loading)}>
         <div className="collection-toolbar">
           <span>{copy.title}列表</span>
@@ -497,16 +398,6 @@ function CollectionView({
           </span>
         </div>
         <div className="empty-state">
-          <div className={`empty-icon ${loading ? 'is-loading' : ''}`}>
-            <Icon name={copy.icon} size={32} />
-          </div>
-          <p className="eyebrow">
-            {loading
-              ? 'CONNECTING'
-              : error
-                ? 'CONNECTION NEEDED'
-                : 'A LITTLE SPACE FOR WHAT MATTERS'}
-          </p>
           <h2>
             {loading
               ? '正在读取…'
@@ -546,190 +437,10 @@ function CollectionView({
   );
 }
 
-function QQSettings({
-  token,
-  onSystemUpdate,
-  onAuthFailure,
-}: {
-  token: string;
-  onSystemUpdate: (system: SystemStatus) => void;
-  onAuthFailure: () => void;
-}) {
-  const [result, setResult] = useState<QQVerification | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const pending = useRef<AbortController | null>(null);
-  useEffect(() => {
-    setResult(null);
-    setError(null);
-    setBusy(false);
-    return () => {
-      pending.current?.abort();
-      pending.current = null;
-    };
-  }, [token]);
-  const cancel = () => {
-    pending.current?.abort();
-    pending.current = null;
-    setBusy(false);
-    setResult(null);
-    setError(null);
-  };
-  const verify = async () => {
-    if (!token) return;
-    pending.current?.abort();
-    const controller = new AbortController();
-    pending.current = controller;
-    setResult(null);
-    setError(null);
-    setBusy(true);
-    try {
-      const verified = await getQQVerification(token, controller.signal);
-      const system = await getSystem(token, controller.signal);
-      if (controller.signal.aborted) return;
-      onSystemUpdate(system);
-      setResult(verified);
-    } catch (failure: unknown) {
-      if (controller.signal.aborted) return;
-      if (failure instanceof ServiceError && failure.status === 401) {
-        onAuthFailure();
-        return;
-      }
-      setError(
-        failure instanceof Error
-          ? failure.message
-          : 'QQ 账号核验失败，请重试。',
-      );
-      try {
-        const system = await getSystem(token, controller.signal);
-        if (!controller.signal.aborted) onSystemUpdate(system);
-      } catch (refreshError: unknown) {
-        if (
-          !controller.signal.aborted &&
-          refreshError instanceof ServiceError &&
-          refreshError.status === 401
-        )
-          onAuthFailure();
-      }
-    } finally {
-      if (pending.current === controller) {
-        pending.current = null;
-        setBusy(false);
-      }
-    }
-  };
-  return (
-    <section
-      className="settings-panel qq-settings"
-      aria-labelledby="qq-settings-title"
-      aria-busy={busy}
-    >
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">PERSONAL ACCOUNT · PRIORITY</p>
-          <h2 id="qq-settings-title">QQ 个人号</h2>
-        </div>
-        <span className="label">OneBot v11</span>
-      </div>
-      <p className="qq-intro">
-        通过已登录的个人 QQ
-        协议端核验账号。当前只识别账号与在线状态，不接收聊天、不导入历史，也不发送消息。
-      </p>
-      <div className="qq-configuration">
-        <p>在启动本地服务前，由技术开发配置：</p>
-        <dl>
-          <div>
-            <dt>
-              <code>QQ_ONEBOT_URL</code>
-            </dt>
-            <dd>本机 OneBot 服务地址</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_ONEBOT_ACCESS_TOKEN</code>
-            </dt>
-            <dd>协议端令牌，仅保留在服务端环境</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_ONEBOT_ACCOUNT_ID</code>
-            </dt>
-            <dd>预期登录的 QQ 号</dd>
-          </div>
-        </dl>
-        <p>QQ 登录在协议端完成。工作台不收集 QQ 密码或协议端令牌。</p>
-      </div>
-      <div className="form-actions">
-        <button
-          type="button"
-          className="button button-primary"
-          onClick={verify}
-          disabled={!token || busy}
-        >
-          {busy ? '正在核验…' : '核验 QQ 账号'}
-          {!busy ? <Icon name="arrow" size={16} /> : null}
-        </button>
-        {busy ? (
-          <button
-            type="button"
-            className="button button-quiet"
-            onClick={cancel}
-          >
-            取消核验
-          </button>
-        ) : null}
-      </div>
-      {!token ? (
-        <p className="input-help">请先连接上方的本地服务，再核验 QQ 账号。</p>
-      ) : null}
-      <div aria-live="polite" aria-atomic="true">
-        {error ? (
-          <p className="form-message error-message" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {result ? (
-          <div className="qq-result">
-            <div className="qq-result-heading">
-              <Icon name="check" size={18} />
-              <strong>账号已核验，尚未启用收发</strong>
-            </div>
-            <dl>
-              <div>
-                <dt>QQ 账号</dt>
-                <dd>{result.account_id}</dd>
-              </div>
-              <div>
-                <dt>昵称</dt>
-                <dd>{result.nickname || '未提供昵称'}</dd>
-              </div>
-              <div>
-                <dt>本次在线状态</dt>
-                <dd>在线</dd>
-              </div>
-              <div>
-                <dt>核验时间</dt>
-                <dd>
-                  {new Date(result.checked_at).toLocaleString('zh-CN', {
-                    hour12: false,
-                    timeZone: 'Asia/Shanghai',
-                  })}
-                </dd>
-              </div>
-            </dl>
-            <p>
-              此结果仅确认本次身份检查成功。消息接收、历史导入与发送仍未启用。
-            </p>
-          </div>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
 function Settings({
   session,
   activeToken,
+  digestUnresolved,
   tokenDraft,
   hasToken,
   storageAvailable,
@@ -748,6 +459,7 @@ function Settings({
 }: {
   session: Session;
   activeToken: string;
+  digestUnresolved: Set<string>;
   tokenDraft: string;
   hasToken: boolean;
   storageAvailable: boolean;
@@ -768,23 +480,18 @@ function Settings({
   return (
     <>
       <Heading
-        eyebrow="PREFERENCES"
         title="连接与设置"
-        description="把服务连接好，再一步步接入你的消息与记忆。"
+        description="管理本机授权、平台连接、模型与每日摘要。"
       />
       <section
         className="settings-panel"
         aria-labelledby="service-settings-title"
       >
         <div className="settings-section-header">
-          <div className="settings-symbol">
-            <Icon name="plug" size={23} />
-          </div>
           <div>
             <h2 id="service-settings-title">本地服务</h2>
             <p>首次使用主令牌授权，再读取本地服务的运行状态。</p>
           </div>
-          <Status connected={session.status === 'connected'} />
         </div>
         <form onSubmit={onConnect} className="connection-form">
           <label htmlFor="service-token">主令牌</label>
@@ -890,24 +597,26 @@ function Settings({
           </div>
         </form>
       </section>
-      <QQSettings
-        key={activeToken}
-        token={activeToken}
-        onSystemUpdate={onSystemUpdate}
-        onAuthFailure={onAuthFailure}
-      />
       <MilkyPanel
         key={`milky-${activeToken}`}
         token={activeToken}
         onSystemUpdate={onSystemUpdate}
         onAuthFailure={onAuthFailure}
       />
-      <AIModelPanel token={activeToken} onAuthFailure={onAuthFailure} />
-      <DigestPanel token={activeToken} onAuthFailure={onAuthFailure} />
+      <AIModelPanel
+        key={`model:${activeToken}`}
+        token={activeToken}
+        onAuthFailure={onAuthFailure}
+      />
+      <DigestPanel
+        key={`digest:${activeToken}`}
+        token={activeToken}
+        unresolvedIdentities={digestUnresolved}
+        onAuthFailure={onAuthFailure}
+      />
       <section className="settings-panel" aria-labelledby="automation-title">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">AUTOMATION</p>
             <h2 id="automation-title">自动化权限</h2>
           </div>
           <span className="label">只读状态</span>
@@ -917,7 +626,7 @@ function Settings({
             <h3>自动发送</h3>
             <p>默认关闭，需在后续功能中逐联系人明确授权。</p>
           </div>
-          <span className="label label-green">
+          <span className="label label-neutral">
             {session.system
               ? session.system.automation.auto_send_enabled
                 ? '已启用'
@@ -928,7 +637,9 @@ function Settings({
         <div className="settings-row">
           <div>
             <h3>后台自动化</h3>
-            <p>当前仅读取状态与核验 QQ 身份，不执行收发或审批操作。</p>
+            <p>
+              暂停状态约束后台分析与整理；平台接收需单独开启。当前未开放消息发送。
+            </p>
           </div>
           <span className="subtle-note">
             {session.system
@@ -968,11 +679,11 @@ function Settings({
           </div>
         </dl>
         <p>
-          当前支持本地加密消息管理、记录导入、邮箱手动收取与 QQ
-          身份核验。持续收件、AI
-          回复和发送尚未实现；账号核验成功不代表已接入消息。个人微信 ClawBot
-          仍仅针对 Bot
-          联系人，不接管已有好友或聊天。关闭工作台后是否继续处理，取决于独立后台服务的后续部署。
+          当前支持加密消息管理、记录导入、已实现平台的接收、AI
+          分析与草稿、档案和摘要。
+          各平台以实际配置及状态为准；账号核验不等于持续接收，自动发送保持关闭。
+          微信 ClawBot 仅针对 Bot 联系人，不接管个人微信已有好友或聊天。
+          后台服务独立于工作台窗口；休眠或关机后不承诺继续运行。
         </p>
       </details>
     </>
@@ -982,6 +693,10 @@ function Settings({
 export default function App() {
   const [page, setPage] = useState<Page>('overview');
   const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
+  const [assistantWorkspaces] = useState(
+    () => new Map<string, AssistantWorkspace>(),
+  );
+  const [digestUnresolved] = useState(() => new Set<string>());
   const {
     session,
     tokenDraft,
@@ -1002,6 +717,16 @@ export default function App() {
     onSystemUpdate,
   } = useServiceSession(aiDrafts);
   useEffect(() => {
+    // Only the stable business identity owns this in-memory assistant workspace.
+    // Device bearer renewal does not change activeToken or remount business panels.
+    for (const identity of assistantWorkspaces.keys()) {
+      if (identity !== activeToken) assistantWorkspaces.delete(identity);
+    }
+    for (const identity of digestUnresolved) {
+      if (identity !== activeToken) digestUnresolved.delete(identity);
+    }
+  }, [activeToken, assistantWorkspaces, digestUnresolved]);
+  useEffect(() => {
     const warnUnsaved = (event: BeforeUnloadEvent) => {
       if (!aiDrafts.size) return;
       event.preventDefault();
@@ -1021,17 +746,10 @@ export default function App() {
           className="brand"
           href="#main-content"
           onClick={() => setPage('overview')}
-          aria-label="Social Intelligence OS 概览"
+          aria-label="消息工作台概览"
         >
-          <span className="brand-symbol">
-            <Icon name="leaf" size={25} />
-          </span>
-          <span>
-            Social Intelligence
-            <span className="brand-subtitle">关系工作台</span>
-          </span>
+          消息工作台
         </a>
-        <span className="sidebar-section-label">个人工作空间</span>
         <nav aria-label="工作台导航">
           {NAVIGATION.map((item) => (
             <button
@@ -1044,19 +762,10 @@ export default function App() {
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
-              {page === item.page ? <span className="nav-active-dot" /> : null}
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-note">
-            <span className="note-mark">“</span>
-            <p>
-              让日常联系轻一点，
-              <br />
-              让重要的人近一点。
-            </p>
-          </div>
           <button
             className={`nav-item ${page === 'settings' ? 'active' : ''}`}
             aria-label="设置"
@@ -1067,14 +776,6 @@ export default function App() {
             <Icon name="settings" />
             <span>设置</span>
           </button>
-          <div className="workspace-owner">
-            <span className="owner-avatar">我</span>
-            <div>
-              <strong>我的工作空间</strong>
-              <span>个人 · 初始设置</span>
-            </div>
-            <Icon name="lock" size={15} />
-          </div>
         </div>
       </aside>
       <div className="workspace">
@@ -1084,7 +785,7 @@ export default function App() {
             <span aria-hidden="true">/</span>
             <strong>{PAGE_TITLES[page]}</strong>
           </div>
-          <Status connected={session.status === 'connected'} />
+          <Status state={session.status} />
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
           {page === 'overview' ? (
@@ -1097,6 +798,7 @@ export default function App() {
             <Settings
               session={session}
               activeToken={activeToken}
+              digestUnresolved={digestUnresolved}
               tokenDraft={tokenDraft}
               hasToken={hasCredential}
               storageAvailable={storageAvailable}
@@ -1111,6 +813,14 @@ export default function App() {
               onClear={clear}
               onCancel={cancel}
               onSystemUpdate={onSystemUpdate}
+              onAuthFailure={onAuthFailure}
+            />
+          ) : page === 'assistant' ? (
+            <AssistantPanel
+              key={`assistant:${activeToken}`}
+              token={activeToken}
+              cache={assistantWorkspaces}
+              onSettings={onSettings}
               onAuthFailure={onAuthFailure}
             />
           ) : page === 'contacts' ? (
@@ -1140,10 +850,6 @@ export default function App() {
             />
           )}
         </main>
-        <footer className="workspace-footer">
-          <span>Social Intelligence OS</span>
-          <span>由你建立关系，由 AI 延续上下文。</span>
-        </footer>
       </div>
     </div>
   );

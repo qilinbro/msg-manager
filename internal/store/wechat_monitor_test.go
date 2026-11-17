@@ -283,7 +283,7 @@ func TestWechatMonitorV4UpgradePreservesMessageAndAIGraph(t *testing.T) {
 		t.Fatal("monitor migration changed the existing message/AI graph")
 	}
 	var version, oldMigrations, sources int
-	if err := s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version); err != nil || version != 12 {
+	if err := s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version); err != nil || version != currentSchemaVersion {
 		t.Fatal("v5 migration was not recorded", version, err)
 	}
 	if err := s.db.QueryRow(`SELECT count(*) FROM schema_migrations WHERE version<=4 AND applied_at='2026-01-01T00:00:00Z'`).Scan(&oldMigrations); err != nil || oldMigrations != 4 {

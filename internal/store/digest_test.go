@@ -12,7 +12,7 @@ func TestDigestScheduleCASAndDailyReportIdempotency(t *testing.T) {
 	if err != nil || schedule.Enabled || schedule.LocalTime != "08:00" || schedule.Revision != 1 {
 		t.Fatal("unexpected default digest schedule", schedule, err)
 	}
-	schedule, err = s.SaveDigestSchedule(ctx, DigestSchedule{Enabled: true, LocalTime: "09:30", Timezone: "Asia/Shanghai"}, schedule.Revision)
+	schedule, err = s.SaveDigestSchedule(ctx, DigestSchedule{Enabled: true, LocalTime: "09:30", Timezone: "Asia/Shanghai", ModelConfigID: profileTestConfig, ModelConfigRevision: 1}, schedule.Revision)
 	if err != nil || !schedule.Enabled || schedule.LocalTime != "09:30" || schedule.Revision != 2 {
 		t.Fatal("digest schedule save", schedule, err)
 	}

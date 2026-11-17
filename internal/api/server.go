@@ -23,7 +23,6 @@ type handler struct {
 	tokenHash   [32]byte
 	port        string
 	sequence    atomic.Uint64
-	qq          *qqConnection
 	milky       *milkyConnection
 	inbox       *store.Store
 	email       *emailConnection
@@ -34,6 +33,7 @@ type handler struct {
 	modelConfig store.ModelConfig
 	deviceAuth  localDeviceAuth
 	listenAddr  string
+	assistant   *assistantState
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -41,10 +41,6 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		return nil, err
 	}
 	_, port, _ := net.SplitHostPort(cfg.Addr)
-	qq, err := newQQConnection(cfg.QQOneBot)
-	if err != nil {
-		return nil, err
-	}
 	milky, err := newMilkyConnection(cfg.QQMilky)
 	if err != nil {
 		return nil, err
@@ -68,7 +64,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, qq: qq, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat, assistant: newAssistantState()}
 	if err := h.restoreLocalDevices(); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted device authorizations could not be restored")
@@ -99,6 +95,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 }
 
 func (h *handler) Close() error {
+	h.closeAssistant()
 	h.closeLocalDevices()
 	if h.profiles != nil {
 		h.profiles.stop()
@@ -138,7 +135,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !assistantMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -167,6 +164,12 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			h.serveDeviceAuth(w, r, traceID)
 			return
 		}
+		// Assistant tools dispatch back through ServeHTTP. Route outside aiMu:
+		// nested reads can otherwise deadlock behind a waiting config writer.
+		if assistantPath(r.URL.Path) {
+			h.serveAssistant(w, r, traceID)
+			return
+		}
 		if r.URL.Path == modelConfigPath {
 			h.serveModelConfig(w, r, traceID)
 			return
@@ -174,11 +177,17 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if digestRead(r.URL.Path) || digestMutation(r.Method, r.URL.Path) {
 			h.aiMu.RLock()
 			defer h.aiMu.RUnlock()
+			if !h.assistantDispatchAllowed(w, r, traceID) {
+				return
+			}
 			h.serveDigest(w, r, traceID)
 			return
 		}
 		h.aiMu.RLock()
 		defer h.aiMu.RUnlock()
+		if !h.assistantDispatchAllowed(w, r, traceID) {
+			return
+		}
 		if r.Method != http.MethodGet {
 			if profileLinksMutation(r.Method, r.URL.Path) {
 				h.serveProfileLinks(w, r, traceID)
@@ -253,8 +262,6 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 		})
 	case "/api/v1/connections":
 		writeJSON(w, http.StatusOK, ListResponse[connector.Descriptor]{Items: h.connections()})
-	case "/api/v1/connections/qq-onebot/verify":
-		h.verifyQQ(w, r, traceID)
 	case "/api/v1/connections/qq-milky/verify":
 		h.verifyMilky(w, r, traceID)
 	case "/api/v1/connections/qq-milky/status":

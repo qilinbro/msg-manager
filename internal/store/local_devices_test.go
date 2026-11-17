@@ -133,7 +133,7 @@ func TestLocalDevicesEmptyDatabaseEncryptedReopenAndPublicOnlySchema(t *testing.
 	}
 	t.Cleanup(func() { _ = s.Close() })
 	var version int
-	if err := s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version); err != nil || version != 12 {
+	if err := s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version); err != nil || version != currentSchemaVersion {
 		t.Fatal("empty database did not migrate to v12", version, err)
 	}
 	rows, err := s.db.Query(`PRAGMA table_info(local_devices)`)
@@ -271,7 +271,7 @@ func TestLocalDevicesV11MigrationPreservesDataHistoryAndSyntheticOldFixtures(t *
 		t.Fatal("v12 changed existing message/AI graph or sequence watermarks")
 	}
 	var version, historical, current int
-	if err := s.db.QueryRow(`SELECT max(version),count(CASE WHEN version<=11 AND applied_at='2026-01-01T00:00:00Z' THEN 1 END),count(CASE WHEN version=12 THEN 1 END) FROM schema_migrations`).Scan(&version, &historical, &current); err != nil || version != 12 || historical != 11 || current != 1 {
+	if err := s.db.QueryRow(`SELECT max(version),count(CASE WHEN version<=11 AND applied_at='2026-01-01T00:00:00Z' THEN 1 END),count(CASE WHEN version=12 THEN 1 END) FROM schema_migrations`).Scan(&version, &historical, &current); err != nil || version != currentSchemaVersion || historical != 11 || current != 1 {
 		t.Fatal("migration history changed", version, historical, current, err)
 	}
 	if count := localDeviceTestCount(t, s, workspaceID); count != 0 {
@@ -289,7 +289,7 @@ func TestLocalDevicesV11MigrationPreservesDataHistoryAndSyntheticOldFixtures(t *
 	mustCreateLocalDevice(t, s, device)
 	// Existing legacy tests synthesize older versions by removing migration
 	// records without dropping additive tables. v12 must safely tolerate that.
-	if _, err := s.db.Exec(`DELETE FROM schema_migrations WHERE version=12`); err != nil {
+	if _, err := s.db.Exec(`DELETE FROM schema_migrations WHERE version>=12`); err != nil {
 		t.Fatal(err)
 	}
 	if err := s.Close(); err != nil {
@@ -305,7 +305,7 @@ func TestLocalDevicesV11MigrationPreservesDataHistoryAndSyntheticOldFixtures(t *
 	if !reflect.DeepEqual(before, snapshotV3Data(t, s.db)) {
 		t.Fatal("idempotent v12 migration changed existing data")
 	}
-	if err := s.db.QueryRow(`SELECT max(version),count(*) FROM schema_migrations`).Scan(&version, &current); err != nil || version != 12 || current != 12 {
+	if err := s.db.QueryRow(`SELECT max(version),count(*) FROM schema_migrations`).Scan(&version, &current); err != nil || version != currentSchemaVersion || current != currentSchemaVersion {
 		t.Fatal("v12 was not recorded exactly once", err)
 	}
 }
@@ -336,7 +336,7 @@ func TestLocalDevicesMigrationRollsBackAndRejectsFutureSchema(t *testing.T) {
 	if err := migrate(legacy.db); err != nil {
 		t.Fatal("v12 migration retry failed", err)
 	}
-	if _, err := legacy.db.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(13,'2026-01-01T00:00:00Z')`); err != nil {
+	if _, err := legacy.db.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(14,'2026-01-01T00:00:00Z')`); err != nil {
 		t.Fatal(err)
 	}
 	if err := legacy.Close(); err != nil {

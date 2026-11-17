@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Social Intelligence OS — scaffold API",
+    "title": "Social Intelligence OS — local business and Assistant API",
     "version": "0.1.0",
-    "description": "本机 Bearer API：加密消息管理、只读微信本地库读取、IMAP 手动同步、QQ 身份核验和用户确认后发起的会话 AI 分析。模型只生成本地建议，不开放平台发送。后台实时接收、任务队列、审批、发送和 SSE 仍待实现。JSON 语法是有效的 YAML 1.2；预检仅放行明确来源和方法，实际业务请求始终鉴权。"
+    "description": "本机 Bearer/可撤销设备授权 API：加密消息管理、只读平台同步与监控、人工同意的 AI/档案/摘要，以及原生工具调用 Assistant。Assistant 覆盖已实现业务 API 并复用原处理器，所有变更逐项确认；认证生命周期及模型配置保存仍仅人工。共享持久化额度、模型标识与版本绑定、暂停会话数据隔离始终生效。任务/审批/发送/SSE 等占位不可执行，自动发送关闭。JSON 语法是有效 YAML 1.2，实际业务请求始终鉴权。"
   },
   "servers": [
     {
@@ -736,55 +736,6 @@
             }
           }
         ]
-      }
-    },
-    "/api/v1/connections/qq-onebot/verify": {
-      "get": {
-        "operationId": "verifyQQAccount",
-        "summary": "Verify the existing personal QQ login through configured OneBot v11.",
-        "description": "Read-only diagnostic. Endpoint and credentials come exclusively from local backend environment; request parameters cannot select a provider. A successful check is a past observation, not a live account subscription. Auto-send and message ingestion remain disabled.",
-        "responses": {
-          "200": {
-            "description": "Identity and online state verified.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/QQVerification"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid product API bearer token.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Host, Origin, or workspace rejected.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "QQ_NOT_CONFIGURED, QQ_UNREACHABLE, QQ_AUTH_FAILED, QQ_IDENTITY_MISMATCH, QQ_LOGGED_OUT, QQ_PROTOCOL_ERROR or QQ_BUSY.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/v1/inbox": {
@@ -4318,8 +4269,19 @@
           },
           "401": {
             "description": "未授权"
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / AI_AUTH_FAILED / DIGEST_UNAVAILABLE / STORAGE_DISABLED：模型或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
-        }
+        },
+        "x-implementation-status": "implemented"
       },
       "patch": {
         "summary": "保存每日摘要计划",
@@ -4336,15 +4298,57 @@
         },
         "responses": {
           "200": {
-            "description": "计划已保存"
+            "description": "实际保存后的计划及版本",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_JSON / DIGEST_CONFIRMATION_REQUIRED / DIGEST_INVALID：严格字段、类型、非空值、时间或明确同意无效（请求至多4096字节）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
-            "description": "未授权"
+            "description": "仅本地服务/设备授权失败；模型认证失败使用503，不撤销设备授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "版本冲突"
+            "description": "DIGEST_MODEL_CHANGED / DIGEST_STALE / AI_BUSY：重新只读获取目标与状态，不自动重放写请求",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / AI_AUTH_FAILED / DIGEST_UNAVAILABLE / STORAGE_DISABLED：模型或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "明确同意后CAS保存；启用还须当前模型标识与版本。禁用可不提供模型绑定，无需模型可用。任何模型配置PATCH均撤销旧的每日模型数据授权。"
       }
     },
     "/api/v1/digest/latest": {
@@ -4363,23 +4367,703 @@
           },
           "401": {
             "description": "未授权"
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / AI_AUTH_FAILED / DIGEST_UNAVAILABLE / STORAGE_DISABLED：模型或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
-        }
+        },
+        "x-implementation-status": "implemented"
       }
     },
     "/api/v1/digest/run": {
       "post": {
-        "summary": "立即生成每日摘要",
+        "summary": "明确同意当前模型后生成或读取当日唯一摘要",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
-            "description": "摘要已生成"
+            "description": "当日已持久保存的报告（检查state，200不等于生成成功）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestLatest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_JSON / DIGEST_CONFIRMATION_REQUIRED / DIGEST_INVALID：严格字段、类型、非空值、时间或明确同意无效（请求至多4096字节）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
-            "description": "未授权"
+            "description": "仅本地服务/设备授权失败；模型认证失败使用503，不撤销设备授权",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "DIGEST_INTERRUPTED：读取最近摘要核实，不盲目重试",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "DIGEST_MODEL_CHANGED / DIGEST_STALE / AI_BUSY：重新只读获取目标与状态，不自动重放写请求",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "DIGEST_INPUT_INVALID：消息输入未通过模型输入校验",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：持久化共享日额度或模型服务额度已用尽，失败模型尝试同样计费计数",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "AI_INVALID_OUTPUT：输出或证据无效，报告记为failed，不执行发送",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "503": {
-            "description": "模型或存储不可用"
+            "description": "AI_NOT_CONFIGURED / AI_AUTH_FAILED / DIGEST_UNAVAILABLE / STORAGE_DISABLED：模型或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "DIGEST_TIMEOUT / AI_TIMEOUT：模型可能已收到请求，读取报告核实，不重放当日工作",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "同步有界执行，最多120秒，共享模型并发门与持久化日额度。跳过已暂停会话并校验模型输出证据。已有任何状态的当日报告只读返回，不重试模型；中断可能留下running/unknown，须人工核实。返回结构与GET latest相同，sending_enabled永远false。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DigestRunRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/status": {
+      "get": {
+        "summary": "读取助手模型目标、共享额度与完整业务API权限目录",
+        "x-implementation-status": "implemented",
+        "description": "只读元数据，不调用模型或平台。可执行仅限实现的固定业务API，保留原鉴权和后端验证；不授予任意HTTP/SQL/文件系统/服务凭据权限，自动发送保持关闭。",
+        "responses": {
+          "200": {
+            "description": "助手状态与可用性目录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "仅UNAUTHORIZED / DEVICE_UNAUTHORIZED：本地凭据确实失效，非模型或会话过期",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / ASSISTANT_MODEL_UNAVAILABLE / ASSISTANT_UNAVAILABLE / STORAGE_DISABLED：模型原生工具调用或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/runs": {
+      "post": {
+        "summary": "明确同意后开始一轮原生模型工具调用",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantStartRequest"
+              }
+            }
+          }
+        },
+        "description": "同步有界执行；服务端分配运行后才开展工作。仅接受模型原生tool_calls，每轮只接受一个调用，禁用并行，匹配assistant/tool协议历史。读工具自动执行，后果性操作返回待确认快照。传输中断且未收到run_id时结果不能自动恢复，须人工核实且不自动重放；已知ID用GET恢复。",
+        "responses": {
+          "200": {
+            "description": "终态快照；检查state、error和每一项真实tool_results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "运行或等待单项人工确认；不表示任何业务已执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_JSON / ASSISTANT_*：字段、类型、UTF-8、重复键、深度、明确同意或参数无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "仅UNAUTHORIZED / DEVICE_UNAUTHORIZED：本地凭据确实失效，非模型或会话过期",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ASSISTANT_NOT_FOUND：运行不存在或不属于当前稳定设备主体",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ASSISTANT_CONFIG_CHANGED / ASSISTANT_ACTION_CONSUMED / ASSISTANT_BUSY：配置变更、一次操作已消费或会话繁忙；只读恢复，不重放",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "ASSISTANT_EXPIRED：已知同主体运行/待确认操作过期，不能撤销设备凭据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "ASSISTANT_INVALID_INPUT：请求体超过16KiB限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "ASSISTANT_INVALID_INPUT：请求必须使用 application/json；不接受其他媒体类型",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "ASSISTANT_LIMIT / AI_QUOTA_EXCEEDED：容量或持久化共享模型额度已满",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / ASSISTANT_MODEL_UNAVAILABLE / ASSISTANT_UNAVAILABLE / STORAGE_DISABLED：模型原生工具调用或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/runs/{run_id}": {
+      "get": {
+        "summary": "只读恢复当前设备拥有的助手运行快照",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "description": "不会调用模型、执行业务或重放写操作。会话/运行缺失或过期使用404/410而非401。服务重启后内存运行不可恢复，但已预留模型额度仍然存在。",
+        "responses": {
+          "200": {
+            "description": "终态快照；检查state、error和每一项真实tool_results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "运行或等待单项人工确认；不表示任何业务已执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_JSON / ASSISTANT_*：字段、类型、UTF-8、重复键、深度、明确同意或参数无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "仅UNAUTHORIZED / DEVICE_UNAUTHORIZED：本地凭据确实失效，非模型或会话过期",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ASSISTANT_NOT_FOUND：运行不存在或不属于当前稳定设备主体",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ASSISTANT_CONFIG_CHANGED / ASSISTANT_ACTION_CONSUMED / ASSISTANT_BUSY：配置变更、一次操作已消费或会话繁忙；只读恢复，不重放",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "ASSISTANT_EXPIRED：已知同主体运行/待确认操作过期，不能撤销设备凭据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "ASSISTANT_*：请求体超过16KiB限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "ASSISTANT_LIMIT / AI_QUOTA_EXCEEDED：容量或持久化共享模型额度已满",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / ASSISTANT_MODEL_UNAVAILABLE / ASSISTANT_UNAVAILABLE / STORAGE_DISABLED：模型原生工具调用或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/runs/{run_id}/confirm": {
+      "post": {
+        "summary": "逐项确认并一次执行冻结业务操作",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantConfirmRequest"
+              }
+            }
+          }
+        },
+        "description": "原子消费待确认ID后执行原业务处理器，保留鉴权、CAS、参数校验、平台凭据隔离及每日额度。模型变更使旧同意失效；运行前重新检查设备授权及会话暂停。断开/超时可能是unknown，不能声称回滚或自动重试，使用GET读取并人工核实。",
+        "responses": {
+          "200": {
+            "description": "终态快照；检查state、error和每一项真实tool_results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "运行或等待单项人工确认；不表示任何业务已执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_JSON / ASSISTANT_*：字段、类型、UTF-8、重复键、深度、明确同意或参数无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "仅UNAUTHORIZED / DEVICE_UNAUTHORIZED：本地凭据确实失效，非模型或会话过期",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ASSISTANT_NOT_FOUND：运行不存在或不属于当前稳定设备主体",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ASSISTANT_CONFIG_CHANGED / ASSISTANT_ACTION_CONSUMED / ASSISTANT_BUSY：配置变更、一次操作已消费或会话繁忙；只读恢复，不重放",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "ASSISTANT_EXPIRED：已知同主体运行/待确认操作过期，不能撤销设备凭据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "ASSISTANT_INVALID_INPUT：请求体超过16KiB限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "ASSISTANT_INVALID_INPUT：请求必须使用 application/json；不接受其他媒体类型",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "ASSISTANT_LIMIT / AI_QUOTA_EXCEEDED：容量或持久化共享模型额度已满",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / ASSISTANT_MODEL_UNAVAILABLE / ASSISTANT_UNAVAILABLE / STORAGE_DISABLED：模型原生工具调用或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assistant/runs/{run_id}/reject": {
+      "post": {
+        "summary": "拒绝单项操作，不继续业务或模型I/O",
+        "x-implementation-status": "implemented",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantRejectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "终态快照；检查state、error和每一项真实tool_results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "运行或等待单项人工确认；不表示任何业务已执行成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_JSON / ASSISTANT_*：字段、类型、UTF-8、重复键、深度、明确同意或参数无效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "仅UNAUTHORIZED / DEVICE_UNAUTHORIZED：本地凭据确实失效，非模型或会话过期",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ASSISTANT_NOT_FOUND：运行不存在或不属于当前稳定设备主体",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ASSISTANT_CONFIG_CHANGED / ASSISTANT_ACTION_CONSUMED / ASSISTANT_BUSY：配置变更、一次操作已消费或会话繁忙；只读恢复，不重放",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "ASSISTANT_EXPIRED：已知同主体运行/待确认操作过期，不能撤销设备凭据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "ASSISTANT_INVALID_INPUT：请求体超过16KiB限制",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "ASSISTANT_INVALID_INPUT：请求必须使用 application/json；不接受其他媒体类型",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "ASSISTANT_LIMIT / AI_QUOTA_EXCEEDED：容量或持久化共享模型额度已满",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI_NOT_CONFIGURED / ASSISTANT_MODEL_UNAVAILABLE / ASSISTANT_UNAVAILABLE / STORAGE_DISABLED：模型原生工具调用或加密存储不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -4604,10 +5288,11 @@
           "id": {
             "type": "string",
             "enum": [
-              "qq-onebot",
+              "qq-milky",
               "weixin-clawbot",
               "telegram-bot",
-              "qq-milky"
+              "email-imap",
+              "wechat-db"
             ]
           },
           "display_name": {
@@ -4772,52 +5457,6 @@
           "cancelled"
         ],
         "description": "Reserved domain state; no outbox persistence or send operation is implemented."
-      },
-      "QQVerification": {
-        "type": "object",
-        "required": [
-          "connection_id",
-          "state",
-          "account_id",
-          "nickname",
-          "online",
-          "checked_at",
-          "receiving_enabled",
-          "sending_enabled"
-        ],
-        "properties": {
-          "connection_id": {
-            "type": "string",
-            "const": "qq-onebot"
-          },
-          "state": {
-            "type": "string",
-            "const": "identity_verified"
-          },
-          "account_id": {
-            "type": "string",
-            "pattern": "^[1-9][0-9]*$"
-          },
-          "nickname": {
-            "type": "string"
-          },
-          "online": {
-            "type": "boolean",
-            "const": true
-          },
-          "checked_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "receiving_enabled": {
-            "type": "boolean",
-            "const": false
-          },
-          "sending_enabled": {
-            "type": "boolean",
-            "const": false
-          }
-        }
       },
       "InboxStatus": {
         "type": "object",
@@ -5644,7 +6283,9 @@
           "endpoint_host",
           "sending_enabled",
           "daily_limit",
-          "used_today"
+          "used_today",
+          "model_config_id",
+          "model_config_revision"
         ],
         "properties": {
           "configured": {
@@ -5679,8 +6320,18 @@
           "used_today": {
             "type": "integer",
             "minimum": 0
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
-        }
+        },
+        "description": "当前模型元数据与所有模型能力共用的持久化日额度。模型标识不包含密钥；任何配置PATCH都会递增版本并使既有摘要计划同意失效。"
       },
       "AIContext": {
         "type": "object",
@@ -7288,7 +7939,9 @@
           "local_time",
           "timezone",
           "revision",
-          "last_run_day"
+          "last_run_day",
+          "model_config_id",
+          "model_config_revision"
         ],
         "properties": {
           "enabled": {
@@ -7303,12 +7956,25 @@
             "const": "Asia/Shanghai"
           },
           "revision": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
           },
           "last_run_day": {
             "type": "string"
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
-        }
+        },
+        "additionalProperties": false,
+        "description": "每日过去24小时的未暂停会话文本摘要计划。enabled=true时绑定人工明确同意的模型与版本；禁用时清空绑定。模型配置保存会撤销计划同意并递增计划CAS版本。"
       },
       "DigestScheduleSave": {
         "type": "object",
@@ -7324,20 +7990,59 @@
             "type": "boolean"
           },
           "local_time": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
           },
           "timezone": {
             "type": "string",
             "const": "Asia/Shanghai"
           },
           "expected_revision": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
           },
           "confirmed": {
             "type": "boolean",
             "const": true
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           }
-        }
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "enabled": {
+                  "const": true
+                }
+              },
+              "required": [
+                "enabled"
+              ]
+            },
+            "then": {
+              "required": [
+                "model_config_id",
+                "model_config_revision"
+              ],
+              "properties": {
+                "model_config_id": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            }
+          }
+        ]
       },
       "DigestReminder": {
         "type": "object",
@@ -7400,7 +8105,13 @@
             "type": "string"
           },
           "state": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "running",
+              "succeeded",
+              "failed",
+              "unknown"
+            ]
           },
           "summary": {
             "type": "string"
@@ -7418,20 +8129,31 @@
             }
           },
           "conversation_count": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
           },
           "generated_at": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "format": "date-time"
+          },
+          "error_code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
           }
-        }
+        },
+        "additionalProperties": false,
+        "description": "当日唯一持久报告。HTTP 200只表示读到了报告，必须检查state，不能将failed/unknown/running冒充成功；不会发送消息。"
       },
       "DigestLatest": {
         "type": "object",
         "required": [
-          "report"
+          "report",
+          "sending_enabled"
         ],
         "properties": {
           "report": {
@@ -7443,8 +8165,459 @@
                 "type": "null"
               }
             ]
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "DigestRunRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "confirmed",
+          "model_config_id",
+          "model_config_revision"
+        ],
+        "properties": {
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "description": "每次手动生成须重新确认当前模型及版本和过去24小时未暂停会话文本的数据使用。每天至多一个持久报告，force不重新执行running/succeeded/failed/unknown报告；使用GET latest核实。"
+      },
+      "AssistantOperation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "method",
+          "path",
+          "effect",
+          "availability",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PATCH",
+              "DELETE"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "effect": {
+            "type": "string",
+            "enum": [
+              "read",
+              "write",
+              "external_read",
+              "model_call",
+              "credential"
+            ]
+          },
+          "availability": {
+            "type": "string",
+            "enum": [
+              "available",
+              "confirmation_required",
+              "human_only",
+              "not_implemented"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 2000
+          }
+        },
+        "description": "完整业务API目录；available/confirmation_required才会生成原生工具定义。所有写操作、联网核验和模型操作逐项确认；认证生命周期和模型配置PATCH仅人工；占位API不可执行。目录不含助手自身控制面，不能嵌套运行。"
+      },
+      "AssistantStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "model",
+          "endpoint_host",
+          "external",
+          "model_config_id",
+          "model_config_revision",
+          "daily_limit",
+          "used_today",
+          "sending_enabled",
+          "session_ttl_seconds",
+          "operations"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 256
+          },
+          "endpoint_host": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 512
+          },
+          "external": {
+            "type": "boolean"
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "used_today": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "session_ttl_seconds": {
+            "type": "integer",
+            "const": 1800
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistantOperation"
+            },
+            "maxItems": 256
           }
         }
+      },
+      "AssistantStartRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "session_id",
+          "message",
+          "model_config_id",
+          "model_config_revision",
+          "confirmed"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 128
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "session_id首次为空，否则只能使用当前稳定设备主体的会话。每轮均须重新同意将本轮问题、历史与必要工具结果发送到显示的模型（可能计费）。不接受客户端tools/history/system/任意URL/请求头。严格JSON：精确大小写、无重复键、无null或未知字段，至多16KiB、嵌套深度24。"
+      },
+      "AssistantConfirmRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_id",
+          "model_config_id",
+          "model_config_revision",
+          "confirmed"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "确认服务端冻结的一项操作及后续必要模型调用；一次消费，绑定主体、模型标识及版本与5分钟时限。不能覆盖method/path/query/body/arguments。需新一次未默认勾选的同意，网络失败不可自动重放。"
+      },
+      "AssistantRejectRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_id"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "description": "拒绝冻结操作并闭合原生tool history，不执行业务或模型I/O。不可自动重试；结果不明时只读GET恢复。"
+      },
+      "AssistantToolResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "call_id",
+          "operation_id",
+          "state",
+          "http_status",
+          "data",
+          "error_code"
+        ],
+        "properties": {
+          "call_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed",
+              "pending",
+              "rejected",
+              "unknown"
+            ]
+          },
+          "http_status": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 100,
+            "maximum": 599
+          },
+          "data": {},
+          "error_code": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 128
+          }
+        },
+        "description": "真实业务回执优先于模型文字。单次响应至多64KiB，总结果至多256KiB；202仅表示已入队，不能声称下游任务执行成功。data是JSON或null，不含服务凭据。"
+      },
+      "AssistantPendingAction": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "operation_id",
+          "method",
+          "path",
+          "arguments",
+          "effects",
+          "expires_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "operation_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "POST",
+              "PATCH",
+              "DELETE"
+            ]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048
+          },
+          "arguments": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "只读人工预览，含服务端同意绑定，必要时含冻结的AI上下文。不是客户端提交或模型可覆盖的执行参数。"
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            },
+            "minItems": 1,
+            "maxItems": 16
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AssistantRunError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        }
+      },
+      "AssistantRun": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "session_id",
+          "run_id",
+          "state",
+          "assistant_message",
+          "tool_results",
+          "pending_action",
+          "model_config_id",
+          "model_config_revision",
+          "expires_at",
+          "error"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "run_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "running",
+              "awaiting_confirmation",
+              "completed",
+              "failed",
+              "rejected",
+              "unknown"
+            ]
+          },
+          "assistant_message": {
+            "type": "string",
+            "maxLength": 65536
+          },
+          "tool_results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssistantToolResult"
+            },
+            "maxItems": 12
+          },
+          "pending_action": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistantPendingAction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssistantRunError"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "description": "主体隔离的内存快照（服务重启不恢复会话；额度持久化）。运行/会话30分钟，待确认5分钟，最多64会话、每会话16运行、每会话一个活跃或待确认运行、每轮6次模型/12次工具/累计120秒；历史最多64条/256KiB。HTTP 200不保证业务成功，必须检查run与tool状态；unknown不回滚、不重放。每次模型调用前检查历史来源暂停状态。"
       }
     }
   }

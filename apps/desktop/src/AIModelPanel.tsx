@@ -122,7 +122,7 @@ export function AIModelPanel({
     <section className="settings-panel" aria-labelledby="ai-model-title">
       <div className="section-heading">
         <h2 id="ai-model-title">AI 模型配置</h2>
-        <span className={`label ${config?.configured ? 'label-green' : ''}`}>
+        <span className={`label ${config?.configured ? 'label-neutral' : ''}`}>
           {config
             ? config.configured
               ? '已配置'

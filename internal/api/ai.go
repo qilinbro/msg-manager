@@ -166,14 +166,16 @@ func (h *handler) serveAI(w http.ResponseWriter, r *http.Request, traceID string
 			host = &h.ai.endpointHost
 		}
 		writeJSON(w, 200, struct {
-			Configured     bool    `json:"configured"`
-			Provider       *string `json:"provider"`
-			Model          *string `json:"model"`
-			EndpointHost   *string `json:"endpoint_host"`
-			SendingEnabled bool    `json:"sending_enabled"`
-			DailyLimit     int     `json:"daily_limit"`
-			UsedToday      int     `json:"used_today"`
-		}{h.ai.client != nil, provider, model, host, false, h.ai.dailyLimit, used})
+			Configured          bool    `json:"configured"`
+			Provider            *string `json:"provider"`
+			Model               *string `json:"model"`
+			EndpointHost        *string `json:"endpoint_host"`
+			SendingEnabled      bool    `json:"sending_enabled"`
+			DailyLimit          int     `json:"daily_limit"`
+			UsedToday           int     `json:"used_today"`
+			ModelConfigID       string  `json:"model_config_id"`
+			ModelConfigRevision int64   `json:"model_config_revision"`
+		}{h.ai.client != nil, provider, model, host, false, h.ai.dailyLimit, used, h.ai.configID, h.modelConfig.Revision})
 		return
 	}
 	if h.inbox == nil {

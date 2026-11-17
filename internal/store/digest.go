@@ -13,11 +13,13 @@ import (
 )
 
 type DigestSchedule struct {
-	Enabled    bool   `json:"enabled"`
-	LocalTime  string `json:"local_time"`
-	Timezone   string `json:"timezone"`
-	Revision   int64  `json:"revision"`
-	LastRunDay string `json:"last_run_day"`
+	Enabled             bool   `json:"enabled"`
+	LocalTime           string `json:"local_time"`
+	Timezone            string `json:"timezone"`
+	Revision            int64  `json:"revision"`
+	LastRunDay          string `json:"last_run_day"`
+	ModelConfigID       string `json:"model_config_id"`
+	ModelConfigRevision int64  `json:"model_config_revision"`
 }
 
 type DigestMessage struct {
@@ -64,7 +66,7 @@ func validDigestTime(value string) bool { return digestClockPattern.MatchString(
 func scanDigestSchedule(row interface{ Scan(...any) error }) (DigestSchedule, error) {
 	var schedule DigestSchedule
 	var enabled int
-	if err := row.Scan(&enabled, &schedule.LocalTime, &schedule.Timezone, &schedule.Revision, &schedule.LastRunDay); err != nil {
+	if err := row.Scan(&enabled, &schedule.LocalTime, &schedule.Timezone, &schedule.Revision, &schedule.LastRunDay, &schedule.ModelConfigID, &schedule.ModelConfigRevision); err != nil {
 		return DigestSchedule{}, err
 	}
 	schedule.Enabled = enabled != 0
@@ -76,11 +78,11 @@ func (s *Store) LoadDigestSchedule(ctx context.Context) (DigestSchedule, error) 
 		return DigestSchedule{}, err
 	}
 	defer s.mu.Unlock()
-	return scanDigestSchedule(s.db.QueryRowContext(ctx, `SELECT enabled,local_time,timezone,revision,last_run_day FROM digest_schedules WHERE workspace_id=?`, workspaceID))
+	return scanDigestSchedule(s.db.QueryRowContext(ctx, `SELECT enabled,local_time,timezone,revision,last_run_day,model_config_id,model_config_revision FROM digest_schedules WHERE workspace_id=?`, workspaceID))
 }
 
 func (s *Store) SaveDigestSchedule(ctx context.Context, next DigestSchedule, expectedRevision int64) (DigestSchedule, error) {
-	if expectedRevision < 0 || !validDigestTime(next.LocalTime) || next.Timezone != "Asia/Shanghai" {
+	if expectedRevision < 0 || !validDigestTime(next.LocalTime) || next.Timezone != "Asia/Shanghai" || next.ModelConfigRevision < 0 || next.Enabled && !validProfileConfig(next.ModelConfigID) {
 		return DigestSchedule{}, ErrInvalidInput
 	}
 	if err := s.lockContext(ctx); err != nil {
@@ -93,27 +95,34 @@ func (s *Store) SaveDigestSchedule(ctx context.Context, next DigestSchedule, exp
 	}
 	defer tx.Rollback()
 	var current int64
-	if err = tx.QueryRowContext(ctx, `SELECT revision FROM digest_schedules WHERE workspace_id=?`, workspaceID).Scan(&current); err != nil {
+	if err = tx.QueryRowContext(ctx, `SELECT revision,last_run_day FROM digest_schedules WHERE workspace_id=?`, workspaceID).Scan(&current, &next.LastRunDay); err != nil {
 		return DigestSchedule{}, ErrUnavailable
 	}
 	if current != expectedRevision {
 		return DigestSchedule{}, ErrStaleContext
 	}
+	if !next.Enabled {
+		next.ModelConfigID, next.ModelConfigRevision = "", 0
+	}
 	next.Revision = current + 1
-	if _, err = tx.ExecContext(ctx, `UPDATE digest_schedules SET enabled=?,local_time=?,timezone=?,revision=? WHERE workspace_id=?`, next.Enabled, next.LocalTime, next.Timezone, next.Revision, workspaceID); err != nil {
+	if _, err = tx.ExecContext(ctx, `UPDATE digest_schedules SET enabled=?,local_time=?,timezone=?,revision=?,model_config_id=?,model_config_revision=? WHERE workspace_id=?`, next.Enabled, next.LocalTime, next.Timezone, next.Revision, next.ModelConfigID, next.ModelConfigRevision, workspaceID); err != nil {
 		return DigestSchedule{}, ErrUnavailable
 	}
 	if err = tx.Commit(); err != nil {
 		return DigestSchedule{}, ErrUnavailable
 	}
-	next.LastRunDay = ""
 	return next, nil
 }
 
-// ClaimDigestRun makes the date idempotent before any model call. The report
-// remains visible as running if the process stops during generation.
+// DigestReportID is the one canonical identifier used for both claim and finish.
+func DigestReportID(day string) string { return stableID("digest-report", day) }
+
+// ClaimDigestRun makes the date idempotent before any model call. Force bypasses
+// scheduling, never an existing report (even failed/unknown). It cannot start a
+// second model run while the first request is in flight or its result is lost.
+// The report remains visibly running after an abrupt process stop.
 func (s *Store) ClaimDigestRun(ctx context.Context, day string, force bool) (bool, error) {
-	if len(day) != 10 {
+	if !validAIDay(day) {
 		return false, ErrInvalidInput
 	}
 	if err := s.lockContext(ctx); err != nil {
@@ -135,12 +144,15 @@ func (s *Store) ClaimDigestRun(ctx context.Context, day string, force bool) (boo
 	}
 	var state string
 	err = tx.QueryRowContext(ctx, `SELECT state FROM digest_reports WHERE workspace_id=? AND day=?`, workspaceID, day).Scan(&state)
-	if err == nil && !force && (state == "running" || state == "succeeded") {
+	if err == nil {
 		return false, nil
 	}
+	if !errors.Is(err, sql.ErrNoRows) {
+		return false, wechatMonitorDBError(ctx)
+	}
 	now := digestNow()
-	id := stableID("digest-report", day)
-	if _, err = tx.ExecContext(ctx, `INSERT INTO digest_reports(id,workspace_id,day,state,created_at) VALUES(?,?,?,'running',?) ON CONFLICT(workspace_id,day) DO UPDATE SET state='running',summary='',reminders_json='[]',evidence_json='[]',conversation_count=0,error_code=NULL,generated_at=NULL,created_at=excluded.created_at`, id, workspaceID, day, now); err != nil {
+	id := DigestReportID(day)
+	if _, err = tx.ExecContext(ctx, `INSERT INTO digest_reports(id,workspace_id,day,state,created_at) VALUES(?,?,?,'running',?)`, id, workspaceID, day, now); err != nil {
 		return false, ErrUnavailable
 	}
 	if _, err = tx.ExecContext(ctx, `UPDATE digest_schedules SET last_run_day=? WHERE workspace_id=?`, day, workspaceID); err != nil {
@@ -156,11 +168,16 @@ func (s *Store) LoadDigestMessages(ctx context.Context, start, end string, limit
 	if limit < 1 || limit > 1000 {
 		return nil, ErrInvalidInput
 	}
+	startAt, startErr := time.Parse(time.RFC3339Nano, start)
+	endAt, endErr := time.Parse(time.RFC3339Nano, end)
+	if startErr != nil || endErr != nil || !startAt.Before(endAt) {
+		return nil, ErrInvalidInput
+	}
 	if err := s.lockContext(ctx); err != nil {
 		return nil, err
 	}
 	defer s.mu.Unlock()
-	rows, err := s.db.QueryContext(ctx, `SELECT m.conversation_id,v.title,c.platform,v.conversation_kind,m.id,m.body,m.direction,m.occurred_at,m.is_read FROM messages m JOIN conversations v ON v.id=m.conversation_id AND v.workspace_id=m.workspace_id JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id WHERE m.workspace_id=? AND m.occurred_at>=? AND m.occurred_at<? ORDER BY m.occurred_at DESC,m.seq DESC LIMIT ?`, workspaceID, start, end, limit)
+	rows, err := s.db.QueryContext(ctx, `SELECT m.conversation_id,v.title,c.platform,v.conversation_kind,m.id,m.body,m.direction,m.occurred_at,m.is_read FROM messages m JOIN conversations v ON v.id=m.conversation_id AND v.workspace_id=m.workspace_id JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id LEFT JOIN ai_preferences p ON p.conversation_id=v.id AND p.workspace_id=v.workspace_id WHERE m.workspace_id=? AND COALESCE(p.mode,'draft_only')<>'paused' AND m.occurred_at>=? AND m.occurred_at<? ORDER BY m.occurred_at DESC,m.seq DESC LIMIT ?`, workspaceID, startAt.UTC().Format(storedTimeLayout), endAt.UTC().Format(storedTimeLayout), limit)
 	if err != nil {
 		return nil, ErrUnavailable
 	}
@@ -197,9 +214,16 @@ func (s *Store) CompleteDigestReport(ctx context.Context, report DigestReport) e
 		return err
 	}
 	defer s.mu.Unlock()
-	_, err = s.db.ExecContext(ctx, `UPDATE digest_reports SET state=?,summary=?,reminders_json=?,evidence_json=?,conversation_count=?,error_code=?,generated_at=? WHERE workspace_id=? AND id=? AND day=?`, report.State, report.Summary, string(reminders), string(evidence), report.ConversationCount, nullString(report.ErrorCode), report.GeneratedAt, workspaceID, report.ID, report.Day)
+	result, err := s.db.ExecContext(ctx, `UPDATE digest_reports SET state=?,summary=?,reminders_json=?,evidence_json=?,conversation_count=?,error_code=?,generated_at=? WHERE workspace_id=? AND id=? AND day=? AND state='running'`, report.State, report.Summary, string(reminders), string(evidence), report.ConversationCount, nullString(report.ErrorCode), report.GeneratedAt, workspaceID, report.ID, report.Day)
+	if err != nil {
+		return wechatMonitorDBError(ctx)
+	}
+	changed, err := result.RowsAffected()
 	if err != nil {
 		return ErrUnavailable
+	}
+	if changed != 1 {
+		return ErrStaleContext
 	}
 	return nil
 }
@@ -229,6 +253,24 @@ func scanDigestReport(row interface{ Scan(...any) error }) (DigestReport, error)
 		report.EvidenceIDs = []string{}
 	}
 	return report, nil
+}
+
+func (s *Store) DigestReportForDay(ctx context.Context, day string) (*DigestReport, error) {
+	if !validAIDay(day) {
+		return nil, ErrInvalidInput
+	}
+	if err := s.lockContext(ctx); err != nil {
+		return nil, err
+	}
+	defer s.mu.Unlock()
+	report, err := scanDigestReport(s.db.QueryRowContext(ctx, `SELECT id,day,state,summary,reminders_json,evidence_json,conversation_count,error_code,generated_at FROM digest_reports WHERE workspace_id=? AND day=?`, workspaceID, day))
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, wechatMonitorDBError(ctx)
+	}
+	return &report, nil
 }
 
 func (s *Store) LatestDigestReport(ctx context.Context) (*DigestReport, error) {

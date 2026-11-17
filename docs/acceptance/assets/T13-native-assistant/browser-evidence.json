@@ -1,0 +1,799 @@
+{
+  "evidenceType": "Isolated synthetic Chromium UI; not native protocol, real account/model, designated review or formal acceptance.",
+  "initialAttempt": {
+    "status": "failed_fixture",
+    "startedAt": "2026-11-17T20:18:42.003+08:00",
+    "finishedAt": "2026-11-17T20:18:55.315+08:00",
+    "checksRecorded": 1,
+    "reason": "Fixture wrongly rejected legal master-auth GET /api/v1/system before device enrollment; intended views not reached.",
+    "failureImageSha256": "5bcd3c04b061adca85a837e560dc3b0653be465abf71d31909347e43d94b9512"
+  },
+  "confirmationRoundsExecuted": 1,
+  "rawReportSha256": "6fac7221f2d414c763b9c0b78b9bbfba55ffac02a04739869e2eac770c8f0727",
+  "rawIntegritySha256": "94ee285594c1bc2d6bee012a51783f262256958daf299c7b47f5c70614b33dd6",
+  "checkedAt": "2026-11-17T12:33:31.993Z",
+  "scope": "Independent read-only post-run full-set provenance recomputation; no browser/harness rerun and no product edits.",
+  "fingerprintAlgorithm": "sha256(UTF-8 JSON.stringify(ordered manifest records with path,sha256,bytes,mtimeMs))",
+  "browserExecution": {
+    "jobID": "pwsh-2f4306db18ec4ab2",
+    "exitCode": 0,
+    "wrapperStartedAt": "2026-11-17T20:31:45.4530971+08:00",
+    "wrapperFinishedAt": "2026-11-17T20:31:51.5598334+08:00",
+    "runtimeStartedAt": "2026-11-17T12:31:45.614Z",
+    "runtimeFinishedAt": "2026-11-17T12:31:48.766Z",
+    "runtimeDurationMs": 3152,
+    "status": "passed",
+    "checks": [
+      "Remember-device default remains explicitly selected",
+      "No synthetic master or bearer stored in web storage",
+      "Non-extractable browser P-256 key persisted; reload reuses device and obtains a newly verified signature/session",
+      "desktop Inbox 1440x1000: white base and no page-level horizontal overflow",
+      "Shared quota 50 and synthetic target displayed; revision zero accepted",
+      "Unsaved AI draft survives page navigation without a save request",
+      "Fresh round consent required; no default consent",
+      "Action consent is independent and initially unchecked",
+      "Server-frozen action preview is non-editable and includes exact parameters",
+      "desktop Assistant confirmation 1440x1000: white base and no page-level horizontal overflow",
+      "Reject works without accepting action consent and causes no synthetic business change",
+      "Fresh round consent required; no default consent",
+      "Second action does not inherit first action consent",
+      "Known run ID retained; acknowledgement reset; mutations disabled until read-only recovery",
+      "Lost-response recovery uses one GET; no replayed start, confirm, or fixture mutation",
+      "narrow Inbox 390x844: white base and no page-level horizontal overflow",
+      "Unsaved draft also survives Assistant recovery and narrow viewport navigation",
+      "Fresh round consent required; no default consent",
+      "Unknown result is not success; new mutations remain gated and null HTTP status is rendered honestly",
+      "narrow Assistant unknown 390x844: white base and no page-level horizontal overflow",
+      "Digest persistent-plan and one-shot consents are separate and unchecked; model quota, revision-zero binding and timezone shown",
+      "narrow Digest settings 390x844: white base and no page-level horizontal overflow",
+      "All frontend bytes came from frozen dist; every service response synthetic; no fallback/real business/model/platform request"
+    ],
+    "counts": {
+      "bootstrapSystemReads": 1,
+      "enrollments": 1,
+      "sessions": 2,
+      "starts": 3,
+      "confirms": 1,
+      "rejects": 1,
+      "runReads": 1,
+      "syntheticSettingsChanges": 1,
+      "usedToday": 4
+    }
+  },
+  "sources": {
+    "unchanged": true,
+    "filesBefore": 38,
+    "filesAfter": 38,
+    "beforeFingerprint": "6af990994e2c891a1a67566e0d5037df8c1a8c4d0c1e6b8e91f59685cf09a1bf",
+    "afterFingerprint": "6af990994e2c891a1a67566e0d5037df8c1a8c4d0c1e6b8e91f59685cf09a1bf",
+    "added": [],
+    "removed": [],
+    "changed": [],
+    "beforeManifest": [
+      {
+        "path": "api/openapi.yaml",
+        "sha256": "069fd8e2f214dab7589d3ab435680042d128cf033e570f71dc7a7974f04229c9",
+        "bytes": 260825,
+        "mtimeMs": 1794917131410.0344
+      },
+      {
+        "path": "apps/desktop/index.html",
+        "sha256": "9637349f3e4099ca5ed1dde6f0fe17d10a8aec870a1f867d65868b4edec297f1",
+        "bytes": 490,
+        "mtimeMs": 1794904003520.5059
+      },
+      {
+        "path": "apps/desktop/package.json",
+        "sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479",
+        "bytes": 989,
+        "mtimeMs": 1794904003539.9849
+      },
+      {
+        "path": "apps/desktop/src/AIModelPanel.tsx",
+        "sha256": "7e8756c677f63464fdd3d4b87e00704ed0df9f28ef59c22bb7972cf05205c977",
+        "bytes": 7672,
+        "mtimeMs": 1794914077643.859
+      },
+      {
+        "path": "apps/desktop/src/AIPanel.tsx",
+        "sha256": "55ccbc5dd8c4b1bcc650a4f085b33ed0bea2a65a0acbf518bcaafaf880ebeafd",
+        "bytes": 24738,
+        "mtimeMs": 1794904003385.8435
+      },
+      {
+        "path": "apps/desktop/src/App.tsx",
+        "sha256": "96d4b933116a294f9c46bfab967f2057239b1260d6532d03c8bf2299d74d8332",
+        "bytes": 27840,
+        "mtimeMs": 1794917276760.7722
+      },
+      {
+        "path": "apps/desktop/src/AssistantPanel.tsx",
+        "sha256": "1c023e82891ee959a930c903c552c7f7193d716518d8381435bc0eaf48e434f3",
+        "bytes": 33807,
+        "mtimeMs": 1794917276846.604
+      },
+      {
+        "path": "apps/desktop/src/DigestPanel.tsx",
+        "sha256": "c3c70812f114db2e826233fbad49121e75b08c57aa24017bb511179fa92eb487",
+        "bytes": 17747,
+        "mtimeMs": 1794917367057.473
+      },
+      {
+        "path": "apps/desktop/src/EmailPanel.tsx",
+        "sha256": "e247fa91047ec6e2e752941f17c56f54be8abde492b289b7cc755faf01eff2d6",
+        "bytes": 10125,
+        "mtimeMs": 1794904003457.4463
+      },
+      {
+        "path": "apps/desktop/src/Inbox.tsx",
+        "sha256": "bfb5fc0d75d61d0588d20d846c8ff6089f1e84b62f1c2cd374b91b5e3736281b",
+        "bytes": 60103,
+        "mtimeMs": 1794917277024.4558
+      },
+      {
+        "path": "apps/desktop/src/MilkyPanel.tsx",
+        "sha256": "921a83d94a24aca4898c3c82c0eb092344e587184425c4e4d39eeb95874da2e1",
+        "bytes": 10820,
+        "mtimeMs": 1794917277049.939
+      },
+      {
+        "path": "apps/desktop/src/ProfileLinksPanel.tsx",
+        "sha256": "37dbcc2cb3383ef38210d5fc92ffd20b20215a3a1da68027e22a3acb837e1209",
+        "bytes": 8587,
+        "mtimeMs": 1794809442382.9614
+      },
+      {
+        "path": "apps/desktop/src/ProfilePanel.tsx",
+        "sha256": "7c4afb8fb65825d97d82c4be25a6c2ab45a322eee84ef5526a982994253aac28",
+        "bytes": 35348,
+        "mtimeMs": 1794917277116.1309
+      },
+      {
+        "path": "apps/desktop/src/WechatPanel.tsx",
+        "sha256": "2353d6395754fa994926e02ec9473b144b2f7f9c23622720394cf6d6c506d6dc",
+        "bytes": 25879,
+        "mtimeMs": 1794903878294.357
+      },
+      {
+        "path": "apps/desktop/src/ai-api.ts",
+        "sha256": "82df7eb029225b5a5cecb9275f0d469dcd0e43322aaf6330ffb1b154aad6279e",
+        "bytes": 11764,
+        "mtimeMs": 1794917277145.5293
+      },
+      {
+        "path": "apps/desktop/src/ai.css",
+        "sha256": "2c22d116b34bd9c9eeb02097ceb40656501cc66be799534f03a8fe546026c968",
+        "bytes": 7125,
+        "mtimeMs": 1794915391466.192
+      },
+      {
+        "path": "apps/desktop/src/api.ts",
+        "sha256": "d9173de6d658a6c390ea78758f64d88c6b91c7d98ebdecc35a85e3ffc3b66bed",
+        "bytes": 6023,
+        "mtimeMs": 1794917764874.2632
+      },
+      {
+        "path": "apps/desktop/src/assistant-api.ts",
+        "sha256": "a0cddb4afb75321c14095dd8ce21fd8f289648c2ad5de06ff50d075c425ebb46",
+        "bytes": 14753,
+        "mtimeMs": 1794917331886.733
+      },
+      {
+        "path": "apps/desktop/src/assistant.css",
+        "sha256": "749110e6da29250be6fb15e83cf701e34c7889987e2ea67752b17a3a6e0f29e7",
+        "bytes": 7317,
+        "mtimeMs": 1794914537450.626
+      },
+      {
+        "path": "apps/desktop/src/device-auth.ts",
+        "sha256": "34605011d65de3401b2d5b394c765f78f22b6e58c279702f92ac398f71cbb838",
+        "bytes": 26544,
+        "mtimeMs": 1794911474818.2495
+      },
+      {
+        "path": "apps/desktop/src/digest-api.ts",
+        "sha256": "9438dfda6ca4d4a83850da533e5ebc9d90984d904b95c15931bed80c866f00f0",
+        "bytes": 10299,
+        "mtimeMs": 1794917331921.9531
+      },
+      {
+        "path": "apps/desktop/src/email-api.ts",
+        "sha256": "dc63c217485ef35c69100421b76ad2f17f9de9c6b8a7900b2776ac8a7cf2d724",
+        "bytes": 6554,
+        "mtimeMs": 1794908984088.2585
+      },
+      {
+        "path": "apps/desktop/src/inbox-api.ts",
+        "sha256": "6be330012ba1914a0b78f26ec24476ae013bdf0169f8d13888de6e5fda0d37a4",
+        "bytes": 15182,
+        "mtimeMs": 1794908984058.0696
+      },
+      {
+        "path": "apps/desktop/src/inbox.css",
+        "sha256": "27127cb5f365d41571097b3829487142f5e16436dccafd74496743c61533f8ae",
+        "bytes": 24486,
+        "mtimeMs": 1794917277408.9077
+      },
+      {
+        "path": "apps/desktop/src/main.tsx",
+        "sha256": "c5c74c6bcb9fb4089023e4d5b24c643ecc690e45b24f61f63ef3bb5c81d63a77",
+        "bytes": 307,
+        "mtimeMs": 1794904003463.129
+      },
+      {
+        "path": "apps/desktop/src/milky-api.ts",
+        "sha256": "9cb1e04b15e2bd5f6db68e48061508dc0a28e8c3e6e2e28b7972ae65daf1e822",
+        "bytes": 6367,
+        "mtimeMs": 1794908984122.545
+      },
+      {
+        "path": "apps/desktop/src/model-config-api.ts",
+        "sha256": "c6ad7725d1c013fafe7a0479b42079ff528028beb302a422f6a6d0f0c919087c",
+        "bytes": 5271,
+        "mtimeMs": 1794908984139.698
+      },
+      {
+        "path": "apps/desktop/src/model-config.css",
+        "sha256": "1fd7543bae0e3e47df08b09f41eed31df2b603af0a22ed665a6d543af61605d7",
+        "bytes": 351,
+        "mtimeMs": 1794917093299.5835
+      },
+      {
+        "path": "apps/desktop/src/profile-api.ts",
+        "sha256": "22942dea1c750d870fbcc2853e888d2d1de7895a6fce42f65f5d2a966dbcd7e7",
+        "bytes": 17892,
+        "mtimeMs": 1794908984180.085
+      },
+      {
+        "path": "apps/desktop/src/profile-links-api.ts",
+        "sha256": "61e383d53a51cca592fed5a8040c057f3c5e9c8ed22e9f54b99e196925312c64",
+        "bytes": 6297,
+        "mtimeMs": 1794908984192.004
+      },
+      {
+        "path": "apps/desktop/src/profile.css",
+        "sha256": "1eeb35921ca90ed4879f3d624524fe6293b5828d4307e96f340f7acc9809db64",
+        "bytes": 7410,
+        "mtimeMs": 1794915391466.192
+      },
+      {
+        "path": "apps/desktop/src/service-session.ts",
+        "sha256": "01141e0d4f1c5ce400a2b0ecd4cfbaba4066adf511db03999950e48a9c9f149e",
+        "bytes": 2057,
+        "mtimeMs": 1794908156167.0212
+      },
+      {
+        "path": "apps/desktop/src/styles.css",
+        "sha256": "41aebf3b10ab47b0f2ff1602d4c21112da00fd9902be808050ad8ead74eef46b",
+        "bytes": 14726,
+        "mtimeMs": 1794917277496.9993
+      },
+      {
+        "path": "apps/desktop/src/useServiceSession.ts",
+        "sha256": "b2b1562216a4cc5f5132b10b2f870f62beaf8ef1ed7f88478bbb91c9618a56c8",
+        "bytes": 15808,
+        "mtimeMs": 1794909773795.458
+      },
+      {
+        "path": "apps/desktop/src/wechat-api.ts",
+        "sha256": "fb6eb74ba2653e4573ad085e9cb95bf4755584bcf0e9f09a04dfe904a2cebccd",
+        "bytes": 12723,
+        "mtimeMs": 1794908984109.3005
+      },
+      {
+        "path": "apps/desktop/tsconfig.json",
+        "sha256": "b1e546717c0d0af0741eb2d0d3206bdf8b559bb03ab7bf8b9e0bf7962da16b92",
+        "bytes": 572,
+        "mtimeMs": 1794904003546.1067
+      },
+      {
+        "path": "apps/desktop/vite.config.ts",
+        "sha256": "b3d008acd4415638800b1d3c6e2d21b8e6f03548808aa79dc006be603d752b35",
+        "bytes": 356,
+        "mtimeMs": 1794904003551.3557
+      },
+      {
+        "path": "internal/api/assistant_catalog.go",
+        "sha256": "d529fb3374307fad0c6cc28b39232baa2ba076c6402a743997e823696c2b4a18",
+        "bytes": 23127,
+        "mtimeMs": 1794916043176.24
+      }
+    ],
+    "afterManifest": [
+      {
+        "path": "api/openapi.yaml",
+        "sha256": "069fd8e2f214dab7589d3ab435680042d128cf033e570f71dc7a7974f04229c9",
+        "bytes": 260825,
+        "mtimeMs": 1794917131410.0344
+      },
+      {
+        "path": "apps/desktop/index.html",
+        "sha256": "9637349f3e4099ca5ed1dde6f0fe17d10a8aec870a1f867d65868b4edec297f1",
+        "bytes": 490,
+        "mtimeMs": 1794904003520.5059
+      },
+      {
+        "path": "apps/desktop/package.json",
+        "sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479",
+        "bytes": 989,
+        "mtimeMs": 1794904003539.9849
+      },
+      {
+        "path": "apps/desktop/src/AIModelPanel.tsx",
+        "sha256": "7e8756c677f63464fdd3d4b87e00704ed0df9f28ef59c22bb7972cf05205c977",
+        "bytes": 7672,
+        "mtimeMs": 1794914077643.859
+      },
+      {
+        "path": "apps/desktop/src/AIPanel.tsx",
+        "sha256": "55ccbc5dd8c4b1bcc650a4f085b33ed0bea2a65a0acbf518bcaafaf880ebeafd",
+        "bytes": 24738,
+        "mtimeMs": 1794904003385.8435
+      },
+      {
+        "path": "apps/desktop/src/App.tsx",
+        "sha256": "96d4b933116a294f9c46bfab967f2057239b1260d6532d03c8bf2299d74d8332",
+        "bytes": 27840,
+        "mtimeMs": 1794917276760.7722
+      },
+      {
+        "path": "apps/desktop/src/AssistantPanel.tsx",
+        "sha256": "1c023e82891ee959a930c903c552c7f7193d716518d8381435bc0eaf48e434f3",
+        "bytes": 33807,
+        "mtimeMs": 1794917276846.604
+      },
+      {
+        "path": "apps/desktop/src/DigestPanel.tsx",
+        "sha256": "c3c70812f114db2e826233fbad49121e75b08c57aa24017bb511179fa92eb487",
+        "bytes": 17747,
+        "mtimeMs": 1794917367057.473
+      },
+      {
+        "path": "apps/desktop/src/EmailPanel.tsx",
+        "sha256": "e247fa91047ec6e2e752941f17c56f54be8abde492b289b7cc755faf01eff2d6",
+        "bytes": 10125,
+        "mtimeMs": 1794904003457.4463
+      },
+      {
+        "path": "apps/desktop/src/Inbox.tsx",
+        "sha256": "bfb5fc0d75d61d0588d20d846c8ff6089f1e84b62f1c2cd374b91b5e3736281b",
+        "bytes": 60103,
+        "mtimeMs": 1794917277024.4558
+      },
+      {
+        "path": "apps/desktop/src/MilkyPanel.tsx",
+        "sha256": "921a83d94a24aca4898c3c82c0eb092344e587184425c4e4d39eeb95874da2e1",
+        "bytes": 10820,
+        "mtimeMs": 1794917277049.939
+      },
+      {
+        "path": "apps/desktop/src/ProfileLinksPanel.tsx",
+        "sha256": "37dbcc2cb3383ef38210d5fc92ffd20b20215a3a1da68027e22a3acb837e1209",
+        "bytes": 8587,
+        "mtimeMs": 1794809442382.9614
+      },
+      {
+        "path": "apps/desktop/src/ProfilePanel.tsx",
+        "sha256": "7c4afb8fb65825d97d82c4be25a6c2ab45a322eee84ef5526a982994253aac28",
+        "bytes": 35348,
+        "mtimeMs": 1794917277116.1309
+      },
+      {
+        "path": "apps/desktop/src/WechatPanel.tsx",
+        "sha256": "2353d6395754fa994926e02ec9473b144b2f7f9c23622720394cf6d6c506d6dc",
+        "bytes": 25879,
+        "mtimeMs": 1794903878294.357
+      },
+      {
+        "path": "apps/desktop/src/ai-api.ts",
+        "sha256": "82df7eb029225b5a5cecb9275f0d469dcd0e43322aaf6330ffb1b154aad6279e",
+        "bytes": 11764,
+        "mtimeMs": 1794917277145.5293
+      },
+      {
+        "path": "apps/desktop/src/ai.css",
+        "sha256": "2c22d116b34bd9c9eeb02097ceb40656501cc66be799534f03a8fe546026c968",
+        "bytes": 7125,
+        "mtimeMs": 1794915391466.192
+      },
+      {
+        "path": "apps/desktop/src/api.ts",
+        "sha256": "d9173de6d658a6c390ea78758f64d88c6b91c7d98ebdecc35a85e3ffc3b66bed",
+        "bytes": 6023,
+        "mtimeMs": 1794917764874.2632
+      },
+      {
+        "path": "apps/desktop/src/assistant-api.ts",
+        "sha256": "a0cddb4afb75321c14095dd8ce21fd8f289648c2ad5de06ff50d075c425ebb46",
+        "bytes": 14753,
+        "mtimeMs": 1794917331886.733
+      },
+      {
+        "path": "apps/desktop/src/assistant.css",
+        "sha256": "749110e6da29250be6fb15e83cf701e34c7889987e2ea67752b17a3a6e0f29e7",
+        "bytes": 7317,
+        "mtimeMs": 1794914537450.626
+      },
+      {
+        "path": "apps/desktop/src/device-auth.ts",
+        "sha256": "34605011d65de3401b2d5b394c765f78f22b6e58c279702f92ac398f71cbb838",
+        "bytes": 26544,
+        "mtimeMs": 1794911474818.2495
+      },
+      {
+        "path": "apps/desktop/src/digest-api.ts",
+        "sha256": "9438dfda6ca4d4a83850da533e5ebc9d90984d904b95c15931bed80c866f00f0",
+        "bytes": 10299,
+        "mtimeMs": 1794917331921.9531
+      },
+      {
+        "path": "apps/desktop/src/email-api.ts",
+        "sha256": "dc63c217485ef35c69100421b76ad2f17f9de9c6b8a7900b2776ac8a7cf2d724",
+        "bytes": 6554,
+        "mtimeMs": 1794908984088.2585
+      },
+      {
+        "path": "apps/desktop/src/inbox-api.ts",
+        "sha256": "6be330012ba1914a0b78f26ec24476ae013bdf0169f8d13888de6e5fda0d37a4",
+        "bytes": 15182,
+        "mtimeMs": 1794908984058.0696
+      },
+      {
+        "path": "apps/desktop/src/inbox.css",
+        "sha256": "27127cb5f365d41571097b3829487142f5e16436dccafd74496743c61533f8ae",
+        "bytes": 24486,
+        "mtimeMs": 1794917277408.9077
+      },
+      {
+        "path": "apps/desktop/src/main.tsx",
+        "sha256": "c5c74c6bcb9fb4089023e4d5b24c643ecc690e45b24f61f63ef3bb5c81d63a77",
+        "bytes": 307,
+        "mtimeMs": 1794904003463.129
+      },
+      {
+        "path": "apps/desktop/src/milky-api.ts",
+        "sha256": "9cb1e04b15e2bd5f6db68e48061508dc0a28e8c3e6e2e28b7972ae65daf1e822",
+        "bytes": 6367,
+        "mtimeMs": 1794908984122.545
+      },
+      {
+        "path": "apps/desktop/src/model-config-api.ts",
+        "sha256": "c6ad7725d1c013fafe7a0479b42079ff528028beb302a422f6a6d0f0c919087c",
+        "bytes": 5271,
+        "mtimeMs": 1794908984139.698
+      },
+      {
+        "path": "apps/desktop/src/model-config.css",
+        "sha256": "1fd7543bae0e3e47df08b09f41eed31df2b603af0a22ed665a6d543af61605d7",
+        "bytes": 351,
+        "mtimeMs": 1794917093299.5835
+      },
+      {
+        "path": "apps/desktop/src/profile-api.ts",
+        "sha256": "22942dea1c750d870fbcc2853e888d2d1de7895a6fce42f65f5d2a966dbcd7e7",
+        "bytes": 17892,
+        "mtimeMs": 1794908984180.085
+      },
+      {
+        "path": "apps/desktop/src/profile-links-api.ts",
+        "sha256": "61e383d53a51cca592fed5a8040c057f3c5e9c8ed22e9f54b99e196925312c64",
+        "bytes": 6297,
+        "mtimeMs": 1794908984192.004
+      },
+      {
+        "path": "apps/desktop/src/profile.css",
+        "sha256": "1eeb35921ca90ed4879f3d624524fe6293b5828d4307e96f340f7acc9809db64",
+        "bytes": 7410,
+        "mtimeMs": 1794915391466.192
+      },
+      {
+        "path": "apps/desktop/src/service-session.ts",
+        "sha256": "01141e0d4f1c5ce400a2b0ecd4cfbaba4066adf511db03999950e48a9c9f149e",
+        "bytes": 2057,
+        "mtimeMs": 1794908156167.0212
+      },
+      {
+        "path": "apps/desktop/src/styles.css",
+        "sha256": "41aebf3b10ab47b0f2ff1602d4c21112da00fd9902be808050ad8ead74eef46b",
+        "bytes": 14726,
+        "mtimeMs": 1794917277496.9993
+      },
+      {
+        "path": "apps/desktop/src/useServiceSession.ts",
+        "sha256": "b2b1562216a4cc5f5132b10b2f870f62beaf8ef1ed7f88478bbb91c9618a56c8",
+        "bytes": 15808,
+        "mtimeMs": 1794909773795.458
+      },
+      {
+        "path": "apps/desktop/src/wechat-api.ts",
+        "sha256": "fb6eb74ba2653e4573ad085e9cb95bf4755584bcf0e9f09a04dfe904a2cebccd",
+        "bytes": 12723,
+        "mtimeMs": 1794908984109.3005
+      },
+      {
+        "path": "apps/desktop/tsconfig.json",
+        "sha256": "b1e546717c0d0af0741eb2d0d3206bdf8b559bb03ab7bf8b9e0bf7962da16b92",
+        "bytes": 572,
+        "mtimeMs": 1794904003546.1067
+      },
+      {
+        "path": "apps/desktop/vite.config.ts",
+        "sha256": "b3d008acd4415638800b1d3c6e2d21b8e6f03548808aa79dc006be603d752b35",
+        "bytes": 356,
+        "mtimeMs": 1794904003551.3557
+      },
+      {
+        "path": "internal/api/assistant_catalog.go",
+        "sha256": "d529fb3374307fad0c6cc28b39232baa2ba076c6402a743997e823696c2b4a18",
+        "bytes": 23127,
+        "mtimeMs": 1794916043176.24
+      }
+    ]
+  },
+  "dist": {
+    "unchanged": true,
+    "filesBefore": 3,
+    "filesAfter": 3,
+    "beforeFingerprint": "bb26406eb25c3f474f513c18e96b494dcab85fe5558c36cf67c8bb7b444f0c79",
+    "afterFingerprint": "bb26406eb25c3f474f513c18e96b494dcab85fe5558c36cf67c8bb7b444f0c79",
+    "added": [],
+    "removed": [],
+    "changed": [],
+    "beforeManifest": [
+      {
+        "path": "apps/desktop/dist/assets/index-BwxoPUBV.css",
+        "sha256": "87fbc74f5fe41737fc9a4063d8fc06090b47cdc0d96625a9b1ab7ac955867877",
+        "bytes": 49384,
+        "mtimeMs": 1794917812413.0996
+      },
+      {
+        "path": "apps/desktop/dist/assets/index-DGg4KU7N.js",
+        "sha256": "09548ebc87d1ec91104b3d652bd99dbcaefdd6c0e7d415217983b6a824cb33ef",
+        "bytes": 438738,
+        "mtimeMs": 1794917812412.5547
+      },
+      {
+        "path": "apps/desktop/dist/index.html",
+        "sha256": "911cfac0bcfc950eada72796a572edae5f082e291103902599d3e4c7ab686694",
+        "bytes": 588,
+        "mtimeMs": 1794917812413.6443
+      }
+    ],
+    "afterManifest": [
+      {
+        "path": "apps/desktop/dist/assets/index-BwxoPUBV.css",
+        "sha256": "87fbc74f5fe41737fc9a4063d8fc06090b47cdc0d96625a9b1ab7ac955867877",
+        "bytes": 49384,
+        "mtimeMs": 1794917812413.0996
+      },
+      {
+        "path": "apps/desktop/dist/assets/index-DGg4KU7N.js",
+        "sha256": "09548ebc87d1ec91104b3d652bd99dbcaefdd6c0e7d415217983b6a824cb33ef",
+        "bytes": 438738,
+        "mtimeMs": 1794917812412.5547
+      },
+      {
+        "path": "apps/desktop/dist/index.html",
+        "sha256": "911cfac0bcfc950eada72796a572edae5f082e291103902599d3e4c7ab686694",
+        "bytes": 588,
+        "mtimeMs": 1794917812413.6443
+      }
+    ]
+  },
+  "harness": {
+    "beforeSha256": "6646d90018693d6b6e6ecd90cfdf8cfde4b801056b3e498fb8cdd101bfc301f1",
+    "afterSha256": "6646d90018693d6b6e6ecd90cfdf8cfde4b801056b3e498fb8cdd101bfc301f1",
+    "unchanged": true
+  },
+  "screenshotsMatchReport": true,
+  "screenshots": [
+    {
+      "file": "desktop-inbox.png",
+      "sha256": "314213b9b640f01f0089900810cb7352db800442227396f68c44683f9b7518dd",
+      "bytes": 80447,
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "desktop-assistant-confirmation.png",
+      "sha256": "86d400e117abd85012350531a07df1d2798e47ae0269bdd772675c9eb0841529",
+      "bytes": 68301,
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "file": "narrow-inbox.png",
+      "sha256": "50c9a7a97f4df38a0a204a8b6b784c925566565ea66b1c2bbb831147be64270c",
+      "bytes": 36331,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "narrow-assistant-unknown.png",
+      "sha256": "c7ceb86668090690d92db9520473948d03db318bdfa77e23aeee1831ca4327e0",
+      "bytes": 41327,
+      "width": 390,
+      "height": 844
+    },
+    {
+      "file": "digest-plan-and-consent.png",
+      "sha256": "0f69162e2c9239fad05dd5fe7fdddc70356aa051c0a1915118fe0342cac01089",
+      "bytes": 54485,
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "requestAudit": {
+    "total": 132,
+    "byKind": {
+      "frozen-dist-asset": 6,
+      "blocked-optional-favicon": 2,
+      "synthetic-api": 124
+    },
+    "byOrigin": {
+      "http://127.0.0.1:1420": 8,
+      "http://127.0.0.1:17890": 124
+    },
+    "consoleErrors": [],
+    "exceptions": [],
+    "interceptionErrors": [],
+    "networkFailures": [
+      {
+        "url": "http://127.0.0.1:1420/favicon.ico",
+        "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+        "canceled": false
+      },
+      {
+        "url": "http://127.0.0.1:1420/favicon.ico",
+        "errorText": "net::ERR_BLOCKED_BY_CLIENT.Inspector",
+        "canceled": false
+      },
+      {
+        "url": "http://127.0.0.1:17890/api/v1/assistant/runs/synthetic-native-run-2/confirm",
+        "errorText": "net::ERR_CONNECTION_RESET",
+        "canceled": false
+      }
+    ],
+    "nonReadRequests": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/auth/devices",
+        "kind": "synthetic-api",
+        "status": 201
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/auth/challenges",
+        "kind": "synthetic-api",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/auth/sessions",
+        "kind": "synthetic-api",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/auth/challenges",
+        "kind": "synthetic-api",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/auth/sessions",
+        "kind": "synthetic-api",
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/assistant/runs",
+        "kind": "synthetic-api",
+        "body": {
+          "session_id": "",
+          "message": "合成验证：展示一项会话语气修改，先拒绝。",
+          "model_config_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "model_config_revision": 0,
+          "confirmed": true
+        },
+        "status": 202
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/assistant/runs/synthetic-native-run-1/reject",
+        "kind": "synthetic-api",
+        "body": {
+          "action_id": "synthetic-action-1"
+        },
+        "status": 200
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/assistant/runs",
+        "kind": "synthetic-api",
+        "body": {
+          "session_id": "synthetic-native-assistant-session",
+          "message": "合成验证：再次预览同一类修改，确认后模拟丢失响应。",
+          "model_config_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "model_config_revision": 0,
+          "confirmed": true
+        },
+        "status": 202
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/assistant/runs/synthetic-native-run-2/confirm",
+        "kind": "synthetic-api",
+        "body": {
+          "action_id": "synthetic-action-2",
+          "model_config_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "model_config_revision": 0,
+          "confirmed": true
+        },
+        "expectedFailure": true,
+        "reason": "Synthetic response loss after fixture-only mutation"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:17890/api/v1/assistant/runs",
+        "kind": "synthetic-api",
+        "body": {
+          "session_id": "synthetic-native-assistant-session",
+          "message": "合成验证：读取结果保持 unknown，必须核实而不能显示成功。",
+          "model_config_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "model_config_revision": 0,
+          "confirmed": true
+        },
+        "status": 200
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "label": "desktop Inbox 1440x1000",
+      "viewportWidth": 1440,
+      "viewportHeight": 1000,
+      "rootWidth": 1425,
+      "bodyWidth": 1425,
+      "rootBackground": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "desktop Assistant confirmation 1440x1000",
+      "viewportWidth": 1440,
+      "viewportHeight": 1000,
+      "rootWidth": 1425,
+      "bodyWidth": 1425,
+      "rootBackground": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "narrow Inbox 390x844",
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "rootWidth": 390,
+      "bodyWidth": 390,
+      "rootBackground": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "narrow Assistant unknown 390x844",
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "rootWidth": 390,
+      "bodyWidth": 390,
+      "rootBackground": "rgb(255, 255, 255)"
+    },
+    {
+      "label": "narrow Digest settings 390x844",
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "rootWidth": 390,
+      "bodyWidth": 390,
+      "rootBackground": "rgb(255, 255, 255)"
+    }
+  ],
+  "cleanup": {
+    "checkedAt": "2026-11-17T20:33:33.3890045+08:00",
+    "matchingChromiumProcessCount": 0,
+    "scope": "Exact unique synthetic profile only; no unrelated process stopped."
+  },
+  "publication": "Original screenshot bytes copied unchanged. Public JSON omits browser profile paths/device IDs; all request content here is synthetic. Original reports retained locally without overwrite."
+}

@@ -6,6 +6,8 @@ export interface AIStatus {
   provider: string | null;
   model: string | null;
   endpoint_host: string | null;
+  model_config_id: string;
+  model_config_revision: number;
   sending_enabled: false;
   daily_limit: number;
   used_today: number;
@@ -242,6 +244,10 @@ export async function getAIStatus(
     !nullableString(value.provider) ||
     !nullableString(value.model) ||
     !nullableString(value.endpoint_host) ||
+    !string(value.model_config_id) ||
+    !count(value.model_config_revision) ||
+    (value.configured &&
+      (!value.model_config_id || !value.model || !value.endpoint_host)) ||
     value.sending_enabled !== false ||
     !count(value.daily_limit) ||
     !count(value.used_today)

@@ -16,6 +16,45 @@ const transformedPanel = transformSync('MilkyPanel.tsx', panel, {
 });
 assert.equal(transformedPanel.errors.length, 0, 'MilkyPanel must compile in the synthetic client check');
 
+// Render the shipped Settings tree and disconnected catalog with inert child
+// components. A user must see exactly one QQ integration, even before connecting.
+const appSource = readFileSync(new URL('../apps/desktop/src/App.tsx', import.meta.url), 'utf8')
+  .replace(/^import[\s\S]*?from ['"][^'"]+['"];?\r?$/gm, '')
+  .replace(/^export default /gm, '')
+  .replace(/^export /gm, '');
+const transformedApp = transformSync('App.tsx', appSource, {
+  jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' },
+});
+assert.equal(transformedApp.errors.length, 0);
+const appModule = { exports: {} };
+const MilkyPanel = () => null;
+const jsx = (type, props, ...children) => ({ type, props: { ...props, children } });
+runInNewContext(transformedApp.code + '\nmodule.exports={Settings,PLANNED_CONNECTORS};', {
+  module: appModule, jsx, Fragment: 'fragment',
+  MilkyPanel, AIModelPanel: () => null, DigestPanel: () => null,
+  SERVICE: { url: 'http://127.0.0.1:17890', error: null },
+});
+assert.deepEqual(
+  Array.from(appModule.exports.PLANNED_CONNECTORS.filter((item) => item.platform === 'qq'), (item) => item.id),
+  ['qq-milky'],
+  'the disconnected catalog must expose only the Milky QQ connector',
+);
+const settingsTree = appModule.exports.Settings({
+  session: { status: 'disconnected', system: null }, activeToken: '', tokenDraft: '',
+  hasToken: false, storageAvailable: true, rememberDevice: false, remembered: false,
+  deviceExpiresAt: null, persistenceNotice: null, forgetting: false,
+});
+const descendants = [];
+function visit(node) {
+  if (Array.isArray(node)) return node.forEach(visit);
+  if (!node || typeof node !== 'object') return;
+  descendants.push(node);
+  visit(node.props?.children);
+}
+visit(settingsTree);
+assert.equal(descendants.filter((node) => node.type === MilkyPanel).length, 1, 'Settings must mount the Milky panel once');
+assert.equal(descendants.filter((node) => node.props?.['aria-labelledby'] === 'qq-settings-title').length, 0, 'the retired QQ identity panel must not render');
+
 const source = stripTypeScriptTypes(
   readFileSync(new URL('../apps/desktop/src/milky-api.ts', import.meta.url), 'utf8'),
 )
@@ -79,4 +118,4 @@ assert.deepEqual(JSON.parse(requests.at(-1).body), {
   peer_ids: ['987654321'],
 });
 assert.equal(requests.at(-1).credentials, 'omit');
-console.log('Milky client checks passed: pending verification, persisted peer display, safe stop payload, and component compilation. Synthetic data only.');
+console.log('Milky client checks passed: single QQ catalog/settings integration, pending verification, persisted peer display, safe stop payload, and component compilation. Synthetic data only.');

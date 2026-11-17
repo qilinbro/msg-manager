@@ -1079,13 +1079,11 @@ export default function Inbox({
     <div className="inbox-root">
       <div className="inbox-title-row">
         <div>
-          <h1>
-            {profilesOnly ? '每位联系人，一份档案。' : '所有消息，在一处。'}
-          </h1>
+          <h1>{profilesOnly ? '联系人' : '消息'}</h1>
           <p>
             {profilesOnly
-              ? '从已有会话整理关系，保留依据，再逐条核实新信息。'
-              : '跨平台整理会话，把重要的联系留在视线里。'}
+              ? '从已入库会话查看联系人、关系分类与可核实的个人档案。'
+              : '查看已入库会话，按平台筛选、导入记录或管理消息。'}
           </p>
         </div>
         <div className="inbox-header-actions">
@@ -1109,9 +1107,8 @@ export default function Inbox({
         </div>
       </div>
       <div className="inbox-source-note">
-        <span className="inbox-status-dot" />
         <span>
-          这里汇集导入记录、微信后台读取结果与邮件。工作台不会自动发送消息或邮件。
+          来源以实际配置与入库记录为准。工作台不会自动发送消息或邮件。
         </span>
       </div>
       {token && !profilesOnly ? (
@@ -1171,7 +1168,6 @@ export default function Inbox({
       ) : null}
       {!token ? (
         <section className="inbox-start">
-          <Symbol name="mail" size={34} />
           <h2>先连接你的消息工作台</h2>
           <p>连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。</p>
           <button className="button button-secondary" onClick={onSettings}>
@@ -1194,8 +1190,7 @@ export default function Inbox({
         </section>
       ) : !info.storage_enabled ? (
         <section className="inbox-start">
-          <Symbol name="archive" size={34} />
-          <h2>为消息准备一个本地空间</h2>
+          <h2>消息存储尚未启用</h2>
           <p>消息存储尚未启用。先在设置中查看配置状态，再导入你已有的对话。</p>
           <button className="button button-secondary" onClick={onSettings}>
             查看设置
@@ -1253,7 +1248,7 @@ export default function Inbox({
               );
             })}
             <p className="inbox-filter-footnote">
-              微信可按设置在后台读取，邮箱按需同步；其他社交记录来自导入。
+              接收能力以实际设置为准；也可导入历史记录。
             </p>
             <label className="inbox-category-filter">
               关系分类
@@ -1347,7 +1342,6 @@ export default function Inbox({
                 </div>
               ) : conversations.length === 0 ? (
                 <div className="inbox-list-empty">
-                  <Symbol name="mail" size={29} />
                   <h3>
                     {query
                       ? '没有找到相关会话'
@@ -1357,7 +1351,7 @@ export default function Inbox({
                           ? '还没有归档的会话'
                           : view === 'pinned'
                             ? '还没有置顶的会话'
-                            : '第一段对话，等待你整理'}
+                            : '暂无会话记录'}
                   </h3>
                   <p>
                     {query
@@ -1503,7 +1497,7 @@ export default function Inbox({
                       ·{' '}
                       {selected.platform === 'email'
                         ? '本地邮件记录'
-                        : '导入记录'}
+                        : '已入库消息'}
                     </p>
                   </div>
                 </header>
@@ -1530,7 +1524,6 @@ export default function Inbox({
                     onClick={() => change({ archived: !selected.archived })}
                     disabled={actionBusy}
                   >
-                    <Symbol name="archive" size={15} />
                     {selected.archived ? '移回收件箱' : '归档'}
                   </button>
                   {!profilesOnly ? (
@@ -1665,26 +1658,20 @@ export default function Inbox({
                   <span>
                     {selected.platform === 'email'
                       ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
-                      : '这是本地导入的历史记录，当前不提供消息发送。'}
+                      : '本地已入库消息；来源以记录为准，当前不提供消息发送。'}
                   </span>
                 </footer>
               </>
             ) : (
               <div className="inbox-detail-empty">
-                <div className="inbox-detail-emblem">
-                  <Symbol name="mail" size={31} />
-                </div>
-                <h2>
-                  打开一段对话，
-                  <br />
-                  接上它的上下文。
-                </h2>
+                <h2>{profilesOnly ? '选择联系人' : '选择会话'}</h2>
                 <p>
-                  在左侧选择会话，查看消息与来源。
-                  <br />
-                  不同平台统一整理，账号依然各自清楚。
+                  从左侧列表打开记录，查看
+                  {profilesOnly
+                    ? '关系分类与个人档案'
+                    : '消息正文、来源与处理状态'}
+                  。
                 </p>
-                <span>QQ · 微信 · Telegram · 闪聊 · 邮箱</span>
               </div>
             )}
           </section>
