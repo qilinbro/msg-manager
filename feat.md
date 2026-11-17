@@ -30,7 +30,7 @@
 | FEAT-T01 | T01 项目管理 | kirinbao（产品 / 交付） | angjustinl（技术审阅）、joey（前端与 UI 审阅） | 进行中 | 2026-11-13 | 2026-11-13 | — | CHG-T01-004；公开协作标识隐私修订 |
 | FEAT-T02 | T02 QQ 个人号适配 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-13 | 2026-11-16 | — | CHG-T02-005；QQ Milky 客户端恢复授权名单/待核验状态检查通过，待指定审查与真实账号验收 |
 | FEAT-T03 | T03 存储与加密 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 待审查 | 2026-11-13 | 2026-11-16 | — | CHG-T03-001；原型检查通过，待joey审查 |
-| FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-004；全部已实现功能整合main |
+| FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-005；官方 SDK 本地 MCP 查询/显式导入、进程/加密后台联调与完整检查通过，待指定审查和真实验收 |
 | FEAT-T05 | T05 数据模型 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-17 | 2026-11-18 | — | CHG-T05-005；模型设置和档案关联加密存储已实现并检查，子项待指定审查/真实验收 |
 | FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-010；微信私聊/群聊文本读取、正文关键词筛选与后台名单工程检查通过，待指定审查及真实验收 |
 | FEAT-T07 | T07 联系人与导入 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-20 | — | CHG-T07-002；导入后授权自动整理已实现并检查，子项待指定审查/真实验收 |
@@ -434,3 +434,12 @@
 - 交付：`internal/connector/wechatdb/reader.go`、`internal/api/wechat.go`、`apps/desktop/src/{wechat-api,WechatPanel}.ts(x)`、`apps/desktop/src/inbox.css`、OpenAPI、[关键词验收记录](docs/acceptance/T06-wechat-keyword-validation.md)。关键词限制128字符并拒绝控制字符，不改变微信库只读、账号/会话限域和自动发送关闭边界。
 - 验证：关键词读取器与 API 测试通过；完整 `scripts/check.ps1`（Go 测试/vet、契约、客户端回归、前端格式/类型/生产构建）通过。真实微信关键词/群聊验收待执行；实际审查人和实际完成日期均为 —。
 - 已直接推送到远端 `main`：[`2419aae`](https://github.com/qilinbro/msg-manager/commit/2419aae)；未创建 PR。推送只代表代码交付，不代表真实微信验收完成。
+
+### CHG-T04-005｜本地 MCP stdio 桥接（2026-11-17）
+
+- 关联 `FEAT-T04`。新增 [cmd/sociald-mcp](cmd/sociald-mcp) 和 [internal/mcp](internal/mcp)，通过本地 stdio JSON-RPC 暴露状态、会话搜索、消息分页、微信会话/导入和最近日报；采用官方 Go MCP SDK v1.8.0，替代自行维护传输协议的方案。
+- 令牌仅从 `SOCIALD_API_TOKEN` 环境读取，目标为显式端口的 loopback HTTP；禁 DNS、代理和重定向。工具不接受密钥、微信路径、SQL 或任意 URL，不提供发送、审批、监控配置、模型变更或公开搜索。
+- 工程交付：[接入说明](docs/mcp-setup.md)、[ADR 0012](docs/adr/0012-mcp-local-bridge.md)、[验证与待验收记录](docs/acceptance/T04-mcp-validation.md)。首轮实现与协议检查之后，本轮完成官方 SDK 边界及副作用复核，并重新运行完整工程检查。
+- 本轮追加验证：真实 main/OS stdio 子进程六工具转发、非法参数零 HTTP、取消/EOF/退出码、实际 HTTP 鉴权及临时 SQLCipher 搜索/消息分页联调通过；完整 [scripts/check.ps1](scripts/check.ps1)、MCP/命令/integration 包 `-race`、`go mod verify` 均通过；无 CGO 独立桥接构建/EOF 冒烟及命令测试乱序 10 轮通过。AI 只读辅助复核未发现剩余实际阻断问题，不构成指定非作者审批。
+- 本轮修复：微信导入保持 `ReadOnlyHint=false`，将 `OpenWorldHint` 改为 `true`，明确产品库联系人/消息/未读写入及既有授权整理/日报的外部模型与费用风险；增加服务 lifetime→工具 HTTP context 绑定，修复停服时 HTTP 未及时取消的回归。其他五个工具只读；token 覆盖整个工作区而非联系人 allowlist。
+- 当前交付分支为 `feat/mcp-service`，不新建 PR；joey 后端正式审查、kirinbao 真实客户端/本人微信验收仍待执行，实际完成日期 —，已验收统计 MVP `0/27`、扩展 `0/5` 不变。原生 Tauri 与 T04 整项验收未被本轮检查替代。

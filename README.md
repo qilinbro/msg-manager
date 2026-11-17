@@ -114,6 +114,7 @@ flowchart LR
 - [接口契约](api/openapi.yaml)：JSON 语法编码的 YAML 1.2，OpenAPI 3.1；本地消息管理、QQ Milky 同步与后台接收、只读邮箱同步、手动 AI 分析及联系人档案作业开放，发送/审批继续拒绝。
 - [QQ Milky 接入](docs/qq-milky-setup.md)：本机协议端配置、核验、历史同步、后台接收、已知限制与真实账号验收清单。
 - [统一消息中心](docs/unified-inbox.md)：四平台导入格式、启动、数据保护和在线能力边界。
+- [本地 MCP 服务](docs/mcp-setup.md)：通过 stdio 查询消息、导入指定微信会话，含客户端配置与数据边界说明。
 - [自动获取聊天记录选型](参考项目/自动同步/README.md)：减少手工导入的QCE、Telegram个人账号及微信方案核验；目前为调研与待实施步骤。
 - [邮箱接入](docs/email-setup.md)：QQ/163/企业邮箱本机配置、只读同步与限制。
 - [联系人档案接入](docs/ai-profiles-setup.md)：后台自动分类、公开来源候选确认、配额及导出；[架构决定](docs/adr/0009-ai-contact-profiles.md)。
