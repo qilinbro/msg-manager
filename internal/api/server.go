@@ -29,6 +29,7 @@ type handler struct {
 	email       *emailConnection
 	ai          *aiConnection
 	wechat      *wechatConnection
+	telegram    *telegramConnection
 	profiles    *profileWorker
 	aiMu        sync.RWMutex
 	modelConfig store.ModelConfig
@@ -57,6 +58,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
+	telegram, err := newTelegramConnection(cfg.TelegramUser)
+	if err != nil {
+		return nil, err
+	}
 	var inbox *store.Store
 	if cfg.DatabasePath != "" {
 		inbox, err = store.Open(cfg.DatabasePath, cfg.DatabaseKey)
@@ -64,7 +69,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat, telegram: telegram}
 	if err := h.restoreMilkyConfig(cfg.QQMilky); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted Milky configuration could not be restored; check local connection settings")
@@ -138,7 +143,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !milkyConfigMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !telegramMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !milkyConfigMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -169,6 +174,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.URL.Path == modelConfigPath {
 			h.serveModelConfig(w, r, traceID)
+			return
+		}
+		if telegramRead(r.URL.Path) || telegramMutation(r.Method, r.URL.Path) {
+			h.serveTelegram(w, r, traceID)
 			return
 		}
 		if milkyConfigRoute(r.URL.Path) {

@@ -14,6 +14,7 @@ import (
 	"github.com/qilinbro/msg-manager/internal/connector/adapter"
 	"github.com/qilinbro/msg-manager/internal/connector/mailbox"
 	"github.com/qilinbro/msg-manager/internal/connector/qqmilky"
+	"github.com/qilinbro/msg-manager/internal/connector/telegramuser"
 	"github.com/qilinbro/msg-manager/internal/connector/wechatdb"
 	"github.com/qilinbro/msg-manager/internal/publicinfo"
 )
@@ -24,6 +25,7 @@ type Config struct {
 	Addr             string
 	APIToken         string
 	QQMilky          qqmilky.Config
+	TelegramUser     telegramuser.Config
 	Email            mailbox.Config
 	DatabasePath     string
 	DatabaseKey      string
@@ -44,6 +46,7 @@ func LoadFromEnv() (Config, error) {
 	}
 	cfg := Config{
 		Addr: addr, APIToken: os.Getenv("SOCIALD_API_TOKEN"),
+		TelegramUser: telegramuser.Config{ProjectRoot: os.Getenv("SOCIALD_PROJECT_ROOT")},
 		DatabasePath: os.Getenv("SOCIALD_DATABASE_PATH"), DatabaseKey: os.Getenv("SOCIALD_DATABASE_KEY"),
 		QQMilky: qqmilky.Config{Endpoint: adapter.Endpoint{
 			URL:            os.Getenv("QQ_MILKY_URL"),
@@ -54,6 +57,11 @@ func LoadFromEnv() (Config, error) {
 		AI:           agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
 		WechatDB:     wechatdb.Config{Directory: os.Getenv("WECHAT_DB_DIR"), AccountID: os.Getenv("WECHAT_DB_ACCOUNT_ID"), Key: os.Getenv("WECHAT_DB_KEY")},
 		PublicSearch: publicinfo.Config{APIKey: os.Getenv("TAVILY_API_KEY")},
+	}
+	var telegramErr error
+	cfg.TelegramUser, telegramErr = cfg.TelegramUser.Resolve()
+	if telegramErr != nil {
+		return Config{}, errors.New("Telegram helper configuration is invalid; check the local project root")
 	}
 	if value := os.Getenv("QQ_MILKY_HISTORY_LIMIT"); value != "" {
 		limit, err := strconv.Atoi(value)
@@ -101,6 +109,9 @@ func LoadFromEnv() (Config, error) {
 }
 
 func (c Config) Validate() error {
+	if _, err := c.TelegramUser.Resolve(); err != nil {
+		return errors.New("Telegram helper configuration is invalid; check the local project root")
+	}
 	if publicinfo.ValidateConfig(c.PublicSearch) != nil || c.SearchDailyLimit < 0 || c.SearchDailyLimit > 1000 {
 		return errors.New("public search configuration is invalid; check the locally configured key and daily limit")
 	}

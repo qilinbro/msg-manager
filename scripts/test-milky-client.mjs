@@ -31,7 +31,7 @@ const MilkyPanel = () => null;
 const jsx = (type, props, ...children) => ({ type, props: { ...props, children } });
 runInNewContext(transformedApp.code + '\nmodule.exports={Settings,PLANNED_CONNECTORS};', {
   module: appModule, jsx, Fragment: 'fragment',
-  MilkyPanel, AIModelPanel: () => null, DigestPanel: () => null,
+  MilkyPanel, TelegramPanel: () => null, AIModelPanel: () => null, DigestPanel: () => null,
   SERVICE: { url: 'http://127.0.0.1:17890', error: null },
 });
 assert.deepEqual(

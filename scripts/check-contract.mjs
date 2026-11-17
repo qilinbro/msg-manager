@@ -7,7 +7,7 @@ assert.ok(spec.paths['/api/v1/system']);
 assert.ok(!spec.paths['/api/v1/connections/qq-onebot/verify'], 'The retired OneBot endpoint must not be advertised');
 assert.ok(!spec.components.schemas.QQVerification, 'The retired OneBot response schema must be removed');
 assert.deepEqual(spec.components.schemas.Connector.properties.id.enum, [
-  'qq-milky', 'weixin-clawbot', 'telegram-bot', 'email-imap', 'wechat-db',
+  'qq-milky', 'weixin-clawbot', 'telegram-user', 'email-imap', 'wechat-db',
 ], 'The connector catalog must expose Milky as its only QQ integration');
 const events = spec.paths['/api/v1/events']?.get;
 assert.ok(events?.responses['501'], 'Event streaming is reserved until persistence exists');
@@ -68,6 +68,8 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/imports/messages',
   'post /api/v1/imports/telegram',
   'post /api/v1/connections/email-imap/sync',
+  'post /api/v1/connections/telegram-user/verify',
+  'post /api/v1/connections/telegram-user/sync',
   'post /api/v1/connections/wechat-db/read',
   'post /api/v1/connections/wechat-db/monitor',
   'post /api/v1/connections/qq-milky/sync',
@@ -131,3 +133,14 @@ assert.equal(spec.components.schemas.MilkyConnectionConfigSave.additionalPropert
 assert.equal(spec.components.schemas.MilkyConnectionConfigTest.additionalProperties, false);
 assert.equal(spec.components.schemas.MilkyConnectionConfigSave.properties.expected_revision.minimum, 0);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');
+
+assert.equal(spec.components.schemas.TelegramStatus.properties.sending_enabled.const,false);
+assert.equal(spec.components.schemas.TelegramStatus.properties.read_only.const,true);
+assert.equal(spec.components.schemas.TelegramSyncRequest.additionalProperties,false);
+assert.equal(spec.components.schemas.TelegramSyncRequest.properties.limit.maximum,100);
+assert.equal(spec.components.schemas.TelegramSyncResult.properties.source_kind.const,"telegram_user");
+assert.equal(spec.components.schemas.TelegramDialogs.properties.items.maxItems,100);
+assert.equal(spec.paths["/api/v1/connections/telegram-user/verify"].post.requestBody,undefined);
+
+assert.ok(spec.components.schemas.TelegramSyncRequest.required.includes("expected_account_id"));
+assert.ok(spec.paths["/api/v1/connections/telegram-user/sync"].post.responses["409"]);

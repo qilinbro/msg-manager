@@ -4,6 +4,7 @@ import { getCollection, SERVICE, ServiceError } from './api';
 import type { Connector, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
+import { TelegramPanel } from './TelegramPanel';
 import { AIModelPanel } from './AIModelPanel';
 import { DigestPanel } from './DigestPanel';
 import type { AIDraftBuffer } from './ai-api';
@@ -64,12 +65,13 @@ const PLANNED_CONNECTORS: Connector[] = [
     },
   },
   {
-    id: 'telegram-bot',
+    id: 'telegram-user',
     platform: 'telegram',
-    display_name: 'Telegram Bot',
+    display_name: 'Telegram 个人账号',
     status: 'not_configured',
-    implementation_status: 'planned',
-    description: '等待平台连接能力接入',
+    implementation_status: 'manual_sync_ready',
+    description:
+      '本机个人账号初始化后核验并选择私聊同步；不提供发送或后台自动收件。',
     capabilities: {
       receive_text: false,
       send_text: false,
@@ -697,6 +699,12 @@ function Settings({
         onAuthFailure={onAuthFailure}
       />
       <AIModelPanel token={activeToken} onAuthFailure={onAuthFailure} />
+      <TelegramPanel
+        key={`telegram-${activeToken}`}
+        token={activeToken}
+        onSystemUpdate={onSystemUpdate}
+        onAuthFailure={onAuthFailure}
+      />
       <DigestPanel token={activeToken} onAuthFailure={onAuthFailure} />
       <section className="settings-panel" aria-labelledby="automation-title">
         <div className="section-heading">

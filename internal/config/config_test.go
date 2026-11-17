@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -131,5 +132,26 @@ func TestQQMilkyIsTheOnlyLoadedQQConfiguration(t *testing.T) {
 	cfg, err := config.LoadFromEnv()
 	if err != nil || cfg.QQMilky.URL != "http://127.0.0.1:3000" || cfg.QQMilky.AccessToken != "synthetic-milky-token" || cfg.QQMilky.ExpectedSelfID != "123456" {
 		t.Fatalf("Milky config was not loaded independently of retired settings: %v", err)
+	}
+}
+
+func TestTelegramLocalRootHasFixedHelperAndNoCredentialEnvironment(t *testing.T) {
+	for _, key := range []string{"SOCIALD_DATABASE_PATH", "SOCIALD_DATABASE_KEY", "SOCIALD_ADDR", "EMAIL_IMAP_PORT", "EMAIL_IMAP_LIMIT", "AI_DAILY_LIMIT", "WECHAT_DB_LIMIT", "PUBLIC_SEARCH_DAILY_LIMIT", "QQ_MILKY_HISTORY_LIMIT"} {
+		t.Setenv(key, "")
+	}
+	t.Setenv("SOCIALD_API_TOKEN", strings.Repeat("t", 32))
+	root := t.TempDir()
+	t.Setenv("SOCIALD_PROJECT_ROOT", root)
+	t.Setenv("TELEGRAM_API_HASH", "synthetic-api-hash-not-loaded")
+	cfg, err := config.LoadFromEnv()
+	if err != nil || cfg.TelegramUser.ProjectRoot != root || cfg.TelegramUser.ScriptPath != filepath.Join(root, "scripts", "telegram_user", "worker.py") || cfg.TelegramUser.CredentialsPath != filepath.Join(root, "data", "private", "telegram-user.dpapi") {
+		t.Fatal("incorrect fixed helper config", err)
+	}
+	if strings.Contains(fmt.Sprintf("%+v", cfg.TelegramUser), root) {
+		t.Fatal("helper paths exposed")
+	}
+	t.Setenv("SOCIALD_PROJECT_ROOT", "relative")
+	if _, err := config.LoadFromEnv(); err == nil {
+		t.Fatal("relative root accepted")
 	}
 }

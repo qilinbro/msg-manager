@@ -102,18 +102,25 @@ func TestSystemReportsOnlyPlannedCapabilities(t *testing.T) {
 
 func assertPlannedConnectors(t *testing.T, items []connector.Descriptor) {
 	t.Helper()
-	if len(items) != 5 || items[0].ID != "qq-milky" || items[1].ID != "weixin-clawbot" || items[2].ID != "telegram-bot" || items[3].ID != "email-imap" || items[4].ID != "wechat-db" {
+	if len(items) != 5 || items[0].ID != "qq-milky" || items[1].ID != "weixin-clawbot" || items[2].ID != "telegram-user" || items[3].ID != "email-imap" || items[4].ID != "wechat-db" {
 		t.Fatalf("unexpected connector catalog: %+v", items)
 	}
 	for _, item := range items {
 		expectedImplementation := "planned"
-		if item.ID == "email-imap" || item.ID == "qq-milky" {
+		if item.ID == "email-imap" || item.ID == "qq-milky" || item.ID == "telegram-user" {
 			expectedImplementation = "manual_sync_ready"
 		}
 		if item.ID == "wechat-db" {
 			expectedImplementation = "manual_read_ready"
 		}
-		if item.Status != "not_configured" || item.ImplementationStatus != expectedImplementation || item.Capabilities.ReceiveText || item.Capabilities.SendText || item.Capabilities.HistoryImport || item.Description == "" || item.DisplayName == "" {
+		expectedStatus := "not_configured"
+		if item.ID == "telegram-user" {
+			expectedStatus = item.Status
+			if expectedStatus != "requires_initialization" && expectedStatus != "helper_unavailable" && expectedStatus != "not_configured" {
+				t.Fatalf("unexpected unconfigured Telegram state: %s", expectedStatus)
+			}
+		}
+		if item.Status != expectedStatus || item.ImplementationStatus != expectedImplementation || item.Capabilities.ReceiveText || item.Capabilities.SendText || item.Capabilities.HistoryImport || item.Description == "" || item.DisplayName == "" {
 			t.Fatalf("connector falsely claims implemented capabilities: %+v", item)
 		}
 	}

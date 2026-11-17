@@ -1,4 +1,4 @@
-param([switch]$SkipFrontend, [switch]$IncludeDesktop, [switch]$IncludeWechatInit)
+param([switch]$SkipFrontend, [switch]$IncludeDesktop, [switch]$IncludeWechatInit, [switch]$IncludeTelegram)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $goCommand = Get-Command go -ErrorAction SilentlyContinue
@@ -39,7 +39,16 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'WeChat configuration probe could not be built.' }
         & (Join-Path $PSScriptRoot 'test-wechat-init.ps1') -ProbeExecutable $initProbe
     }
+    if ($IncludeTelegram) {
+        & (Join-Path $PSScriptRoot 'prepare-telegram.ps1') -CheckOnly
+        if ($LASTEXITCODE -ne 0) { throw 'Telegram helper dependencies are not prepared.' }
+        $telegramPython = Join-Path $projectRoot '.tools/telegram-user-venv/Scripts/python.exe'
+        & $telegramPython -I (Join-Path $PSScriptRoot 'telegram_user/test_worker.py')
+        if ($LASTEXITCODE -ne 0) { throw 'Telegram offline helper checks failed.' }
+    }
     if (-not $SkipFrontend) {
+        node scripts/test-telegram-client.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Personal Telegram client regression checks failed.' }
         node scripts/test-profile-links.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Profile links client checks failed.' }
         node scripts/test-import-analysis.mjs

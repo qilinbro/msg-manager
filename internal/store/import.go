@@ -74,6 +74,21 @@ func (s *Store) ImportMilkyContext(ctx context.Context, req ImportRequest) (Impo
 	return s.importBatchContext(ctx, req, "import")
 }
 
+// ImportTelegramContext is reserved for the server-configured personal-account
+// reader. v6 retains the compatibility source "import"; the namespaced external
+// ID distinguishes this read path without claiming a new provenance enum.
+func (s *Store) ImportTelegramContext(ctx context.Context, req ImportRequest) (ImportResult, error) {
+	if req.Platform != "telegram" {
+		return ImportResult{}, ErrInvalidInput
+	}
+	for _, message := range req.Messages {
+		if message.Email != nil || message.ConversationKind != "" && message.ConversationKind != "private" || !strings.HasPrefix(message.ExternalID, "telegram:user:"+message.PeerID+":") {
+			return ImportResult{}, ErrInvalidInput
+		}
+	}
+	return s.importBatchContext(ctx, req, "import")
+}
+
 func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, error) {
 	return s.importBatchContext(context.Background(), req, source)
 }

@@ -1,0 +1,57 @@
+.telegram-settings > p,
+.telegram-setup-steps p {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text-muted, #64645f);
+}
+.telegram-setup-steps {
+  display: grid;
+  gap: 18px;
+  margin: 24px 0;
+  padding: 0;
+  list-style: none;
+}
+.telegram-setup-steps h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.telegram-setup-steps p {
+  margin: 5px 0;
+}
+.telegram-commands {
+  padding: 12px 14px;
+  overflow-x: auto;
+  line-height: 1.8;
+  background: var(--surface-soft, #f6f6f3);
+  border: 1px solid var(--border, #e4e4dd);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.telegram-status {
+  display: grid;
+  gap: 9px;
+  margin: 22px 0;
+  font-size: 13px;
+}
+.telegram-status > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.telegram-status dt {
+  min-width: 80px;
+  color: var(--text-muted, #64645f);
+}
+.telegram-status dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.telegram-settings select {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid var(--border, #e4e4dd);
+  border-radius: 7px;
+  color: inherit;
+  background: var(--surface, #fff);
+}

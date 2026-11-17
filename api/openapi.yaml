@@ -3904,6 +3904,278 @@
         }
       }
     },
+    "/api/v1/connections/telegram-user/status": {
+      "get": {
+        "description": "File metadata and cached verification only. Does not decrypt credentials or contact Telegram. No background receive or sending.",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT / TELEGRAM_PEER_NOT_SELECTED: invalid request or peer not selected from recent private dialogs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED: bearer required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED: local security boundary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TELEGRAM_REQUIRES_INITIALIZATION / HELPER_UNAVAILABLE / NOT_VERIFIED / BUSY / FLOOD_WAIT / IDENTITY_MISMATCH / TIMEOUT / NETWORK_ERROR / STORAGE_DISABLED: no automatic retry; no sender enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-user/verify": {
+      "post": {
+        "description": "Explicitly verify the local personal account using a fixed helper. Empty body only; credentials never travel through HTTP. Does not read chats.",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT / TELEGRAM_PEER_NOT_SELECTED: invalid request or peer not selected from recent private dialogs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED: bearer required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED: local security boundary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request exceeds local JSON size bound.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TELEGRAM_REQUIRES_INITIALIZATION / HELPER_UNAVAILABLE / NOT_VERIFIED / BUSY / FLOOD_WAIT / IDENTITY_MISMATCH / TIMEOUT / NETWORK_ERROR / STORAGE_DISABLED: no automatic retry; no sender enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-user/dialogs": {
+      "get": {
+        "description": "Explicitly list private user dialogs within the first 100 recent dialogs after verification. Excludes bots, self, deleted users, groups and channels. No global username or phone search.",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramDialogs"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT / TELEGRAM_PEER_NOT_SELECTED: invalid request or peer not selected from recent private dialogs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED: bearer required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED: local security boundary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TELEGRAM_REQUIRES_INITIALIZATION / HELPER_UNAVAILABLE / NOT_VERIFIED / BUSY / FLOOD_WAIT / IDENTITY_MISMATCH / TIMEOUT / NETWORK_ERROR / STORAGE_DISABLED: no automatic retry; no sender enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-user/sync": {
+      "post": {
+        "description": "Explicitly import latest text from one previously listed private peer, 1 to 100 messages. Rechecks account and peer; skips media-only/service messages. Deduplicates IDs. No sending, media download, read ACK, continuous receive, or full-history guarantee.",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramSyncResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "INVALID_INPUT / TELEGRAM_PEER_NOT_SELECTED: invalid request or peer not selected from recent private dialogs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED: bearer required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HOST_DENIED / ORIGIN_DENIED / SCOPE_DENIED: local security boundary.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "TELEGRAM_IDENTITY_MISMATCH: expected_account_id differs from the currently verified account. No helper call or storage write; refresh and select again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request exceeds local JSON size bound.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "TELEGRAM_REQUIRES_INITIALIZATION / HELPER_UNAVAILABLE / NOT_VERIFIED / BUSY / FLOOD_WAIT / IDENTITY_MISMATCH / TIMEOUT / NETWORK_ERROR / STORAGE_DISABLED: no automatic retry; no sender enabled.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramSyncRequest"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/connections/qq-milky/status": {
       "get": {
         "operationId": "getQQMilkyStatus",
@@ -4790,7 +5062,7 @@
             "enum": [
               "qq-milky",
               "weixin-clawbot",
-              "telegram-bot",
+              "telegram-user",
               "email-imap",
               "wechat-db"
             ]
@@ -7177,6 +7449,187 @@
           "confirmed": {
             "type": "boolean",
             "const": true
+          }
+        }
+      },
+      "TelegramStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "helper_available",
+          "requires_initialization",
+          "state",
+          "account_id",
+          "name",
+          "read_only",
+          "sending_enabled",
+          "checked_at",
+          "last_sync_at",
+          "last_error"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "helper_available": {
+            "type": "boolean"
+          },
+          "requires_initialization": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "read_only": {
+            "type": "boolean",
+            "const": true
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "checked_at": {
+            "type": "string"
+          },
+          "last_sync_at": {
+            "type": "string"
+          },
+          "last_error": {
+            "type": "string"
+          }
+        }
+      },
+      "TelegramDialogs": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "account_id",
+          "name",
+          "read_only",
+          "sending_enabled",
+          "items",
+          "limited"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "read_only": {
+            "type": "boolean",
+            "const": true
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "peer_id",
+                "name"
+              ],
+              "properties": {
+                "peer_id": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,18}$"
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 128
+                }
+              }
+            }
+          },
+          "limited": {
+            "type": "boolean"
+          }
+        }
+      },
+      "TelegramSyncRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_account_id",
+          "peer_id",
+          "limit"
+        ],
+        "properties": {
+          "expected_account_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "description": "The account shown when the user selected this peer; stale windows cannot sync a newly switched account."
+          },
+          "peer_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      },
+      "TelegramSyncResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "inserted",
+          "duplicates",
+          "conversations",
+          "skipped",
+          "limited",
+          "source_kind",
+          "read_only",
+          "sending_enabled"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "source_kind": {
+            "type": "string",
+            "const": "telegram_user"
+          },
+          "read_only": {
+            "type": "boolean",
+            "const": true
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
           }
         }
       },

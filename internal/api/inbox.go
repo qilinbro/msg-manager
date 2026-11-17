@@ -84,6 +84,11 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 			platforms[4].LiveStatus = "configured"
 			sourceMode = "mixed"
 		}
+		telegramStatus := h.telegram.snapshot()
+		platforms[2].LiveStatus = telegramStatus.State
+		if telegramStatus.Configured && telegramStatus.HelperAvailable {
+			sourceMode = "mixed"
+		}
 		if h.inbox != nil {
 			connections, err := h.inbox.Connections()
 			if err != nil {
