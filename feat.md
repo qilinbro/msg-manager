@@ -426,3 +426,4 @@
 - 关联 `FEAT-T06`。微信手动读取接口和读取器增加可选 `keyword`，在同一最近记录窗口内按 Unicode 不区分大小写正文子串筛选；空值保持原读取行为，筛选结果仍按 `wechatdb` 原子入库。
 - 交付：`internal/connector/wechatdb/reader.go`、`internal/api/wechat.go`、`apps/desktop/src/{wechat-api,WechatPanel}.ts(x)`、`apps/desktop/src/inbox.css`、OpenAPI、[关键词验收记录](docs/acceptance/T06-wechat-keyword-validation.md)。关键词限制128字符并拒绝控制字符，不改变微信库只读、账号/会话限域和自动发送关闭边界。
 - 验证：关键词读取器与 API 测试通过；完整 `scripts/check.ps1`（Go 测试/vet、契约、客户端回归、前端格式/类型/生产构建）通过。真实微信关键词/群聊验收待执行；实际审查人和实际完成日期均为 —。
+- 已直接推送到远端 `main`：[`2419aae`](https://github.com/qilinbro/msg-manager/commit/2419aae)；未创建 PR。推送只代表代码交付，不代表真实微信验收完成。
