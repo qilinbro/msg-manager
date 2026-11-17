@@ -15,6 +15,7 @@ import (
 
 	"github.com/qilinbro/msg-manager/internal/config"
 	"github.com/qilinbro/msg-manager/internal/connector"
+	"github.com/qilinbro/msg-manager/internal/connector/qqmilky"
 	"github.com/qilinbro/msg-manager/internal/publicinfo"
 	"github.com/qilinbro/msg-manager/internal/store"
 )
@@ -40,7 +41,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		return nil, err
 	}
 	_, port, _ := net.SplitHostPort(cfg.Addr)
-	milky, err := newMilkyConnection(cfg.QQMilky)
+	milky, err := newMilkyConnection(qqmilky.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +65,10 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		}
 	}
 	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	if err := h.restoreMilkyConfig(cfg.QQMilky); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted Milky configuration could not be restored; check local connection settings")
+	}
 	if err := h.restoreLocalDevices(); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted device authorizations could not be restored")
@@ -133,7 +138,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !milkyConfigMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -164,6 +169,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.URL.Path == modelConfigPath {
 			h.serveModelConfig(w, r, traceID)
+			return
+		}
+		if milkyConfigRoute(r.URL.Path) {
+			h.serveMilkyConfig(w, r, traceID)
 			return
 		}
 		if digestRead(r.URL.Path) || digestMutation(r.Method, r.URL.Path) {

@@ -82,11 +82,14 @@ type MilkySyncResult struct {
 }
 
 type milkyConnection struct {
-	client    *qqmilky.Client
-	gate      chan struct{}
-	mu        sync.RWMutex
-	status    MilkyStatus
-	persisted store.QQMilkyMonitorSettings
+	configMu      sync.RWMutex
+	configuration store.QQMilkyConfig
+	configSource  string
+	client        *qqmilky.Client
+	gate          chan struct{}
+	mu            sync.RWMutex
+	status        MilkyStatus
+	persisted     store.QQMilkyMonitorSettings
 
 	monitorMu sync.Mutex
 	cancel    context.CancelFunc
@@ -104,6 +107,8 @@ func newMilkyConnection(cfg qqmilky.Config) (*milkyConnection, error) {
 	}
 	c.status.Gaps = []milkyGap{}
 	c.status.Monitor = MilkyMonitor{State: "disabled", PeerIDs: []string{}, ReadOnly: true}
+	c.configuration.HistoryLimit = qqmilky.DefaultHistoryLimit
+	c.configSource = "none"
 	if cfg.URL == "" && cfg.AccessToken == "" && cfg.ExpectedSelfID == "" {
 		return c, nil
 	}
@@ -113,6 +118,7 @@ func newMilkyConnection(cfg qqmilky.Config) (*milkyConnection, error) {
 		return nil, errors.New("QQ_MILKY configuration is invalid; check the local URL, access token, expected account and Milky version")
 	}
 	c.client = client
+	c.configuration, c.configSource = milkyStoreConfig(cfg), "environment"
 	c.status.Configured = true
 	c.status.State = "configured"
 	c.status.AccountID = client.SelfID()
@@ -172,6 +178,8 @@ func (h *handler) applyMilky(items []connector.Descriptor) {
 	if h.milky == nil {
 		return
 	}
+	h.milky.configMu.RLock()
+	defer h.milky.configMu.RUnlock()
 	h.milky.mu.RLock()
 	state := h.milky.status.State
 	monitor := h.milky.status.Monitor
@@ -192,6 +200,12 @@ func (h *handler) applyMilky(items []connector.Descriptor) {
 }
 
 func (h *handler) milkyStatus(w http.ResponseWriter) {
+	h.milky.configMu.RLock()
+	defer h.milky.configMu.RUnlock()
+	h.writeMilkyStatus(w)
+}
+
+func (h *handler) writeMilkyStatus(w http.ResponseWriter) {
 	h.milky.mu.RLock()
 	status := h.milky.status
 	status.Gaps = append([]milkyGap{}, status.Gaps...)
@@ -202,8 +216,10 @@ func (h *handler) milkyStatus(w http.ResponseWriter) {
 
 func (h *handler) verifyMilky(w http.ResponseWriter, r *http.Request, traceID string) {
 	c := h.milky
+	c.configMu.RLock()
+	defer c.configMu.RUnlock()
 	if c.client == nil {
-		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_CONFIGURED", "请先在后台配置 Milky 协议端地址、访问令牌与预期 QQ 账号，再重启服务。", traceID)
+		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_CONFIGURED", "请在设置中的 QQ 个人号（Milky）填写地址、令牌与本人 QQ，测试后保存。", traceID)
 		return
 	}
 	select {
@@ -269,8 +285,10 @@ func (h *handler) verifyMilky(w http.ResponseWriter, r *http.Request, traceID st
 
 func (h *handler) syncMilky(w http.ResponseWriter, r *http.Request, traceID string) {
 	c := h.milky
+	c.configMu.RLock()
+	defer c.configMu.RUnlock()
 	if c.client == nil {
-		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_CONFIGURED", "请先在后台配置 Milky 协议端，再重启服务。", traceID)
+		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_CONFIGURED", "请先在设置中的 QQ 个人号（Milky）测试并保存连接。", traceID)
 		return
 	}
 	if h.inbox == nil {
@@ -289,7 +307,10 @@ func (h *handler) syncMilky(w http.ResponseWriter, r *http.Request, traceID stri
 		writeError(w, http.StatusBadRequest, "INVALID_INPUT", "请提供合法的联系人 QQ 号。", traceID)
 		return
 	}
-	limit := qqmilky.DefaultHistoryLimit
+	limit := c.configuration.HistoryLimit
+	if limit == 0 {
+		limit = qqmilky.DefaultHistoryLimit
+	}
 	if request.Limit != nil {
 		limit = *request.Limit
 	}
@@ -357,6 +378,8 @@ func (h *handler) storeMilky(ctx context.Context, messages []store.ImportMessage
 
 func (h *handler) configureMilkyMonitor(w http.ResponseWriter, r *http.Request, traceID string) {
 	c := h.milky
+	c.configMu.RLock()
+	defer c.configMu.RUnlock()
 	if c.client == nil || h.inbox == nil {
 		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_CONFIGURED", "请先配置 Milky 协议端并启用加密消息库。", traceID)
 		return
@@ -419,7 +442,7 @@ func (h *handler) configureMilkyMonitor(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 	h.startMilkyMonitorLocked(settings)
-	h.milkyStatus(w)
+	h.writeMilkyStatus(w)
 }
 
 func (h *handler) stopMilkyMonitorLocked() {
@@ -434,6 +457,8 @@ func (h *handler) stopMilkyMonitorLocked() {
 }
 
 func (h *handler) closeMilkyMonitor() {
+	h.milky.configMu.Lock()
+	defer h.milky.configMu.Unlock()
 	h.milky.monitorMu.Lock()
 	defer h.milky.monitorMu.Unlock()
 	h.milky.closed = true
@@ -472,7 +497,11 @@ func (h *handler) runMilkyMonitor(ctx context.Context, peers []string, done chan
 			reconcile, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 			for _, peer := range peers {
-				messages, _, err := c.client.History(reconcile, "friend", peer, nil, qqmilky.DefaultHistoryLimit)
+				limit := c.configuration.HistoryLimit
+				if limit == 0 {
+					limit = qqmilky.DefaultHistoryLimit
+				}
+				messages, _, err := c.client.History(reconcile, "friend", peer, nil, limit)
 				if err != nil {
 					continue
 				}

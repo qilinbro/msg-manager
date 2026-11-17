@@ -1,0 +1,58 @@
+.milky-setup {
+  margin: 24px 0;
+}
+.milky-setup-steps {
+  display: grid;
+  gap: 18px;
+  margin: 0 0 28px;
+  padding: 0;
+  list-style: none;
+}
+.milky-setup-steps h3,
+.milky-setup-form h3 {
+  margin: 0 0 7px;
+  font-size: 15px;
+}
+.milky-setup-steps p {
+  margin: 5px 0;
+  line-height: 1.75;
+  color: var(--text-muted, #64645f);
+  font-size: 13px;
+}
+.milky-setup-steps a {
+  color: var(--accent, #446c54);
+  text-underline-offset: 3px;
+}
+.milky-setup-form > input {
+  margin-bottom: 8px;
+}
+.milky-setup-form > .input-help {
+  margin: 0 0 20px;
+  overflow-wrap: anywhere;
+}
+.milky-advanced {
+  margin: 0 0 20px;
+}
+.milky-advanced summary {
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.milky-advanced label {
+  display: block;
+  margin-bottom: 7px;
+}
+.milky-setup-form .milky-save-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 18px 0;
+  line-height: 1.7;
+}
+.milky-save-consent input {
+  width: 16px;
+  min-height: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 3px 0 0;
+  padding: 0;
+}

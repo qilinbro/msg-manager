@@ -6,6 +6,7 @@ import {
   type ChangeEvent,
 } from 'react';
 import { getSystem, ServiceError, type SystemStatus } from './api';
+import { MilkySetupPanel } from './MilkySetupPanel';
 import {
   configureMilkyMonitor,
   getMilkyStatus,
@@ -35,6 +36,8 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
   const [busy, setBusy] = useState<string | null>(null);
   const [peerID, setPeerID] = useState('');
   const [peers, setPeers] = useState('');
+  const [configBusy, setConfigBusy] = useState(false);
+  const [historyLimit, setHistoryLimit] = useState(20);
   const peersDirty = useRef(false);
   const pending = useRef<AbortController | null>(null);
 
@@ -59,6 +62,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
     setPeers('');
     setError(null);
     setNotice(null);
+    setHistoryLimit(20);
     if (!token) return () => controller.abort();
     void refresh(controller).catch((failure: unknown) => {
       if (controller.signal.aborted) return;
@@ -116,7 +120,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
         token,
         controller.signal,
         peerID.trim(),
-        20,
+        historyLimit,
       );
       setNotice(
         `本次同步新增 ${result.inserted} 条，重复 ${result.duplicates} 条，跳过 ${result.skipped} 条非文本或不支持消息。`,
@@ -162,34 +166,26 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
         </div>
       </div>
       <p className="qq-intro">
-        连接你自己部署的 Milky 1.3 协议端，核验本人 QQ
+        连接本机 Milky 1.3 协议端，核验本人 QQ
         账号，按联系人同步好友私聊历史，并可显式开启后台接收。
-        协议端是独立进程（Lagrange.Milky，GPL-3.0），本产品不分发其程序、不代替你登录。自动发送始终关闭。
+        协议端独立运行，先按下方步骤安装并登录，再在这里测试和保存。自动发送始终关闭。
       </p>
-      <div className="qq-configuration">
-        <p>在启动本地服务前，由技术开发在后台环境配置：</p>
-        <dl>
-          <div>
-            <dt>
-              <code>QQ_MILKY_URL</code>
-            </dt>
-            <dd>本机协议端地址，例如 http://127.0.0.1:3000</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_MILKY_ACCESS_TOKEN</code>
-            </dt>
-            <dd>协议端访问令牌，仅保留在服务端环境</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_MILKY_ACCOUNT_ID</code>
-            </dt>
-            <dd>预期登录的本人 QQ 号</dd>
-          </div>
-        </dl>
-        <p>工作台不收集 QQ 密码、协议端令牌或地址，令牌不进入 URL。</p>
-      </div>
+      <MilkySetupPanel
+        token={token}
+        disabled={busy !== null}
+        monitorEnabled={monitorSaved}
+        onAuthFailure={onAuthFailure}
+        onBusyChange={setConfigBusy}
+        onHistoryLimitChange={setHistoryLimit}
+        onSaved={() => {
+          peersDirty.current = false;
+          setPeers('');
+          void run('refresh', async (controller) => {
+            await refresh(controller);
+            onSystemUpdate(await getSystem(token, controller.signal));
+          });
+        }}
+      />
 
       <div className="qq-result" aria-live="polite">
         <dl>
@@ -246,7 +242,9 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           type="button"
           className="button button-primary"
           onClick={onVerify}
-          disabled={!token || busy !== null}
+          disabled={
+            !token || !status?.configured || busy !== null || configBusy
+          }
         >
           {busy === 'verify' ? '正在核验…' : '核验账号与版本'}
         </button>
@@ -277,7 +275,8 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
             !token ||
             !verified ||
             !/^[1-9][0-9]*$/.test(peerID.trim()) ||
-            busy !== null
+            busy !== null ||
+            configBusy
           }
         >
           {busy === 'sync' ? '正在同步…' : '同步一页历史'}
@@ -310,7 +309,8 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
             !verified ||
             monitorSaved ||
             parsePeers(peers).length === 0 ||
-            busy !== null
+            busy !== null ||
+            configBusy
           }
         >
           {busy === 'monitor' ? '正在处理…' : '开启后台接收'}
@@ -319,7 +319,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           type="button"
           className="button button-quiet"
           onClick={() => onMonitor(false)}
-          disabled={!token || !monitorSaved || busy !== null}
+          disabled={!token || !monitorSaved || busy !== null || configBusy}
         >
           {monitorPending ? '清除已保存的后台接收' : '停止后台接收'}
         </button>

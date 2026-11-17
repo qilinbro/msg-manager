@@ -1,81 +1,94 @@
-# QQ Milky 协议端接入说明
+# QQ Milky：从安装到连接
 
-日期：2026-11-15；关联 T02（`FEAT-T02` / `CHG-T02-003`），设计影响 T04、T06、T07、T08、T17。本说明描述已实现能力，不代表真实账号验收已完成。
+更新：2026-11-17；`T02 / FEAT-T02 / CHG-T02-007`。当前 QQ 个人号仅使用 Milky 1.3。
 
-## 产品定位
+出现“尚未配置”表示本产品还没有协议端连接信息。普通 QQ 客户端本身不提供 Milky 接口，需要先安装一个支持 Milky 的独立程序。Windows 首次使用推荐 **LLBot Desktop 的 Milky 模式**。
 
-`qq-milky` 是 QQ 主线连接器。它在自有 Go 服务内实现 Milky 1.3 协议客户端，对接**你自己部署并登录本人 QQ 的独立协议端**（`Lagrange.Milky`）。本产品不安装、不启动、不代替协议端登录，不分发协议端二进制，也不接管你未授权的好友或群聊。
+## 1. 安装并登录
 
-协议端为 GPL-3.0 许可的**外部独立进程**：本产品不链接、不复制其源码，只经本机 HTTP / WebSocket 调用公开协议接口。发布说明与交付清单须声明协议端名称、许可证与固定版本仓库链接；这是工程边界口径，法律结论由产品负责人确认。
+1. 打开 [LLBot Desktop 官方 v3.1.2 下载页](https://github.com/LuckyLilliaDev/LuckyLillia.Desktop/releases/tag/v3.1.2)，在 Assets 中下载 `lucky-lillia-desktop-win-x64.zip`。
+2. 完整解压到固定目录，例如 `D:\LLBot`，运行 `lucky-lillia-desktop.exe`。不要在压缩包内直接运行；该版本不要求另装 .NET。
+3. 按程序提示准备组件、启动 QQ，并自行扫码登录本人账号。登录、二维码和 QQ 密码都在 QQ / 协议端处理，不填写到本产品。
+4. 保持 LLBot 和本产品后台运行。
 
-一次身份核验只说明最近一次检测成功，**不等于持续在线，也不启用发送**。自动发送与平台发送接口始终关闭。
+[官方安装教程](https://luckylillia.com/guide/choice_install)。上游安装文档中的旧文件名可能不同，以固定发布页资产名为准。本项目不打包或自动运行协议端，不代替用户登录。
 
-## 准备
+## 2. 在 LLBot 启用 Milky
 
-1. 自行部署 `Lagrange.Milky`（`LagrangeDev/Lagrange.Core` 的 Milky 实现），确认其实现 `milky_version = 1.3`。版本不匹配时本产品明确拒绝连接。
-2. 在协议端完成本人 QQ 登录。需要自行评估账号风控：第三方协议端可能需要签名服务，新注册账号可能被拒绝登录；本产品不绕过验证码或平台限制。
-3. 协议端只监听本机回环地址，配置强随机 `AccessToken`，不要暴露到公网。本产品只允许 `http://127.0.0.1:<端口>` / `http://localhost:<端口>`，不解析 DNS、不跟随重定向与代理、令牌只放 `Authorization` 头。
-4. 本产品只接受 `POST /api/{action}` 与正向 `GET /event`（WebSocket），不接受 WebHook 入站推送。
+打开 LLBot 左侧 **Bot 配置**，按下面设置并保存：
 
-三类令牌互不相同：本产品 `SOCIALD_API_TOKEN`、协议端 `QQ_MILKY_ACCESS_TOKEN`、以及 QQ 账号本身的登录凭据。工作台只持有前者且仅存内存。
+| 项目 | 填写内容 |
+|---|---|
+| Milky | 开启 |
+| 监听地址 | `127.0.0.1`，仅本机访问 |
+| HTTP 端口 | `3010`，或自己未占用的端口 |
+| HTTP 路径前缀 | 留空，使用默认 `/api` 路由 |
+| AccessToken | 自己设置一个非空随机令牌；例如使用密码管理器生成至少 32 位无空白 ASCII 字符 |
+| WebHook | 留空；本产品主动连接事件流 |
+| OneBot / Satori | 本产品不使用，可关闭 |
 
-## 在后台配置
+HTTP 与事件 WebSocket 共用 Milky 端口。[官方配置说明](https://luckylillia.com/guide/config)。仅在电脑本机使用，不开放公网端口。
 
-在启动 `sociald` 的 PowerShell 终端设置环境变量，`.env.example` 不会被自动读取：
+三个地址不要混淆：`3010` 是 Milky，`3080` 是 LLBot 管理页面，`17890` 是本产品后台。`3000` 常用于 OneBot，不能直接照抄旧配置。
 
-```powershell
-$env:SOCIALD_API_TOKEN = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-$env:SOCIALD_DATABASE_PATH = '<加密库绝对路径>'
-$env:SOCIALD_DATABASE_KEY = '<64 位十六进制随机密钥>'
-$env:QQ_MILKY_URL = 'http://127.0.0.1:3000'
-$env:QQ_MILKY_ACCESS_TOKEN = Read-Host -AsSecureString 'Milky AccessToken' | ForEach-Object {
-  $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($_)
-  try { [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
-}
-$env:QQ_MILKY_ACCOUNT_ID = '<本人 QQ 号>'
-# 可选：单次历史拉取 1..30，默认 20
-$env:QQ_MILKY_HISTORY_LIMIT = '20'
-.\scripts\start-inbox.ps1   # 或 .\scripts\dev-backend.ps1
-```
+## 3. 回到工作台保存连接
 
-三个 `QQ_MILKY_*` 值全部留空时不接入。配置错误只在启动日志返回固定脱敏文案，不回显地址或令牌。
+打开工作台 → **设置 → QQ 个人号（Milky）**，在“连接设置”填写：
 
-## 在工作台使用
+| 字段 | 示例 / 来源 |
+|---|---|
+| Milky 服务地址 | `http://127.0.0.1:3010`，不要加 `/api` 或 `/event` |
+| 本人 QQ 号 | 刚刚在 LLBot 登录的账号，不能填好友 QQ 或昵称 |
+| 协议端 AccessToken | 第 2 步设置的相同令牌，直接填值，不加 `Bearer ` |
+| 每次历史同步条数 | 高级设置，默认 20，范围 1—30 |
 
-1. 连接本地服务后，在「设置 → QQ Milky 协议端（主线）」查看状态并点「核验账号与版本」。核验调用 `get_login_info` 与 `get_impl_info`，同时校验登录 QQ 与预期账号、Milky 版本。
-2. 填写**明确选定的好友 QQ 号**，点「同步一页历史」。首版仅好友私聊纯文本，单次最多 30 条；服务端生成 `milky:friend:<peer_id>:<message_seq>` 稳定标识并事务落库，重复同步去重；非文本与不支持场景只记录跳过原因。
-3. 需要后台接收时，填写最多 20 个明确授权的私聊 QQ 号并点「开启后台接收」。默认关闭；授权联系人只保存在加密消息库，协议端地址和令牌不会写入数据库。服务重启后会恢复授权列表，但必须重新完成账号与版本核验，核验通过才恢复接收。
-4. 状态区展示后台接收、累计跳过与最近缺口。Milky 事件没有唯一 ID、游标或断线补发，断线会记录缺口并在重连后用历史接口**有界补查**，界面不承诺取回全部历史。
+依次执行：
 
-## 接口
+1. 点 **测试连接**。会检查本人 QQ 和 Milky 1.3 版本；只测试，不保存、不启用接收。
+2. 核对测试返回的账号，勾选保存确认，再点 **保存连接设置**。成功后令牌输入框清空，只显示“已配置”；配置保存在本产品加密数据库，立即生效，正常重启无需重复填写或设置环境变量。
+3. 点 **核验账号与版本**，核验当前已保存连接。
+4. 填写明确选定的好友 QQ，点 **同步一页历史**；需要持续收件时，在后台接收名单中选择最多 20 个好友并显式开启。
 
-| 方法 | 路径 | 用途 |
+修改任一连接字段后需要重新测试和确认。重新读取设置保留尚未提交的编辑；版本冲突时先刷新、核对最新保存内容再测试。网络失败或超时后先读取状态，变更操作不会自动重试。
+
+保存连接会停止当前接收并清除原接收授权，包括其他曾用账号的授权，防止切换 A→B→A 恢复旧权限；聊天记录和联系人不删除。保存后须重新核验并选择联系人。单纯重启保留既有接收名单，但需新一次账号核验才恢复接收。
+
+## 4. 常见问题
+
+| 提示 | 处理 |
+|---|---|
+| 连接失败 | 确认 LLBot 已运行且登录成功；核对 Milky 是否启用、端口是否为 3010 |
+| 鉴权失败 | 两边填写同一个 Milky AccessToken；不是 QQ 密码、管理页面密码或本产品服务令牌 |
+| 账号不一致 | 本产品填写的本人 QQ 必须与协议端当前登录账号相同 |
+| 版本不匹配 | 使用真实支持 Milky 1.3 的实现，不能修改版本字符串冒充兼容 |
+| 配置接口不存在 | 后台仍是旧程序；停止旧后台后运行 `scripts/start-inbox.ps1`，再刷新工作台 |
+| 加密存储未启用 | 用 `scripts/start-inbox.ps1` 启动，保留原数据库与密钥文件 |
+| 保存时输入令牌为空 | 同一地址和账号可保留已有令牌；首次配置、更换地址或账号必须重新填 |
+
+**原 Lagrange 指引修正**：本轮核验的 Lagrange.Core `e1bd4baa` 仍报告 Milky **1.2**，本产品会拒绝；其 Releases 中的旧 OneBot 包也不是 Milky 安装包。新手按上述 LLBot 路线，不必再寻找 Lagrange OneBot。证据见 [Lagrange 版本常量](https://github.com/LagrangeDev/Lagrange.Core/blob/e1bd4baa16fa86ef000154e3eecb7816a29b63a7/Lagrange.Milky/Constants.cs)。
+
+## 数据、授权与兼容方式
+
+配置读取接口只返回地址、账号、条数、版本号和令牌是否存在，不返回令牌。令牌只保存在后台 SQLCipher，不进入浏览器持久存储、聊天模型、URL 或日志。用于连接本产品的服务令牌与 Milky 协议端令牌是两件不同的凭据。
+
+已保存的连接优先于 `QQ_MILKY_URL`、`QQ_MILKY_ACCESS_TOKEN`、`QQ_MILKY_ACCOUNT_ID`、`QQ_MILKY_HISTORY_LIMIT` 环境设置；没有保存记录时才兼容这些启动配置。环境设置不会自动写入数据库，`.env.example` 也不自动读取。更换地址时不会沿用旧令牌。
+
+协议端是外部独立进程，只通过本机 HTTP / WebSocket 通信。本产品不分发或链接其程序。LLBot 核心为 GPL-2.0，Lagrange.Core 为 GPL-3.0，各自许可和固定版本需随发布资料登记。[LLBot 核心源码](https://github.com/LuckyLilliaDev/LuckyLilliaBot/tree/de602971f850c3965a9b348e7d1f3e723eb1eba7)。
+
+仅支持授权好友私聊文本；发送、群聊和媒体正文未开放。历史同步是最近一页，不是全量历史；断线可能有缺口。一次核验不代表持续在线，电脑休眠、关机或协议端/后台退出后不会继续接收。
+
+## 接口与工程验收
+
+| 方法 | 路径 | 作用 |
 |---|---|---|
-| GET | `/api/v1/connections/qq-milky/status` | 只读缓存状态，不触发网络调用 |
-| GET | `/api/v1/connections/qq-milky/verify` | 账号与版本核验 |
-| POST | `/api/v1/connections/qq-milky/sync` | 按联系人同步一页历史（`peer_id`、`limit`） |
-| POST | `/api/v1/connections/qq-milky/monitor` | 显式开启/停止后台接收（`enabled`、`peer_ids`） |
+| GET | `/api/v1/connections/qq-milky/config` | 脱敏读取保存配置，零协议端请求 |
+| POST | `/api/v1/connections/qq-milky/config/test` | 只测试候选配置，不改变现有连接 |
+| PATCH | `/api/v1/connections/qq-milky/config` | 显式确认、版本校验、加密保存及暂停原接收 |
+| GET | `/api/v1/connections/qq-milky/status` | 缓存状态 |
+| GET | `/api/v1/connections/qq-milky/verify` | 核验已保存连接，允许恢复原已授权名单 |
+| POST | `/api/v1/connections/qq-milky/sync` | 一页好友私聊历史 |
+| POST | `/api/v1/connections/qq-milky/monitor` | 显式接收名单和开关 |
 
-全部接口沿用本机 Bearer 鉴权、Host/Origin 白名单与服务端派生的工作区作用域。请求体不能选择协议端地址、令牌或账号。错误只返回固定分类（如 `MILKY_IDENTITY_MISMATCH`、`MILKY_VERSION_MISMATCH`、`MILKY_UNREACHABLE`），不回显上游文本。契约见 `api/openapi.yaml`。
+全部接口遵守本地鉴权、来源、Host 与工作区校验；配置 JSON 限 16 KiB。协议端错误只返回固定分类。模型和 MCP 不获得配置/测试/令牌操作工具。
 
-## 当前支持与已知限制
-
-- 已实现：共享 `adapter` 本机传输底座、Milky 身份/版本/好友/历史/事件流客户端、工作台面板、加密库入库与去重、后台事件接收与缺口补查、契约与单元/集成测试。
-- 发送：`send_private_message` 在协议客户端内已实现，**没有接入任何 HTTP 路由，也未装配发件箱执行器**。必须等 T15/T16/T17 的规则、审批与发件箱通过审查验收后才可讨论启用；契约 `sending_enabled` 固定为 `false`。
-- 来源枚举：schema v6 的 `source` 兼容列仍记为 `import`，协议同步的可追溯性由服务端生成的 `milky:friend:` 前缀与连接显示名保证；独立来源枚举需后续 v7 迁移，登记为 T05 遗留项。
-- 历史游标：`get_history_messages` 的 `next_message_seq` 已返回给调用方，但首版每次从最新一页同步，尚未实现逐页水位持久化与跨页增量。
-- `Lagrange.Milky` README 注明 `message_scene=friend` 时 `start_message_seq` 不能为空，与规范「不提供则从最新开始」存在出入，需在真实协议端上验证。
-- 群聊、临时会话、媒体正文、消息编辑/撤回事件、模型自动分析与审批均不在首版范围。
-- 后台接收授权列表会持久化，但服务重启后必须重新核验账号才恢复；电脑休眠、关机或后台退出后停止，不承诺离线期间的消息补齐。实时事件只保存授权列表中的私聊，未选中的事件会被忽略。
-
-## 真实接入验收清单（须由产品负责人在本机完成）
-
-1. 固定 `Lagrange.Milky` 版本与提交标识，记录实现名称、版本与 `milky_version`。
-2. 用本人授权 QQ 完成协议端登录，确认账号风控与签名服务授权边界。
-3. 执行真实账号核验，确认 `account_id` 与预期一致、错误账号被拒绝。
-4. 对一名授权联系人同步真实历史并在消息中心逐条对账；重复同步不新增。
-5. 开启后台接收，发送真实文本消息，确认入库、断线缺口提示与重连后有界补查。
-6. 核对工作台不出现任何协议端地址、令牌或上游错误正文；确认所有 `sending_enabled` 为 `false`。
-7. 由 joey 审查后端、angjustinl 审查前端，kirinbao 组织验收并登记证据后，才更新任务状态与实际完成日期。
-
-合成测试与工程检查不能替代上述真实授权与独立验收。
+验证及待验收项见 [T02 配置流程验证](acceptance/T02-milky-setup-validation.md)。joey 后端正式审查、angjustinl 前端正式审查、kirinbao 本人登录与真实消息/浏览器/Tauri 验收待执行，实际完成日期为 —。

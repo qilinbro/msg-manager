@@ -9,8 +9,8 @@ import (
 )
 
 // QQMilkyMonitorSettings contains only the explicit private-chat allowlist.
-// The protocol endpoint and access token are process-local configuration and
-// are never written to the encrypted message database.
+// Protocol credentials live separately in qq_milky_connection_config, also
+// protected by SQLCipher; they are never included in this authorization shape.
 type QQMilkyMonitorSettings struct {
 	Enabled bool     `json:"enabled"`
 	PeerIDs []string `json:"peer_ids"`

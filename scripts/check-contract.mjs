@@ -72,6 +72,8 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/connections/wechat-db/monitor',
   'post /api/v1/connections/qq-milky/sync',
   'post /api/v1/connections/qq-milky/monitor',
+  'patch /api/v1/connections/qq-milky/config',
+  'post /api/v1/connections/qq-milky/config/test',
 	'patch /api/v1/ai/model-config',
 	'post /api/v1/conversations/{conversation_id}/profile-links',
 	'delete /api/v1/conversations/{conversation_id}/profile-links/{target_conversation_id}',
@@ -120,4 +122,12 @@ assert.equal(spec.components.schemas.MilkyMonitor.properties.read_only.const, tr
 assert.equal(spec.components.schemas.MilkySyncRequest.properties.limit.maximum, 30);
 assert.equal(spec.components.schemas.MilkyMonitorRequest.properties.peer_ids.maxItems, 20);
 assert.ok(spec.paths['/api/v1/connections/qq-milky/verify'].get.responses['200']);
+assert.ok(spec.paths['/api/v1/connections/qq-milky/config'].get.responses['200']);
+assert.equal(spec.components.schemas.MilkyConnectionConfigSave.properties.access_token.writeOnly, true);
+assert.equal(spec.components.schemas.MilkyConnectionConfigTest.properties.access_token.writeOnly, true);
+assert.equal(spec.components.schemas.MilkyConnectionConfig.properties.access_token, undefined);
+assert.equal(spec.components.schemas.MilkyConnectionConfigSave.properties.confirmed.const, true);
+assert.equal(spec.components.schemas.MilkyConnectionConfigSave.additionalProperties, false);
+assert.equal(spec.components.schemas.MilkyConnectionConfigTest.additionalProperties, false);
+assert.equal(spec.components.schemas.MilkyConnectionConfigSave.properties.expected_revision.minimum, 0);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');
