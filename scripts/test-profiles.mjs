@@ -82,7 +82,7 @@ await timeoutCheck;
 assert.equal(requests.length, beforeTimeout + 1, 'uncertain job submission must not retry');
 fetchAction = null; responseStatus = 200;
 const inboxAPI = client('inbox-api.ts', 'getConversations', { profileDependency: api });
-const conversation = { id: 'conversation-1', connection_id: 'connection-1', platform: 'weixin', account_id: 'synthetic-account', peer_id: 'synthetic-peer', title: 'Synthetic contact', last_message: '', last_message_at: '2026-01-01T00:00:00Z', unread_count: 0, pinned: false, archived: false };
+const conversation = { id: 'conversation-1', connection_id: 'connection-1', platform: 'weixin', account_id: 'synthetic-account', peer_id: 'synthetic-peer', title: 'Synthetic contact', conversation_kind: 'private', last_message: '', last_message_at: '2026-01-01T00:00:00Z', unread_count: 0, pinned: false, archived: false };
 response = { items: [conversation], next_cursor: null };
 assert.equal((await inboxAPI.getConversations('synthetic-token', signal(), { category: 'friend', archived: false })).items[0].category, undefined, 'old service categories remain compatible');
 assert.equal(new URL(requests.at(-1).url).searchParams.get('category'), 'friend');

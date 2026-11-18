@@ -1,0 +1,15 @@
+failed: D:\msg_manager\.runtime\main-push-20261116\repo\.runtime\chat-discovery-browser-HLJK3m
+Error: {"code":-32000,"message":"Object reference chain is too long"}
+1 checks; 22 intercepted API requests; 0 mutations.
+    at WebSocket.<anonymous> (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/chat-discovery-browser.mjs:612:23)
+    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)
+    at WebSocket.dispatchEvent (node:internal/event_target:778:26)
+    at fireEvent (node:internal/deps/undici/undici:12652:14)
+    at #onMessage (node:internal/deps/undici/undici:13883:9)
+    at Object.onMessage (node:internal/deps/undici/undici:13596:76)
+    at websocketMessageReceived (node:internal/deps/undici/undici:12656:15)
+    at node:internal/deps/undici/undici:13315:19
+    at node:internal/deps/undici/undici:13135:11
+    at afterWrite (node:internal/streams/writable:708:5)
+browser_seconds=3.5505628
+exit_code=1

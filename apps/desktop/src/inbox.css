@@ -1248,3 +1248,162 @@
     min-width: 44px;
   }
 }
+
+/* Primary discovery controls stay above source setup and outside list scrolling. */
+.inbox-discovery {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.inbox-discovery-heading,
+.wechat-discovery-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.conversation-kind-tabs {
+  display: inline-flex;
+  border-bottom: 1px solid var(--border);
+  gap: 4px;
+}
+.conversation-kind-tabs button {
+  min-width: 96px;
+  min-height: 48px;
+  padding: 11px 20px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--secondary);
+  cursor: pointer;
+}
+.conversation-kind-tabs button[aria-selected='true'] {
+  border-bottom-color: var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+}
+.conversation-kind-tabs button:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--ink);
+}
+.inbox-keyword-form > label,
+.inbox-message-search > label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.inbox-keyword-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.inbox-keyword-row input {
+  flex: 1 1 200px;
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.inbox-keyword-row button,
+.inbox-discovery-heading > button,
+.wechat-discovery-heading > button {
+  min-height: 48px;
+}
+.inbox-keyword-help,
+.inbox-keyword-error {
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.inbox-keyword-help {
+  color: var(--secondary);
+}
+.inbox-keyword-error {
+  color: var(--danger);
+}
+.inbox-source-links {
+  display: flex;
+  gap: 4px 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  color: var(--secondary);
+}
+.inbox-source-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink);
+  text-underline-offset: 4px;
+}
+.inbox-source-section {
+  margin-top: 24px;
+  scroll-margin-top: 88px;
+}
+.inbox-message-search {
+  flex-shrink: 0;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.inbox-message-search .inbox-keyword-row input {
+  flex-basis: 150px;
+}
+.inbox-match-preview {
+  display: block;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ink);
+  margin: 5px 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.inbox-root mark {
+  background: #e9ecef;
+  color: inherit;
+  font-weight: 600;
+}
+.wechat-read-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-basis: 100%;
+}
+.wechat-read-actions > button {
+  min-height: 48px;
+}
+.wechat-read-form .wechat-session-result {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--secondary);
+  line-height: 1.65;
+}
+@media (max-width: 600px) {
+  .inbox-discovery-heading > button,
+  .wechat-discovery-heading > button {
+    width: 100%;
+  }
+  .inbox-keyword-form .inbox-keyword-row input {
+    flex-basis: 100%;
+  }
+  .inbox-keyword-form .inbox-keyword-row button {
+    flex: 1;
+  }
+  .inbox-source-links {
+    column-gap: 14px;
+  }
+  .inbox-message-search {
+    padding: 12px 14px;
+  }
+}

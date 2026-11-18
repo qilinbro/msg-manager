@@ -856,7 +856,7 @@
     },
     "/api/v1/conversations": {
       "get": {
-        "description": "按平台、关键字和未读状态检索会话；默认未归档，置顶优先。",
+        "description": "按私聊/群聊、平台、分类、关键词和本地状态的交集检索已入库会话；默认未归档，置顶优先。q按字面子串匹配会话名称、账号、peer_id、消息正文或邮件元数据，不扫描来源；ASCII不区分大小写，中文按原文匹配。正文命中时返回有界matched_message原文片段；名称/元数据单独命中不伪造正文片段。游标绑定当前筛选条件，切换类型或关键词需从首页重查。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -927,13 +927,27 @@
             }
           },
           {
+            "name": "conversation_kind",
+            "in": "query",
+            "required": false,
+            "description": "只检索指定会话类型；省略时兼容返回全部类型。显式空值、非法值和重复参数返回400。",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "private",
+                "group"
+              ]
+            }
+          },
+          {
             "name": "q",
             "in": "query",
             "required": false,
             "schema": {
               "type": "string",
               "maxLength": 256
-            }
+            },
+            "description": "字面包含匹配，不使用通配符或正则。UTF-8原始值最多256字节，禁止NUL和重复参数；去除首尾空白后为空等同未设置。"
           },
           {
             "name": "unread",
@@ -1000,7 +1014,7 @@
     },
     "/api/v1/conversations/{conversation_id}/messages": {
       "get": {
-        "description": "取会话最新一页历史；页内按时间升序，next_cursor用于读取更早历史。可用 q 对该会话已入库的消息正文做字面关键词筛选，搜索仍受会话和工作区权限限制。",
+        "description": "取当前会话最新一页匹配历史；页内按时间升序，next_cursor用于读取更早匹配。可用q只对该会话已入库的消息正文做字面子串筛选，不匹配邮件头；ASCII不区分大小写，中文按原文匹配。本地人工搜索仍受会话、工作区和存储修订限制；Agent工具调用另受会话AI暂停限制，暂停AI不阻止本人读取。游标绑定会话及q，切换关键词必须从首页重查；q为空保留原消息游标兼容性。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -1097,7 +1111,7 @@
             "name": "q",
             "in": "query",
             "required": false,
-            "description": "消息正文关键词，按字面子串匹配；支持中文，最大256字节。",
+            "description": "消息正文关键词，按字面包含匹配（%和_不作通配符）。UTF-8原始值最多256字节，禁止NUL、非法UTF-8和重复参数；首尾空白去除后为空等同未设置。",
             "schema": {
               "type": "string",
               "maxLength": 256
@@ -2763,7 +2777,7 @@
     },
     "/api/v1/connections/wechat-db/sessions": {
       "get": {
-        "description": "用户手动读取固定本机账号目录中的可用私聊；只读，不接受任何查询参数。 使用单次身份/会话验证与有界批量查名，30秒预算内不重复完整扫描。",
+        "description": "用户手动读取固定本机账号目录中的可用私聊或群聊元数据；只读，不接受任何查询参数。类型及名称/ID筛选在已读取的元数据中由客户端本地完成，不读取消息正文。使用单次身份/会话验证与有界批量查名，30秒预算内不重复完整扫描。",
         "x-implementation-status": "implemented",
         "responses": {
           "200": {
@@ -6758,6 +6772,11 @@
               "other",
               "unclassified"
             ]
+          },
+          "matched_message": {
+            "type": "string",
+            "maxLength": 376,
+            "description": "仅非空q存在正文命中时提供：同会话最新命中消息的有界原文片段，包含命中前最多40字符和关键词及后续上下文，总计最多376个Unicode字符；不替代last_message，不包含HTML。仅名称或邮件元数据命中时省略。"
           }
         }
       },

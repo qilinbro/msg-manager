@@ -1,0 +1,10 @@
+failed: D:\msg_manager\.runtime\main-push-20261116\repo\.runtime\chat-discovery-browser-ZhV3PR
+13 checks; 34 intercepted API requests; 0 mutations.
+AssertionError [ERR_ASSERTION]: Narrow modal keyboard focus remains trapped (3)
+
+false !== true
+
+    at check (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/chat-discovery-browser.mjs:384:10)
+    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/chat-discovery-browser.mjs:780:5
+browser_seconds=8.5112788
+exit_code=1

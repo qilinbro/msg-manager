@@ -1,0 +1,206 @@
+{
+  "synthetic_only": true,
+  "server_started": false,
+  "all_application_http_requests_intercepted": true,
+  "actual_platform_or_model_calls": 0,
+  "checks": [
+    "Private/group tabs are explicit at first inbox paint",
+    "Stored-history and source-window keyword controls remain discoverable before source reads",
+    "Primary discovery controls have touch-size tabs and initial-viewport visibility",
+    "Body evidence is original, highlighted and distinct from latest preview and metadata-only matches",
+    "Opening a result searches actual matching originals in that conversation",
+    "Help opens a reviewable task and does not fill or submit implicitly",
+    "Native modal focus starts inside the visible Agent workspace",
+    "Closing Agent retains selected business chat and both searches",
+    "Reopening help preserves the Agent draft and requires explicit append",
+    "Explicit append preserves prior text without overwriting",
+    "390px Agent is white, within viewport and has no document horizontal overflow",
+    "Narrow modal keyboard focus remains trapped (1)",
+    "Narrow modal keyboard focus remains trapped (2)"
+  ],
+  "screenshots": [
+    "desktop-groups-keyword.png",
+    "failure.png"
+  ],
+  "api": [
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E5%90%88%E6%88%90%E5%85%B3%E9%94%AE%E8%AF%8D"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E5%90%88%E6%88%90%E5%85%B3%E9%94%AE%E8%AF%8D"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/assistant/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/assistant/status",
+      "query": ""
+    }
+  ],
+  "consoleErrors": [],
+  "unexpectedTargets": [],
+  "interceptionErrors": [],
+  "unexpectedRequests": [],
+  "native_mouse_clicks": 9,
+  "native_keyboard_keys": 4,
+  "result": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Narrow modal keyboard focus remains trapped (3)\n\nfalse !== true\n\n    at check (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/chat-discovery-browser.mjs:384:10)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/chat-discovery-browser.mjs:780:5",
+  "failureText": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务可访问\nAgent 助手\n消息\n\n查看已入库会话，按平台筛选、导入记录或管理消息。\n\n导入消息\n来源以实际配置与入库记录为准。工作台不会自动发送消息或邮件。\n私聊\n群聊\n找不到？让 Agent 帮我\n关键词匹配搜索\n搜索\n清除\n\n在当前群聊和筛选条件内，按字面匹配名称或已入库正文；不会自动读取来源。\n\n记录还没入库？\n读取微信消息\n同步邮箱\n微\n合成项目群\n\n微信 · synthetic-account · 已入库消息\n\n标为未读\n置顶\n归档\nAI 管理\nAgent 帮我处理\n个人档案\n当前会话正文关键词\n搜索正文\n查看全部消息\n\n仅展示正文包含“交付”的消息；继续向前加载也只读取匹配项。\n\n已显示最早的正文匹配记录\n\n合成项目群\n2026/11/17 12:00\n\n较早原文：项目交付请安排在周五，保留历史记录。\n\n本地已入库消息；来源以记录为准，当前不提供消息发送。\n读取本机微信消息\n\n按需保存私聊或群聊，可按正文关键词筛选，也可以交给后台定时读取。\n\n读取会话列表\n更新状态\n已配置，等待读取\n本地账号：synthetic-account\n只读 · 发送关闭\n私聊\n群聊\n不会操作？让 Agent 帮我\n按联系人或群名查找\n仅筛选已读取的会话名称和ID，不搜索消息正文。\n选择私聊\n请选择一个私聊\n正文关键词匹配（可选）\n只匹配微信本地库本次读取窗口内的文本，不改变源库；已入库历史请用上方关键词匹配搜索。\n读取并保存消息\n加入后台读取\n\n还未读取会话。先点击“读取会话列表”，再选择私聊或群聊。\n\n后台自动读取\n后台读取已暂停\n\n先读取会话列表，选择私聊或群聊并点击“加入后台读取”，再开启。最多选择20个会话。关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。\n\n读取间隔（秒）\n开启后台读取\n暂停后台读取\n\n间隔10至300秒。设置保存在本机，重启后台后恢复已开启的读取。\n\n读取微信 Windows 4.x 本机已有的私聊文本，不发送消息、不调用AI。 每次读取最近一批记录；暂停、离线或消息量超过读取窗口时，可能无法补齐全部历史。\n\n邮箱，也整理在这里\n\n按需收取最近邮件到本地，保留原邮箱状态。暂不支持发信。\n\n同步邮箱\n更新状态\n尚未配置\n\n请按项目的邮箱接入说明，在本机配置账号与授权码后重启服务。工作台不会收集你的邮箱密码。\n\n关闭后返回原页面；不会取消已提交的运行。\n\n关闭助手\nAgent 助手\n\n说明要做的事，Agent 会通过真实业务接口协助。首次连接、模型配置和凭据仍需你手动完成；有影响的操作确认后才执行，结果以工具审计为准。\n\n刷新状态\n模型设置\n\n模型 synthetic-model · 目标 synthetic.invalid · 外部模型\n共享今日额度：0 / 50 次 · 通用会话发送未开放，飞书本人早晚报需独立授权\n\n业务范围与权限目录（3 项）\n对话\n仅保存在当前授权身份的内存中\n说清要查什么、要改什么\n\n可以从业务页面选择“让 Agent 处理”，或在下方直接描述任务。提交前需同意本轮模型与数据范围；操作按服务器预览逐项确认，没有执行结果不会显示成功。\n\n本轮请求\n\n本轮会把输入、此助手会话上下文及获准工具返回的业务资料交给下方模型处理，可能产生费用。每轮同意独立，不默认勾选；通用会话发送未开放，飞书本人早晚报的启用或真实发送还需独立确认。\n\n我同意本轮调用 synthetic-model，目标 synthetic.invalid，配置版本 3，范围与费用如上。\n提交本轮请求\n511 / 8000 字节（UTF-8）\n恢复运行与会话管理"
+}

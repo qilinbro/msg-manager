@@ -180,6 +180,7 @@ function transport() {
     ServiceError,
     AbortController,
     DOMException,
+    TextEncoder,
     window,
     URL,
     Date,
@@ -206,6 +207,14 @@ function transport() {
       return responder(request);
     },
   };
+  Object.assign(
+    globals,
+    runInNewContext(
+      `(function(){\n${transpile('assistant-help.ts', sourceFor('assistant-help.ts'))}\nreturn {ASSISTANT_MESSAGE_BYTE_LIMIT, inspectAssistantMessage, normalizeAssistantHelpRequest, prepareAssistantHelpDraft};\n})()`,
+      globals,
+      { filename: 'assistant-help.ts' },
+    ),
+  );
   return {
     requests,
     timers,
@@ -329,6 +338,22 @@ assert.equal(
 );
 assert.equal(network.requests.at(-1).options.method, 'GET');
 assert.equal(network.requests.at(-1).options.body, undefined);
+for (const message of ['中'.repeat(2666) + 'ab', '😀'.repeat(2000)]) {
+  assert.equal(Buffer.byteLength(message, 'utf8'), 8000);
+  assert.ok(message.length < 8000, 'UTF-16 length is not the service limit');
+  network.respond(() => reply(run('completed')));
+  const before = network.requests.length;
+  await api.createAssistantRun(TOKEN, signal(), {
+    ...consent,
+    session_id: '',
+    message,
+  });
+  assert.equal(network.requests.length, before + 1);
+  assert.equal(
+    JSON.parse(network.requests.at(-1).options.body).message,
+    message,
+  );
+}
 const beforeInvalid = network.requests.length;
 for (const input of [
   { ...consent, confirmed: false },
@@ -346,7 +371,15 @@ for (const input of [
     (failure) => failure.code === 'CONSENT_REQUIRED' && !failure.uncertain,
   );
 }
-for (const message of ['', ' '.repeat(3), 'x'.repeat(8001)])
+for (const message of [
+  '',
+  ' '.repeat(3),
+  'x'.repeat(8001),
+  '中'.repeat(2666) + 'abx',
+  '😀'.repeat(2000) + 'x',
+  '\0',
+  '合成\0输入',
+])
   await assert.rejects(
     api.createAssistantRun(TOKEN, signal(), {
       ...consent,
@@ -612,6 +645,14 @@ function componentHarness(file, name, bindings, props, browser) {
   const component = runInNewContext(
     `(function(){${transpile(file, sourceFor(file))}; return ${name};})()`,
     {
+      ...(file === 'AssistantPanel.tsx'
+        ? browser.load('assistant-help.ts', [
+            'ASSISTANT_MESSAGE_BYTE_LIMIT',
+            'inspectAssistantMessage',
+            'normalizeAssistantHelpRequest',
+            'prepareAssistantHelpDraft',
+          ])
+        : {}),
       ...bindings,
       ...hooks,
       jsx,

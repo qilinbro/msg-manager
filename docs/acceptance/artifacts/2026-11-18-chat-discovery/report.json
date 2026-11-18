@@ -1,0 +1,659 @@
+{
+  "synthetic_only": true,
+  "server_started": false,
+  "all_application_http_requests_intercepted": true,
+  "actual_platform_or_model_calls": 0,
+  "checks": [
+    "Private/group tabs are explicit at first inbox paint",
+    "Stored-history and source-window keyword controls remain discoverable before source reads",
+    "Primary discovery controls have touch-size tabs and initial-viewport visibility",
+    "Body evidence is original, highlighted and distinct from latest preview and metadata-only matches",
+    "Opening a result searches actual matching originals in that conversation",
+    "Help opens a reviewable task and does not fill or submit implicitly",
+    "Native modal focus starts inside the visible Agent workspace",
+    "Closing Agent retains selected business chat and both searches",
+    "Reopening help preserves the Agent draft and requires explicit append",
+    "Explicit append preserves prior text without overwriting",
+    "390px Agent is white, within viewport and has no document horizontal overflow",
+    "Native modal rejects programmatic focus on the underlying Inbox",
+    "Native Tab cannot focus background business content (1)",
+    "Native Tab cannot focus background business content (2)",
+    "Native Tab cannot focus background business content (3)",
+    "Native Tab cannot focus background business content (4)",
+    "Native Tab cannot focus background business content (5)",
+    "Native Tab cannot focus background business content (6)",
+    "Native Tab cannot focus background business content (7)",
+    "Native Tab cannot focus background business content (8)",
+    "Native Tab cannot focus background business content (9)",
+    "Native Tab cannot focus background business content (10)",
+    "Native Tab cannot focus background business content (11)",
+    "Native Tab cannot focus background business content (12)",
+    "Native Tab cannot focus background business content (13)",
+    "Native Tab cannot focus background business content (14)",
+    "Native Tab cannot focus background business content (15)",
+    "Native Tab cannot focus background business content (16)",
+    "Native Tab cannot focus background business content (17)",
+    "Native Tab cannot focus background business content (18)",
+    "Native Tab reaches multiple Agent controls without focusing background content",
+    "Shift+Tab from the first Agent control cannot focus background business content",
+    "Tab from the last Agent control cannot focus background business content",
+    "Native touch returns to the preserved Agent draft without granting model consent",
+    "Escape restores focus to the original help trigger",
+    "390px inbox discovery wraps without horizontal overflow",
+    "Tab roving focus and ArrowLeft select the matching private panel",
+    "WeChat group/name tabs filter only explicitly read source metadata",
+    "Changing source type clears hidden selection and disables read/monitor actions",
+    "390px source forms also remain within viewport"
+  ],
+  "screenshots": [
+    "desktop-groups-keyword.png",
+    "narrow-agent-context.png",
+    "narrow-groups-keyword.png",
+    "narrow-wechat-source.png"
+  ],
+  "api": [
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E5%90%88%E6%88%90%E5%85%B3%E9%94%AE%E8%AF%8D"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%B8%8D%E5%AD%98%E5%9C%A8%E7%9A%84%E5%90%88%E6%88%90%E5%85%B3%E9%94%AE%E8%AF%8D"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/assistant/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/assistant/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/sessions",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/sessions",
+      "query": ""
+    }
+  ],
+  "consoleErrors": [],
+  "unexpectedTargets": [],
+  "interceptionErrors": [],
+  "unexpectedRequests": [],
+  "native_mouse_clicks": 9,
+  "native_keyboard_keys": 23,
+  "native_modal_focus": [
+    {
+      "step": "Native Tab cannot focus background business content (1)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "INPUT",
+      "id": "",
+      "index": 6,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (2)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 8,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (3)",
+      "modal": true,
+      "inside": false,
+      "document_container": true,
+      "page_focused": false,
+      "tag": "BODY",
+      "id": "",
+      "index": -1,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (4)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 0,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (5)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 2,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (6)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 3,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (7)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 4,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (8)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "TEXTAREA",
+      "id": "assistant-message",
+      "index": 5,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (9)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "INPUT",
+      "id": "",
+      "index": 6,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (10)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 8,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (11)",
+      "modal": true,
+      "inside": false,
+      "document_container": true,
+      "page_focused": false,
+      "tag": "BODY",
+      "id": "",
+      "index": -1,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (12)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 0,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (13)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 2,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (14)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 3,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (15)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 4,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (16)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "TEXTAREA",
+      "id": "assistant-message",
+      "index": 5,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (17)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "INPUT",
+      "id": "",
+      "index": 6,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab cannot focus background business content (18)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 8,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Shift+Tab from the first Agent control cannot focus background business content",
+      "modal": true,
+      "inside": false,
+      "document_container": true,
+      "page_focused": false,
+      "tag": "BODY",
+      "id": "",
+      "index": -1,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Tab from the last Agent control cannot focus background business content",
+      "modal": true,
+      "inside": false,
+      "document_container": true,
+      "page_focused": false,
+      "tag": "BODY",
+      "id": "",
+      "index": -1,
+      "hidden_recovery": false
+    }
+  ],
+  "native_touch_taps": 6,
+  "frozen_sources": 43,
+  "frozen_dist": 3,
+  "fingerprints_unchanged": true,
+  "result": "passed"
+}

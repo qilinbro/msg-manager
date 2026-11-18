@@ -1,0 +1,4 @@
+# Preserve captured evidence bytes; do not normalize line endings on checkout.
+* -text
+# Raw reporter output retains CRLF, trailing spaces and terminal blank lines.
+*.log whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof

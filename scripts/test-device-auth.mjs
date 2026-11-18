@@ -961,6 +961,7 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
 // recovered access token, but reports an explicit 409 instead of replaying.
 {
   const h = setup(), handle = await pair(h), signal = new AbortController().signal;
+  h.evaluate('assistant-help.ts', ['ASSISTANT_MESSAGE_BYTE_LIMIT', 'inspectAssistantMessage']);
   const cases = [
     ['ai-api.ts', 'analyzeConversation', [handle, signal, 'synthetic-conversation', 'synthetic-context-hash'], 'POST'],
     ['inbox-api.ts', 'importMessages', [handle, signal, { platform: 'qq', connection_id: 'synthetic', messages: [] }], 'POST'],

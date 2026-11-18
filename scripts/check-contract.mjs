@@ -96,6 +96,28 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/assistant/runs/{run_id}/reject',
 ].sort());
 assert.ok(spec.paths['/api/v1/inbox'].get.responses['200']);
+const listConversations = spec.paths['/api/v1/conversations'].get;
+const searchMessages = spec.paths['/api/v1/conversations/{conversation_id}/messages'].get;
+const kindFilter = listConversations.parameters.find((parameter) => parameter.name === 'conversation_kind');
+assert.deepEqual(kindFilter.schema.enum, ['private', 'group']);
+assert.equal(kindFilter.required, false, 'Omitting the kind preserves all-type callers');
+for (const operation of [listConversations, searchMessages]) {
+  const keyword = operation.parameters.find((parameter) => parameter.name === 'q');
+  assert.equal(operation['x-implementation-status'], 'implemented');
+  assert.equal(keyword.required, false);
+  assert.equal(keyword.schema.maxLength, 256);
+  assert.match(keyword.description, /256字节/);
+  assert.match(keyword.description, /NUL/);
+  assert.ok(operation.responses['400'], 'Strict search parameters and mismatched cursors fail closed');
+}
+assert.match(searchMessages.description, /正文/);
+assert.match(searchMessages.description, /不匹配邮件头/);
+assert.match(searchMessages.description, /游标绑定会话及q/);
+assert.ok(spec.components.schemas.Conversation.required.includes('conversation_kind'));
+assert.deepEqual(spec.components.schemas.Conversation.properties.conversation_kind.enum, ['private', 'group']);
+assert.equal(spec.components.schemas.Conversation.properties.matched_message.maxLength, 376);
+assert.ok(!spec.components.schemas.Conversation.required.includes('matched_message'), 'Name-only matches must not fabricate body evidence');
+assert.equal(spec.paths['/api/v1/connections/wechat-db/sessions'].get.parameters, undefined, 'Source metadata listing must not pretend to accept stored-history search parameters');
 assert.deepEqual(spec.components.schemas.InboxStatus.properties.source_mode.enum,['import','mixed']);
 assert.equal(spec.components.schemas.EmailStatus.properties.sending_enabled.const,false);
 assert.equal(spec.components.schemas.EmailSyncResult.properties.sending_enabled.const,false);

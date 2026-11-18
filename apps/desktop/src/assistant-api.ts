@@ -1,5 +1,9 @@
 import { SERVICE, ServiceError } from './api';
 import { authorizedFetch, authErrorMessage } from './device-auth';
+import {
+  ASSISTANT_MESSAGE_BYTE_LIMIT,
+  inspectAssistantMessage,
+} from './assistant-help';
 
 export type AssistantJSON =
   | null
@@ -379,10 +383,10 @@ export const createAssistantRun = async (
     input.session_id.length > 256 ||
     !text(input.message) ||
     !input.message.trim() ||
-    input.message.length > 8000
+    inspectAssistantMessage(input.message).issue !== null
   )
     throw new AssistantRequestError(
-      '请输入 1–8000 字的本轮请求。',
+      `请输入非空且不超过 ${ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8）的本轮请求，不支持空字符（NUL）。`,
       'INVALID_MESSAGE',
     );
   return decodeRun(

@@ -19,6 +19,7 @@ type Conversation struct {
 	PeerID           string `json:"peer_id"`
 	Title            string `json:"title"`
 	LastMessage      string `json:"last_message"`
+	MatchedMessage   string `json:"matched_message,omitempty"`
 	LastMessageAt    string `json:"last_message_at"`
 	UnreadCount      int    `json:"unread_count"`
 	Pinned           bool   `json:"pinned"`
@@ -86,14 +87,15 @@ type ImportResult struct {
 }
 
 type Filter struct {
-	Category string
-	Q        string
-	Platform string
-	Unread   bool
-	Archived bool
-	Pinned   bool
-	Cursor   string
-	Limit    int
+	Category         string
+	Q                string
+	Platform         string
+	ConversationKind string
+	Unread           bool
+	Archived         bool
+	Pinned           bool
+	Cursor           string
+	Limit            int
 }
 
 type ConversationPage struct {

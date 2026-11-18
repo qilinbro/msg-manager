@@ -1,0 +1,87 @@
+ok  	github.com/qilinbro/msg-manager/cmd/sociald	(cached)
+ok  	github.com/qilinbro/msg-manager/cmd/sociald-mcp	(cached)
+ok  	github.com/qilinbro/msg-manager/cmd/wechat-init-check	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/agent	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/api	15.803s
+ok  	github.com/qilinbro/msg-manager/internal/config	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/adapter	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/mailbox	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/wechatdb	(cached)
+?   	github.com/qilinbro/msg-manager/internal/domain	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/importer	(cached)
+?   	github.com/qilinbro/msg-manager/internal/ingestion	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/localcredentials	(cached)
+?   	github.com/qilinbro/msg-manager/internal/localcredentials/credentialstest	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/mcp	(cached)
+?   	github.com/qilinbro/msg-manager/internal/memory	[no test files]
+?   	github.com/qilinbro/msg-manager/internal/outbox	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/policy	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/publicinfo	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/store	(cached)
+?   	github.com/qilinbro/msg-manager/migrations	[no test files]
+ok  	github.com/qilinbro/msg-manager/tests/integration	(cached)
+API contracts, bounded Assistant, local digest compatibility and 10 bound no-retry Feishu methods verified.
+PowerShell bootstrap synthetic tests passed: 9 child cases plus selector and argument checks.
+Inbox launcher synthetic tests passed: 53 isolated launches; DACL-only setup, stable service credentials, explicit clipboard/rotation, DPAPI loading and fail-closed startup. No real account data or service was accessed.
+Profile link client/component checks passed: scoped transport, explicit identity confirmation, reversible association, preserved source permissions, and unmount guards. Synthetic data only.
+(node:77536) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Import analysis synthetic checks passed: explicit model-bound scope, default-off consent, one atomic request, visible queue result, no stale retry, and model-change reconfirmation.
+(node:26436) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+AI model configuration checks passed: authenticated GET/PATCH, write-only key, target consent, response validation, secret clearing, retry preservation and component lifecycle. Synthetic data only.
+(node:67620) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Milky client checks passed: single QQ catalog/settings integration, pending verification, persisted peer display, safe stop payload, and component compilation. Synthetic data only.
+(node:51688) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Profile client/component synthetic checks passed: scoped authenticated APIs, explicit consent, candidate confirmation, safe sources, unknown results, categories, dirty preservation, paused manual edits and background-job lifecycle.
+(node:59492) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Service session synthetic checks passed (11 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.
+Device auth synthetic checks passed (31 groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.
+Assistant and digest synthetic client/component checks passed: real authorized transport, revision-zero environment binding, request allowlists, nonterminal 202, immutable per-action consent, actual tool audit, no mutation replay, local-stop/unknown recovery, isolated assistant expiry, memory-only navigation state, digest CAS and separate daily/immediate consent. No real service, model, account, browser or Tauri was used.
+Assistant-help synthetic checks passed (9 groups): allowlisted visible context, stable business shell, explicit fill/append without overwrite or truncation, exact Chinese/emoji UTF-8 boundaries and NUL rejection, current-draft submit guards, no automatic submit/consent, unresolved/expired protection, GET-only recovery, fresh immutable-action acknowledgments, close-during-flight preservation and manual configuration. Native dialog, layout, scroll, real models/accounts and Tauri remain separate acceptance checks.
+Chat discovery synthetic regressions passed: actual Inbox/WeChat components, required kind contracts, query URLs, bounded server snippets, literal ASCII highlights, 256-byte/NUL guards, independent history search/clear/cursors, honest empty states, persistent named/keyboard tabs, safe UI-only help, hidden-peer guards, explicit monitor actions, and stale response cancellation. No real services/accounts/platforms/models; DOM layout and assistive-technology acceptance remain separate.
+Feishu synthetic client/panel checks passed: ten API methods, DTO/calendar/binding validation, write-only credentials, independent consent, fixed 12-hour windows, 202/unknown/no replay, GET-only recovery, withdrawn stale content, exact local auth mapping and lifecycle cleanup. No real credentials, model, platform, backend or enabled schedule.
+Feishu synthetic Assistant checks passed: independent unchecked sending consent for enable/send, model-only preview, explicit disable risks, immutable full report preview and existing confirmation body, reread/version/remount consent reset, conservative aliases, no unknown replay, and model-independent rejection. No real model, account, platform, backend or enabled schedule.
+WeChat monitor client/component and inbox soft-refresh checks passed: authenticated transport, old service compatibility, uncertain-result handling, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, selected chat and reading/editor preservation. Synthetic data only.
+(node:63924) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Inbox import regression checks passed: mail metadata and read flags are preserved.
+(node:73384) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> @social-intelligence/desktop@0.1.0 format:check
+> prettier --check src index.html package.json tsconfig.json vite.config.ts .prettierrc.json
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> @social-intelligence/desktop@0.1.0 check
+> tsc --noEmit
+
+
+> @social-intelligence/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 51 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.58 kB │ gzip:   0.37 kB
+dist/assets/index-BzNt27q5.css   58.24 kB │ gzip:  10.23 kB
+dist/assets/index-O_Wp766-.js   501.98 kB │ gzip: 148.28 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 144ms
+full_check_seconds=50.6192928
+exit_code=0

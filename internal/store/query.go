@@ -69,6 +69,9 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 	if filter.Platform != "" && !validPlatform(filter.Platform) || filter.Category != "" && !profileCategories[filter.Category] || !utf8.ValidString(filter.Q) || len(filter.Q) > 512 || strings.ContainsRune(filter.Q, 0) {
 		return ConversationPage{}, ErrInvalidInput
 	}
+	if filter.ConversationKind != "" && filter.ConversationKind != "private" && filter.ConversationKind != "group" {
+		return ConversationPage{}, ErrInvalidInput
+	}
 	filter.Q = strings.TrimSpace(filter.Q)
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -89,15 +92,27 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 		categoryExpression = "coalesce(nullif(p.category_override,''),p.ai_category,'unclassified')"
 		profileJoin = " LEFT JOIN contact_profiles p ON p.conversation_id=v.id AND p.workspace_id=v.workspace_id AND p.connection_id=v.connection_id AND p.contact_id=v.contact_id"
 	}
+	matchedMessage := `''`
+	args := []any{}
+	if filter.Q != "" {
+		// Return a bounded original-text excerpt around the latest body match,
+		// not the full body or a replacement for the latest-message preview.
+		matchedMessage = `coalesce((SELECT substr(m.body,max(1,instr(lower(m.body),lower(?))-40),min(376,length(?)+120)) FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND instr(lower(m.body),lower(?))>0 ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1),'')`
+		args = append(args, filter.Q, filter.Q, filter.Q)
+	}
 	query := `SELECT v.id,v.connection_id,c.platform,c.account_id,c.display_name,v.peer_id,v.title,
  (SELECT m.body FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message,
  (SELECT m.occurred_at FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id ORDER BY m.occurred_at DESC,m.seq DESC LIMIT 1) AS last_message_at,
  (SELECT count(*) FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND m.direction='incoming' AND m.is_read=0) AS unread_count,
-	 v.pinned,v.archived,v.conversation_kind,` + categoryExpression + ` AS category FROM conversations v JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id` + profileJoin + ` WHERE v.workspace_id=? AND v.archived=?`
-	args := []any{workspaceID, filter.Archived}
+	 v.pinned,v.archived,v.conversation_kind,` + categoryExpression + ` AS category,` + matchedMessage + ` AS matched_message FROM conversations v JOIN connections c ON c.id=v.connection_id AND c.workspace_id=v.workspace_id` + profileJoin + ` WHERE v.workspace_id=? AND v.archived=?`
+	args = append(args, workspaceID, filter.Archived)
 	if filter.Platform != "" {
 		query += ` AND c.platform=?`
 		args = append(args, filter.Platform)
+	}
+	if filter.ConversationKind != "" {
+		query += ` AND v.conversation_kind=?`
+		args = append(args, filter.ConversationKind)
 	}
 	if filter.Category != "" {
 		query += ` AND ` + categoryExpression + `=?`
@@ -116,7 +131,12 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 		query += ` AND (instr(lower(v.title),lower(?))>0 OR instr(lower(v.peer_id),lower(?))>0 OR instr(lower(c.account_id),lower(?))>0 OR instr(lower(c.display_name),lower(?))>0 OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=v.id AND m.workspace_id=v.workspace_id AND (instr(lower(m.body),lower(?))>0 OR instr(lower(coalesce(m.email_json,'')),lower(?))>0)))`
 		args = append(args, filter.Q, filter.Q, filter.Q, filter.Q, filter.Q, filter.Q)
 	}
-	fp := fingerprint("conversations", workspaceID, filter.Q, filter.Platform, filter.Unread, filter.Archived, filter.Pinned, filter.Category)
+	filterParts := []any{"conversations", workspaceID, filter.Q, filter.Platform, filter.Unread, filter.Archived, filter.Pinned, filter.Category}
+	if filter.ConversationKind != "" {
+		// Keep the legacy fingerprint for callers that omit the new filter.
+		filterParts = append(filterParts, filter.ConversationKind)
+	}
+	fp := fingerprint(filterParts...)
 	query = `SELECT * FROM (` + query + `) result WHERE last_message_at IS NOT NULL`
 	if filter.Cursor != "" {
 		cursor, err := decodeCursor(filter.Cursor, fp, revision)
@@ -138,7 +158,7 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 	items := []Conversation{}
 	for rows.Next() {
 		var item Conversation
-		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived, &item.ConversationKind, &item.Category) != nil {
+		if rows.Scan(&item.ID, &item.ConnectionID, &item.Platform, &item.AccountID, &item.AccountName, &item.PeerID, &item.Title, &item.LastMessage, &item.LastMessageAt, &item.UnreadCount, &item.Pinned, &item.Archived, &item.ConversationKind, &item.Category, &item.MatchedMessage) != nil {
 			_ = rows.Close()
 			return ConversationPage{}, ErrUnavailable
 		}
@@ -167,9 +187,17 @@ func (s *Store) Conversations(filter Filter) (ConversationPage, error) {
 }
 
 func (s *Store) Messages(conversationID, cursor string, limit int) (MessagePage, error) {
-	if !validResourceID(conversationID) {
+	return s.SearchMessages(conversationID, "", cursor, limit)
+}
+
+// SearchMessages searches only stored message bodies in this conversation and
+// workspace. Query text is a literal substring, never SQL wildcards or FTS syntax.
+// Empty/whitespace queries preserve Messages behavior, including its cursors.
+func (s *Store) SearchMessages(conversationID, q, cursor string, limit int) (MessagePage, error) {
+	if !validResourceID(conversationID) || !utf8.ValidString(q) || len(q) > 256 || strings.ContainsRune(q, 0) {
 		return MessagePage{}, ErrInvalidInput
 	}
+	q = strings.TrimSpace(q)
 	limit, err := normalizedLimit(limit)
 	if err != nil {
 		return MessagePage{}, err
@@ -192,6 +220,11 @@ func (s *Store) Messages(conversationID, cursor string, limit int) (MessagePage,
 	query := `SELECT id,conversation_id,external_id,direction,body,occurred_at,is_read,seq,coalesce(connector_source,source),email_json FROM messages WHERE workspace_id=? AND conversation_id=?`
 	args := []any{workspaceID, conversationID}
 	fp := fingerprint("messages", workspaceID, conversationID)
+	if q != "" {
+		query += ` AND instr(lower(body),lower(?))>0`
+		args = append(args, q)
+		fp = fingerprint("messages", workspaceID, conversationID, q)
+	}
 	if cursor != "" {
 		position, err := decodeCursor(cursor, fp, revision)
 		if err != nil {

@@ -56,6 +56,10 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Persistent device authorization regression checks failed.' }
         node scripts/test-assistant-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Assistant client and consent regression checks failed.' }
+        node scripts/test-assistant-help.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Contextual Agent workspace and handoff checks failed.' }
+        node scripts/test-chat-discovery.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Private/group discovery and literal keyword search checks failed.' }
         node scripts/test-feishu-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Feishu client and panel regression checks failed.' }
         node scripts/test-feishu-assistant.mjs

@@ -14,6 +14,13 @@ import type {
   AssistantRun,
   AssistantStatus,
 } from './assistant-api';
+import {
+  ASSISTANT_MESSAGE_BYTE_LIMIT,
+  inspectAssistantMessage,
+  normalizeAssistantHelpRequest,
+  prepareAssistantHelpDraft,
+} from './assistant-help';
+import type { AssistantHelpRequest } from './assistant-help';
 import './assistant.css';
 
 interface AssistantTurn {
@@ -288,22 +295,44 @@ export function AssistantPanel({
   cache,
   onAuthFailure,
   onSettings,
+  visible = true,
+  helpRequest = null,
+  onDismissHelp,
 }: {
   token: string;
   cache: Map<string, AssistantWorkspace>;
   onAuthFailure: () => void;
   onSettings: () => void;
+  visible?: boolean;
+  helpRequest?: AssistantHelpRequest | null;
+  onDismissHelp?: () => void;
 }) {
   const [workspace, setWorkspace] = useState<AssistantWorkspace>(
     () => cache.get(token) ?? emptyWorkspace(),
   );
   const workspaceRef = useRef(workspace);
+  const draftLimits = inspectAssistantMessage(workspace.draft);
+  const composerRef = useRef<HTMLTextAreaElement | null>(null);
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
+  const [handledHelp, setHandledHelp] = useState<AssistantHelpRequest | null>(
+    null,
+  );
+  const preparedHelp =
+    helpRequest && helpRequest !== handledHelp
+      ? normalizeAssistantHelpRequest(helpRequest)
+      : null;
   const [status, setStatus] = useState<AssistantStatus | null>(null);
   const [statusBusy, setStatusBusy] = useState(Boolean(token));
   const [statusError, setStatusError] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
   const [confirmationEpoch, setConfirmationEpoch] = useState(0);
   const [resetAcknowledged, setResetAcknowledged] = useState(false);
+  useEffect(() => {
+    // Opening, hiding or preparing another task never carries forward consent.
+    setConsented(false);
+    setConfirmationEpoch((current) => current + 1);
+    setResetAcknowledged(false);
+  }, [helpRequest, visible]);
   const [busy, setBusy] = useState<
     'start' | 'read' | 'confirm' | 'reject' | 'stopping' | null
   >(null);
@@ -514,7 +543,10 @@ export function AssistantPanel({
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const current = workspaceRef.current;
     if (
+      !visible ||
+      preparedHelp ||
       !status?.configured ||
       statusBusy ||
       !consented ||
@@ -522,12 +554,13 @@ export function AssistantPanel({
       hasUnresolved ||
       sessionExpired ||
       quotaExhausted ||
-      !workspace.draft.trim()
+      !current.draft.trim() ||
+      inspectAssistantMessage(current.draft).issue !== null
     )
       return;
-    const prompt = workspace.draft;
+    const prompt = current.draft;
     const key = crypto.randomUUID();
-    const sessionID = workspace.sessionID;
+    const sessionID = current.sessionID;
     const consent = {
       model_config_id: status.model_config_id,
       model_config_revision: status.model_config_revision,
@@ -557,6 +590,7 @@ export function AssistantPanel({
   };
   const decide = (accept: boolean) => {
     if (
+      !visible ||
       !latest ||
       !run?.pending_action ||
       operation.current ||
@@ -623,13 +657,98 @@ export function AssistantPanel({
     setNow(Date.now());
   };
 
+  const finishHelp = () => {
+    setHandledHelp(helpRequest);
+    setConsented(false);
+    setConfirmationEpoch((current) => current + 1);
+    setResetAcknowledged(false);
+    if (composerRef.current && !composerRef.current.disabled)
+      composerRef.current.focus();
+    else headingRef.current?.focus();
+    onDismissHelp?.();
+  };
+  const applyHelp = () => {
+    if (!visible || !token || !preparedHelp || operation.current) return;
+    const current = workspaceRef.current;
+    const currentRun = current.turns.at(-1)?.run;
+    const pending =
+      unresolved(current.turns.at(-1)) ||
+      Boolean(currentRun && Date.parse(currentRun.expires_at) <= Date.now());
+    const result = prepareAssistantHelpDraft(
+      current.draft,
+      preparedHelp,
+      current.draft.length ? 'append' : 'fill',
+      pending,
+    );
+    if (!result.ok) return;
+    update((value) => ({ ...value, draft: result.draft }));
+    finishHelp();
+  };
+  const helpDraft = preparedHelp
+    ? prepareAssistantHelpDraft(
+        workspace.draft,
+        preparedHelp,
+        workspace.draft.length ? 'append' : 'fill',
+        hasUnresolved || sessionExpired,
+      )
+    : null;
+  const preparedTask = preparedHelp ? (
+    <section className="assistant-help" aria-labelledby="assistant-help-title">
+      <h2 id="assistant-help-title">预备任务，尚未提交</h2>
+      <p className="assistant-note">来源：{preparedHelp.source}</p>
+      <p className="assistant-help-prompt">{preparedHelp.prompt}</p>
+      <p className="assistant-note" id="assistant-help-note">
+        只带入这里可见的来源与任务，不自动附带原页面聊天正文、错误详情、业务草稿或凭据。确认带入后仍需你核对草稿并同意本轮模型调用；不会自动提交或执行操作。
+      </p>
+      {hasUnresolved || sessionExpired ? (
+        <p className="assistant-warning">
+          当前助手运行仍需读取、确认或核实，或会话已过期。请先处理原运行；这里不会清空它，也不会重放请求。
+        </p>
+      ) : helpDraft && !helpDraft.ok && helpDraft.reason === 'too_long' ? (
+        <p className="assistant-warning">
+          带入后会超过 {ASSISTANT_MESSAGE_BYTE_LIMIT}{' '}
+          字节（UTF-8）。请手动精简现有草稿，或暂不带入后手动整理任务；不会截断或覆盖内容。
+        </p>
+      ) : helpDraft && !helpDraft.ok && helpDraft.reason === 'nul' ? (
+        <p className="assistant-warning">
+          带入内容包含不支持的空字符（NUL）。请先移除草稿中的空字符，或暂不带入后手动整理任务；不会截断或覆盖内容。
+        </p>
+      ) : workspace.draft.length ? (
+        <p className="assistant-note">
+          已有助手草稿保持原样。你可以明确追加，不会替换原内容。
+        </p>
+      ) : null}
+      <div className="assistant-actions">
+        <button
+          type="button"
+          className="button button-primary"
+          aria-describedby="assistant-help-note"
+          disabled={!visible || !token || Boolean(busy) || !helpDraft?.ok}
+          onClick={applyHelp}
+        >
+          {workspace.draft.length ? '追加到现有草稿' : '确认带入草稿'}
+        </button>
+        <button
+          type="button"
+          className="button button-quiet"
+          onClick={finishHelp}
+        >
+          暂不带入
+        </button>
+      </div>
+    </section>
+  ) : null;
+
   if (!token)
     return (
       <section className="assistant-page">
-        <h1>Agent 助手</h1>
+        <h1 id="assistant-title" ref={headingRef} tabIndex={-1}>
+          Agent 助手
+        </h1>
         <p className="page-description">
-          先连接本地服务，再按实际业务范围调用助手。
+          说明要做的事，助手会按实际业务范围协助。首次连接、模型配置和凭据仍需你手动完成。
         </p>
+        {preparedTask}
         <div className="assistant-empty">
           <h2>尚未授权本地服务</h2>
           <p>助手不会绕过本机鉴权，也不会直接取得平台凭据。</p>
@@ -648,9 +767,12 @@ export function AssistantPanel({
     <section className="assistant-page" aria-labelledby="assistant-title">
       <header className="assistant-heading">
         <div>
-          <h1 id="assistant-title">Agent 助手</h1>
+          <h1 id="assistant-title" ref={headingRef} tabIndex={-1}>
+            Agent 助手
+          </h1>
           <p className="page-description">
-            围绕真实业务提问和操作；影响与结果以工具审计为准，不以模型文字为凭证。
+            说明要做的事，Agent
+            会通过真实业务接口协助。首次连接、模型配置和凭据仍需你手动完成；有影响的操作确认后才执行，结果以工具审计为准。
           </p>
         </div>
         <div className="assistant-actions">
@@ -671,6 +793,7 @@ export function AssistantPanel({
           </button>
         </div>
       </header>
+      {preparedTask}
       <div className="assistant-status" role="status">
         {statusBusy ? (
           <p>正在读取助手配置与业务目录…</p>
@@ -729,14 +852,15 @@ export function AssistantPanel({
       >
         <div className="assistant-conversation-heading">
           <h2 id="assistant-conversation-title">对话</h2>
-          <span className="assistant-note">只在当前页面内存中保存</span>
+          <span className="assistant-note">仅保存在当前授权身份的内存中</span>
         </div>
         <div className="assistant-transcript">
           {!workspace.turns.length ? (
             <div className="assistant-empty">
-              <h3>描述你要查询或处理的事项</h3>
+              <h3>说清要查什么、要改什么</h3>
               <p>
-                提交前会单独确认本轮模型目标和数据范围。没有执行结果时，页面不会显示操作成功。
+                可以从业务页面选择“让 Agent
+                处理”，或在下方直接描述任务。提交前需同意本轮模型与数据范围；操作按服务器预览逐项确认，没有执行结果不会显示成功。
               </p>
             </div>
           ) : null}
@@ -860,7 +984,7 @@ export function AssistantPanel({
                   action={turn.run.pending_action}
                   run={turn.run}
                   modelReady={modelMatchesRun}
-                  busy={Boolean(busy)}
+                  busy={Boolean(busy) || !visible}
                   uncertain={turn.uncertain}
                   now={now}
                   onConfirm={() => decide(true)}
@@ -918,8 +1042,10 @@ export function AssistantPanel({
           <label htmlFor="assistant-message">本轮请求</label>
           <textarea
             id="assistant-message"
+            ref={composerRef}
             value={workspace.draft}
-            maxLength={8000}
+            aria-invalid={draftLimits.issue !== null}
+            aria-describedby={`assistant-message-limit${draftLimits.issue ? ' assistant-message-error' : ''}`}
             rows={4}
             disabled={Boolean(busy) || hasUnresolved || sessionExpired}
             placeholder="输入问题或具体操作要求；回车换行，使用按钮提交。"
@@ -929,6 +1055,13 @@ export function AssistantPanel({
               setConsented(false);
             }}
           />
+          {draftLimits.issue ? (
+            <p className="assistant-warning" id="assistant-message-error">
+              {draftLimits.issue === 'too_long'
+                ? `本轮请求超过 ${ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8），请手动精简后再提交；内容已完整保留，不会自动截断。`
+                : '本轮请求包含不支持的空字符（NUL），请移除后再提交；内容不会自动截断或修改。'}
+            </p>
+          ) : null}
           <p className="assistant-note" id="assistant-round-disclosure">
             本轮会把输入、此助手会话上下文及获准工具返回的业务资料交给下方模型处理，可能产生费用。每轮同意独立，不默认勾选；通用会话发送未开放，飞书本人早晚报的启用或真实发送还需独立确认。
           </p>
@@ -937,11 +1070,14 @@ export function AssistantPanel({
               type="checkbox"
               checked={consented}
               disabled={
+                !visible ||
+                Boolean(preparedHelp) ||
                 !modelReady ||
                 Boolean(busy) ||
                 hasUnresolved ||
                 sessionExpired ||
-                quotaExhausted
+                quotaExhausted ||
+                draftLimits.issue !== null
               }
               aria-describedby="assistant-round-disclosure"
               onChange={(event) => setConsented(event.target.checked)}
@@ -968,9 +1104,12 @@ export function AssistantPanel({
               type="submit"
               className="button button-primary"
               disabled={
+                !visible ||
+                Boolean(preparedHelp) ||
                 !modelReady ||
                 !consented ||
                 !workspace.draft.trim() ||
+                draftLimits.issue !== null ||
                 Boolean(busy) ||
                 hasUnresolved ||
                 sessionExpired ||
@@ -979,8 +1118,8 @@ export function AssistantPanel({
             >
               提交本轮请求
             </button>
-            <span className="assistant-note">
-              {workspace.draft.length} / 8000
+            <span className="assistant-note" id="assistant-message-limit">
+              {draftLimits.bytes} / {ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8）
             </span>
           </div>
         </form>

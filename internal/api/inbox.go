@@ -197,11 +197,11 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 	id, messages, ok := conversationRoute(r.URL.Path)
 	if ok && messages && r.Method == http.MethodGet {
 		filter, err := readInboxFilter(r)
-		if err != nil || filter.Q != "" || filter.Platform != "" || filter.Category != "" || filter.Unread || filter.Archived || filter.Pinned {
+		if err != nil || filter.Platform != "" || filter.ConversationKind != "" || filter.Category != "" || filter.Unread || filter.Archived || filter.Pinned {
 			writeInboxError(w, store.ErrInvalidInput, traceID)
 			return
 		}
-		page, err := h.inbox.Messages(id, filter.Cursor, filter.Limit)
+		page, err := h.inbox.SearchMessages(id, filter.Q, filter.Cursor, filter.Limit)
 		if err != nil {
 			writeInboxError(w, err, traceID)
 			return
@@ -233,11 +233,14 @@ func readInboxFilter(r *http.Request) (store.Filter, error) {
 	if err != nil {
 		return store.Filter{}, err
 	}
-	f := store.Filter{Q: values.Get("q"), Platform: values.Get("platform"), Category: values.Get("category"), Cursor: values.Get("cursor"), Limit: 50}
+	f := store.Filter{Q: values.Get("q"), Platform: values.Get("platform"), ConversationKind: values.Get("conversation_kind"), Category: values.Get("category"), Cursor: values.Get("cursor"), Limit: 50}
+	if _, exists := values["conversation_kind"]; exists && f.ConversationKind != "private" && f.ConversationKind != "group" {
+		return f, store.ErrInvalidInput
+	}
 	if f.Category != "" && f.Category != "unclassified" && f.Category != "friend" && f.Category != "family" && f.Category != "colleague" && f.Category != "client" && f.Category != "partner" && f.Category != "other" {
 		return f, store.ErrInvalidInput
 	}
-	if len(f.Q) > 256 || !utf8.ValidString(f.Q) || len(f.Cursor) > 2048 || (f.Platform != "" && f.Platform != "qq" && f.Platform != "weixin" && f.Platform != "telegram" && f.Platform != "shanliao" && f.Platform != "email") {
+	if len(f.Q) > 256 || !utf8.ValidString(f.Q) || strings.ContainsRune(f.Q, 0) || len(f.Cursor) > 2048 || (f.Platform != "" && f.Platform != "qq" && f.Platform != "weixin" && f.Platform != "telegram" && f.Platform != "shanliao" && f.Platform != "email") {
 		return f, store.ErrInvalidInput
 	}
 	for _, field := range []struct {
@@ -268,7 +271,7 @@ func parseInboxQuery(r *http.Request) (url.Values, error) {
 	}
 	for name, items := range values {
 		switch name {
-		case "q", "platform", "category", "cursor", "limit", "unread", "archived", "pinned", "workspace_id":
+		case "q", "platform", "conversation_kind", "category", "cursor", "limit", "unread", "archived", "pinned", "workspace_id":
 		default:
 			return nil, store.ErrInvalidInput
 		}

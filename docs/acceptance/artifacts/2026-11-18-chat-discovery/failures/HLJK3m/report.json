@@ -1,0 +1,132 @@
+{
+  "synthetic_only": true,
+  "server_started": false,
+  "all_application_http_requests_intercepted": true,
+  "actual_platform_or_model_calls": 0,
+  "checks": [
+    "Private/group tabs are explicit at first inbox paint"
+  ],
+  "screenshots": [
+    "failure.png"
+  ],
+  "api": [
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    }
+  ],
+  "consoleErrors": [],
+  "unexpectedTargets": [],
+  "interceptionErrors": [],
+  "unexpectedRequests": [],
+  "native_mouse_clicks": 3,
+  "result": "failed",
+  "error": "Error: {\"code\":-32000,\"message\":\"Object reference chain is too long\"}\n    at WebSocket.<anonymous> (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/chat-discovery-browser.mjs:612:23)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:845:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:778:26)\n    at fireEvent (node:internal/deps/undici/undici:12652:14)\n    at #onMessage (node:internal/deps/undici/undici:13883:9)\n    at Object.onMessage (node:internal/deps/undici/undici:13596:76)\n    at websocketMessageReceived (node:internal/deps/undici/undici:12656:15)\n    at node:internal/deps/undici/undici:13315:19\n    at node:internal/deps/undici/undici:13135:11\n    at afterWrite (node:internal/streams/writable:708:5)",
+  "failureText": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务可访问\nAgent 助手\n消息\n\n查看已入库会话，按平台筛选、导入记录或管理消息。\n\n导入消息\n来源以实际配置与入库记录为准。工作台不会自动发送消息或邮件。\n私聊\n群聊\n找不到？让 Agent 帮我\n关键词匹配搜索\n搜索\n清除\n\n在当前私聊和筛选条件内，按字面匹配名称或已入库正文；不会自动读取来源。\n\n记录还没入库？\n读取微信消息\n同步邮箱\n收件箱\n全部会话\n未读\n置顶\n已归档\n平台来源\n全部平台\n6\nQ\nQQ\n0\n微\n微信\n6\nT\nTelegram\n0\n闪\n闪聊\n0\n邮\n邮箱\n0\n\n接收能力以实际设置为准；也可导入历史记录。\n\n关系分类\n全部分类\n朋友\n家人\n同事\n客户\n合作伙伴\n其他\n未分类\n微信\n已配置·可后台读取\n私聊 · 全部平台 · 全部会话\n1 个会话\n合\n微\n合成联系人\n11/18 12:00\n最近一条：准备下班\n未分类\n微信 · synthetic-account\n选择会话\n\n从左侧列表打开记录，查看消息正文、来源与处理状态。\n\n读取本机微信消息\n\n按需保存私聊或群聊，可按正文关键词筛选，也可以交给后台定时读取。\n\n读取会话列表\n更新状态\n已配置，等待读取\n本地账号：synthetic-account\n只读 · 发送关闭\n私聊\n群聊\n不会操作？让 Agent 帮我\n按联系人或群名查找\n仅筛选已读取的会话名称和ID，不搜索消息正文。\n选择私聊\n请选择一个私聊\n正文关键词匹配（可选）\n只匹配微信本地库本次读取窗口内的文本，不改变源库；已入库历史请用上方关键词匹配搜索。\n读取并保存消息\n加入后台读取\n\n还未读取会话。先点击“读取会话列表”，再选择私聊或群聊。\n\n后台自动读取\n后台读取已暂停\n\n先读取会话列表，选择私聊或群聊并点击“加入后台读取”，再开启。最多选择20个会话。关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。\n\n读取间隔（秒）\n开启后台读取\n暂停后台读取\n\n间隔10至300秒。设置保存在本机，重启后台后恢复已开启的读取。\n\n读取微信 Windows 4.x 本机已有的私聊文本，不发送消息、不调用AI。 每次读取最近一批记录；暂停、离线或消息量超过读取窗口时，可能无法补齐全部历史。\n\n邮箱，也整理在这里\n\n按需收取最近邮件到本地，保留原邮箱状态。暂不支持发信。\n\n同步邮箱\n更新状态\n尚未配置\n\n请按项目的邮箱接入说明，在本机配置账号与授权码后重启服务。工作台不会收集你的邮箱密码。"
+}

@@ -22,8 +22,12 @@ export interface InboxInfo {
   }[];
   import_limit: number;
 }
+export type ConversationKind = 'private' | 'group';
+
 export interface Conversation {
   id: string;
+  conversation_kind: ConversationKind;
+  matched_message?: string;
   connection_id: string;
   platform: Platform;
   account_id: string;
@@ -222,7 +226,12 @@ function conversation(value: unknown): value is Conversation {
       'last_message_at',
     ].every((key) => isString(value[key])) &&
     isPlatform(value.platform) &&
+    (value.conversation_kind === 'private' ||
+      value.conversation_kind === 'group') &&
     (value.account_name === undefined || isString(value.account_name)) &&
+    (value.matched_message === undefined ||
+      (isString(value.matched_message) &&
+        Array.from(value.matched_message).length <= 376)) &&
     isCount(value.unread_count) &&
     typeof value.pinned === 'boolean' &&
     typeof value.archived === 'boolean' &&
@@ -300,6 +309,7 @@ export async function getConversations(
   signal: AbortSignal,
   filters: {
     platform?: Platform;
+    conversation_kind?: ConversationKind;
     category?: ProfileCategory;
     q?: string;
     unread?: boolean;
@@ -313,6 +323,11 @@ export async function getConversations(
     archived: String(filters.archived),
   });
   if (filters.platform) params.set('platform', filters.platform);
+  if (filters.conversation_kind) {
+    if (!['private', 'group'].includes(filters.conversation_kind))
+      invalidResponse();
+    params.set('conversation_kind', filters.conversation_kind);
+  }
   if (filters.category) {
     if (!isProfileCategory(filters.category)) invalidResponse();
     params.set('category', filters.category);
@@ -332,9 +347,11 @@ export async function getConversationMessages(
   signal: AbortSignal,
   id: string,
   cursor?: string,
+  q?: string,
 ): Promise<PageResult<InboxMessage>> {
   const params = new URLSearchParams({ limit: '50' });
   if (cursor) params.set('cursor', cursor);
+  if (q?.trim()) params.set('q', q.trim());
   return page(
     await request(
       `conversations/${encodeURIComponent(id)}/messages?${params}`,

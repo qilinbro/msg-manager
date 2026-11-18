@@ -92,12 +92,33 @@ for (const callback of [...timeouts.values()]) callback();
 await timedCheck;
 assert.equal(timeouts.size, 0);
 
+// Bind the shipped discovery helpers, rather than leaving newly imported JSX
+// identifiers undefined in this legacy import-stripping component harness.
+const helperJSX = (type, supplied, ...children) => {
+  const props = { ...(supplied ?? {}), children };
+  return typeof type === 'function' ? type(props) : { type, props };
+};
+const discoveryBindings = {};
+for (const [file, names] of [
+  ['ConversationKindTabs.tsx', ['ConversationKindTabs']],
+  ['keyword-search.tsx', ['KeywordMatch', 'asciiFold', 'keywordError']],
+]) {
+  const source = readFileSync(new URL(`../apps/desktop/src/${file}`, import.meta.url), 'utf8')
+    .replace(/^import[\s\S]*?from ['"][^'"]+['"];?\r?$/gm, '')
+    .replace(/^export /gm, '');
+  const output = transformSync(file, source, { jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' } });
+  assert.equal(output.errors.length, 0, `${file} must compile`);
+  Object.assign(discoveryBindings, runInNewContext(`(function(){${output.code}; return {${names.join(',')}};})()`, {
+    jsx: helperJSX, Fragment: 'fragment', TextEncoder,
+  }, { filename: file }));
+}
+
 function hookHarness(file, componentName, bindings, props) {
   const slots = []; let cursor = 0; let dirty = true; let tree; let effects = []; const intervals = new Map(); let intervalID = 0;
   const listeners = new Map();
   const addListener = (event, callback) => { if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event).add(callback); };
   const removeListener = (event, callback) => listeners.get(event)?.delete(callback);
-  const jsx = (type, supplied, ...children) => ({ type, props: { ...(supplied ?? {}), children } });
+  const jsx = helperJSX; // Nested shipped discovery components are pure (no hooks).
   const hookBindings = {
     useState(initial) { const index = cursor++; if (!(index in slots)) slots[index] = typeof initial === 'function' ? initial() : initial; return [slots[index], (value) => { const next = typeof value === 'function' ? value(slots[index]) : value; if (!Object.is(next, slots[index])) { slots[index] = next; dirty = true; } }]; },
     useRef(initial) { const index = cursor++; if (!(index in slots)) slots[index] = { current: initial }; return slots[index]; },
@@ -112,7 +133,7 @@ function hookHarness(file, componentName, bindings, props) {
   assert.equal(transformed.errors.length, 0);
   const componentModule = { exports: {} };
   runInNewContext(transformed.code + `\nmodule.exports=${componentName};`, {
-    ...bindings, ...hookBindings, jsx, Fragment: 'fragment', module: componentModule, AbortController, ServiceError,
+    ...bindings, ...discoveryBindings, ...hookBindings, jsx, Fragment: 'fragment', module: componentModule, AbortController, ServiceError,
     document: { visibilityState: 'visible', addEventListener: addListener, removeEventListener: removeListener },
     window: { addEventListener: addListener, removeEventListener: removeListener, setInterval: (callback, ms) => { intervals.set(++intervalID, { callback, ms }); return intervalID; }, clearInterval: (id) => intervals.delete(id), setTimeout: (callback) => { callback(); return 1; }, clearTimeout() {} },
   }, { filename: file });
@@ -133,18 +154,29 @@ const calls = [];
 const saves = [];
 const readKeywords = [];
 let softRefreshes = 0;
+const helpRequests = [];
 const panel = hookHarness('WechatPanel.tsx', 'WechatPanel', {
   getWechatStatus: async (_token, requestSignal) => { calls.push({ action: 'status', signal: requestSignal }); return structuredClone(componentStatus); },
   getWechatSessions: async () => { calls.push({ action: 'sessions' }); return [{ peer_id: 'wxid_synthetic_peer', name: '合成联系人', conversation_kind: 'private' }]; },
   readWechatMessages: async (_token, _signal, _peerID, keyword) => { calls.push({ action: 'read' }); readKeywords.push(keyword ?? ''); return structuredClone(readResult); },
   saveWechatMonitor: async (_token, _signal, settings) => { saves.push(structuredClone(settings)); componentStatus.monitor = { ...componentStatus.monitor, ...settings, state: settings.enabled ? 'waiting' : 'disabled' }; return structuredClone(componentStatus.monitor); },
   wechatMonitorError: () => 'synthetic error',
-}, { token: 'synthetic', storageEnabled: true, revision: 0, onSynced() {}, onBackgroundSynced() { softRefreshes++; }, onAuthFailure() { throw Error('unexpected authentication failure'); } });
+}, { token: 'synthetic', storageEnabled: true, revision: 0, onSynced() {}, onBackgroundSynced() { softRefreshes++; }, onAuthFailure() { throw Error('unexpected authentication failure'); }, onAssistantHelp(request) { helpRequests.push(request); } });
 await panel.flush();
 const tick = async () => { for (const timer of panel.intervals.values()) { assert.equal(timer.ms, 5000); timer.callback(); } await panel.flush(); };
 await tick();
 assert.ok(calls.every((call) => call.action === 'status'), 'mount and polling must never start a source read');
 assert.equal(saves.length, 0, 'mount must not enable automation');
+assert.equal(nodes(panel.tree).filter((node) => node.props.role === 'tab').length, 2, 'discovery tabs must render before sessions are loaded');
+assert.ok(find(panel, (node) => node.props.id === 'wechat-session-keyword'));
+assert.ok(find(panel, (node) => node.props.id === 'wechat-keyword'));
+const beforeHelp = calls.length;
+find(panel, (node) => node.type === 'button' && text(node) === '不会操作？让 Agent 帮我').props.onClick();
+await panel.flush();
+assert.equal(helpRequests.length, 1, 'help must prepare a UI-only request');
+assert.deepEqual(Object.keys(helpRequests[0]).sort(), ['prompt', 'source']);
+assert.equal(calls.length, beforeHelp, 'help must not load sessions or read messages');
+assert.equal(saves.length, 0, 'help must not mutate monitor settings');
 find(panel, (node) => node.type === 'button' && text(node) === '读取会话列表').props.onClick();
 await panel.flush();
 const keywordInput = find(panel, (node) => node.props.id === 'wechat-keyword');
@@ -190,7 +222,7 @@ const inbox = hookHarness('Inbox.tsx', 'Inbox', {
   importMessages() {}, importTelegram() {}, parseImport() {},
   PLATFORM_NAMES: { qq: 'QQ', weixin: '微信', telegram: 'Telegram', shanliao: '闪聊', email: '邮箱' },
   EmailPanel: 'EmailPanelStub', WechatPanel: 'WechatPanelStub', AIPanel: 'AIPanelStub', ProfilePanel: 'ProfilePanelStub',
-}, { token: 'synthetic', aiDrafts: new Map(), onSettings() {}, onAuthFailure() { throw Error('unexpected authentication failure'); } });
+}, { token: 'synthetic', aiDrafts: new Map(), onSettings() {}, onAuthFailure() { throw Error('unexpected authentication failure'); }, onAssistantHelp(request) { helpRequests.push(request); } });
 await inbox.flush();
 find(inbox, (node) => node.type === 'button' && node.props.className === 'inbox-conversation ').props.onClick({ currentTarget: { isConnected: true } });
 await inbox.flush();

@@ -256,6 +256,7 @@ export function transport() {
     ServiceError,
     AbortController,
     DOMException,
+    TextEncoder,
     URL,
     Map,
     Set,
@@ -303,6 +304,14 @@ export function transport() {
       return responder(request);
     },
   };
+  Object.assign(
+    globals,
+    runInNewContext(
+      `(function(){\n${transpile('assistant-help.ts')}\nreturn {ASSISTANT_MESSAGE_BYTE_LIMIT, inspectAssistantMessage, normalizeAssistantHelpRequest, prepareAssistantHelpDraft};\n})()`,
+      globals,
+      { filename: 'assistant-help.ts' },
+    ),
+  );
   return {
     requests,
     timers,

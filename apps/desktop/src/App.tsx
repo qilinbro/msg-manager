@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { getCollection, SERVICE, ServiceError } from './api';
 import type { Connector, SystemStatus } from './api';
@@ -10,18 +10,14 @@ import { AssistantPanel } from './AssistantPanel';
 import { FeishuPanel } from './FeishuPanel';
 import type { FeishuRecoveryCache } from './FeishuPanel';
 import type { AssistantWorkspace } from './AssistantPanel';
+import { normalizeAssistantHelpRequest } from './assistant-help';
+import type { AssistantHelpRequest } from './assistant-help';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
 
 type Page =
-  | 'overview'
-  | 'messages'
-  | 'contacts'
-  | 'approvals'
-  | 'assistant'
-  | 'feishu'
-  | 'settings';
+  'overview' | 'messages' | 'contacts' | 'approvals' | 'feishu' | 'settings';
 type IconName =
   | 'overview'
   | 'messages'
@@ -32,7 +28,11 @@ type IconName =
   | 'lock'
   | 'check'
   | 'plug';
-const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
+const NAVIGATION: {
+  page: Page | 'assistant';
+  label: string;
+  icon: IconName;
+}[] = [
   { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'messages', label: '消息', icon: 'messages' },
   { page: 'contacts', label: '联系人', icon: 'contacts' },
@@ -45,7 +45,6 @@ const PAGE_TITLES: Record<Page, string> = {
   messages: '消息',
   contacts: '联系人',
   approvals: '待审批',
-  assistant: 'Agent 助手',
   feishu: '飞书早晚报',
   settings: '设置',
 };
@@ -710,6 +709,15 @@ export default function App() {
   );
   const [digestUnresolved] = useState(() => new Set<string>());
   const [feishuRecoveries] = useState<FeishuRecoveryCache>(() => new Map());
+  const assistantDialog = useRef<HTMLDialogElement | null>(null);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantIdentity, setAssistantIdentity] = useState<string | null>(
+    null,
+  );
+  const [assistantHelp, setAssistantHelp] = useState<{
+    identity: string;
+    request: AssistantHelpRequest;
+  } | null>(null);
   const {
     session,
     tokenDraft,
@@ -729,7 +737,35 @@ export default function App() {
     onAuthFailure,
     onSystemUpdate,
   } = useServiceSession(aiDrafts);
+  const assistantVisible = assistantOpen && assistantIdentity === activeToken;
+  const openAssistant = useCallback(() => {
+    setAssistantIdentity(activeToken);
+    setAssistantOpen(true);
+  }, [activeToken]);
+  const closeAssistant = useCallback(() => {
+    assistantDialog.current?.close();
+    setAssistantOpen(false);
+  }, []);
+  const onAssistantHelp = useCallback(
+    (request: AssistantHelpRequest) => {
+      const prepared = normalizeAssistantHelpRequest(request);
+      if (!prepared) return;
+      setAssistantHelp({ identity: activeToken, request: prepared });
+      setAssistantIdentity(activeToken);
+      setAssistantOpen(true);
+    },
+    [activeToken],
+  );
   useEffect(() => {
+    const dialog = assistantDialog.current;
+    if (assistantVisible) {
+      if (dialog && !dialog.open) dialog.showModal();
+    } else if (dialog?.open) dialog.close();
+    // Native dialog owns Escape, protected focus and return to the invoker.
+    // Closing hides the Agent UI; it does not unmount it or replay any request.
+  }, [assistantVisible]);
+  useEffect(() => {
+    setAssistantHelp(null);
     // Only the stable business identity owns this in-memory assistant workspace.
     // Device bearer renewal does not change activeToken or remount business panels.
     for (const identity of assistantWorkspaces.keys()) {
@@ -751,7 +787,10 @@ export default function App() {
     window.addEventListener('beforeunload', warnUnsaved);
     return () => window.removeEventListener('beforeunload', warnUnsaved);
   }, [aiDrafts]);
-  const onSettings = useCallback(() => setPage('settings'), []);
+  const onSettings = useCallback(() => {
+    closeAssistant();
+    setPage('settings');
+  }, [closeAssistant]);
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -770,11 +809,21 @@ export default function App() {
           {NAVIGATION.map((item) => (
             <button
               key={item.page}
-              className={`nav-item ${page === item.page ? 'active' : ''}`}
+              type="button"
+              className={`nav-item ${item.page === 'assistant' ? 'nav-assistant' : ''} ${page === item.page ? 'active' : ''}`}
               aria-label={item.label}
               title={item.label}
               aria-current={page === item.page ? 'page' : undefined}
-              onClick={() => setPage(item.page)}
+              aria-haspopup={item.page === 'assistant' ? 'dialog' : undefined}
+              aria-controls={
+                item.page === 'assistant' ? 'assistant-workspace' : undefined
+              }
+              aria-expanded={
+                item.page === 'assistant' ? assistantVisible : undefined
+              }
+              onClick={() =>
+                item.page === 'assistant' ? openAssistant() : setPage(item.page)
+              }
             >
               <Icon name={item.icon} />
               <span>{item.label}</span>
@@ -801,7 +850,25 @@ export default function App() {
             <span aria-hidden="true">/</span>
             <strong>{PAGE_TITLES[page]}</strong>
           </div>
-          <Status state={session.status} />
+          <div className="topbar-actions">
+            <Status state={session.status} />
+            <button
+              type="button"
+              className="button button-secondary topbar-assistant"
+              aria-haspopup="dialog"
+              aria-controls="assistant-workspace"
+              aria-expanded={assistantVisible}
+              onClick={() =>
+                onAssistantHelp({
+                  source: PAGE_TITLES[page],
+                  prompt:
+                    '请帮助我了解这个页面可以完成哪些工作，并说明下一步。先解释可用能力和限制；需要首次连接、模型配置或凭据时提醒我手动完成；有影响的操作必须先预览并逐项确认。',
+                })
+              }
+            >
+              Agent 助手
+            </button>
+          </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
           {page === 'overview' ? (
@@ -839,14 +906,6 @@ export default function App() {
               onSettings={onSettings}
               onAuthFailure={onAuthFailure}
             />
-          ) : page === 'assistant' ? (
-            <AssistantPanel
-              key={`assistant:${activeToken}`}
-              token={activeToken}
-              cache={assistantWorkspaces}
-              onSettings={onSettings}
-              onAuthFailure={onAuthFailure}
-            />
           ) : page === 'contacts' ? (
             <Inbox
               key={`profiles:${activeToken}`}
@@ -854,6 +913,7 @@ export default function App() {
               aiDrafts={aiDrafts}
               onSettings={onSettings}
               onAuthFailure={onAuthFailure}
+              onAssistantHelp={onAssistantHelp}
               profilesOnly
             />
           ) : page === 'messages' ? (
@@ -863,6 +923,7 @@ export default function App() {
               aiDrafts={aiDrafts}
               onSettings={onSettings}
               onAuthFailure={onAuthFailure}
+              onAssistantHelp={onAssistantHelp}
             />
           ) : (
             <CollectionView
@@ -875,6 +936,43 @@ export default function App() {
           )}
         </main>
       </div>
+      <dialog
+        id="assistant-workspace"
+        className="assistant-workspace"
+        ref={assistantDialog}
+        aria-labelledby="assistant-title"
+        onClose={() => setAssistantOpen(false)}
+      >
+        <div className="assistant-workspace-bar">
+          <p>关闭后返回原页面；不会取消已提交的运行。</p>
+          <button
+            type="button"
+            className="button button-secondary"
+            autoFocus
+            onClick={closeAssistant}
+          >
+            关闭助手
+          </button>
+        </div>
+        <div className="assistant-workspace-body">
+          {assistantIdentity === activeToken ? (
+            <AssistantPanel
+              key={`assistant:${activeToken}`}
+              token={activeToken}
+              cache={assistantWorkspaces}
+              visible={assistantVisible}
+              helpRequest={
+                assistantHelp?.identity === activeToken
+                  ? assistantHelp.request
+                  : null
+              }
+              onDismissHelp={() => setAssistantHelp(null)}
+              onSettings={onSettings}
+              onAuthFailure={onAuthFailure}
+            />
+          ) : null}
+        </div>
+      </dialog>
     </div>
   );
 }

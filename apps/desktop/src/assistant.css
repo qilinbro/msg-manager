@@ -1,5 +1,77 @@
+.assistant-workspace {
+  position: fixed;
+  inset-block: 0;
+  inset-inline: auto 0;
+  width: min(680px, 100%);
+  max-width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-inline-start: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.assistant-workspace[open] {
+  display: flex;
+  flex-direction: column;
+}
+.assistant-workspace::backdrop {
+  background: rgb(32 33 36 / 12%);
+}
+.assistant-workspace-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 16px;
+  padding: 12px 24px;
+  border-block-end: 1px solid var(--border);
+}
+.assistant-workspace-bar p {
+  min-width: 0;
+  margin: 0;
+  color: var(--secondary);
+  font-size: 0.75rem;
+  line-height: 1.8;
+}
+.assistant-workspace-bar button {
+  flex-shrink: 0;
+}
+.assistant-workspace-body {
+  flex: 1;
+  min-height: 0;
+  padding: 24px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
 .assistant-page {
   min-width: 0;
+}
+.assistant-help {
+  margin-block-end: 24px;
+  padding-block: 16px;
+  border-block: 1px solid var(--border-strong);
+}
+.assistant-help h2 {
+  margin-block: 0 8px;
+  font-size: 1rem;
+}
+.assistant-help-prompt {
+  max-width: 70ch;
+  margin-block: 12px;
+  color: var(--ink);
+  font-size: 0.875rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.assistant-help .assistant-actions {
+  margin-block-start: 16px;
 }
 .assistant-heading,
 .assistant-conversation-heading,
@@ -340,6 +412,16 @@
   margin: 0;
 }
 @media (max-width: 600px) {
+  .assistant-workspace {
+    width: 100%;
+    border-inline-start: 0;
+  }
+  .assistant-workspace-bar {
+    padding-inline: 16px;
+  }
+  .assistant-workspace-body {
+    padding: 20px 16px;
+  }
   .assistant-heading > .assistant-actions {
     width: 100%;
   }
