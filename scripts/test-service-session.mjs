@@ -154,6 +154,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   let render = () => useServiceSession(aiDrafts);
   if (mode === 'app') {
     environment.Inbox = 'InboxStub';
+    evaluate('ShoppingChannels.tsx', ['ShoppingChannels']);
     const { App } = evaluate('App.tsx', ['App']);
     render = () => App();
   }
@@ -477,16 +478,30 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
 {
   const h = browserHarness({ mode: 'app' });
   await h.flush();
+  const navigation = (label) => find(h, (node) => node.type === 'button' && node.props['aria-label'] === label).props.onClick();
+  navigation('购物渠道'); await h.flush();
+  const shopping = find(h, (node) => node.type?.name === 'ShoppingChannels');
+  const links = nodes(shopping.type()).filter((node) => node.type === 'a');
+  const domains = new Set(['www.goofish.com', 'www.taobao.com', 'www.jd.com', 'www.yangkeduo.com']);
+  for (const { props } of links) {
+    const url = new URL(props.href);
+    assert.ok(domains.delete(url.hostname));
+    assert.equal(url.href, `https://${url.hostname}/`);
+    assert.equal(props.target, '_blank');
+    assert.match(props.rel, /\bnoopener\b/);
+    assert.match(props.rel, /\bnoreferrer\b/);
+  }
+  assert.equal(domains.size, 0, 'all four shopping sites are available');
+  assert.equal(h.requests.length, 0, 'shopping is available without a backend connection');
   find(h, (node) => node.type === 'button' && node.props['aria-label'] === '设置').props.onClick();
   await h.flush();
   settings(h).onDraftChange(TOKEN_A); await h.flush();
   await settings(h).onConnect(submitEvent); await h.flush();
   const requestsAfterConnect = h.requests.length;
-  const navigation = (label) => find(h, (node) => node.type === 'button' && node.props['aria-label'] === label).props.onClick();
   navigation('消息'); await h.flush();
   const drafts = find(h, (node) => node.type === 'InboxStub').props.aiDrafts;
   drafts.set('synthetic-chat', { draft: 'synthetic navigation draft' });
-  for (const page of ['联系人', '待审批', '概览', '设置', '消息']) { navigation(page); await h.flush(); }
+  for (const page of ['购物渠道', '联系人', '待审批', '概览', '设置', '消息']) { navigation(page); await h.flush(); }
   const inbox = find(h, (node) => node.type === 'InboxStub');
   assert.equal(inbox.props.token, TOKEN_A);
   assert.equal(inbox.props.aiDrafts, drafts, 'navigation must retain the authenticated AI buffer');
