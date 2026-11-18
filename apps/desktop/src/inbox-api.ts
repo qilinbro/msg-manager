@@ -3,13 +3,28 @@ import { authorizedFetch, authErrorMessage } from './device-auth';
 import { isProfileCategory } from './profile-api';
 import type { ProfileCategory } from './profile-api';
 
-export type Platform = 'qq' | 'weixin' | 'telegram' | 'shanliao' | 'email';
+export type ShoppingPlatform = 'xianyu' | 'taobao' | 'jd' | 'pinduoduo';
+export type Platform =
+  'qq' | 'weixin' | 'telegram' | 'shanliao' | 'email' | ShoppingPlatform;
+export const SHOPPING_PLATFORMS: ShoppingPlatform[] = [
+  'xianyu',
+  'taobao',
+  'jd',
+  'pinduoduo',
+];
+export const isShoppingPlatform = (value: unknown): value is ShoppingPlatform =>
+  typeof value === 'string' &&
+  SHOPPING_PLATFORMS.includes(value as ShoppingPlatform);
 export const PLATFORM_NAMES: Record<Platform, string> = {
   qq: 'QQ',
   weixin: '微信',
   telegram: 'Telegram',
   shanliao: '闪聊',
   email: '邮箱',
+  xianyu: '闲鱼',
+  taobao: '淘宝',
+  jd: '京东',
+  pinduoduo: '拼多多',
 };
 export interface InboxInfo {
   storage_enabled: boolean;
@@ -17,7 +32,12 @@ export interface InboxInfo {
   platforms: {
     id: Platform;
     name: string;
-    live_status: 'not_connected' | 'probe_only' | 'unsupported' | 'configured';
+    live_status:
+      | 'not_connected'
+      | 'probe_only'
+      | 'unsupported'
+      | 'configured'
+      | 'import_only';
     message_count: number;
   }[];
   import_limit: number;
@@ -63,6 +83,7 @@ export interface ImportMessage {
   external_id: string;
   peer_id: string;
   peer_name: string;
+  conversation_kind?: 'private' | 'group';
   direction: 'incoming' | 'outgoing';
   body: string;
   occurred_at: string;
@@ -285,9 +306,13 @@ export async function getInboxInfo(
         isRecord(item) &&
         isPlatform(item.id) &&
         isString(item.name) &&
-        ['not_connected', 'probe_only', 'unsupported', 'configured'].includes(
-          String(item.live_status),
-        ) &&
+        [
+          'not_connected',
+          'probe_only',
+          'unsupported',
+          'configured',
+          'import_only',
+        ].includes(String(item.live_status)) &&
         isCount(item.message_count),
     )
   )
@@ -421,6 +446,16 @@ export function parseImport(
       '请提供平台、账号、账号名称和 messages 数组，或填写来源信息后上传消息数组。',
     );
   if (
+    isShoppingPlatform(source.platform) &&
+    Object.keys(source).some(
+      (key) =>
+        !['platform', 'account_id', 'account_name', 'messages'].includes(key),
+    )
+  )
+    throw new Error(
+      '购物记录请使用统一 JSON 私聊文本格式，不包含登录信息、群聊声明或平台原始导出字段。',
+    );
+  if (
     source.messages.length === 0 ||
     source.messages.length > Math.min(1000, limit)
   )
@@ -430,6 +465,34 @@ export function parseImport(
   const messages = source.messages.map(
     (item: unknown, index): ImportMessage => {
       if (!isRecord(item)) throw new Error(`第 ${index + 1} 条消息格式无效。`);
+      if (
+        item.conversation_kind !== undefined &&
+        item.conversation_kind !== 'private' &&
+        item.conversation_kind !== 'group'
+      )
+        throw new Error(
+          `第 ${index + 1} 条消息的 conversation_kind 仅支持 private / group。`,
+        );
+      if (isShoppingPlatform(source.platform)) {
+        if (item.conversation_kind === 'group')
+          throw new Error(
+            `第 ${index + 1} 条为群聊；购物渠道目前仅支持私聊文本。`,
+          );
+        const fields = [
+          'external_id',
+          'peer_id',
+          'peer_name',
+          'conversation_kind',
+          'direction',
+          'body',
+          'occurred_at',
+          'read',
+        ];
+        if (Object.keys(item).some((key) => !fields.includes(key)))
+          throw new Error(
+            `第 ${index + 1} 条购物消息仅支持统一 JSON 的私聊文本字段；不支持邮件、媒体或平台原始导出字段。`,
+          );
+      }
       const idsValid = ['external_id', 'peer_id'].every(
         (key) =>
           isString(item[key]) &&
@@ -462,6 +525,14 @@ export function parseImport(
         external_id: item.external_id as string,
         peer_id: item.peer_id as string,
         peer_name: item.peer_name,
+        ...(isShoppingPlatform(source.platform)
+          ? { conversation_kind: 'private' as const }
+          : item.conversation_kind === undefined
+            ? {}
+            : {
+                conversation_kind: item.conversation_kind as
+                  'private' | 'group',
+              }),
         direction: item.direction as ImportMessage['direction'],
         body: item.body,
         occurred_at: item.occurred_at,

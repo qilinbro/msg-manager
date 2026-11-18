@@ -101,7 +101,7 @@ func tools() []tool {
 		{Name: "get_system_status", Description: "读取本地服务状态、存储状态和连接器能力。", InputSchema: objectSchema(nil, nil)},
 		{Name: "search_conversations", Description: "在已保存消息的会话中按关键词、平台和状态搜索。", InputSchema: objectSchema(map[string]any{
 			"q":        stringSchema(256),
-			"platform": enumSchema([]string{"qq", "weixin", "telegram", "shanliao", "email"}),
+			"platform": enumSchema([]string{"qq", "weixin", "telegram", "shanliao", "email", "xianyu", "taobao", "jd", "pinduoduo"}),
 			"category": enumSchema([]string{"friend", "family", "colleague", "client", "partner", "other", "unclassified"}),
 			"unread":   boolSchema(), "pinned": boolSchema(), "archived": boolSchema(),
 			"cursor": stringSchema(2048), "limit": numberSchema(1, 100),

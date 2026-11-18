@@ -70,7 +70,7 @@ npm run dev
 }
 ```
 
-`platform` 只能取 `qq`、`weixin`、`telegram`、`shanliao`、`email`；`direction` 只能取 `incoming`、`outgoing`。标识必须来自用户已有记录，不以昵称猜测身份。QQ、微信、闪聊的不同导出工具格式尚未逐个适配，需先转换为上述格式。
+`platform` 支持 `qq`、`weixin`、`telegram`、`shanliao`、`email`，以及购物平台 `xianyu`、`taobao`、`jd`、`pinduoduo`。`direction` 只能取 `incoming`、`outgoing`。标识必须来自用户已有记录，不以昵称猜测身份。QQ、微信、闪聊的不同导出工具格式尚未逐个适配，需先转换为上述格式。购物平台仅支持主动导入一对一文本，详见[购物私聊导入](购物私聊导入.md)。
 
 消息可以带可选 `read` 布尔值和 `conversation_kind`（`private` 或 `group`，默认 `private`）；邮箱消息还可带 `email` 对象（`subject`、`from_name`、`from_address`、`to` 字符串数组、`folder`）。群聊导入必须使用稳定的群会话 ID，不能仅凭昵称猜测群身份。界面会校验并保留这些字段，不将邮箱元数据丢弃。标准 JSON 导入的保存来源为 import，不能以此声称完成 IMAP 在线同步。
 
@@ -89,6 +89,7 @@ npm run dev
 - Telegram：管理导入记录，未开启实时接收。
 - 闪聊：具体产品/接口尚待确认，仅提供统一格式导入。
 - 邮箱：配置本机 IMAP 授权码后手动同步最近一批，尚未开启常驻收件；详见[邮箱说明](email-setup.md)。
+- 购物：可保存和管理已主动导入的闲鱼、淘宝、京东及拼多多私聊文本；账号在线连接、后台收件和发送未接入。
 - 发送、模型回复、审批、平台历史补齐均未启用。
 
 本轮工程和界面验证使用合成数据。团队实名代码审查、真实账号授权与独立验收仍需完成。

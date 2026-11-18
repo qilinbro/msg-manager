@@ -9,6 +9,7 @@ import { AIModelPanel } from './AIModelPanel';
 import { DigestPanel } from './DigestPanel';
 import { ShoppingChannels } from './ShoppingChannels';
 import type { AIDraftBuffer } from './ai-api';
+import type { ShoppingPlatform } from './inbox-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
 
@@ -709,6 +710,9 @@ function Settings({
 export default function App() {
   const [page, setPage] = useState<Page>('overview');
   const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
+  const [shoppingImport, setShoppingImport] = useState<ShoppingPlatform | null>(
+    null,
+  );
   const {
     session,
     tokenDraft,
@@ -738,6 +742,14 @@ export default function App() {
     return () => window.removeEventListener('beforeunload', warnUnsaved);
   }, [aiDrafts]);
   const onSettings = useCallback(() => setPage('settings'), []);
+  const onShoppingImport = useCallback((platform: ShoppingPlatform) => {
+    setShoppingImport(platform);
+    setPage('messages');
+  }, []);
+  const onShoppingImportHandled = useCallback(
+    () => setShoppingImport(null),
+    [],
+  );
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -797,7 +809,7 @@ export default function App() {
               onMessages={() => setPage('messages')}
             />
           ) : page === 'shopping' ? (
-            <ShoppingChannels />
+            <ShoppingChannels onImport={onShoppingImport} />
           ) : page === 'settings' ? (
             <Settings
               session={session}
@@ -834,6 +846,8 @@ export default function App() {
               aiDrafts={aiDrafts}
               onSettings={onSettings}
               onAuthFailure={onAuthFailure}
+              requestedImportPlatform={shoppingImport}
+              onImportHandled={onShoppingImportHandled}
             />
           ) : (
             <CollectionView

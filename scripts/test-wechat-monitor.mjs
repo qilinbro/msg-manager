@@ -188,7 +188,8 @@ const inbox = hookHarness('Inbox.tsx', 'Inbox', {
   getConversationMessages: async () => { historyReads++; return { items: structuredClone(inboxMessages), next_cursor: 'synthetic-message-cursor' }; },
   updateConversation: async () => structuredClone(conversation),
   importMessages() {}, importTelegram() {}, parseImport() {},
-  PLATFORM_NAMES: { qq: 'QQ', weixin: '微信', telegram: 'Telegram', shanliao: '闪聊', email: '邮箱' },
+  PLATFORM_NAMES: { qq: 'QQ', weixin: '微信', telegram: 'Telegram', shanliao: '闪聊', email: '邮箱', xianyu: '闲鱼', taobao: '淘宝', jd: '京东', pinduoduo: '拼多多' },
+  isShoppingPlatform: value => ['xianyu', 'taobao', 'jd', 'pinduoduo'].includes(value),
   EmailPanel: 'EmailPanelStub', WechatPanel: 'WechatPanelStub', AIPanel: 'AIPanelStub', ProfilePanel: 'ProfilePanelStub',
 }, { token: 'synthetic', aiDrafts: new Map(), onSettings() {}, onAuthFailure() { throw Error('unexpected authentication failure'); } });
 await inbox.flush();
@@ -218,5 +219,44 @@ await reconcile();
 assert.equal(historyReads, beforeEditing, 'background refresh must not replace messages under an open AI editor');
 assert.ok(find(inbox, (node) => node.type === 'AIPanelStub'), 'AI editor must remain mounted');
 inbox.unmount();
+
+// A shopping intent uses the same real Inbox/ImportPanel and local source
+// filters. An older service must not receive an unsupported query or import.
+for (const available of [true, false]) {
+  const platforms = available
+    ? [{ id: 'xianyu', name: '闲鱼', live_status: 'import_only', message_count: 1 }, { id: 'taobao', name: '淘宝', live_status: 'import_only', message_count: 0 }]
+    : [{ id: 'qq', name: 'QQ', live_status: 'not_connected', message_count: 0 }];
+  const listCalls = [];
+  let handled = 0;
+  const shopInbox = hookHarness('Inbox.tsx', 'Inbox', {
+    ...profileCategoriesModule.exports,
+    getInboxInfo: async () => ({ storage_enabled: true, source_mode: 'import', platforms, import_limit: 1000 }),
+    getConversations: async (_token, _signal, filters) => { listCalls.push(filters); return { items: [], next_cursor: null }; },
+    getConversationMessages: async () => { throw Error('no shopping conversation selected'); },
+    updateConversation: async () => { throw Error('no shopping mutation authorized'); },
+    importMessages() { throw Error('an import requires file preview and confirmation'); }, importTelegram() {}, parseImport() {},
+    PLATFORM_NAMES: { qq: 'QQ', weixin: '微信', telegram: 'Telegram', shanliao: '闪聊', email: '邮箱', xianyu: '闲鱼', taobao: '淘宝', jd: '京东', pinduoduo: '拼多多' },
+    isShoppingPlatform: value => ['xianyu', 'taobao', 'jd', 'pinduoduo'].includes(value),
+    EmailPanel: 'EmailPanelStub', WechatPanel: 'WechatPanelStub', AIPanel: 'AIPanelStub', ProfilePanel: 'ProfilePanelStub',
+  }, { token: 'synthetic', aiDrafts: new Map(), requestedImportPlatform: 'xianyu', onImportHandled() { handled++; }, onSettings() {}, onAuthFailure() { throw Error('unexpected authentication failure'); } });
+  await shopInbox.flush();
+  const importNode = find(shopInbox, n => n.type?.name === 'ImportPanel');
+  assert.equal(importNode.props.initialPlatform, 'xianyu');
+  assert.equal(importNode.props.availablePlatforms.includes('xianyu'), available);
+  assert.equal(handled, 1, 'one navigation intent must only open its import once');
+  if (available) {
+    assert.equal(listCalls.at(-1).platform, 'xianyu');
+    assert.ok(text(shopInbox.tree).includes('仅手动导入'));
+    const taobaoFilter = find(shopInbox, n => n.type === 'button' && n.props.className?.includes('inbox-platform-filter') && text(n).includes('淘宝'));
+    assert.equal(taobaoFilter.props.disabled, false);
+    taobaoFilter.props.onClick(); await shopInbox.flush();
+    assert.equal(listCalls.at(-1).platform, 'taobao', 'source filter must query the selected shopping platform');
+  } else {
+    assert.equal(listCalls.length, 0, 'old service cannot be queried with an unsupported platform');
+    assert.ok(text(shopInbox.tree).includes('更新并重启本地服务'));
+    assert.equal(find(shopInbox, n => n.type === 'button' && n.props.className?.includes('inbox-platform-filter') && text(n).includes('闲鱼')).props.disabled, true);
+  }
+  shopInbox.unmount();
+}
 
 console.log('WeChat monitor client/component and inbox soft-refresh checks passed: authenticated transport, old service compatibility, uncertain-result handling, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, selected chat and reading/editor preservation. Synthetic data only.');

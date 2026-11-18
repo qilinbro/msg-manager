@@ -10,6 +10,7 @@ import {
   importTelegram,
   parseImport,
   PLATFORM_NAMES,
+  isShoppingPlatform,
 } from './inbox-api';
 import type {
   Conversation,
@@ -18,6 +19,7 @@ import type {
   ImportRequest,
   ImportResult,
   Platform,
+  ShoppingPlatform,
   TelegramImportRequest,
 } from './inbox-api';
 import './inbox.css';
@@ -46,7 +48,17 @@ type Glyph =
   | 'check'
   | 'close'
   | 'refresh';
-const PLATFORMS: Platform[] = ['qq', 'weixin', 'telegram', 'shanliao', 'email'];
+const PLATFORMS: Platform[] = [
+  'qq',
+  'weixin',
+  'telegram',
+  'shanliao',
+  'email',
+  'xianyu',
+  'taobao',
+  'jd',
+  'pinduoduo',
+];
 const VIEWS: { value: View; name: string; icon: Glyph }[] = [
   { value: 'all', name: '全部会话', icon: 'mail' },
   { value: 'unread', name: '未读', icon: 'mail' },
@@ -160,14 +172,18 @@ function ImportPanel({
   onClose,
   onImported,
   onAuthFailure,
+  initialPlatform = 'qq',
+  availablePlatforms = [],
 }: {
   token: string;
   limit: number;
   onClose: () => void;
   onImported: () => void;
   onAuthFailure: () => void;
+  initialPlatform?: Platform;
+  availablePlatforms?: Platform[];
 }) {
-  const [platform, setPlatform] = useState<Platform>('qq');
+  const [platform, setPlatform] = useState<Platform>(initialPlatform);
   const [format, setFormat] = useState<'standard' | 'telegram'>('standard');
   const [account, setAccount] = useState('');
   const [accountName, setAccountName] = useState('');
@@ -245,6 +261,16 @@ function ImportPanel({
         source !== null &&
         !Array.isArray(source) &&
         (source as Record<string, unknown>).type === 'personal_chat';
+      if (isShoppingPlatform(platform) && !Array.isArray(source)) {
+        const filePlatform =
+          typeof source === 'object' && source !== null
+            ? (source as Record<string, unknown>).platform
+            : undefined;
+        if (isTelegram || filePlatform !== platform)
+          throw new Error(
+            `文件来源与所选${PLATFORM_NAMES[platform]}不一致。请使用该平台的统一 JSON，或明确修改来源平台后重新检查。`,
+          );
+      }
       if (format === 'telegram' || isTelegram) {
         const data = source as Record<string, unknown>;
         if (!isTelegram || !Array.isArray(data.messages))
@@ -286,6 +312,13 @@ function ImportPanel({
           },
           limit,
         );
+        if (
+          isShoppingPlatform(request.platform) &&
+          !availablePlatforms.includes(request.platform)
+        )
+          throw new Error(
+            `当前后台尚不支持${PLATFORM_NAMES[request.platform]}导入。请更新并重启本地服务，再刷新消息中心后重试。`,
+          );
         setPlatform(request.platform);
         setAccount(request.account_id);
         setAccountName(request.account_name);
@@ -308,6 +341,14 @@ function ImportPanel({
     setError(null);
     setState('importing');
     try {
+      if (
+        preview.mode === 'standard' &&
+        isShoppingPlatform(preview.request.platform) &&
+        !availablePlatforms.includes(preview.request.platform)
+      )
+        throw new Error(
+          `当前后台尚不支持${PLATFORM_NAMES[preview.request.platform]}导入。请更新并重启本地服务，再刷新消息中心后重试。`,
+        );
       if (
         analyzeImported &&
         (!modelStatus?.model_configured || !modelStatus.model_config_id)
@@ -377,6 +418,12 @@ function ImportPanel({
         <div>
           <h2 id="import-heading">把已有消息，整理到一起</h2>
           <p>仅导入你有权使用的记录；这不会向任何联系人发送消息。</p>
+          {isShoppingPlatform(platform) ? (
+            <p>
+              购物渠道仅接收本人授权的统一 JSON
+              私聊文本；平台原始导出须先转换。不需要登录凭据，导入不会开启自动同步。
+            </p>
+          ) : null}
         </div>
         <button
           className="inbox-icon-button"
@@ -387,6 +434,13 @@ function ImportPanel({
           <Symbol name="close" />
         </button>
       </div>
+      {isShoppingPlatform(platform) &&
+      !availablePlatforms.includes(platform) ? (
+        <p className="inbox-feedback is-error" role="alert">
+          当前后台尚不支持{PLATFORM_NAMES[platform]}
+          导入。请更新并重启本地服务，再刷新消息中心后重试。
+        </p>
+      ) : null}
       <form onSubmit={prepare}>
         <fieldset disabled={locked} className="inbox-import-fields">
           <legend className="inbox-sr-only">导入来源</legend>
@@ -482,8 +536,10 @@ function ImportPanel({
               }
             </pre>
             <p>
-              direction 仅支持 incoming /
-              outgoing；时间必须包含时区。相同平台、账号、消息标识用于检查重复。原始文件只在本机解析，只有明确勾选AI整理才提交会话内容。
+              direction 仅支持 incoming / outgoing；时间必须包含时区。购物消息的
+              conversation_kind 可省略或填写 private，不能填写
+              group。相同平台、账号、消息标识用于检查重复。原始文件在页面中解析，确认后写入本地消息库；AI
+              整理需另行勾选授权。
             </p>
           </details>
         ) : (
@@ -616,17 +672,26 @@ export default function Inbox({
   onSettings,
   onAuthFailure,
   profilesOnly = false,
+  requestedImportPlatform = null,
+  onImportHandled,
 }: {
   token: string;
   aiDrafts: Map<string, AIDraftBuffer>;
   onSettings: () => void;
   onAuthFailure: () => void;
   profilesOnly?: boolean;
+  requestedImportPlatform?: ShoppingPlatform | null;
+  onImportHandled?: () => void;
 }) {
   const [info, setInfo] = useState<InboxInfo | null>(null);
   const [infoState, setInfoState] = useState<LoadState>('idle');
   const [infoError, setInfoError] = useState<string | null>(null);
-  const [platform, setPlatform] = useState<Platform | undefined>();
+  const [platform, setPlatform] = useState<Platform | undefined>(
+    requestedImportPlatform ?? undefined,
+  );
+  const [importPlatform, setImportPlatform] = useState<Platform | undefined>(
+    requestedImportPlatform ?? undefined,
+  );
   const [category, setCategory] = useState<ProfileCategory | undefined>();
   const [view, setView] = useState<View>('all');
   const [search, setSearch] = useState('');
@@ -665,6 +730,19 @@ export default function Inbox({
     { kind: 'bottom' } | { kind: 'prepend'; height: number }
   >({ kind: 'bottom' });
   const enabled = Boolean(token && info?.storage_enabled);
+  const platformAvailable =
+    !platform ||
+    !isShoppingPlatform(platform) ||
+    Boolean(info?.platforms.some((item) => item.id === platform));
+  useEffect(() => {
+    if (!requestedImportPlatform || !enabled || profilesOnly) return;
+    setPlatform(requestedImportPlatform);
+    setImportPlatform(requestedImportPlatform);
+    setSelected(null);
+    setImportOpen(true);
+    setNotice(null);
+    onImportHandled?.();
+  }, [requestedImportPlatform, enabled, profilesOnly, onImportHandled]);
   const selectedId = selected?.id;
   const backgroundView = useRef({
     aiOpen,
@@ -861,8 +939,12 @@ export default function Inbox({
     setListCursor(null);
     setListMore(false);
     setListError(null);
-    if (!enabled) {
-      setListState('idle');
+    if (!enabled || !platformAvailable) {
+      setListState(enabled ? 'error' : 'idle');
+      if (enabled)
+        setListError(
+          '当前后台尚不支持此购物来源。请更新并重启本地服务，再刷新消息中心。',
+        );
       return;
     }
     const controller = new AbortController();
@@ -903,6 +985,7 @@ export default function Inbox({
     return () => controller.abort();
   }, [
     enabled,
+    platformAvailable,
     token,
     platform,
     category,
@@ -1100,7 +1183,10 @@ export default function Inbox({
           </button>
           <button
             className="button button-primary"
-            onClick={() => setImportOpen((value) => !value)}
+            onClick={() => {
+              setImportPlatform(platform);
+              setImportOpen((value) => !value);
+            }}
             disabled={!enabled}
           >
             <Symbol name="import" size={16} />
@@ -1160,6 +1246,8 @@ export default function Inbox({
           key={token}
           token={token}
           limit={info?.import_limit ?? 1000}
+          initialPlatform={importPlatform}
+          availablePlatforms={info?.platforms.map((item) => item.id)}
           onClose={() => {
             setImportOpen(false);
             refresh();
@@ -1241,6 +1329,16 @@ export default function Inbox({
                   key={item}
                   className={`inbox-platform-filter ${platform === item ? 'active' : ''}`}
                   onClick={() => selectPlatform(item)}
+                  disabled={
+                    ['xianyu', 'taobao', 'jd', 'pinduoduo'].includes(item) &&
+                    !status
+                  }
+                  title={
+                    ['xianyu', 'taobao', 'jd', 'pinduoduo'].includes(item) &&
+                    !status
+                      ? '请更新并重启本地服务以支持该来源'
+                      : undefined
+                  }
                   aria-pressed={platform === item}
                 >
                   <PlatformMark platform={item} />
@@ -1252,7 +1350,8 @@ export default function Inbox({
               );
             })}
             <p className="inbox-filter-footnote">
-              微信可按设置在后台读取，邮箱按需同步；其他社交记录来自导入。
+              微信可按设置在后台读取，邮箱按需同步；购物私聊目前仅支持手动导入统一
+              JSON。
             </p>
             <label className="inbox-category-filter">
               关系分类
@@ -1284,15 +1383,17 @@ export default function Inbox({
                 <span key={item.id}>
                   {PLATFORM_NAMES[item.id]}
                   <span>
-                    {item.live_status === 'probe_only'
-                      ? '仅账号核验'
-                      : item.live_status === 'unsupported'
-                        ? '暂不支持实时接入'
-                        : item.live_status === 'configured'
-                          ? item.id === 'weixin'
-                            ? '已配置·可后台读取'
-                            : '已配置·手动同步'
-                          : '实时未连接'}
+                    {item.live_status === 'import_only'
+                      ? '仅手动导入'
+                      : item.live_status === 'probe_only'
+                        ? '仅账号核验'
+                        : item.live_status === 'unsupported'
+                          ? '暂不支持实时接入'
+                          : item.live_status === 'configured'
+                            ? item.id === 'weixin'
+                              ? '已配置·可后台读取'
+                              : '已配置·手动同步'
+                            : '实时未连接'}
                   </span>
                 </span>
               ))}

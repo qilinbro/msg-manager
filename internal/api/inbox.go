@@ -75,6 +75,7 @@ type inboxPlatform struct {
 func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID string) {
 	if r.Method == http.MethodGet && r.URL.Path == "/api/v1/inbox" {
 		platforms := []inboxPlatform{{ID: "qq", Name: "QQ", LiveStatus: "probe_only"}, {ID: "weixin", Name: "微信", LiveStatus: "not_connected"}, {ID: "telegram", Name: "Telegram", LiveStatus: "not_connected"}, {ID: "shanliao", Name: "闪聊", LiveStatus: "unsupported"}, {ID: "email", Name: "邮箱", LiveStatus: "not_connected"}}
+		platforms = append(platforms, inboxPlatform{ID: "xianyu", Name: "闲鱼", LiveStatus: "import_only"}, inboxPlatform{ID: "taobao", Name: "淘宝", LiveStatus: "import_only"}, inboxPlatform{ID: "jd", Name: "京东", LiveStatus: "import_only"}, inboxPlatform{ID: "pinduoduo", Name: "拼多多", LiveStatus: "import_only"})
 		sourceMode := "import"
 		if h.wechat.reader != nil {
 			platforms[1].LiveStatus = "configured"
@@ -242,7 +243,7 @@ func readInboxFilter(r *http.Request) (store.Filter, error) {
 	if f.Category != "" && f.Category != "unclassified" && f.Category != "friend" && f.Category != "family" && f.Category != "colleague" && f.Category != "client" && f.Category != "partner" && f.Category != "other" {
 		return f, store.ErrInvalidInput
 	}
-	if len(f.Q) > 256 || !utf8.ValidString(f.Q) || len(f.Cursor) > 2048 || (f.Platform != "" && f.Platform != "qq" && f.Platform != "weixin" && f.Platform != "telegram" && f.Platform != "shanliao" && f.Platform != "email") {
+	if len(f.Q) > 256 || !utf8.ValidString(f.Q) || len(f.Cursor) > 2048 || (f.Platform != "" && !store.ValidPlatform(f.Platform)) {
 		return f, store.ErrInvalidInput
 	}
 	for _, field := range []struct {

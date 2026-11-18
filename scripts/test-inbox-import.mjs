@@ -27,4 +27,21 @@ const wrongRead=structuredClone(input);wrongRead.messages[0].read='true';
 assert.throws(()=>parseImport(wrongRead,{},1000),/已读状态/);
 const wrongPlatform=structuredClone(input);wrongPlatform.platform='qq';
 assert.throws(()=>parseImport(wrongPlatform,{},1000),/元数据/);
-console.log('Inbox import regression checks passed: mail metadata and read flags are preserved.');
+for (const platform of ['xianyu','taobao','jd','pinduoduo']) {
+  const message={external_id:`${platform}:message/42`,peer_id:'peer/unchanged:01',peer_name:'合成店铺',direction:'incoming',body:'合成购物私聊',occurred_at:'2026-11-17T08:00:00+08:00'};
+  const data={platform,account_id:'own:unchanged/01',account_name:'合成购物账号',messages:[message]};
+  const parsed=parseImport(data,{},1000);
+  assert.equal(parsed.platform,platform);
+  assert.equal(parsed.account_id,data.account_id);
+  assert.equal(parsed.messages[0].external_id,message.external_id);
+  assert.equal(parsed.messages[0].peer_id,message.peer_id);
+  assert.equal(parsed.messages[0].conversation_kind,'private');
+  assert.equal(parseImport([message],{platform,account_id:data.account_id,account_name:data.account_name},1000).platform,platform);
+  assert.throws(()=>parseImport({...data,messages:[{...message,conversation_kind:'group'}]}, {},1000),/仅支持私聊文本/);
+  assert.throws(()=>parseImport({...data,conversation_kind:'group'}, {},1000),/统一 JSON 私聊文本格式/);
+  assert.throws(()=>parseImport({...data,messages:[{...message,type:'image'}]}, {},1000),/私聊文本字段/);
+  assert.throws(()=>parseImport({...data,messages:[{...message,email:headers}]}, {},1000),/私聊文本字段/);
+}
+const group={platform:'weixin',account_id:'self',account_name:'合成微信',messages:[{external_id:'group-message',peer_id:'@@synthetic-group',peer_name:'合成群',conversation_kind:'group',direction:'incoming',body:'合成群正文',occurred_at:'2026-11-17T08:00:00+08:00'}]};
+assert.equal(parseImport(group,{},1000).messages[0].conversation_kind,'group','non-shopping explicit groups remain groups');
+console.log('Inbox import regression checks passed: shopping private-text scope and original IDs, non-shopping group preservation, mail metadata/read flags.');

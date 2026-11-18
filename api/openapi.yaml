@@ -922,7 +922,11 @@
                 "weixin",
                 "telegram",
                 "shanliao",
-                "email"
+                "email",
+                "xianyu",
+                "taobao",
+                "jd",
+                "pinduoduo"
               ]
             }
           },
@@ -5269,7 +5273,11 @@
                     "weixin",
                     "telegram",
                     "shanliao",
-                    "email"
+                    "email",
+                    "xianyu",
+                    "taobao",
+                    "jd",
+                    "pinduoduo"
                   ]
                 },
                 "name": {
@@ -5277,11 +5285,13 @@
                 },
                 "live_status": {
                   "type": "string",
+                  "description": "平台实时接入状态。购物平台 import_only 仅表示可手动导入本人或获授权的私聊文本，不代表账号连接、后台读取、订单查询或发送。",
                   "enum": [
                     "not_connected",
                     "probe_only",
                     "unsupported",
-                    "configured"
+                    "configured",
+                    "import_only"
                   ]
                 },
                 "message_count": {
@@ -5319,7 +5329,11 @@
               "weixin",
               "telegram",
               "shanliao",
-              "email"
+              "email",
+              "xianyu",
+              "taobao",
+              "jd",
+              "pinduoduo"
             ]
           },
           "account_id": {
@@ -5374,7 +5388,11 @@
               "weixin",
               "telegram",
               "shanliao",
-              "email"
+              "email",
+              "xianyu",
+              "taobao",
+              "jd",
+              "pinduoduo"
             ]
           },
           "account_id": {
@@ -5542,6 +5560,39 @@
       },
       "MessageImport": {
         "type": "object",
+        "description": "将本人或获明确授权的文本记录导入本机加密消息库。购物平台 xianyu/taobao/jd/pinduoduo 只接受私聊文本，conversation_kind 缺省为 private；不接收邮箱头、平台凭据、附件或联网参数，来源固定 import。既有 AI 授权可能随后处理新增记录。",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "platform": {
+                  "enum": [
+                    "xianyu",
+                    "taobao",
+                    "jd",
+                    "pinduoduo"
+                  ]
+                }
+              },
+              "required": [
+                "platform"
+              ]
+            },
+            "then": {
+              "properties": {
+                "messages": {
+                  "items": {
+                    "properties": {
+                      "conversation_kind": {
+                        "const": "private"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
         "additionalProperties": false,
         "required": [
           "platform",
@@ -5557,7 +5608,11 @@
               "weixin",
               "telegram",
               "shanliao",
-              "email"
+              "email",
+              "xianyu",
+              "taobao",
+              "jd",
+              "pinduoduo"
             ]
           },
           "account_id": {

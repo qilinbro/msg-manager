@@ -96,7 +96,7 @@ func TestMilkyConnectionConfigCASReopenAndGrantRevocation(t *testing.T) {
 
 func TestMilkyConfigMigrationRollbackAndCancellation(t *testing.T) {
 	s := testStore(t)
-	if _, err := s.db.Exec(`DROP TABLE qq_milky_connection_config; DELETE FROM schema_migrations WHERE version=13; CREATE TRIGGER reject_milky_config_migration BEFORE INSERT ON schema_migrations WHEN NEW.version=13 BEGIN SELECT RAISE(ABORT,'synthetic-migration-failure'); END`); err != nil {
+	if _, err := s.db.Exec(`DROP TABLE qq_milky_connection_config; DELETE FROM schema_migrations WHERE version>=13; CREATE TRIGGER reject_milky_config_migration BEFORE INSERT ON schema_migrations WHEN NEW.version=13 BEGIN SELECT RAISE(ABORT,'synthetic-migration-failure'); END`); err != nil {
 		t.Fatal(err)
 	}
 	if err := migrate(s.db); !errors.Is(err, ErrUnavailable) {

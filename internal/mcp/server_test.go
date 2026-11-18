@@ -30,6 +30,7 @@ func TestToolsForwardOnlyExpectedRequests(t *testing.T) {
 	tests := []struct{ name, args, method, path, query, body string }{
 		{"get_system_status", `{}`, "GET", "/api/v1/system", "", ""},
 		{"search_conversations", `{"q":"项目","platform":"weixin","category":"colleague","unread":true,"pinned":false,"archived":false,"limit":2,"cursor":"abc"}`, "GET", "/api/v1/conversations", "archived=false&category=colleague&cursor=abc&limit=2&pinned=false&platform=weixin&q=%E9%A1%B9%E7%9B%AE&unread=true", ""},
+		{"search_conversations", `{"platform":"xianyu","q":"发货"}`, "GET", "/api/v1/conversations", "limit=50&platform=xianyu&q=%E5%8F%91%E8%B4%A7", ""},
 		{"get_conversation_messages", `{"conversation_id":"conversation-1","cursor":"abc"}`, "GET", "/api/v1/conversations/conversation-1/messages", "cursor=abc&limit=50", ""},
 		{"get_wechat_sessions", `{}`, "GET", "/api/v1/connections/wechat-db/sessions", "", ""},
 		{"read_wechat_messages", `{"peer_id":"@@room","keyword":" 项目 "}`, "POST", "/api/v1/connections/wechat-db/read", "", `{"keyword":"项目","peer_id":"@@room"}`},

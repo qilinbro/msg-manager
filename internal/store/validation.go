@@ -37,8 +37,15 @@ func validResourceID(id string) bool {
 	return true
 }
 
-func validPlatform(value string) bool {
-	return value == "qq" || value == "weixin" || value == "telegram" || value == "shanliao" || value == "email"
+// ValidPlatform identifies sources supported by local message management. It
+// does not imply an online connector, platform login or permission to send.
+func ValidPlatform(value string) bool {
+	return value == "qq" || value == "weixin" || value == "telegram" || value == "shanliao" || value == "email" || IsShoppingPlatform(value)
+}
+func validPlatform(value string) bool { return ValidPlatform(value) }
+
+func IsShoppingPlatform(value string) bool {
+	return value == "xianyu" || value == "taobao" || value == "jd" || value == "pinduoduo"
 }
 func validLabel(value string, required bool) bool {
 	if !utf8.ValidString(value) || utf8.RuneCountInString(value) > 128 || strings.TrimSpace(value) != value || required && value == "" {
@@ -67,6 +74,9 @@ func normalizeImport(req ImportRequest) (ImportRequest, error) {
 			m.ConversationKind = "private"
 		}
 		if m.ConversationKind != "private" && m.ConversationKind != "group" {
+			return ImportRequest{}, ErrInvalidInput
+		}
+		if IsShoppingPlatform(req.Platform) && (m.ConversationKind != "private" || m.Email != nil) {
 			return ImportRequest{}, ErrInvalidInput
 		}
 		if !validLabel(m.ExternalID, true) || !validLabel(m.PeerID, true) || !validLabel(m.PeerName, false) || (m.Direction != "incoming" && m.Direction != "outgoing") || len(m.Body) < 1 || len(m.Body) > 16000 || !utf8.ValidString(m.Body) || strings.ContainsRune(m.Body, 0) {

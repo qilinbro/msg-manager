@@ -374,7 +374,7 @@ func TestV3ToV4PreservesAIDataForeignKeysAndMessageIdentity(t *testing.T) {
 		}
 	}
 	var version, oldVersions int
-	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 13 {
+	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != currentSchemaVersion {
 		t.Fatal("v4 version missing")
 	}
 	if s.db.QueryRow(`SELECT count(*) FROM schema_migrations WHERE version<=3 AND applied_at='2026-01-01T00:00:00Z'`).Scan(&oldVersions) != nil || oldVersions != 3 {

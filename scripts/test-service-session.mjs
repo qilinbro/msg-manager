@@ -481,7 +481,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   const navigation = (label) => find(h, (node) => node.type === 'button' && node.props['aria-label'] === label).props.onClick();
   navigation('购物渠道'); await h.flush();
   const shopping = find(h, (node) => node.type?.name === 'ShoppingChannels');
-  const links = nodes(shopping.type()).filter((node) => node.type === 'a');
+  const links = nodes(shopping.type(shopping.props)).filter((node) => node.type === 'a');
   const domains = new Set(['www.goofish.com', 'www.taobao.com', 'www.jd.com', 'www.yangkeduo.com']);
   for (const { props } of links) {
     const url = new URL(props.href);
@@ -493,6 +493,16 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   }
   assert.equal(domains.size, 0, 'all four shopping sites are available');
   assert.equal(h.requests.length, 0, 'shopping is available without a backend connection');
+  for (const [name, platform] of [['闲鱼', 'xianyu'], ['淘宝', 'taobao'], ['京东', 'jd'], ['拼多多', 'pinduoduo']]) {
+    navigation('购物渠道'); await h.flush();
+    const channel = find(h, (node) => node.type?.name === 'ShoppingChannels');
+    nodes(channel.type(channel.props)).find((node) => node.type === 'button' && node.props.children.flat(Infinity).join('').includes(`导入${name}私聊`)).props.onClick();
+    await h.flush();
+    const inbox = find(h, (node) => node.type === 'InboxStub');
+    assert.equal(inbox.props.requestedImportPlatform, platform, 'shopping action preserves chosen platform');
+    inbox.props.onImportHandled(); await h.flush();
+  }
+  assert.equal(h.requests.length, 0, 'choosing a shopping import does not connect to any network');
   find(h, (node) => node.type === 'button' && node.props['aria-label'] === '设置').props.onClick();
   await h.flush();
   settings(h).onDraftChange(TOKEN_A); await h.flush();

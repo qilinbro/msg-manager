@@ -100,6 +100,9 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 	if err := ctx.Err(); err != nil {
 		return ImportResult{}, err
 	}
+	if IsShoppingPlatform(req.Platform) && source != "import" {
+		return ImportResult{}, ErrInvalidInput
+	}
 	if len(approvedConfig) > 1 || len(approvedConfig) == 1 && !validProfileConfig(approvedConfig[0]) || req.AIOrganize != nil && len(approvedConfig) == 0 {
 		return ImportResult{}, ErrInvalidInput
 	}
