@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -102,7 +103,8 @@ function harness(bindings, props) {
   const transformed = transformSync('ProfilePanel.tsx', source, { jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' } });
   assert.equal(transformed.errors.length, 0);
   const component = { exports: {} };
-  runInNewContext(transformed.code + '\nmodule.exports=ProfilePanel;', { ...bindings, ...hooks, ServiceError, TextEncoder, AbortController, module: component, Fragment: 'fragment', jsx: (type, supplied, ...children) => { const props = { ...(supplied ?? {}), children }; return typeof type === 'function' ? type(props) : { type, props }; }, document: { visibilityState: 'visible', addEventListener: add, removeEventListener: remove }, window: { addEventListener: add, removeEventListener: remove, setInterval: (callback, ms) => { intervals.set(++timerID, { callback, ms }); return timerID; }, clearInterval: (id) => intervals.delete(id) } }, { filename: 'ProfilePanel.tsx' });
+  const jsx = (type, supplied, ...children) => { const props = { ...(supplied ?? {}), children }; return typeof type === 'function' ? type(props) : { type, props }; };
+  runInNewContext(transformed.code + '\nmodule.exports=ProfilePanel;', { ...bindings, ...hooks, ServiceError, TextEncoder, AbortController, module: component, Fragment: 'fragment', jsx, Icon: loadIcon(jsx), document: { visibilityState: 'visible', addEventListener: add, removeEventListener: remove }, window: { addEventListener: add, removeEventListener: remove, setInterval: (callback, ms) => { intervals.set(++timerID, { callback, ms }); return timerID; }, clearInterval: (id) => intervals.delete(id) } }, { filename: 'ProfilePanel.tsx' });
   return { get tree() { return tree; }, intervals, async flush() { for (let i = 0; i < 25; i++) { if (dirty) { cursor = 0; dirty = false; tree = component.exports(props); const queue = effects; effects = []; for (const effect of queue) effect(); } await Promise.resolve(); } }, unmount() { for (const slot of slots) slot?.cleanup?.(); afterUnmount = true; } };
 }
 function nodes(tree) { if (!tree || typeof tree !== 'object') return []; return [tree, ...tree.props.children.flat(Infinity).flatMap(nodes)]; }

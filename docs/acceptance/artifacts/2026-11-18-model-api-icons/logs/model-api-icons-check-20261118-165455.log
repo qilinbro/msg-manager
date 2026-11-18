@@ -1,0 +1,79 @@
+ok  	github.com/qilinbro/msg-manager/cmd/sociald	1.893s
+ok  	github.com/qilinbro/msg-manager/cmd/sociald-mcp	3.778s
+ok  	github.com/qilinbro/msg-manager/cmd/wechat-init-check	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/agent	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/api	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/config	0.499s
+ok  	github.com/qilinbro/msg-manager/internal/connector	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/adapter	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/mailbox	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/wechatdb	(cached)
+?   	github.com/qilinbro/msg-manager/internal/domain	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/importer	(cached)
+?   	github.com/qilinbro/msg-manager/internal/ingestion	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/localcredentials	6.564s
+?   	github.com/qilinbro/msg-manager/internal/localcredentials/credentialstest	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/mcp	(cached)
+?   	github.com/qilinbro/msg-manager/internal/memory	[no test files]
+?   	github.com/qilinbro/msg-manager/internal/outbox	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/policy	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/publicinfo	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/store	21.553s
+?   	github.com/qilinbro/msg-manager/migrations	[no test files]
+ok  	github.com/qilinbro/msg-manager/tests/integration	4.340s
+API contracts, bounded Assistant, local digest compatibility and 10 bound no-retry Feishu methods verified.
+PowerShell bootstrap synthetic tests passed: 9 child cases plus selector and argument checks.
+Inbox launcher synthetic tests passed: 53 isolated launches; DACL-only setup, stable service credentials, explicit clipboard/rotation, DPAPI loading and fail-closed startup. No real account data or service was accessed.
+Profile link client/component checks passed: scoped transport, explicit identity confirmation, reversible association, preserved source permissions, and unmount guards. Synthetic data only.
+(node:76336) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Import analysis synthetic checks passed: explicit model-bound scope, default-off consent, one atomic request, visible queue result, no stale retry, and model-change reconfirmation.
+(node:59320) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+AI model checks passed: authenticated GET/PATCH, strict write-only secret/CAS, independent read-only presets, manual model IDs, no auto-save/probe, target isolation, consent reset, error/retry, stale/abort/unmount and real Lucide rendering. Synthetic data only.
+(node:45092) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Model preset API checks passed: six static references, strict schema/provenance, authenticated GET-only transport, no credential serialization, failure/cancellation/timeout safety, and legacy config GET/PATCH. Synthetic data only.
+(node:62928) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+UI icon checks passed: 49 pinned upstream SVGs, 50 real rendered aliases, 31 control icons, exact geometry/hash, full ISC+Feather MIT notices, offline copies and safe decorative SVG semantics. No network IO.
+Milky client checks passed: single QQ catalog/settings integration, pending verification, persisted peer display, safe stop payload, and component compilation. Synthetic data only.
+(node:77220) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Profile client/component synthetic checks passed: scoped authenticated APIs, explicit consent, candidate confirmation, safe sources, unknown results, categories, dirty preservation, paused manual edits and background-job lifecycle.
+(node:7964) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Service session synthetic checks passed (11 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+Caught error:
+
+InvalidAccessError: key is not extractable
+    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/scripts/test-device-auth.mjs:289:3 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: DOMException [InvalidAccessError]: key is not extractable
+      at exportKeySync (node:internal/crypto/webcrypto:717:11)
+      at SubtleCrypto.exportKeyImpl (node:internal/crypto/webcrypto:785:10)
+      at callSubtleCryptoMethod (node:internal/crypto/webcrypto:98:20)
+      at SubtleCrypto.exportKey (node:internal/crypto/webcrypto:776:10)
+      at file:///D:/msg_manager/.runtime/main-push-20261116/repo/scripts/test-device-auth.mjs:289:41,
+  expected: [Function (anonymous)],
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v24.21.0
+Exception: D:\msg_manager\.runtime\main-push-20261116\repo\scripts\check.ps1:60
+Line |
+  60 |  … DE -ne 0) { throw 'Persistent device authorization regression checks  …
+     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     | Persistent device authorization regression checks failed.
+
+

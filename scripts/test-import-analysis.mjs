@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -46,7 +47,12 @@ function harness() {
   };
   const props = { token: 'synthetic-local-token', limit: 1000, onClose() {}, onImported() {}, onAuthFailure() { throw Error('unexpected auth failure'); } };
   const component = { exports: {} };
-  runInNewContext(compiled.code + '\nmodule.exports=ImportPanel;', { ...actualClient, ...hooks, useLayoutEffect: hooks.useEffect, Error, ServiceError, AbortController, jsx: (type, supplied, ...children) => ({ type, props: { ...(supplied ?? {}), children } }), Fragment: 'fragment', module: component,
+  const jsx = (type, supplied, ...children) => {
+    const props = { ...(supplied ?? {}), children };
+    return typeof type === 'function' && type === Icon ? type(props) : { type, props };
+  };
+  const Icon = loadIcon(jsx);
+  runInNewContext(compiled.code + '\nmodule.exports=ImportPanel;', { ...actualClient, ...hooks, useLayoutEffect: hooks.useEffect, Error, ServiceError, AbortController, jsx, Icon, Fragment: 'fragment', module: component,
     getProfileStatus: async () => structuredClone(currentModel),
   });
   return { get tree() { return tree; }, async flush() { for (let pass = 0; pass < 25; pass++) { if (dirty) { cursor = 0; dirty = false; tree = component.exports(props); const ready = effects; effects = []; for (const effect of ready) effect(); } await Promise.resolve(); } }, unmount() { for (const slot of slots) slot?.cleanup?.(); unmounted = true; } };
@@ -66,6 +72,7 @@ const checkbox = panel => find(panel, n => n.type === 'input' && n.props.type ==
 
 const manual = harness();
 await preview(manual);
+assert.ok(nodes(manual.tree).some((node) => node.type === 'svg' && node.props['data-icon'] === 'import' && node.props['aria-hidden'] === 'true' && node.props.focusable === 'false'), 'ImportPanel must render the shipped decorative SVG');
 assert.equal(checkbox(manual).props.checked, false, 'AI must default off');
 const beforeManual = requests.length;
 await confirm(manual).props.onClick();

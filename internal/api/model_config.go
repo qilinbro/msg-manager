@@ -108,15 +108,18 @@ func (h *handler) serveModelConfig(w http.ResponseWriter, r *http.Request, trace
 		return
 	}
 	key := input.APIKey
-	if key == "" {
-		if input.BaseURL != h.modelConfig.BaseURL && h.modelConfig.APIKey != "" {
-			writeError(w, 400, "AI_CONFIG_KEY_REQUIRED", "更换服务地址时请重新填写对应密钥。", traceID)
-			return
-		}
+	// Retain a blank key only for the exact same URL. A changed destination
+	// must pass the complete transport/model validation without the old key;
+	// only explicit-port numeric-loopback HTTP can be configured keylessly.
+	if key == "" && input.BaseURL == h.modelConfig.BaseURL {
 		key = h.modelConfig.APIKey
 	}
 	next, err := newAIConnection(agent.Config{BaseURL: input.BaseURL, Model: input.Model, APIKey: key}, input.DailyLimit)
 	if err != nil || next.client == nil {
+		if key == "" && input.BaseURL != h.modelConfig.BaseURL && h.modelConfig.APIKey != "" {
+			writeError(w, 400, "AI_CONFIG_KEY_REQUIRED", "更换服务地址时请重新填写对应密钥。", traceID)
+			return
+		}
 		writeError(w, 400, "AI_CONFIG_INVALID", "请检查模型地址、名称、密钥与每日额度；公网服务需HTTPS。", traceID)
 		return
 	}

@@ -99,15 +99,16 @@ type tool struct {
 func tools() []tool {
 	return []tool{
 		{Name: "get_system_status", Description: "读取本地服务状态、存储状态和连接器能力。", InputSchema: objectSchema(nil, nil)},
-		{Name: "search_conversations", Description: "在已保存消息的会话中按关键词、平台和状态搜索。", InputSchema: objectSchema(map[string]any{
-			"q":        stringSchema(256),
-			"platform": enumSchema([]string{"qq", "weixin", "telegram", "shanliao", "email"}),
-			"category": enumSchema([]string{"friend", "family", "colleague", "client", "partner", "other", "unclassified"}),
-			"unread":   boolSchema(), "pinned": boolSchema(), "archived": boolSchema(),
+		{Name: "search_conversations", Description: "在已保存会话中按关键词、平台、私聊/群聊和状态搜索；省略conversation_kind包含全部类型。q最多256个UTF-8字节，按字面匹配。", InputSchema: objectSchema(map[string]any{
+			"q":                 stringSchema(256),
+			"platform":          enumSchema([]string{"qq", "weixin", "telegram", "shanliao", "email"}),
+			"conversation_kind": enumSchema([]string{"private", "group"}),
+			"category":          enumSchema([]string{"friend", "family", "colleague", "client", "partner", "other", "unclassified"}),
+			"unread":            boolSchema(), "pinned": boolSchema(), "archived": boolSchema(),
 			"cursor": stringSchema(2048), "limit": numberSchema(1, 100),
 		}, nil)},
-		{Name: "get_conversation_messages", Description: "读取一个已保存会话的文本消息。", InputSchema: objectSchema(map[string]any{
-			"conversation_id": stringSchema(128), "cursor": stringSchema(2048), "limit": numberSchema(1, 100),
+		{Name: "get_conversation_messages", Description: "读取一个已保存会话的文本消息，可用q检索正文（最多256个UTF-8字节，%和_按字面匹配，不匹配邮件头）；翻页须保持会话及q不变。", InputSchema: objectSchema(map[string]any{
+			"conversation_id": stringSchema(128), "q": stringSchema(256), "cursor": stringSchema(2048), "limit": numberSchema(1, 100),
 		}, []string{"conversation_id"})},
 		{Name: "get_wechat_sessions", Description: "读取已配置的本机微信私聊/群聊会话列表，不返回路径或密钥。", InputSchema: objectSchema(nil, nil)},
 		{Name: "read_wechat_messages", Description: "仅对用户选定的微信会话读取最近文本并导入加密消息中心，会新增消息、联系人和未读数；已授权的自动整理或日报可能随后把新消息发送给配置的模型（可能是外部服务并产生费用）。可选正文关键词，源微信库只读，不发送聊天消息。", InputSchema: objectSchema(map[string]any{
@@ -221,6 +222,15 @@ func (s *Server) callTool(ctx context.Context, name string, args map[string]json
 		if err != nil {
 			return nil, err
 		}
+		if raw, exists := args["q"]; exists {
+			query, err := rawString(raw)
+			if err != nil {
+				return nil, errors.New("q must be a string")
+			}
+			// Preserve literal text, including spaces, %, _, and an explicit
+			// empty query; backend cursors remain bound to conversation + q.
+			values.Set("q", query)
+		}
 		return s.get(ctx, "/api/v1/conversations/"+url.PathEscape(id)+"/messages", values)
 	case "get_wechat_sessions":
 		return s.get(ctx, "/api/v1/connections/wechat-db/sessions", nil)
@@ -247,7 +257,7 @@ func (s *Server) callTool(ctx context.Context, name string, args map[string]json
 
 func (s *Server) searchConversations(ctx context.Context, args map[string]json.RawMessage) ([]byte, error) {
 	values := url.Values{}
-	for _, name := range []string{"q", "platform", "category", "cursor"} {
+	for _, name := range []string{"q", "platform", "conversation_kind", "category", "cursor"} {
 		if value, ok := args[name]; ok {
 			text, err := rawString(value)
 			if err != nil {

@@ -10,6 +10,7 @@ import {
   saveDigestSchedule,
 } from './digest-api';
 import type { DigestReport, DigestSchedule } from './digest-api';
+import { Icon } from './Icon';
 import './profile.css';
 
 const isBusinessAuthFailure = (failure: unknown) =>
@@ -273,7 +274,10 @@ export function DigestPanel({
   return (
     <section className="settings-panel" aria-labelledby="digest-title">
       <div className="section-heading">
-        <h2 id="digest-title">每日消息整理</h2>
+        <h2 id="digest-title" className="icon-label">
+          <Icon name="calendar" size={20} />
+          每日消息整理
+        </h2>
         <span className="label">
           {busy === 'read'
             ? '读取中…'
@@ -343,6 +347,7 @@ export function DigestPanel({
           }
           onClick={() => void mutate('save', true)}
         >
+          <Icon name={schedule?.enabled ? 'save' : 'calendar'} />
           {busy === 'save'
             ? '正在保存…'
             : schedule?.enabled
@@ -355,11 +360,15 @@ export function DigestPanel({
           disabled={!schedule?.enabled || Boolean(busy)}
           onClick={() => void mutate('save', false)}
         >
+          <Icon name="pause" />
           暂停当前计划
         </button>
       </div>
       <div className="digest-manual">
-        <h3>今日摘要</h3>
+        <h3 className="icon-label">
+          <Icon name="file" />
+          今日摘要
+        </h3>
         <p className="profile-muted">
           同一日期已有报告时，后台返回该记录；失败或未知记录也不会被强制重跑。只有后台实际执行新的模型调用才可能产生新的费用。
         </p>
@@ -384,15 +393,18 @@ export function DigestPanel({
             }
             onClick={() => void mutate('run')}
           >
+            <Icon name="file" />
             {busy === 'run' ? '正在整理…' : '生成 / 读取今日摘要'}
           </button>
           <button
-            className="button button-secondary"
+            className="button button-secondary button-icon"
             type="button"
+            aria-label="读取实际计划与最近摘要"
+            title="读取实际计划与最近摘要"
             disabled={!token || Boolean(busy)}
             onClick={() => void reload()}
           >
-            读取实际计划与最近摘要
+            <Icon name="refresh" />
           </button>
           {busy ? (
             <button
@@ -401,6 +413,7 @@ export function DigestPanel({
               disabled={busy === 'stopping'}
               onClick={stopWaiting}
             >
+              <Icon name="close" />
               停止等待
             </button>
           ) : null}
@@ -439,6 +452,7 @@ export function DigestPanel({
               setRunConsent(false);
             }}
           >
+            <Icon name="check" />
             允许重新核对新的摘要操作
           </button>
         </div>

@@ -2,9 +2,12 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ServiceError } from './api';
 import {
   getModelConfig,
+  getModelPresets,
   saveModelConfig,
   type ModelConfig,
+  type ModelPresets,
 } from './model-config-api';
+import { Icon } from './Icon';
 import './model-config.css';
 
 export function AIModelPanel({
@@ -15,8 +18,13 @@ export function AIModelPanel({
   onAuthFailure: () => void;
 }) {
   const [config, setConfig] = useState<ModelConfig | null>(null);
-  const [baseURL, setBaseURL] = useState('https://api.deepseek.com');
-  const [model, setModel] = useState('deepseek-chat');
+  const [presets, setPresets] = useState<ModelPresets | null>(null);
+  const [presetID, setPresetID] = useState('');
+  const [presetsLoading, setPresetsLoading] = useState(false);
+  const [presetsError, setPresetsError] = useState<string | null>(null);
+  const [presetReload, setPresetReload] = useState(0);
+  const [baseURL, setBaseURL] = useState('');
+  const [model, setModel] = useState('');
   const [dailyLimit, setDailyLimit] = useState('50');
   const [key, setKey] = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -34,6 +42,10 @@ export function AIModelPanel({
     const controller = new AbortController();
     request.current = controller;
     setConfig(null);
+    setPresetID('');
+    setBaseURL('');
+    setModel('');
+    setDailyLimit('50');
     setKey('');
     setConfirmed(false);
     setError(null);
@@ -50,8 +62,8 @@ export function AIModelPanel({
       .then((next) => {
         if (controller.signal.aborted || !mounted.current) return;
         setConfig(next);
-        setBaseURL(next.base_url || 'https://api.deepseek.com');
-        setModel(next.model || 'deepseek-chat');
+        setBaseURL(next.base_url);
+        setModel(next.configured ? next.model : '');
         setDailyLimit(String(next.daily_limit));
       })
       .catch((failure: unknown) => {
@@ -74,9 +86,47 @@ export function AIModelPanel({
     };
   }, [token, reload]);
 
+  // Presets are independent, read-only metadata. Failure must not lock an
+  // existing configuration; arrival must never overwrite a user's inputs.
+  useEffect(() => {
+    const controller = new AbortController();
+    setPresets(null);
+    setPresetsError(null);
+    setPresetsLoading(Boolean(token));
+    if (token) {
+      void getModelPresets(token, controller.signal)
+        .then((next) => {
+          if (!controller.signal.aborted) setPresets(next);
+        })
+        .catch((failure: unknown) => {
+          if (controller.signal.aborted) return;
+          if (
+            failure instanceof ServiceError &&
+            failure.code === 'UNAUTHORIZED'
+          )
+            authFailure.current();
+          else setPresetsError('预设未能读取，可重试或手动填写。');
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setPresetsLoading(false);
+        });
+    }
+    return () => controller.abort();
+  }, [token, presetReload]);
+
+  const selectedPreset = presets?.items.find((item) => item.id === presetID);
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!config || busy || !confirmed) return;
+    if (
+      !token ||
+      !config ||
+      busy ||
+      !confirmed ||
+      !baseURL.trim() ||
+      !model.trim()
+    )
+      return;
     const limit = Number(dailyLimit);
     if (!Number.isInteger(limit) || limit < 1 || limit > 1000) {
       setError('每日调用上限须在 1 至 1000 之间。');
@@ -121,7 +171,9 @@ export function AIModelPanel({
   return (
     <section className="settings-panel" aria-labelledby="ai-model-title">
       <div className="section-heading">
-        <h2 id="ai-model-title">AI 模型配置</h2>
+        <h2 id="ai-model-title" className="icon-label">
+          <Icon name="model" /> AI 模型配置
+        </h2>
         <span className={`label ${config?.configured ? 'label-neutral' : ''}`}>
           {config
             ? config.configured
@@ -133,9 +185,95 @@ export function AIModelPanel({
         </span>
       </div>
       <p className="input-help">
-        支持 DeepSeek 和兼容接口。密钥只提交给本机服务，加密保存后不会返回页面。
+        OpenAI Chat Completions 兼容接口；Assistant 还需原生
+        tools。密钥加密保存，不会返回页面。
       </p>
       <form className="connection-form ai-model-form" onSubmit={submit}>
+        <label htmlFor="ai-model-preset">配置预设</label>
+        <div className="ai-preset-picker">
+          <select
+            id="ai-model-preset"
+            value={presetID}
+            disabled={!token || !config || busy || presetsLoading || !presets}
+            aria-describedby="ai-model-preset-help"
+            onChange={(event) => {
+              if (!event.target.value) {
+                setPresetID('');
+                setKey('');
+                setConfirmed(false);
+                return;
+              }
+              const item = presets?.items.find(
+                (entry) => entry.id === event.target.value,
+              );
+              if (!item || item.implementation_status === 'unsupported') return;
+              setPresetID(item.id);
+              setBaseURL(item.base_url);
+              setModel('');
+              setKey('');
+              setConfirmed(false);
+              setError(null);
+              setNotice(null);
+            }}
+          >
+            <option value="">
+              {presetsLoading ? '正在读取预设…' : '选择预设，或手动填写'}
+            </option>
+            {presets?.items.map((item) => (
+              <option
+                key={item.id}
+                value={item.id}
+                disabled={item.implementation_status === 'unsupported'}
+              >
+                {item.display_name}
+                {item.implementation_status === 'template_only'
+                  ? ' · 仅模板'
+                  : item.implementation_status === 'unsupported'
+                    ? ' · 未实现'
+                    : ''}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="button button-quiet button-icon"
+            aria-label="重新读取预设"
+            title="重新读取预设"
+            disabled={!token || presetsLoading || busy}
+            onClick={() => setPresetReload((n) => n + 1)}
+          >
+            <Icon name="refresh" />
+          </button>
+        </div>
+        <p className="input-help" id="ai-model-preset-help">
+          预设仅填地址，不测试连接或调用模型；请手动输入模型
+          ID。协议支持不等于服务已接通。
+        </p>
+        {presetsError ? (
+          <p className="form-message error-message" role="alert">
+            {presetsError}
+          </p>
+        ) : null}
+        {selectedPreset ? (
+          <div className="ai-preset-source">
+            <span>
+              {selectedPreset.implementation_status === 'protocol_supported'
+                ? '协议已支持'
+                : selectedPreset.implementation_status === 'template_only'
+                  ? '仅配置模板，需自行核验兼容性'
+                  : '尚未实现'}
+            </span>
+            <a
+              className="icon-label"
+              href={selectedPreset.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerPolicy="no-referrer"
+            >
+              <Icon name="external" size={16} /> 官方配置来源
+            </a>
+          </div>
+        ) : null}
         <label htmlFor="ai-model-url">服务地址</label>
         <input
           id="ai-model-url"
@@ -143,6 +281,9 @@ export function AIModelPanel({
           value={baseURL}
           onChange={(e) => {
             setBaseURL(e.target.value);
+            setPresetID('');
+            setModel('');
+            setKey('');
             setConfirmed(false);
           }}
           maxLength={2048}
@@ -151,7 +292,7 @@ export function AIModelPanel({
           spellCheck={false}
           autoComplete="off"
         />
-        <label htmlFor="ai-model-name">模型名称</label>
+        <label htmlFor="ai-model-name">模型 ID</label>
         <input
           id="ai-model-name"
           value={model}
@@ -166,21 +307,27 @@ export function AIModelPanel({
           autoComplete="off"
         />
         <label htmlFor="ai-model-key">
-          API 密钥{config?.key_configured ? '（已保存，留空保留）' : ''}
+          API 密钥
+          {config?.key_configured ? '（已保存，仅同一目标可留空保留）' : ''}
         </label>
         <input
           id="ai-model-key"
           type="password"
           value={key}
-          onChange={(e) => setKey(e.target.value)}
+          onChange={(e) => {
+            setKey(e.target.value);
+            setConfirmed(false);
+          }}
           maxLength={4096}
           disabled={busy || !token}
           autoComplete="off"
           spellCheck={false}
           placeholder={
-            config?.key_configured
-              ? '更换地址时须填写新密钥'
-              : '输入模型服务密钥'
+            selectedPreset?.api_key_required === false
+              ? '免密本机服务可留空'
+              : config?.key_configured
+                ? '更换公网地址须填写新密钥'
+                : '输入模型服务密钥'
           }
         />
         <label htmlFor="ai-model-limit">每日调用上限</label>
@@ -190,7 +337,10 @@ export function AIModelPanel({
           min={1}
           max={1000}
           value={dailyLimit}
-          onChange={(e) => setDailyLimit(e.target.value)}
+          onChange={(e) => {
+            setDailyLimit(e.target.value);
+            setConfirmed(false);
+          }}
           disabled={busy || !token}
           required
         />
@@ -210,17 +360,27 @@ export function AIModelPanel({
           <button
             className="button button-primary"
             type="submit"
-            disabled={!token || !config || busy || !confirmed}
+            disabled={
+              !token ||
+              !config ||
+              busy ||
+              !confirmed ||
+              !baseURL.trim() ||
+              !model.trim()
+            }
           >
+            <Icon name="save" />
             {busy ? '正在处理…' : '保存模型配置'}
           </button>
           <button
-            className="button button-quiet"
+            className="button button-quiet button-icon"
             type="button"
+            aria-label="重新读取设置"
+            title="重新读取设置"
             disabled={!token || busy}
             onClick={() => setReload((n) => n + 1)}
           >
-            重新读取设置
+            <Icon name="refresh" />
           </button>
         </div>
       </form>

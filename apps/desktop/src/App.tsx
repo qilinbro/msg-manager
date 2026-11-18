@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { FormEvent } from 'react';
+import { Icon, type IconName } from './Icon';
 import { getCollection, SERVICE, ServiceError } from './api';
 import type { Connector, SystemStatus } from './api';
 import Inbox from './Inbox';
@@ -18,16 +19,6 @@ import type { ServiceSession as Session } from './useServiceSession';
 
 type Page =
   'overview' | 'messages' | 'contacts' | 'approvals' | 'feishu' | 'settings';
-type IconName =
-  | 'overview'
-  | 'messages'
-  | 'contacts'
-  | 'approvals'
-  | 'settings'
-  | 'arrow'
-  | 'lock'
-  | 'check'
-  | 'plug';
 const NAVIGATION: {
   page: Page | 'assistant';
   label: string;
@@ -37,8 +28,8 @@ const NAVIGATION: {
   { page: 'messages', label: '消息', icon: 'messages' },
   { page: 'contacts', label: '联系人', icon: 'contacts' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
-  { page: 'assistant', label: 'Agent 助手', icon: 'messages' },
-  { page: 'feishu', label: '飞书早晚报', icon: 'approvals' },
+  { page: 'assistant', label: 'Agent 助手', icon: 'assistant' },
+  { page: 'feishu', label: '飞书早晚报', icon: 'calendar' },
 ];
 const PAGE_TITLES: Record<Page, string> = {
   overview: '概览',
@@ -91,68 +82,6 @@ const PLANNED_CONNECTORS: Connector[] = [
   },
 ];
 
-function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
-  const paths: Record<IconName, ReactNode> = {
-    overview: (
-      <>
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </>
-    ),
-    messages: (
-      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" />
-    ),
-    contacts: (
-      <>
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-        <circle cx="9" cy="7" r="4" />
-      </>
-    ),
-    approvals: (
-      <>
-        <rect x="5" y="4" width="14" height="17" rx="2" />
-        <path d="M9 4V2h6v2M9 12l2 2 4-4" />
-      </>
-    ),
-    settings: (
-      <>
-        <path d="m12 3 2.3 1.2 2.6-.1 1.2 2.3 2.2 1.4-.1 2.6L21 13l-1.5 2.1-.6 2.5-2.5.7-1.9 1.8L12 19.5l-2.5.6-1.9-1.8-2.5-.7-.6-2.5L3 13l.8-2.6-.1-2.6L6 6.4l1.2-2.3 2.6.1L12 3Z" />
-        <circle cx="12" cy="11.5" r="3" />
-      </>
-    ),
-    arrow: <path d="M4 12h15m-6-6 6 6-6 6" />,
-    lock: (
-      <>
-        <rect x="5" y="10" width="14" height="11" rx="2" />
-        <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" />
-      </>
-    ),
-    check: <path d="m5 12 4 4L19 6" />,
-    plug: (
-      <>
-        <path d="M9 3v4m6-4v4M7 7h10v4a5 5 0 0 1-10 0V7Zm5 9v5" />
-      </>
-    ),
-  };
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
-
 function Status({ state }: { state: Session['status'] }) {
   const labels = {
     idle: '服务未连接',
@@ -172,12 +101,12 @@ function Heading({
   description,
 }: {
   title: string;
-  description: string;
+  description?: string;
 }) {
   return (
     <div className="page-heading">
       <h1>{title}</h1>
-      <p className="page-description">{description}</p>
+      {description ? <p className="page-description">{description}</p> : null}
     </div>
   );
 }
@@ -237,10 +166,7 @@ function Overview({
   const connectors = system?.connectors ?? PLANNED_CONNECTORS;
   return (
     <>
-      <Heading
-        title="概览"
-        description="查看平台接入与存储状态，继续管理消息和联系人。"
-      />
+      <Heading title="概览" />
       <section
         className="overview-summary"
         aria-labelledby="workspace-state-title"
@@ -252,6 +178,7 @@ function Overview({
             className="button button-primary"
             onClick={system?.storage.configured ? onMessages : onSettings}
           >
+            <Icon name={system?.storage.configured ? 'messages' : 'plug'} />
             {system?.storage.configured
               ? '打开消息'
               : system
@@ -307,6 +234,7 @@ function Overview({
             className="button button-quiet"
             onClick={onSettings}
           >
+            <Icon name="settings" />
             连接设置
           </button>
         </div>
@@ -488,17 +416,16 @@ function Settings({
   const connecting = session.status === 'connecting';
   return (
     <>
-      <Heading
-        title="连接与设置"
-        description="管理本机授权、平台连接、模型与每日摘要。"
-      />
+      <Heading title="连接与设置" />
       <section
         className="settings-panel"
         aria-labelledby="service-settings-title"
       >
         <div className="settings-section-header">
           <div>
-            <h2 id="service-settings-title">本地服务</h2>
+            <h2 id="service-settings-title" className="icon-label">
+              <Icon name="plug" /> 本地服务
+            </h2>
             <p>首次使用主令牌授权，再读取本地服务的运行状态。</p>
           </div>
         </div>
@@ -866,7 +793,7 @@ export default function App() {
                 })
               }
             >
-              Agent 助手
+              <Icon name="assistant" /> Agent 助手
             </button>
           </div>
         </header>
@@ -947,11 +874,13 @@ export default function App() {
           <p>关闭后返回原页面；不会取消已提交的运行。</p>
           <button
             type="button"
-            className="button button-secondary"
+            className="button button-secondary button-icon"
+            aria-label="关闭助手"
+            title="关闭助手"
             autoFocus
             onClick={closeAssistant}
           >
-            关闭助手
+            <Icon name="close" />
           </button>
         </div>
         <div className="assistant-workspace-body">

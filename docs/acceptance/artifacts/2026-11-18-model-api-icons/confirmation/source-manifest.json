@@ -1,0 +1,340 @@
+{
+  "harness": {
+    "sha256": "0e7602046022c5408366226613b3106a74af3ba5144b4e454a7b13fa6032222f",
+    "bytes": 43332
+  },
+  "files": [
+    {
+      "path": "apps/desktop/src/ai-api.ts",
+      "sha256": "82df7eb029225b5a5cecb9275f0d469dcd0e43322aaf6330ffb1b154aad6279e",
+      "bytes": 11764,
+      "mtime_ms": 1794917277145.5293
+    },
+    {
+      "path": "apps/desktop/src/ai.css",
+      "sha256": "2c22d116b34bd9c9eeb02097ceb40656501cc66be799534f03a8fe546026c968",
+      "bytes": 7125,
+      "mtime_ms": 1794915391466.192
+    },
+    {
+      "path": "apps/desktop/src/AIModelPanel.tsx",
+      "sha256": "3d7305300aa5e119788974d5f176e6863b115e1b5279f9220b093927354b7009",
+      "bytes": 13085,
+      "mtime_ms": 1794992796148.8762
+    },
+    {
+      "path": "apps/desktop/src/AIPanel.tsx",
+      "sha256": "55ccbc5dd8c4b1bcc650a4f085b33ed0bea2a65a0acbf518bcaafaf880ebeafd",
+      "bytes": 24738,
+      "mtime_ms": 1794904003385.8435
+    },
+    {
+      "path": "apps/desktop/src/api.ts",
+      "sha256": "d9173de6d658a6c390ea78758f64d88c6b91c7d98ebdecc35a85e3ffc3b66bed",
+      "bytes": 6023,
+      "mtime_ms": 1794917764874.2632
+    },
+    {
+      "path": "apps/desktop/src/App.tsx",
+      "sha256": "8d5d6f2509be27d90200e96e8aa48cfdb2a1eab04036578a87da2df3e7c15a29",
+      "bytes": 30800,
+      "mtime_ms": 1794991386893.9
+    },
+    {
+      "path": "apps/desktop/src/assistant-api.ts",
+      "sha256": "197bbb45119f9d3cacea77f6a5f4eab761769d6e0f181c8e3ac33fbb31e0e241",
+      "bytes": 14959,
+      "mtime_ms": 1794979447035.2434
+    },
+    {
+      "path": "apps/desktop/src/assistant-help.ts",
+      "sha256": "a2a81123cc6abc2eeed3e87bbaacd55b529e4e08c056c34e02beacba02c22fdf",
+      "bytes": 2080,
+      "mtime_ms": 1794979362368.007
+    },
+    {
+      "path": "apps/desktop/src/assistant.css",
+      "sha256": "b6cb7fe26d7ef35e19ea9394f78eb09121648f3710085d440719e0939866d501",
+      "bytes": 8975,
+      "mtime_ms": 1794978374748.0464
+    },
+    {
+      "path": "apps/desktop/src/AssistantPanel.tsx",
+      "sha256": "329a20ba98a8eff426c329819f211375c94b791ae5db13a756e900b2d0ba7953",
+      "bytes": 43938,
+      "mtime_ms": 1794991386995.7666
+    },
+    {
+      "path": "apps/desktop/src/ConversationKindTabs.tsx",
+      "sha256": "798d24ed20988bcadf25d1d74b29cec847847a8f6fb78f07f5bf2b5418a33cb9",
+      "bytes": 1825,
+      "mtime_ms": 1794990662513.594
+    },
+    {
+      "path": "apps/desktop/src/device-auth.ts",
+      "sha256": "34605011d65de3401b2d5b394c765f78f22b6e58c279702f92ac398f71cbb838",
+      "bytes": 26544,
+      "mtime_ms": 1794911474818.2495
+    },
+    {
+      "path": "apps/desktop/src/digest-api.ts",
+      "sha256": "9438dfda6ca4d4a83850da533e5ebc9d90984d904b95c15931bed80c866f00f0",
+      "bytes": 10299,
+      "mtime_ms": 1794917331921.9531
+    },
+    {
+      "path": "apps/desktop/src/DigestPanel.tsx",
+      "sha256": "70a51e8a9a123b971c998ec2c4c0801fd557f93751c8919ab7e765fc246a4885",
+      "bytes": 18256,
+      "mtime_ms": 1794990913962.772
+    },
+    {
+      "path": "apps/desktop/src/email-api.ts",
+      "sha256": "dc63c217485ef35c69100421b76ad2f17f9de9c6b8a7900b2776ac8a7cf2d724",
+      "bytes": 6554,
+      "mtime_ms": 1794908984088.2585
+    },
+    {
+      "path": "apps/desktop/src/EmailPanel.tsx",
+      "sha256": "e247fa91047ec6e2e752941f17c56f54be8abde492b289b7cc755faf01eff2d6",
+      "bytes": 10125,
+      "mtime_ms": 1794904003457.4463
+    },
+    {
+      "path": "apps/desktop/src/feishu-api.ts",
+      "sha256": "6aead0f7be87dd1e78682f19e4bc28d4e8840f7042fd302bc1f8a341497caa27",
+      "bytes": 26740,
+      "mtime_ms": 1794925266928.6956
+    },
+    {
+      "path": "apps/desktop/src/feishu.css",
+      "sha256": "b5cea34ffacd4d9e87db3fdb72f4e8321e64544157bd8e486b779b5c594bc008",
+      "bytes": 5387,
+      "mtime_ms": 1794990797878.9814
+    },
+    {
+      "path": "apps/desktop/src/FeishuPanel.tsx",
+      "sha256": "50fd6ca4578c82028815332ca25f0aedde042804a59c9408a27d3528af9dd899",
+      "bytes": 57158,
+      "mtime_ms": 1794991103862.135
+    },
+    {
+      "path": "apps/desktop/src/Icon.tsx",
+      "sha256": "ac4f82676e588f62a8ae4df4e765ba34518509586f6c672748d356ac67e6f1cb",
+      "bytes": 10318,
+      "mtime_ms": 1794991386806.5503
+    },
+    {
+      "path": "apps/desktop/src/inbox-api.ts",
+      "sha256": "704664c60b44c73b27f66e61ec7dffacfb84fecf756bccf2a736cf16e0ff2871",
+      "bytes": 15836,
+      "mtime_ms": 1794978347949.7468
+    },
+    {
+      "path": "apps/desktop/src/inbox.css",
+      "sha256": "d6225b495d86e9890ea813a188b953a6681d579a8722c970778bc11c0fa300d9",
+      "bytes": 27961,
+      "mtime_ms": 1794993909305.3665
+    },
+    {
+      "path": "apps/desktop/src/Inbox.tsx",
+      "sha256": "4731e9c6e57325d1727eb0a65cfef67801201af721b2cdb83284bd3ac1c8929f",
+      "bytes": 71025,
+      "mtime_ms": 1794993303099.308
+    },
+    {
+      "path": "apps/desktop/src/keyword-search.tsx",
+      "sha256": "693835717a4b973520aa6a67f232581eff9465c34a1d02b0670e369c128ef979",
+      "bytes": 1386,
+      "mtime_ms": 1794978347730.2031
+    },
+    {
+      "path": "apps/desktop/src/main.tsx",
+      "sha256": "c5c74c6bcb9fb4089023e4d5b24c643ecc690e45b24f61f63ef3bb5c81d63a77",
+      "bytes": 307,
+      "mtime_ms": 1794904003463.129
+    },
+    {
+      "path": "apps/desktop/src/milky-api.ts",
+      "sha256": "9cb1e04b15e2bd5f6db68e48061508dc0a28e8c3e6e2e28b7972ae65daf1e822",
+      "bytes": 6367,
+      "mtime_ms": 1794908984122.545
+    },
+    {
+      "path": "apps/desktop/src/MilkyPanel.tsx",
+      "sha256": "921a83d94a24aca4898c3c82c0eb092344e587184425c4e4d39eeb95874da2e1",
+      "bytes": 10820,
+      "mtime_ms": 1794917277049.939
+    },
+    {
+      "path": "apps/desktop/src/model-config-api.ts",
+      "sha256": "822528601ac44bd201d249d3e416b4d15e43f19c47daadf9e36862357ad93b1d",
+      "bytes": 9365,
+      "mtime_ms": 1794991729418.3743
+    },
+    {
+      "path": "apps/desktop/src/model-config.css",
+      "sha256": "20a263fae40c27f60743a7543fc674a045db75b70b081855cedea284d1393a60",
+      "bytes": 907,
+      "mtime_ms": 1794991229725.1177
+    },
+    {
+      "path": "apps/desktop/src/profile-api.ts",
+      "sha256": "22942dea1c750d870fbcc2853e888d2d1de7895a6fce42f65f5d2a966dbcd7e7",
+      "bytes": 17892,
+      "mtime_ms": 1794908984180.085
+    },
+    {
+      "path": "apps/desktop/src/profile-links-api.ts",
+      "sha256": "61e383d53a51cca592fed5a8040c057f3c5e9c8ed22e9f54b99e196925312c64",
+      "bytes": 6297,
+      "mtime_ms": 1794908984192.004
+    },
+    {
+      "path": "apps/desktop/src/profile.css",
+      "sha256": "f75e98859183e93107873ae95aa7cc5b59270e1dbd4c5a5d5aae7b79a845070d",
+      "bytes": 7410,
+      "mtime_ms": 1794993805076.6455
+    },
+    {
+      "path": "apps/desktop/src/ProfileLinksPanel.tsx",
+      "sha256": "37dbcc2cb3383ef38210d5fc92ffd20b20215a3a1da68027e22a3acb837e1209",
+      "bytes": 8587,
+      "mtime_ms": 1794809442382.9614
+    },
+    {
+      "path": "apps/desktop/src/ProfilePanel.tsx",
+      "sha256": "7c4afb8fb65825d97d82c4be25a6c2ab45a322eee84ef5526a982994253aac28",
+      "bytes": 35348,
+      "mtime_ms": 1794917277116.1309
+    },
+    {
+      "path": "apps/desktop/src/service-session.ts",
+      "sha256": "01141e0d4f1c5ce400a2b0ecd4cfbaba4066adf511db03999950e48a9c9f149e",
+      "bytes": 2057,
+      "mtime_ms": 1794908156167.0212
+    },
+    {
+      "path": "apps/desktop/src/styles.css",
+      "sha256": "847162dd3c3890b1767eb442391953c642b89604d22caedf2c1df857896ba666",
+      "bytes": 15470,
+      "mtime_ms": 1794991517298.8347
+    },
+    {
+      "path": "apps/desktop/src/useServiceSession.ts",
+      "sha256": "b2b1562216a4cc5f5132b10b2f870f62beaf8ef1ed7f88478bbb91c9618a56c8",
+      "bytes": 15808,
+      "mtime_ms": 1794909773795.458
+    },
+    {
+      "path": "apps/desktop/src/wechat-api.ts",
+      "sha256": "fb6eb74ba2653e4573ad085e9cb95bf4755584bcf0e9f09a04dfe904a2cebccd",
+      "bytes": 12723,
+      "mtime_ms": 1794908984109.3005
+    },
+    {
+      "path": "apps/desktop/src/WechatPanel.tsx",
+      "sha256": "19da2610f6b9c78554018a90ba0903d01f01f2921896a8b0058029efd74f51e5",
+      "bytes": 30180,
+      "mtime_ms": 1794993303160.2515
+    },
+    {
+      "path": "internal/api/inbox.go",
+      "sha256": "10055cd79df75db3d7524fa7b8ed0ae05c864e58742a7a77a54373b25ff21c20",
+      "bytes": 13260,
+      "mtime_ms": 1794977600313.0234
+    },
+    {
+      "path": "internal/api/assistant_catalog.go",
+      "sha256": "c65a6403465aa33fc42ea2e823c2dcc083f0db876d381370fc62ed617afc56a9",
+      "bytes": 27564,
+      "mtime_ms": 1794990650384.4365
+    },
+    {
+      "path": "internal/store/model.go",
+      "sha256": "8d059dea2c54feb83c0a61aeac48fc659d963e8e3c479f89ca267c7a23ec71b7",
+      "bytes": 3936,
+      "mtime_ms": 1794978084537.452
+    },
+    {
+      "path": "internal/store/query.go",
+      "sha256": "d66fe617ea974bde4cd0699d1c78099307bd06e28024525889fa85c8913652ce",
+      "bytes": 12825,
+      "mtime_ms": 1794978084617.516
+    },
+    {
+      "path": "api/openapi.yaml",
+      "sha256": "22fb3d6bd445c6b749a797bf2c6e0e6f616d02056a29d9c28cb4de19d7268bf1",
+      "bytes": 327147,
+      "mtime_ms": 1794992826012.2378
+    },
+    {
+      "path": "internal/api/model_presets.go",
+      "sha256": "0087c7021792845e08cad721817d69d02f9707541b0e488b0d39b973a02f050d",
+      "bytes": 3688,
+      "mtime_ms": 1794991443527.0894
+    },
+    {
+      "path": "internal/api/model_config.go",
+      "sha256": "5fef72970f716a19bc053cf86e6b07b444b785bc9cb884de45c71267fec8f017",
+      "bytes": 5611,
+      "mtime_ms": 1794992640804.6587
+    },
+    {
+      "path": "internal/agent/config.go",
+      "sha256": "b0a92c622c35ee8ee0218f88fb8df2d0ebe4a3052a018b754bb73a9e3dfa091f",
+      "bytes": 5294,
+      "mtime_ms": 1794991443499.1775
+    },
+    {
+      "path": "internal/mcp/server.go",
+      "sha256": "b37e775f6b86335f25ee5e783a482872dbf0bd160fc6477564805a60e8b49b65",
+      "bytes": 15049,
+      "mtime_ms": 1794991236523.0188
+    },
+    {
+      "path": "third_party/lucide/manifest.json",
+      "sha256": "f8a969445c77c61eec526a07c53cd89c4fd5a5c92a36880df4fff8766b40c7e5",
+      "bytes": 14714,
+      "mtime_ms": 1794991066589.7205
+    },
+    {
+      "path": "third_party/lucide/LICENSE",
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+      "bytes": 3208,
+      "mtime_ms": 1794991066587.7083
+    }
+  ],
+  "dist": [
+    {
+      "path": "assets/index-C3jUriq0.css",
+      "sha256": "33fc3183725fbbe08fbde3764a4db256855a5b814df0aa37bb3d661265b5a020",
+      "bytes": 59066,
+      "mtime_ms": 1794994000789.2043
+    },
+    {
+      "path": "assets/index-CFM4shgK.js",
+      "sha256": "fe66daa7e08709332ab252e02d2383855470dd7b9eee3fd7bdd46e7bfea1bf19",
+      "bytes": 517063,
+      "mtime_ms": 1794994000788.1982
+    },
+    {
+      "path": "index.html",
+      "sha256": "f05bd89f1c775042832bb88e3f5d79058032dcef51fcef80cdf23c1f55b9948b",
+      "bytes": 588,
+      "mtime_ms": 1794994000789.2043
+    },
+    {
+      "path": "licenses/lucide-LICENSE.txt",
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57",
+      "bytes": 3208,
+      "mtime_ms": 1794991066588.7083
+    },
+    {
+      "path": "licenses/lucide-provenance.json",
+      "sha256": "f8a969445c77c61eec526a07c53cd89c4fd5a5c92a36880df4fff8766b40c7e5",
+      "bytes": 14714,
+      "mtime_ms": 1794991066589.7205
+    }
+  ]
+}

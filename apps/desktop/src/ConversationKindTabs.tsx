@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from 'react';
 import type { ConversationKind } from './inbox-api';
+import { Icon } from './Icon';
 
 const KINDS: { value: ConversationKind; label: string }[] = [
   { value: 'private', label: '私聊' },
@@ -57,6 +58,7 @@ export function ConversationKindTabs({
           onClick={() => onChange(item.value)}
           onKeyDown={(event) => move(event, index)}
         >
+          <Icon name={item.value === 'group' ? 'group' : 'user'} />
           {item.label}
         </button>
       ))}

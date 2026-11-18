@@ -809,6 +809,19 @@ let test = setup({}, true),
   panel = test.mount();
 await panel.flush();
 assert.equal(test.browser.writes().length, 0);
+const refreshControl = button(panel, refreshButton);
+assert.equal(refreshControl.props.title, refreshButton);
+assert.equal(text(refreshControl).trim(), '');
+assert.ok(
+  nodes(refreshControl).some(
+    (node) =>
+      node.type === 'svg' &&
+      node.props['data-icon'] === 'refresh' &&
+      node.props['aria-hidden'] === 'true' &&
+      node.props.focusable === 'false',
+  ),
+  'reread control must render the shipped decorative SVG',
+);
 assert.ok(text(panel.tree).includes('未通过平台核验'));
 assert.equal(field(panel, 'feishu-app-id').props.maxLength, 128);
 assert.equal(field(panel, 'feishu-open-id').props.maxLength, 128);

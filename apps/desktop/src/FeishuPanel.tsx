@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Icon } from './Icon';
 import {
   clearFeishuConfig,
   FeishuRequestError,
@@ -800,7 +801,10 @@ export function FeishuPanel({
   return (
     <div className="feishu-page">
       <div className="page-heading">
-        <h1>飞书早晚报</h1>
+        <h1 className="icon-label">
+          <Icon name="calendar" size={22} />
+          飞书早晚报
+        </h1>
         <p className="page-description">
           自建应用机器人，仅发送到你本人的飞书私聊；不是群机器人 Webhook。
         </p>
@@ -813,11 +817,13 @@ export function FeishuPanel({
         <div className="feishu-actions">
           <button
             type="button"
-            className="button button-secondary"
+            className="button button-secondary button-icon"
+            aria-label="重新读取"
+            title="重新读取"
             disabled={!token || Boolean(busy)}
             onClick={() => void reload()}
           >
-            {busy === 'read' ? '正在读取…' : '重新读取'}
+            <Icon name="refresh" />
           </button>
           {busy ? (
             <button
@@ -826,6 +832,7 @@ export function FeishuPanel({
               disabled={busy === 'stopping'}
               onClick={stopWaiting}
             >
+              <Icon name="close" />
               停止等待
             </button>
           ) : null}
@@ -844,6 +851,7 @@ export function FeishuPanel({
             className="button button-primary"
             onClick={onSettings}
           >
+            <Icon name="plug" />
             连接本地服务
           </button>
         </div>
@@ -897,7 +905,10 @@ export function FeishuPanel({
       ) : null}
       <section className="feishu-section" aria-labelledby="feishu-config-title">
         <div className="section-heading">
-          <h2 id="feishu-config-title">本人应用与收件人</h2>
+          <h2 id="feishu-config-title" className="icon-label">
+            <Icon name="key" size={20} />
+            本人应用与收件人
+          </h2>
           <span className="label">
             {status
               ? status.configured
@@ -1073,6 +1084,7 @@ export function FeishuPanel({
                 className="button button-primary"
                 disabled={!saveConsent}
               >
+                <Icon name="save" />
                 保存本机配置
               </button>
             </fieldset>
@@ -1101,6 +1113,7 @@ export function FeishuPanel({
             disabled={!ready || !clearConsent}
             onClick={() => void clearConfig()}
           >
+            <Icon name="trash" />
             清除配置并关闭计划
           </button>
         </details>
@@ -1110,7 +1123,10 @@ export function FeishuPanel({
         aria-labelledby="feishu-schedule-title"
       >
         <div className="section-heading">
-          <h2 id="feishu-schedule-title">固定早晚报计划</h2>
+          <h2 id="feishu-schedule-title" className="icon-label">
+            <Icon name="calendar" size={20} />
+            固定早晚报计划
+          </h2>
           <span className="label">
             {status
               ? status.schedule.enabled
@@ -1217,6 +1233,7 @@ export function FeishuPanel({
             disabled={!scheduleModelConsent || !scheduleFeishuConsent}
             onClick={() => void setSchedule(true)}
           >
+            <Icon name="play" />
             启用固定早晚报
           </button>
         </fieldset>
@@ -1248,6 +1265,7 @@ export function FeishuPanel({
             disabled={!ready || !disableConsent}
             onClick={() => void setSchedule(false)}
           >
+            <Icon name="pause" />
             关闭后续计划
           </button>
         </div>
@@ -1257,7 +1275,10 @@ export function FeishuPanel({
         aria-labelledby="feishu-preview-title"
       >
         <div className="section-heading">
-          <h2 id="feishu-preview-title">生成并核对预览</h2>
+          <h2 id="feishu-preview-title" className="icon-label">
+            <Icon name="eye" size={20} />
+            生成并核对预览
+          </h2>
           <span className="label">只生成，不发送</span>
         </div>
         <p>
@@ -1294,6 +1315,7 @@ export function FeishuPanel({
           }
           onClick={() => void preview()}
         >
+          <Icon name="eye" />
           生成最近完整窗口预览
         </button>
         {hasWindowReport ? (
@@ -1307,7 +1329,10 @@ export function FeishuPanel({
             aria-labelledby="feishu-report-title"
           >
             <div className="section-heading">
-              <h3 id="feishu-report-title">服务器固定报告</h3>
+              <h3 id="feishu-report-title" className="icon-label">
+                <Icon name="file" />
+                服务器固定报告
+              </h3>
               <span className="label">{STATES[report.state]}</span>
             </div>
             <dl className="feishu-facts">
@@ -1455,6 +1480,7 @@ export function FeishuPanel({
                   disabled={!sendReady || !sendConsent}
                   onClick={() => void send()}
                 >
+                  <Icon name="send" />
                   发送这份预览至本人飞书
                 </button>
               </>
@@ -1511,6 +1537,7 @@ export function FeishuPanel({
               className="button button-secondary"
               disabled={!token || Boolean(busy)}
             >
+              <Icon name="file" />
               只读获取报告
             </button>
           </form>
@@ -1540,6 +1567,7 @@ export function FeishuPanel({
               className="button button-secondary"
               disabled={!token || Boolean(busy)}
             >
+              <Icon name="mail" />
               只读获取回执
             </button>
           </form>

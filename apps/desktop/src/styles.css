@@ -132,7 +132,7 @@ a {
   align-items: center;
   gap: 11px;
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   padding: 10px 12px;
   border: 0;
   border-radius: 4px;
@@ -247,13 +247,29 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 38px;
+  min-height: 44px;
   padding: 8px 14px;
   border: 1px solid transparent;
   border-radius: 4px;
   font-size: 0.8125rem;
   font-weight: 500;
   line-height: 1.5;
+}
+.ui-icon {
+  flex-shrink: 0;
+}
+.icon-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.button-icon {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  padding: 0;
 }
 .button-primary {
   color: white;
@@ -732,12 +748,9 @@ pre {
     justify-content: center;
     gap: 6px;
     width: auto;
-    min-height: 40px;
+    min-height: 44px;
     padding: 8px 10px;
     font-size: 0.8125rem;
-  }
-  .nav-item svg {
-    display: none;
   }
   .sidebar-bottom {
     align-self: flex-end;

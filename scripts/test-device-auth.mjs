@@ -286,7 +286,9 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   assert.equal(saved.private_key.algorithm.name, 'ECDSA');
   assert.equal(saved.private_key.algorithm.namedCurve, 'P-256');
   assert.deepEqual([...saved.private_key.usages], ['sign']);
-  await assert.rejects(webcrypto.subtle.exportKey('pkcs8', saved.private_key), (e) => e.name === 'InvalidAccessException');
+  // Node 24.12 uses the legacy name; 24.21 uses the standard WebCrypto name.
+  // Both must be actual access-denied DOMExceptions, never a successful export.
+  await assert.rejects(webcrypto.subtle.exportKey('pkcs8', saved.private_key), (e) => e instanceof DOMException && ['InvalidAccessError', 'InvalidAccessException'].includes(e.name));
   const wrapping = await webcrypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['wrapKey']);
   await assert.rejects(webcrypto.subtle.wrapKey('pkcs8', saved.private_key, wrapping, { name: 'AES-GCM', iv: new Uint8Array(12) }));
   const copy = structuredClone(saved.private_key), proof = new TextEncoder().encode('synthetic restored-key proof');
@@ -1052,7 +1054,9 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   assert.equal(control((n) => n.type === 'MilkyPanelStub').props.key, `milky-${handle}`);
   const gate = deferred(); h.server.before = (r) => r.method === 'DELETE' ? gate.promise : undefined;
   const forget = control((n) => n.type === 'button' && n.props.onClick === settings(h).onClear);
-  assert.ok(forget.props.children.flat(Infinity).includes('忘记本机并断开'));
+  const forgetLabel = forget.props['aria-label'] ?? nodes(forget).flatMap((n) => (n.props?.children ?? []).flat(Infinity).filter((value) => typeof value === 'string')).join('');
+  assert.equal(forgetLabel, '忘记本机并断开');
+  assert.ok(nodes(h.value).some((n) => n.type === 'svg' && n.props['data-icon'] === 'settings' && n.props['aria-hidden'] === 'true' && n.props.focusable === 'false'), 'app navigation must render the shipped decorative SVG');
   const clearing = forget.props.onClick(); await h.flush();
   assert.equal(settings(h).activeToken, '');
   assert.equal(settings(h).forgetting, true);

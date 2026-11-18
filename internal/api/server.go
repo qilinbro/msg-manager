@@ -272,6 +272,8 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 			Automation: AutomationStatus{Paused: true, AutoSendEnabled: false},
 			Storage:    StorageStatus{Configured: h.inbox != nil, Driver: driver}, Connectors: h.connections(),
 		})
+	case modelPresetsPath:
+		h.serveModelPresets(w, r, traceID)
 	case "/api/v1/connections":
 		writeJSON(w, http.StatusOK, ListResponse[connector.Descriptor]{Items: h.connections()})
 	case "/api/v1/connections/qq-milky/verify":

@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ChangeEvent, FormEvent, ReactNode } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
+import { Icon } from './Icon';
+import type { IconName } from './Icon';
 import { ServiceError } from './api';
 import {
   getInboxInfo,
@@ -39,80 +41,13 @@ import type { ProfileCategory, ProfileStatus } from './profile-api';
 
 type View = 'all' | 'unread' | 'pinned' | 'archived';
 type LoadState = 'idle' | 'loading' | 'ready' | 'error';
-type Glyph =
-  | 'mail'
-  | 'search'
-  | 'arrow'
-  | 'back'
-  | 'import'
-  | 'pin'
-  | 'archive'
-  | 'check'
-  | 'close'
-  | 'refresh';
 const PLATFORMS: Platform[] = ['qq', 'weixin', 'telegram', 'shanliao', 'email'];
-const VIEWS: { value: View; name: string; icon: Glyph }[] = [
-  { value: 'all', name: '全部会话', icon: 'mail' },
+const VIEWS: { value: View; name: string; icon: IconName }[] = [
+  { value: 'all', name: '全部会话', icon: 'messages' },
   { value: 'unread', name: '未读', icon: 'mail' },
   { value: 'pinned', name: '置顶', icon: 'pin' },
   { value: 'archived', name: '已归档', icon: 'archive' },
 ];
-function Symbol({ name, size = 18 }: { name: Glyph; size?: number }) {
-  const paths: Record<Glyph, ReactNode> = {
-    mail: (
-      <>
-        <rect x="3" y="5" width="18" height="14" rx="2" />
-        <path d="m3 7 9 6 9-6" />
-      </>
-    ),
-    search: (
-      <>
-        <circle cx="10" cy="10" r="6" />
-        <path d="m15 15 5 5" />
-      </>
-    ),
-    arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
-    back: <path d="M19 12H5m5-5-5 5 5 5" />,
-    import: (
-      <>
-        <path d="M12 3v12m-4-4 4 4 4-4M4 15v5h16v-5" />
-      </>
-    ),
-    pin: (
-      <>
-        <path d="m9 3 6 0-1 5 4 4v2H6v-2l4-4-1-5ZM12 14v7" />
-      </>
-    ),
-    archive: (
-      <>
-        <rect x="3" y="3" width="18" height="5" rx="1" />
-        <path d="M5 8v12h14V8M10 12h4" />
-      </>
-    ),
-    check: <path d="m5 12 4 4L19 6" />,
-    close: <path d="m6 6 12 12M6 18 18 6" />,
-    refresh: (
-      <>
-        <path d="M20 11a8 8 0 1 0-1 5M20 4v7h-7" />
-      </>
-    ),
-  };
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.7"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {paths[name]}
-    </svg>
-  );
-}
 function PlatformMark({ platform }: { platform: Platform }) {
   return (
     <span
@@ -379,7 +314,10 @@ function ImportPanel({
     >
       <div className="inbox-import-heading">
         <div>
-          <h2 id="import-heading">把已有消息，整理到一起</h2>
+          <h2 id="import-heading" className="icon-label">
+            <Icon name="import" size={20} />
+            导入已有消息
+          </h2>
           <p>仅导入你有权使用的记录；这不会向任何联系人发送消息。</p>
         </div>
         <button
@@ -388,7 +326,7 @@ function ImportPanel({
           title="关闭导入"
           aria-label="关闭导入"
         >
-          <Symbol name="close" />
+          <Icon name="close" />
         </button>
       </div>
       <form onSubmit={prepare}>
@@ -503,13 +441,16 @@ function ImportPanel({
             disabled={locked || !file}
           >
             {state === 'reading' ? '正在检查文件…' : '检查文件与来源'}
-            <Symbol name="arrow" size={16} />
+            <Icon name="arrow" size={16} />
           </button>
         ) : null}
       </form>
       {preview ? (
         <div className="inbox-import-preview">
-          <h3>确认本次导入</h3>
+          <h3 className="icon-label">
+            <Icon name="eye" />
+            确认本次导入
+          </h3>
           <dl>
             <div>
               <dt>来源</dt>
@@ -574,7 +515,7 @@ function ImportPanel({
               disabled={state === 'importing'}
             >
               {state === 'importing' ? '正在导入…' : '确认导入'}
-              <Symbol name="import" size={16} />
+              <Icon name="import" />
             </button>
             {state === 'importing' ? (
               <button className="button button-quiet" onClick={cancel}>
@@ -1159,11 +1100,14 @@ export default function Inbox({
     <div className="inbox-root">
       <div className="inbox-title-row">
         <div>
-          <h1>{profilesOnly ? '联系人' : '消息'}</h1>
+          <h1 className="icon-label">
+            <Icon name={profilesOnly ? 'contacts' : 'messages'} size={22} />
+            {profilesOnly ? '联系人' : '消息'}
+          </h1>
           <p>
             {profilesOnly
-              ? '从已入库会话查看联系人、关系分类与可核实的个人档案。'
-              : '查看已入库会话，按平台筛选、导入记录或管理消息。'}
+              ? '已入库联系人、关系分类与可核实档案。'
+              : '已入库会话与消息记录。'}
           </p>
         </div>
         <div className="inbox-header-actions">
@@ -1174,22 +1118,21 @@ export default function Inbox({
             onClick={refresh}
             disabled={!token || infoState === 'loading'}
           >
-            <Symbol name="refresh" />
+            <Icon name="refresh" />
           </button>
           <button
             className="button button-primary"
             onClick={() => setImportOpen((value) => !value)}
             disabled={!enabled}
           >
-            <Symbol name="import" size={16} />
+            <Icon name="import" />
             导入消息
           </button>
         </div>
       </div>
       <div className="inbox-source-note">
-        <span>
-          来源以实际配置与入库记录为准。工作台不会自动发送消息或邮件。
-        </span>
+        <Icon name="database" />
+        <span>来源以实际配置与入库记录为准；本页不发送聊天消息或邮件。</span>
       </div>
       <section
         className="inbox-discovery"
@@ -1209,9 +1152,11 @@ export default function Inbox({
           <button
             type="button"
             className="button button-secondary"
+            aria-label="找不到？让 Agent 帮我"
             onClick={askAssistant}
           >
-            找不到？让 Agent 帮我
+            <Icon name="assistant" />
+            Agent 帮我
           </button>
         </div>
         <form
@@ -1242,18 +1187,21 @@ export default function Inbox({
               type="submit"
               disabled={!enabled || Boolean(searchError)}
             >
+              <Icon name="search" />
               搜索
             </button>
             <button
-              className="button button-secondary"
+              className="button button-secondary button-icon"
               type="button"
+              aria-label="清除搜索关键词"
+              title="清除搜索关键词"
               disabled={!search}
               onClick={() => {
                 setSearch('');
                 setQuery('');
               }}
             >
-              清除
+              <Icon name="close" />
             </button>
           </div>
           {searchError ? (
@@ -1273,8 +1221,14 @@ export default function Inbox({
         {!profilesOnly && token ? (
           <nav className="inbox-source-links" aria-label="读取消息来源">
             <span>记录还没入库？</span>
-            <a href="#inbox-wechat-source">读取微信消息</a>
-            <a href="#inbox-email-source">同步邮箱</a>
+            <a href="#inbox-wechat-source">
+              <Icon name="message" />
+              读取微信消息
+            </a>
+            <a href="#inbox-email-source">
+              <Icon name="mail" />
+              同步邮箱
+            </a>
           </nav>
         ) : null}
       </section>
@@ -1295,7 +1249,7 @@ export default function Inbox({
             aria-label="关闭提示"
             onClick={() => setNotice(null)}
           >
-            <Symbol name="close" size={15} />
+            <Icon name="close" size={15} />
           </button>
         </div>
       ) : null}
@@ -1318,7 +1272,7 @@ export default function Inbox({
           <p>连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。</p>
           <button className="button button-secondary" onClick={onSettings}>
             前往连接设置
-            <Symbol name="arrow" size={16} />
+            <Icon name="arrow" size={16} />
           </button>
         </section>
       ) : infoState === 'error' ? (
@@ -1340,7 +1294,7 @@ export default function Inbox({
           <p>消息存储尚未启用。先在设置中查看配置状态，再导入你已有的对话。</p>
           <button className="button button-secondary" onClick={onSettings}>
             查看设置
-            <Symbol name="arrow" size={16} />
+            <Icon name="arrow" size={16} />
           </button>
         </section>
       ) : (
@@ -1360,7 +1314,7 @@ export default function Inbox({
                   aria-pressed={view === item.value}
                   onClick={() => selectView(item.value)}
                 >
-                  <Symbol name={item.icon} size={16} />
+                  <Icon name={item.icon} size={16} />
                   <span>{item.name}</span>
                 </button>
               ))}
@@ -1503,7 +1457,7 @@ export default function Inbox({
                       onClick={() => setImportOpen(true)}
                     >
                       导入消息
-                      <Symbol name="arrow" size={15} />
+                      <Icon name="arrow" size={15} />
                     </button>
                   ) : (
                     <button
@@ -1524,7 +1478,7 @@ export default function Inbox({
                     className="inbox-text-button"
                     onClick={askAssistant}
                   >
-                    让 Agent 帮我查找
+                    <Icon name="assistant" />让 Agent 帮我查找
                   </button>
                 </div>
               ) : (
@@ -1599,7 +1553,7 @@ export default function Inbox({
                             </span>
                             {item.pinned ? (
                               <span className="inbox-pin-label">
-                                <Symbol name="pin" size={11} />
+                                <Icon name="pin" size={11} />
                                 置顶
                               </span>
                             ) : null}
@@ -1653,7 +1607,7 @@ export default function Inbox({
                     aria-label="返回会话列表"
                     title="返回会话列表"
                   >
-                    <Symbol name="back" />
+                    <Icon name="back" />
                   </button>
                   <PlatformMark platform={selected.platform} />
                   <div>
@@ -1679,20 +1633,23 @@ export default function Inbox({
                     onClick={() => change({ read: selected.unread_count > 0 })}
                     disabled={actionBusy}
                   >
-                    <Symbol name="check" size={15} />
+                    <Icon
+                      name={selected.unread_count > 0 ? 'mail-read' : 'mail'}
+                    />
                     {selected.unread_count > 0 ? '标为已读' : '标为未读'}
                   </button>
                   <button
                     onClick={() => change({ pinned: !selected.pinned })}
                     disabled={actionBusy}
                   >
-                    <Symbol name="pin" size={15} />
+                    <Icon name={selected.pinned ? 'unpin' : 'pin'} />
                     {selected.pinned ? '取消置顶' : '置顶'}
                   </button>
                   <button
                     onClick={() => change({ archived: !selected.archived })}
                     disabled={actionBusy}
                   >
+                    <Icon name={selected.archived ? 'unarchive' : 'archive'} />
                     {selected.archived ? '移回收件箱' : '归档'}
                   </button>
                   {!profilesOnly ? (
@@ -1701,20 +1658,28 @@ export default function Inbox({
                       aria-expanded={aiOpen}
                       aria-controls={`ai-management-${selected.id}`}
                     >
+                      <Icon name="settings" />
                       AI 管理
                     </button>
                   ) : null}
-                  <button type="button" onClick={askAssistant}>
-                    Agent 帮我处理
+                  <button
+                    type="button"
+                    aria-label="Agent 帮我处理"
+                    onClick={askAssistant}
+                  >
+                    <Icon name="assistant" />
+                    Agent
                   </button>
                   <button
                     onClick={() =>
                       setProfileOpen((value) => profilesOnly || !value)
                     }
+                    aria-label="个人档案"
                     aria-expanded={profileOpen}
                     aria-controls={`personal-profile-${selected.id}`}
                   >
-                    个人档案
+                    <Icon name="user" />
+                    档案
                   </button>
                 </div>
                 {!profilesOnly ? (
@@ -1746,18 +1711,21 @@ export default function Inbox({
                         type="submit"
                         disabled={Boolean(messageSearchError)}
                       >
+                        <Icon name="search" />
                         搜索正文
                       </button>
                       {messageSearch ? (
                         <button
-                          className="button button-secondary"
+                          className="button button-secondary button-icon"
                           type="button"
+                          aria-label="查看全部消息"
+                          title="查看全部消息"
                           onClick={() => {
                             setMessageSearch('');
                             setMessageQuery('');
                           }}
                         >
-                          查看全部消息
+                          <Icon name="close" />
                         </button>
                       ) : null}
                     </div>
@@ -1842,7 +1810,7 @@ export default function Inbox({
                               className="email-text-button"
                               onClick={askAssistant}
                             >
-                              让 Agent 帮我
+                              <Icon name="assistant" />让 Agent 帮我
                             </button>
                           ) : null}
                         </div>
@@ -1918,7 +1886,7 @@ export default function Inbox({
                   )}
                 </div>
                 <footer className="inbox-detail-footer">
-                  <Symbol name="archive" size={15} />
+                  <Icon name="lock" />
                   <span>
                     {selected.platform === 'email'
                       ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
@@ -1930,7 +1898,7 @@ export default function Inbox({
               <div className="inbox-detail-empty">
                 <h2>{profilesOnly ? '选择联系人' : '选择会话'}</h2>
                 <p>
-                  从左侧列表打开记录，查看
+                  选择后查看
                   {profilesOnly
                     ? '关系分类与个人档案'
                     : '消息正文、来源与处理状态'}

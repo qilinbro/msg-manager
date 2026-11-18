@@ -29,9 +29,6 @@ func validateConfig(c Config) (validatedConfig, error) {
 	if err != nil || u == nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" || u.User != nil || u.RawQuery != "" || u.ForceQuery || u.Fragment != "" || u.Opaque != "" || u.RawPath != "" {
 		return validatedConfig{}, failure(InvalidConfig)
 	}
-	if u.Path != "" && u.Path != "/" && u.Path != "/v1" && u.Path != "/v1/" {
-		return validatedConfig{}, failure(InvalidConfig)
-	}
 	host := strings.ToLower(u.Hostname())
 	port := u.Port()
 	if port != "" {
@@ -39,6 +36,16 @@ func validateConfig(c Config) (validatedConfig, error) {
 		if err != nil || n < 1 || n > 65535 || strconv.Itoa(n) != port || u.Host != net.JoinHostPort(u.Hostname(), port) {
 			return validatedConfig{}, failure(InvalidConfig)
 		}
+	}
+	basePath := strings.TrimSuffix(u.Path, "/")
+	standardPath := basePath == "" || basePath == "/v1"
+	// Only these documented official compatibility paths extend the generic
+	// root or /v1 contract. Never allow arbitrary reverse-proxy/native paths.
+	officialPath := u.Scheme == "https" && (port == "443" || port == "" && strings.EqualFold(u.Host, host)) &&
+		(host == "generativelanguage.googleapis.com" && basePath == "/v1beta/openai" ||
+			host == "dashscope.aliyuncs.com" && basePath == "/compatible-mode/v1")
+	if !standardPath && !officialPath {
+		return validatedConfig{}, failure(InvalidConfig)
 	}
 	local := u.Scheme == "http" && (host == "127.0.0.1" || host == "::1")
 	if u.Scheme == "http" && (!local || port == "") {
@@ -59,11 +66,7 @@ func validateConfig(c Config) (validatedConfig, error) {
 			port = "443"
 		}
 	}
-	if u.Path == "" || u.Path == "/" {
-		u.Path = "/chat/completions"
-	} else {
-		u.Path = "/v1/chat/completions"
-	}
+	u.Path = basePath + "/chat/completions"
 	return validatedConfig{endpoint: u, host: host, port: port, local: local, key: c.APIKey, model: c.Model}, nil
 }
 

@@ -1,0 +1,5 @@
+failed: D:\msg_manager\.runtime\main-push-20261116\repo\.runtime\model-api-icons-browser-Z5ejyn
+1 checks; 14 intercepted API requests; 0 mutations.
+AssertionError [ERR_ASSERTION]: Desktop settings: target 启用每日计划 (130x39.5)
+    at auditIcons (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/model-api-icons-browser.mjs:739:14)
+    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/model-api-icons-browser.mjs:752:3

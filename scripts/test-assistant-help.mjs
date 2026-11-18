@@ -332,7 +332,24 @@ async function submitRound(panel) {
   sameCache.set(assistant().props.token, cached);
   const dialog = () => appFind(app, (node) => node.type === "dialog");
   assert.equal(dialog().props["aria-labelledby"], "assistant-title");
-  assert.ok(appNodes(app.value).some((node) => text(node) === "关闭助手"));
+  const close = appFind(
+    app,
+    (node) =>
+      node.type === "button" &&
+      (node.props["aria-label"] ?? text(node)).trim() === "关闭助手",
+  );
+  assert.equal(close.props.title, "关闭助手");
+  assert.equal(text(close).trim(), "");
+  assert.ok(
+    appNodes(close).some(
+      (node) =>
+        node.type === "svg" &&
+        node.props["data-icon"] === "close" &&
+        node.props["aria-hidden"] === "true" &&
+        node.props.focusable === "false",
+    ),
+    "close control must render the shipped decorative SVG",
+  );
   dialog().props.onClose();
   await app.flush();
   assert.equal(assistant().props.visible, false);

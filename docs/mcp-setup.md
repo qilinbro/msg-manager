@@ -104,8 +104,8 @@ Remove-Item Env:SOCIALD_API_TOKEN -ErrorAction SilentlyContinue
 | 工具 | 对应后台 API | 作用与副作用 |
 |---|---|---|
 | `get_system_status` | `GET /api/v1/system` | 本地服务、存储和连接器能力；只读，不等于微信持续在线 |
-| `search_conversations` | `GET /api/v1/conversations` | 已保存会话的关键词、平台、分类、未读、置顶、归档筛选及游标分页；只读，不读取全平台历史 |
-| `get_conversation_messages` | `GET /api/v1/conversations/{id}/messages` | 单个已保存会话的消息分页；只读，不标记已读 |
+| `search_conversations` | `GET /api/v1/conversations` | 已保存会话的字面关键词、平台、私聊/群聊、分类、未读、置顶、归档筛选及游标分页；只读，不读取全平台历史 |
+| `get_conversation_messages` | `GET /api/v1/conversations/{id}/messages` | 单个已保存会话的正文关键词和消息分页；只读，不标记已读 |
 | `get_wechat_sessions` | `GET /api/v1/connections/wechat-db/sessions` | 已配置本机微信账号的私聊/群聊元数据；源库只读，后台可更新连接诊断状态；不返回源目录或密钥 |
 | `read_wechat_messages` | `POST /api/v1/connections/wechat-db/read` | 读取选定会话最近文本并**导入产品加密库**；会新增联系人、消息和未读数。源微信库只读，但这不是全局只读操作 |
 | `get_latest_digest` | `GET /api/v1/digest/latest` | 读取已有的工作区日报/提醒，不主动生成；尚无日报返回 `{"report":null}` |
@@ -116,9 +116,11 @@ Remove-Item Env:SOCIALD_API_TOKEN -ErrorAction SilentlyContinue
 
 ### 参数边界
 
-- `search_conversations`：`q`、`platform`、`category`、`unread`、`pinned`、`archived`、`cursor`、`limit`；平台为 `qq|weixin|telegram|shanliao|email`，分类为 `friend|family|colleague|client|partner|other|unclassified`。关键词上限 256 UTF-8 字节。
-- `get_conversation_messages`：必填 `conversation_id`（1—128 个 ASCII 字母、数字、`_` 或 `-`），可选 `cursor`、`limit`。消息分页不支持额外筛选。
-- 两个分页工具的 `limit` 默认为 50，范围 1—100；`cursor` 上限 2048 UTF-8 字节，必须原样使用后端返回的游标，不自行拼接。
+- `search_conversations`：`q`、`platform`、`conversation_kind`、`category`、`unread`、`pinned`、`archived`、`cursor`、`limit`；平台为 `qq|weixin|telegram|shanliao|email`，分类为 `friend|family|colleague|client|partner|other|unclassified`。`conversation_kind` 仅可为 `private|group`，省略包括全部类型，空字符串拒绝；与其余筛选取交集。
+- `get_conversation_messages`：必填 `conversation_id`（1—128 个 ASCII 字母、数字、`_` 或 `-`），可选正文 `q`、`cursor`、`limit`；`q` 只匹配该会话正文，不匹配邮件头。
+- 两处 `q` 均上限 256 UTF-8 字节、无控制字符，仅空白视为无关键词；中文按字面匹配，ASCII 字母不区分大小写，`%`、`_` 不作为通配符。会话搜索的正文命中片段不冒充最近消息。
+- 两个分页工具的 `limit` 默认为 50，范围 1—100；`cursor` 上限 2048 UTF-8 字节，必须原样使用后端返回的游标，不自行拼接。游标绑定会话、筛选、关键词和工作区版本；变更条件应从第一页查询。
+- 2026-11-18 的参数对齐未增加工具数量或任意 API 权限；内置 Assistant 的模型模板读取是另一入口，见 [模型预设与 Agent API](<model-provider-presets.md>)。
 - `read_wechat_messages`：必填 `peer_id`（最多 128 UTF-8 字节、无首尾空白和路径分隔符），可选 `keyword`（最多 128 字符、无控制字符，去除首尾空白）。群聊使用后端返回的 `@@...` ID；不要凭昵称构造 ID。
 - 其余三个工具无参数。所有工具拒绝额外字段、错误类型、显式 `null`、重复顶层参数键和控制字符；无参数可省略 `arguments` 或使用 `{}`。
 - 微信读取仍受最近默认 100 / 最大 500 条**源记录窗口**限制；关键词只在该窗口内匹配，不等于完整历史搜索。

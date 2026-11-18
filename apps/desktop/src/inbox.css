@@ -38,8 +38,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 38px;
-  min-height: 38px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  flex-shrink: 0;
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
@@ -113,7 +115,7 @@
   padding: 11px 10px;
   width: 100%;
   font-size: 0.75rem;
-  min-height: 40px;
+  min-height: 44px;
 }
 .inbox-view-filters button.active,
 .inbox-platform-filter.active {
@@ -452,7 +454,7 @@
   border-radius: 5px;
   font-size: 0.75rem;
   padding: 9px 8px;
-  min-height: 34px;
+  min-height: 44px;
 }
 .inbox-conversation-actions button:hover {
   background: var(--surface-hover);
@@ -792,6 +794,9 @@
   }
 }
 @media (max-width: 600px) {
+  .inbox-title-row > div:first-child {
+    min-width: 0;
+  }
   .inbox-title-row {
     gap: 12px;
     align-items: flex-start;
@@ -811,12 +816,6 @@
   .inbox-header-actions .button {
     font-size: 0.75rem;
     padding: 11px 12px;
-  }
-  .inbox-header-actions .inbox-icon-button {
-    min-width: 30px;
-  }
-  .inbox-header-actions .button svg {
-    display: none;
   }
   .inbox-source-note {
     font-size: 0.75rem;
@@ -852,16 +851,16 @@
     justify-content: center;
     gap: 4px;
     padding: 8px 4px;
-    min-height: 35px;
+    min-height: 44px;
   }
   .inbox-view-filters button svg {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
   }
   .inbox-platform-filter {
     display: inline-flex;
     width: auto;
-    min-height: 31px;
+    min-height: 44px;
     padding: 7px 9px;
     font-size: 0.75rem;
     gap: 5px;
@@ -983,14 +982,18 @@
   gap: 6px 13px;
 }
 .email-panel-actions .button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 10px 16px;
   font-size: 0.75rem;
 }
 .email-text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 0;
   background: transparent;
-  min-height: 38px;
+  min-height: 44px;
   padding: 8px 4px;
   font-size: 0.75rem;
   color: var(--ink);
@@ -1150,7 +1153,7 @@
   font-size: 0.75rem;
 }
 .wechat-monitor-controls .button {
-  min-height: 42px;
+  min-height: 44px;
   font-size: 0.75rem;
 }
 .wechat-monitor-peers {
@@ -1270,6 +1273,10 @@
   gap: 4px;
 }
 .conversation-kind-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-width: 96px;
   min-height: 48px;
   padding: 11px 20px;
@@ -1342,6 +1349,7 @@
 .inbox-source-links a {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   min-height: 44px;
   color: var(--ink);
   text-underline-offset: 4px;
@@ -1397,7 +1405,7 @@
   .inbox-keyword-form .inbox-keyword-row input {
     flex-basis: 100%;
   }
-  .inbox-keyword-form .inbox-keyword-row button {
+  .inbox-keyword-form .inbox-keyword-row button:not(.button-icon) {
     flex: 1;
   }
   .inbox-source-links {

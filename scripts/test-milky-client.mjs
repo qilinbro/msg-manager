@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -28,9 +29,13 @@ const transformedApp = transformSync('App.tsx', appSource, {
 assert.equal(transformedApp.errors.length, 0);
 const appModule = { exports: {} };
 const MilkyPanel = () => null;
-const jsx = (type, props, ...children) => ({ type, props: { ...props, children } });
+const jsx = (type, supplied, ...children) => {
+  const props = { ...supplied, children };
+  return typeof type === 'function' && type === Icon ? type(props) : { type, props };
+};
+const Icon = loadIcon(jsx);
 runInNewContext(transformedApp.code + '\nmodule.exports={Settings,PLANNED_CONNECTORS};', {
-  module: appModule, jsx, Fragment: 'fragment',
+  module: appModule, jsx, Icon, Fragment: 'fragment',
   MilkyPanel, AIModelPanel: () => null, DigestPanel: () => null,
   SERVICE: { url: 'http://127.0.0.1:17890', error: null },
 });
@@ -52,6 +57,7 @@ function visit(node) {
   visit(node.props?.children);
 }
 visit(settingsTree);
+assert.ok(descendants.some((node) => node.type === 'svg' && node.props['data-icon'] === 'plug' && node.props['aria-hidden'] === 'true' && node.props.focusable === 'false'), 'Settings must render the shipped decorative SVG');
 assert.equal(descendants.filter((node) => node.type === MilkyPanel).length, 1, 'Settings must mount the Milky panel once');
 assert.equal(descendants.filter((node) => node.props?.['aria-labelledby'] === 'qq-settings-title').length, 0, 'the retired QQ identity panel must not render');
 

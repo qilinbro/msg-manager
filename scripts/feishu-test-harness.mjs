@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 
 // Synthetic, in-memory execution of shipped code. Not a browser/AT/native-form,
 // real-account, model, platform, scheduler-runtime or Tauri acceptance test.
@@ -444,7 +445,7 @@ export function componentHarness(
     ),
     bindings,
     hooks,
-    { jsx, Fragment: 'fragment' },
+    { jsx, Fragment: 'fragment', Icon: loadIcon(jsx) },
   );
   const component = runInNewContext(
     `(function(){${transpile(file)}; return ${name};})()`,
@@ -583,7 +584,9 @@ export function field(panel, id) {
 }
 export function button(panel, label) {
   const found = nodes(panel.tree).find(
-    (node) => node.type === 'button' && text(node) === label,
+    (node) =>
+      node.type === 'button' &&
+      (node.props['aria-label'] ?? text(node)).trim() === label,
   );
   assert.ok(found, `missing button ${label}`);
   return found;

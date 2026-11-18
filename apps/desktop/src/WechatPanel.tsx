@@ -4,6 +4,7 @@ import { ServiceError } from './api';
 import type { AssistantHelpRequest } from './assistant-help';
 import type { ConversationKind } from './inbox-api';
 import { ConversationKindTabs } from './ConversationKindTabs';
+import { Icon } from './Icon';
 import { asciiFold } from './keyword-search';
 import {
   getWechatSessions,
@@ -35,7 +36,7 @@ const STATE_NAMES: Record<WechatStatus['state'], string> = {
   unavailable: '数据库暂不可读',
   unsupported_schema: '数据库结构尚未支持',
   changed: '数据库发生变化',
-  not_found: '所选私聊未找到',
+  not_found: '所选会话未找到',
 };
 
 const uncertainFailure = (error: unknown) =>
@@ -424,23 +425,10 @@ export default function WechatPanel({
     >
       <div className="email-panel-main">
         <div className="email-panel-heading">
-          <svg
-            width="23"
-            height="23"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            aria-hidden="true"
-          >
-            <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3a8.5 8.5 0 0 1 8.5 8.5Z" />
-            <path d="M8 10h9M8 14h6" />
-          </svg>
+          <Icon name="message" size={22} />
           <div>
             <h2 id="wechat-panel-title">读取本机微信消息</h2>
-            <p>
-              按需保存私聊或群聊，可按正文关键词筛选，也可以交给后台定时读取。
-            </p>
+            <p>按需保存私聊与群聊，或授权后台定时读取。</p>
           </div>
         </div>
         <div className="email-panel-actions">
@@ -450,6 +438,7 @@ export default function WechatPanel({
             onClick={loadSessions}
             disabled={blocked}
           >
+            <Icon name="messages" />
             {busy === 'sessions' ? '正在读取会话…' : '读取会话列表'}
           </button>
           {busy && busy !== 'monitor' ? (
@@ -458,19 +447,22 @@ export default function WechatPanel({
               className="email-text-button"
               onClick={stopWaiting}
             >
+              <Icon name="close" />
               停止等待
             </button>
           ) : null}
           <button
             type="button"
-            className="email-text-button"
+            className="inbox-icon-button"
+            aria-label="更新状态"
+            title="更新状态"
             onClick={() => {
               setStatusError(null);
               setStatusRevision((value) => value + 1);
             }}
             disabled={statusLoading || Boolean(busy)}
           >
-            {statusLoading ? '读取状态…' : '更新状态'}
+            <Icon name="refresh" />
           </button>
         </div>
       </div>
@@ -497,7 +489,10 @@ export default function WechatPanel({
         {status?.account_id ? (
           <span className="email-account">本地账号：{status.account_id}</span>
         ) : null}
-        <span>只读 · 发送关闭</span>
+        <span className="icon-label">
+          <Icon name="lock" />
+          只读 · 发送关闭
+        </span>
       </div>
       {status && !status.configured ? (
         <p className="email-panel-note">
@@ -524,6 +519,7 @@ export default function WechatPanel({
         <button
           type="button"
           className="button button-secondary"
+          aria-label="不会操作？让 Agent 帮我"
           onClick={() =>
             onAssistantHelp({
               source: '微信只读接入',
@@ -531,7 +527,8 @@ export default function WechatPanel({
             })
           }
         >
-          不会操作？让 Agent 帮我
+          <Icon name="assistant" />
+          Agent 帮我
         </button>
       </div>
       <div
@@ -614,6 +611,7 @@ export default function WechatPanel({
               type="submit"
               disabled={blocked || !storageEnabled || !selectedVisible}
             >
+              <Icon name="download" />
               {busy === 'read' ? '正在读取并保存…' : '读取并保存消息'}
             </button>
             <button
@@ -631,6 +629,7 @@ export default function WechatPanel({
                   editMonitorPeers([...monitorPeers, peerID]);
               }}
             >
+              <Icon name="plus" />
               加入后台读取
             </button>
           </div>
@@ -654,7 +653,10 @@ export default function WechatPanel({
         aria-labelledby="wechat-monitor-title"
       >
         <div className="wechat-monitor-heading">
-          <h3 id="wechat-monitor-title">后台自动读取</h3>
+          <h3 id="wechat-monitor-title" className="icon-label">
+            <Icon name="refresh" />
+            后台自动读取
+          </h3>
           <span
             className={`email-state-label ${monitor?.enabled ? 'is-synced' : ''}`}
           >
@@ -678,7 +680,7 @@ export default function WechatPanel({
             {monitorPeers.length ? (
               <ul
                 className="wechat-monitor-peers"
-                aria-label="已选择的后台读取私聊"
+                aria-label="已选择的后台读取会话"
               >
                 {monitorPeers.map((id) => (
                   <li key={id}>
@@ -688,8 +690,9 @@ export default function WechatPanel({
                     </span>
                     <button
                       type="button"
-                      className="email-text-button"
-                      aria-label={`移除私聊 ${id}`}
+                      className="inbox-icon-button"
+                      aria-label={`移除会话 ${id}`}
+                      title={`移除会话 ${id}`}
                       disabled={Boolean(busy)}
                       onClick={() =>
                         editMonitorPeers(
@@ -697,7 +700,7 @@ export default function WechatPanel({
                         )
                       }
                     >
-                      移除
+                      <Icon name="close" />
                     </button>
                   </li>
                 ))}
@@ -737,6 +740,7 @@ export default function WechatPanel({
                 }
                 onClick={() => void changeMonitor(true)}
               >
+                <Icon name={monitor.enabled ? 'save' : 'play'} />
                 {busy === 'monitor'
                   ? '正在保存…'
                   : monitor.enabled
@@ -749,6 +753,7 @@ export default function WechatPanel({
                 disabled={Boolean(busy) || !monitor.enabled}
                 onClick={() => void changeMonitor(false)}
               >
+                <Icon name="pause" />
                 暂停后台读取
               </button>
             </div>
@@ -781,8 +786,10 @@ export default function WechatPanel({
         )}
       </section>
       <p className="email-panel-note" id="wechat-read-help">
-        读取微信 Windows 4.x 本机已有的私聊文本，不发送消息、不调用AI。
-        每次读取最近一批记录；暂停、离线或消息量超过读取窗口时，可能无法补齐全部历史。
+        读取微信 Windows 4.x
+        本机已有的私聊与群聊文本；源库只读、不发送聊天消息。
+        已授权的自动整理或日报可能将入库内容发给所配置模型并产生费用；读取不新增这些授权。
+        每次只读取最近一批记录，暂停、离线或超出窗口时可能无法补齐历史。
       </p>
       {visibleResult ? (
         <p className="email-last-result">

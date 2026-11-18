@@ -21,6 +21,7 @@ import {
   prepareAssistantHelpDraft,
 } from './assistant-help';
 import type { AssistantHelpRequest } from './assistant-help';
+import { Icon } from './Icon';
 import './assistant.css';
 
 interface AssistantTurn {
@@ -771,25 +772,26 @@ export function AssistantPanel({
             Agent 助手
           </h1>
           <p className="page-description">
-            说明要做的事，Agent
-            会通过真实业务接口协助。首次连接、模型配置和凭据仍需你手动完成；有影响的操作确认后才执行，结果以工具审计为准。
+            通过业务接口协助，操作逐项确认，以工具审计为准。连接、模型与凭据请在设置中配置。
           </p>
         </div>
         <div className="assistant-actions">
           <button
             type="button"
-            className="button button-secondary"
+            className="button button-secondary button-icon"
+            aria-label="刷新状态"
+            title="刷新状态"
             disabled={statusBusy || Boolean(busy)}
             onClick={() => void loadStatus()}
           >
-            {statusBusy ? '读取状态中…' : '刷新状态'}
+            <Icon name="refresh" />
           </button>
           <button
             type="button"
             className="button button-quiet"
             onClick={onSettings}
           >
-            模型设置
+            <Icon name="settings" /> 模型设置
           </button>
         </div>
       </header>
@@ -816,7 +818,12 @@ export function AssistantPanel({
       </div>
       {status ? (
         <details className="assistant-scope">
-          <summary>业务范围与权限目录（{status.operations.length} 项）</summary>
+          <summary>
+            <span className="icon-label">
+              <Icon name="book" />
+              业务范围与权限目录（{status.operations.length} 项）
+            </span>
+          </summary>
           <p>
             只覆盖本项目已实现接口，不是系统终端、任意网络、文件或数据库访问。凭据与授权生命周期由你在设置中管理。外部读取、费用和写入以服务器逐项预览为准。
           </p>
@@ -859,8 +866,8 @@ export function AssistantPanel({
             <div className="assistant-empty">
               <h3>说清要查什么、要改什么</h3>
               <p>
-                可以从业务页面选择“让 Agent
-                处理”，或在下方直接描述任务。提交前需同意本轮模型与数据范围；操作按服务器预览逐项确认，没有执行结果不会显示成功。
+                从业务页面选择“Agent
+                帮我”，或直接输入请求。每轮模型授权与工具操作确认分开；结果以审计为准。
               </p>
             </div>
           ) : null}
@@ -918,7 +925,10 @@ export function AssistantPanel({
               {turn.run?.tool_results.length ? (
                 <details className="assistant-audit">
                   <summary>
-                    真实工具审计（{turn.run.tool_results.length} 项）
+                    <span className="icon-label">
+                      <Icon name="eye" />
+                      真实工具审计（{turn.run.tool_results.length} 项）
+                    </span>
                   </summary>
                   <ol>
                     {turn.run.tool_results.map((item) => (
@@ -1020,7 +1030,7 @@ export function AssistantPanel({
                 disabled={Boolean(busy)}
                 onClick={refresh}
               >
-                读取运行结果
+                <Icon name="refresh" /> 读取运行结果
               </button>
             ) : null}
             {busy ? (
@@ -1030,7 +1040,7 @@ export function AssistantPanel({
                 disabled={busy === 'stopping'}
                 onClick={stopWaiting}
               >
-                停止等待
+                <Icon name="pause" /> 停止等待
               </button>
             ) : null}
             <p className="assistant-note">
@@ -1116,7 +1126,7 @@ export function AssistantPanel({
                 quotaExhausted
               }
             >
-              提交本轮请求
+              <Icon name="send" /> 提交本轮请求
             </button>
             <span className="assistant-note" id="assistant-message-limit">
               {draftLimits.bytes} / {ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8）
@@ -1152,7 +1162,7 @@ export function AssistantPanel({
               Boolean(busy) || hasUnresolved || !workspace.recoveryID.trim()
             }
           >
-            只读恢复
+            <Icon name="eye" /> 只读恢复
           </button>
         </form>
         <p>
@@ -1179,7 +1189,7 @@ export function AssistantPanel({
           }
           onClick={reset}
         >
-          新建助手会话
+          <Icon name="plus" /> 新建助手会话
         </button>
       </details>
     </section>

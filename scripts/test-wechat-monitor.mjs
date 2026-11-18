@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -98,7 +99,7 @@ const helperJSX = (type, supplied, ...children) => {
   const props = { ...(supplied ?? {}), children };
   return typeof type === 'function' ? type(props) : { type, props };
 };
-const discoveryBindings = {};
+const discoveryBindings = { Icon: loadIcon(helperJSX) };
 for (const [file, names] of [
   ['ConversationKindTabs.tsx', ['ConversationKindTabs']],
   ['keyword-search.tsx', ['KeywordMatch', 'asciiFold', 'keywordError']],
@@ -109,7 +110,7 @@ for (const [file, names] of [
   const output = transformSync(file, source, { jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' } });
   assert.equal(output.errors.length, 0, `${file} must compile`);
   Object.assign(discoveryBindings, runInNewContext(`(function(){${output.code}; return {${names.join(',')}};})()`, {
-    jsx: helperJSX, Fragment: 'fragment', TextEncoder,
+    ...discoveryBindings, jsx: helperJSX, Fragment: 'fragment', TextEncoder,
   }, { filename: file }));
 }
 
@@ -170,8 +171,12 @@ assert.equal(saves.length, 0, 'mount must not enable automation');
 assert.equal(nodes(panel.tree).filter((node) => node.props.role === 'tab').length, 2, 'discovery tabs must render before sessions are loaded');
 assert.ok(find(panel, (node) => node.props.id === 'wechat-session-keyword'));
 assert.ok(find(panel, (node) => node.props.id === 'wechat-keyword'));
+const refreshControl = find(panel, (node) => node.type === 'button' && (node.props['aria-label'] ?? text(node)).trim() === '更新状态');
+assert.equal(refreshControl.props.title, '更新状态');
+assert.equal(text(refreshControl).trim(), '');
+assert.ok(nodes(refreshControl).some((node) => node.type === 'svg' && node.props['data-icon'] === 'refresh' && node.props['aria-hidden'] === 'true' && node.props.focusable === 'false'), 'status control must render the shipped decorative SVG');
 const beforeHelp = calls.length;
-find(panel, (node) => node.type === 'button' && text(node) === '不会操作？让 Agent 帮我').props.onClick();
+find(panel, (node) => node.type === 'button' && (node.props['aria-label'] ?? text(node)) === '不会操作？让 Agent 帮我').props.onClick();
 await panel.flush();
 assert.equal(helpRequests.length, 1, 'help must prepare a UI-only request');
 assert.deepEqual(Object.keys(helpRequests[0]).sort(), ['prompt', 'source']);

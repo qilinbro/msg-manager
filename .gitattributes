@@ -2,3 +2,10 @@
 /docs/acceptance/artifacts/2026-11-17-feishu-private-digests/** -text whitespace=cr-at-eol
 # Preserve t.Fatal's trailing space in the raw red-test log; all other checks remain.
 /docs/acceptance/artifacts/2026-11-17-feishu-private-digests/schedule-revocation-red.log whitespace=cr-at-eol,-blank-at-eol
+# Keep pinned upstream icon and complete license bytes identical on every checkout.
+/third_party/lucide/** -text
+/apps/desktop/public/licenses/lucide-* -text
+# Freeze this synthetic inspection, rework and confirmation batch byte-for-byte.
+/docs/acceptance/artifacts/2026-11-18-model-api-icons/** -text whitespace=cr-at-eol
+# Raw terminal logs retain Vite's trailing space and failed-command final blank lines.
+/docs/acceptance/artifacts/2026-11-18-model-api-icons/logs/*.log whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof

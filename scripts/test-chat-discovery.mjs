@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { transformSync } from "../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs";
 import { deviceAuthSource } from "./frontend-auth-test-loader.mjs";
+import { loadIcon } from "./frontend-icon-test-loader.mjs";
 
 // Standalone, synthetic-only regression: no server, account, browser profile,
 // database, platform connection or model. All fetches terminate in the fake below.
@@ -116,6 +117,7 @@ const jsx = (type, supplied, ...children) => ({
   type,
   props: { ...supplied, children },
 });
+const Icon = loadIcon(jsx);
 function nodes(value) {
   if (Array.isArray(value)) return value.flatMap(nodes);
   return value && typeof value === "object"
@@ -141,9 +143,40 @@ const field = (h, id) => find(h, (node) => node.props.id === id, id);
 const button = (h, label) =>
   find(
     h,
-    (node) => node.type === "button" && text(node) === label,
+    (node) =>
+      node.type === "button" &&
+      (node.props["aria-label"] ?? text(node)).trim() === label,
     `button ${label}`,
   );
+function assertIconOnly(h, label, name) {
+  const control = button(h, label);
+  assert.equal(control.props["aria-label"], label);
+  assert.equal(control.props.title, label);
+  assert.equal(
+    text(control).trim(),
+    "",
+    "icon-only controls retain no visible explanation text",
+  );
+  const svg = nodes(control).filter((node) => node.type === "svg");
+  assert.equal(
+    svg.length,
+    1,
+    "icon controls must render one real SVG, not an Icon placeholder",
+  );
+  assert.equal(svg[0].props["data-icon"], name);
+  assert.equal(svg[0].props["aria-hidden"], "true");
+  assert.equal(svg[0].props.focusable, "false");
+  assert.ok(
+    nodes(svg[0]).some(
+      (node) =>
+        node.type === "path" &&
+        typeof node.props.d === "string" &&
+        node.props.d.length > 0,
+    ),
+    "the shipped SVG geometry must render",
+  );
+  return control;
+}
 const form = (h, className) =>
   find(
     h,
@@ -269,6 +302,7 @@ function environment(responder) {
     AbortController,
     DOMException,
     jsx,
+    Icon,
     Fragment: "fragment",
     console,
     async fetch(input, init = {}) {
@@ -991,7 +1025,7 @@ function helpConditions(request, expectedKeys) {
   );
   field(h, "inbox-keyword");
   button(h, "搜索");
-  button(h, "清除");
+  assertIconOnly(h, "清除搜索关键词", "close");
   assert.equal(env.requests.length, 0);
   h.unmount();
 }
@@ -1094,7 +1128,7 @@ function helpConditions(request, expectedKeys) {
     tab(h, "inbox", "private"),
     field(h, "inbox-keyword"),
     button(h, "搜索"),
-    button(h, "清除"),
+    button(h, "清除搜索关键词"),
   ])
     assertOutside(h, control, "inbox-conversation-scroll");
   const beforeType = listRequests(env).length;
@@ -1206,7 +1240,7 @@ function helpConditions(request, expectedKeys) {
     "earlier-page requests must retain q",
   );
   assert.ok(text(h.tree).includes("更早 独立 body"));
-  await click(h, button(h, "查看全部消息"));
+  await click(h, assertIconOnly(h, "查看全部消息", "close"));
   assert.equal(field(h, "inbox-message-keyword").props.value, "");
   assert.equal(messageRequests(env).at(-1).url.searchParams.has("q"), false);
   assert.equal(
@@ -1257,7 +1291,7 @@ function helpConditions(request, expectedKeys) {
     "message_keyword",
   ]);
 
-  await click(h, button(h, "清除"));
+  await click(h, button(h, "清除搜索关键词"));
   assert.equal(field(h, "inbox-keyword").props.value, "");
   assert.equal(listRequests(env).at(-1).url.searchParams.has("q"), false);
   for (const invalid of ["a".repeat(257), "中".repeat(86), "a\0b"]) {
@@ -1273,7 +1307,7 @@ function helpConditions(request, expectedKeys) {
       "invalid list q must be stopped before fetch",
     );
     assert.ok(nodes(h.tree).some((node) => node.props.role === "alert"));
-    await click(h, button(h, "清除"));
+    await click(h, button(h, "清除搜索关键词"));
   }
   await search(h, env, "inbox-keyword", "a".repeat(256));
   assert.equal(
@@ -1310,7 +1344,7 @@ function helpConditions(request, expectedKeys) {
     ),
   );
   button(h, "让 Agent 帮我");
-  await click(h, button(h, "清除"));
+  await click(h, button(h, "清除搜索关键词"));
   await click(h, tab(h, "inbox", "group"));
   assertTabs(h, "inbox", "group");
   assert.equal(
@@ -1519,6 +1553,7 @@ function helpConditions(request, expectedKeys) {
   const h = mount(env, "WechatPanel.tsx", "WechatPanel", wechatProps(help));
   await h.flush();
   assertTabs(h, "wechat", "private");
+  assertIconOnly(h, "更新状态", "refresh");
   field(h, "wechat-session-keyword");
   field(h, "wechat-keyword");
   assert.ok(text(h.tree).includes("还未读取会话"));
@@ -1688,6 +1723,26 @@ function helpConditions(request, expectedKeys) {
     env.requests.length,
     beforeAdd,
     "adding an explicit peer only edits the local monitor draft",
+  );
+  find(
+    h,
+    (node) =>
+      node.type === "ul" &&
+      node.props["aria-label"] === "已选择的后台读取会话",
+  );
+  const remove = assertIconOnly(h, "移除会话 @@synthetic_group", "close");
+  await click(h, remove);
+  assert.equal(button(h, "开启后台读取").props.disabled, true);
+  assert.equal(
+    env.requests.length,
+    beforeAdd,
+    "removing a peer only edits the local monitor draft",
+  );
+  await click(h, button(h, "加入后台读取"));
+  assert.equal(
+    env.requests.length,
+    beforeAdd,
+    "re-adding a peer does not save or start background reads",
   );
   assert.equal(button(h, "开启后台读取").props.disabled, false);
   await click(h, tab(h, "wechat", "private"));

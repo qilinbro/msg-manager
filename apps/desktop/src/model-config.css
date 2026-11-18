@@ -1,3 +1,33 @@
+.ai-preset-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ai-preset-picker select {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.ai-preset-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  margin-bottom: 18px;
+  color: var(--secondary);
+  font-size: 0.75rem;
+}
+.ai-preset-source a {
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
 .ai-model-form > input {
   margin-bottom: 18px;
   font-size: 1rem;

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 
 // Execute the shipped clients, transport and React components with synthetic
 // browser APIs. This is not a browser, real-model, real-account or Tauri test.
@@ -657,6 +658,7 @@ function componentHarness(file, name, bindings, props, browser) {
       ...hooks,
       jsx,
       Fragment: 'fragment',
+      Icon: loadIcon(jsx),
       ServiceError,
       AbortController,
       Date,
@@ -745,7 +747,9 @@ function text(value) {
 }
 function button(panel, label) {
   const found = nodes(panel.tree).find(
-    (node) => node.type === 'button' && text(node) === label,
+    (node) =>
+      node.type === 'button' &&
+      (node.props['aria-label'] ?? text(node)).trim() === label,
   );
   assert.ok(found, `missing button ${label}`);
   return found;
@@ -833,6 +837,19 @@ let panel = componentHarness(
 await panel.flush();
 assert.equal(checkbox(panel, '我同意本轮调用').props.checked, false);
 assert.equal(button(panel, '提交本轮请求').props.disabled, true);
+const refreshControl = button(panel, '刷新状态');
+assert.equal(refreshControl.props.title, '刷新状态');
+assert.equal(text(refreshControl).trim(), '');
+assert.ok(
+  nodes(refreshControl).some(
+    (node) =>
+      node.type === 'svg' &&
+      node.props['data-icon'] === 'refresh' &&
+      node.props['aria-hidden'] === 'true' &&
+      node.props.focusable === 'false',
+  ),
+  'refresh control must render the shipped decorative SVG',
+);
 const catalogue = nodes(panel.tree).find(
   (node) =>
     node.type === 'details' && node.props.className === 'assistant-scope',
@@ -1134,6 +1151,19 @@ assert.ok(
   'unconfigured 0/0 is not exhausted quota',
 );
 assert.equal(button(digestPanel, '生成 / 读取今日摘要').props.disabled, true);
+const digestRefresh = button(digestPanel, '读取实际计划与最近摘要');
+assert.equal(digestRefresh.props.title, '读取实际计划与最近摘要');
+assert.equal(text(digestRefresh).trim(), '');
+assert.ok(
+  nodes(digestRefresh).some(
+    (node) =>
+      node.type === 'svg' &&
+      node.props['data-icon'] === 'refresh' &&
+      node.props['aria-hidden'] === 'true' &&
+      node.props.focusable === 'false',
+  ),
+  'digest status control must render the shipped decorative SVG',
+);
 const reminderNodes = nodes(digestPanel.tree).filter(
   (node) => node.type === 'li',
 );

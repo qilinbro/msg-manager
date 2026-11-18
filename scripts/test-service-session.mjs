@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { pathToFileURL } from 'node:url';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
+import { loadIcon } from './frontend-icon-test-loader.mjs';
 
 // Execute the shipped storage, connection hook, API client and app with fake
 // browser APIs. No real service, browser storage, credentials or chat is used.
@@ -62,7 +63,12 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   const sameDeps = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
   const addListener = (event, callback) => { if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event).add(callback); };
   const removeListener = (event, callback) => listeners.get(event)?.delete(callback);
-  const jsx = (type, props, ...children) => ({ type, props: { ...(props ?? {}), children } });
+  // Expand the real decorative SVGs without mounting the existing child stubs.
+  const jsx = (type, supplied, ...children) => {
+    const props = { ...(supplied ?? {}), children };
+    return typeof type === 'function' && type === Icon ? type(props) : { type, props };
+  };
+  const Icon = loadIcon(jsx);
   const hooks = {
     useState(initial) {
       const index = cursor++;
@@ -109,7 +115,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   const fakeDocument = { visibilityState: 'visible', addEventListener: addListener, removeEventListener: removeListener };
   const environment = {
     ...(authBrowser?.globals ?? {}),
-    ...hooks, jsx, Fragment: 'fragment',
+    ...hooks, jsx, Icon, Fragment: 'fragment',
     MilkyPanel: 'MilkyPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub', AssistantPanel: 'AssistantPanelStub',
     module: { exports: {} },
     window: fakeWindow, document: fakeDocument,
@@ -477,7 +483,9 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
 {
   const h = browserHarness({ mode: 'app' });
   await h.flush();
-  find(h, (node) => node.type === 'button' && node.props['aria-label'] === '设置').props.onClick();
+  const settingsControl = find(h, (node) => node.type === 'button' && node.props['aria-label'] === '设置');
+  assert.ok(nodes(settingsControl).some((node) => node.type === 'svg' && node.props['data-icon'] === 'settings' && node.props['aria-hidden'] === 'true' && node.props.focusable === 'false'), 'App navigation must render the shipped decorative SVG');
+  settingsControl.props.onClick();
   await h.flush();
   settings(h).onDraftChange(TOKEN_A); await h.flush();
   await settings(h).onConnect(submitEvent); await h.flush();

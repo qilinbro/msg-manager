@@ -1,0 +1,3185 @@
+{
+  "synthetic_only": true,
+  "batch": "model-api-icons-desktop-and-narrow",
+  "server_started": false,
+  "all_application_http_requests_intercepted": true,
+  "actual_platform_or_model_calls": 0,
+  "checks": [
+    "Saved model keys remain write-only and save consent starts unchecked",
+    "Explicit Gemini preset fills only URL and clears model, typed key and consent without saving",
+    "Provider source is a pinned official GitHub link without opener or referrer",
+    "Protocol support is visibly distinguished from a verified connection",
+    "Local loopback is visibly a key-optional template without inheriting cloud credentials, not an integration guarantee",
+    "Manual target edits cannot carry another target model, key or consent",
+    "Changing shared daily quota revokes save consent",
+    "Metadata reload does not overwrite manually edited form fields",
+    "860px intermediate layout keeps provider controls inside the viewport",
+    "390px model preset picker and GitHub source wrap without horizontal overflow",
+    "390px settings: visible icon buttons have accessible names, 44px targets and decorative safe SVGs",
+    "390px confirmation keeps explicit save disabled",
+    "Inbox familiar secondary actions use icons while contextual help retains its full accessible name",
+    "Icon entry opens a real native modal with reviewable help, no implicit draft transfer or consent",
+    "Shorter Agent copy retains named icon controls, model fee disclosure and independent platform consent",
+    "390px Agent remains white and within the viewport",
+    "Native dialog rejects focus on the underlying business page",
+    "Native Tab stays out of background content (1)",
+    "Native Tab stays out of background content (2)",
+    "Native Tab stays out of background content (3)",
+    "Native Tab stays out of background content (4)",
+    "Native Tab stays out of background content (5)",
+    "Native Tab stays out of background content (6)",
+    "Native Tab stays out of background content (7)",
+    "Native Tab stays out of background content (8)",
+    "Native Tab stays out of background content (9)",
+    "Native Tab stays out of background content (10)",
+    "Native Tab stays out of background content (11)",
+    "Native Tab stays out of background content (12)",
+    "Native Tab stays out of background content (13)",
+    "Native Tab stays out of background content (14)",
+    "Native Tab stays out of background content (15)",
+    "Native Tab stays out of background content (16)",
+    "Native touch returns to preserved Agent draft without granting model consent",
+    "390px Agent modal: visible icon buttons have accessible names, 44px targets and decorative safe SVGs",
+    "Escape restores the contextual icon trigger and preserves selected chat and search",
+    "390px navigation keeps its icons and wraps without overflow",
+    "390px inbox: visible icon buttons have accessible names, 44px targets and decorative safe SVGs",
+    "All application API requests authenticated and intercepted; zero mutations and no real provider/platform calls"
+  ],
+  "screenshots": [
+    "desktop-model-presets.png",
+    "narrow-model-presets.png",
+    "narrow-model-confirmation.png",
+    "desktop-inbox-icons.png",
+    "desktop-agent-icons.png",
+    "narrow-agent-icons.png",
+    "narrow-inbox-icons.png",
+    "failure.png"
+  ],
+  "api": [
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-presets",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/qq-milky/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-config",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-presets",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/schedule",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/latest",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-presets",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-presets",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/email-imap/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=private"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/synthetic-group/messages",
+      "query": "?limit=50&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/assistant/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/assistant/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/wechat-db/status",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "query": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "query": "?limit=50&archived=false&conversation_kind=group&q=%E4%BA%A4%E4%BB%98"
+    }
+  ],
+  "consoleErrors": [],
+  "unexpectedTargets": [],
+  "interceptionErrors": [],
+  "unexpectedRequests": [],
+  "native_mouse_clicks": 11,
+  "icon_audits": [
+    {
+      "label": "Desktop settings",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 163,
+          "h": 45.09375,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新检查连接",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "arrow",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新读取预设",
+          "title": "重新读取预设",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "保存模型配置",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "save",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新读取设置",
+          "title": "重新读取设置",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "启用每日计划",
+          "title": null,
+          "icon_only": false,
+          "w": 130,
+          "h": 39.5,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停当前计划",
+          "title": null,
+          "icon_only": false,
+          "w": 130,
+          "h": 39.5,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "生成 / 读取今日摘要",
+          "title": null,
+          "icon_only": false,
+          "w": 169.25,
+          "h": 39.5,
+          "icons": [
+            {
+              "name": "file",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取实际计划与最近摘要",
+          "title": "读取实际计划与最近摘要",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": [
+        "Desktop settings: target 启用每日计划 (130x39.5)",
+        "Desktop settings: target 暂停当前计划 (130x39.5)",
+        "Desktop settings: target 生成 / 读取今日摘要 (169.25x39.5)"
+      ]
+    },
+    {
+      "label": "860px settings",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 147,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 147,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 147,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 147,
+          "h": 44,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 147,
+          "h": 45.09375,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 147,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 147,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新检查连接",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "arrow",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新读取预设",
+          "title": "重新读取预设",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "保存模型配置",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "save",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新读取设置",
+          "title": "重新读取设置",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "启用每日计划",
+          "title": null,
+          "icon_only": false,
+          "w": 130,
+          "h": 39.5,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停当前计划",
+          "title": null,
+          "icon_only": false,
+          "w": 130,
+          "h": 39.5,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "生成 / 读取今日摘要",
+          "title": null,
+          "icon_only": false,
+          "w": 169.25,
+          "h": 39.5,
+          "icons": [
+            {
+              "name": "file",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取实际计划与最近摘要",
+          "title": "读取实际计划与最近摘要",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": [
+        "860px settings: target 启用每日计划 (130x39.5)",
+        "860px settings: target 暂停当前计划 (130x39.5)",
+        "860px settings: target 生成 / 读取今日摘要 (169.25x39.5)"
+      ]
+    },
+    {
+      "label": "390px settings",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 77,
+          "h": 60,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 109.671875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 103,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新检查连接",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "arrow",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新读取预设",
+          "title": "重新读取预设",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "保存模型配置",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "save",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "重新读取设置",
+          "title": "重新读取设置",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "启用每日计划",
+          "title": null,
+          "icon_only": false,
+          "w": 130,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停当前计划",
+          "title": null,
+          "icon_only": false,
+          "w": 130,
+          "h": 44,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "生成 / 读取今日摘要",
+          "title": null,
+          "icon_only": false,
+          "w": 169.25,
+          "h": 44,
+          "icons": [
+            {
+              "name": "file",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取实际计划与最近摘要",
+          "title": "读取实际计划与最近摘要",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": []
+    },
+    {
+      "label": "Desktop inbox",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 163,
+          "h": 45.09375,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "刷新消息中心",
+          "title": "刷新消息中心",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "导入消息",
+          "title": null,
+          "icon_only": false,
+          "w": 112,
+          "h": 44,
+          "icons": [
+            {
+              "name": "import",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "找不到？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 128.734375,
+          "h": 48,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "搜索",
+          "title": null,
+          "icon_only": false,
+          "w": 84,
+          "h": 48.390625,
+          "icons": [
+            {
+              "name": "search",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "清除搜索关键词",
+          "title": "清除搜索关键词",
+          "icon_only": true,
+          "w": 44,
+          "h": 48,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "全部会话",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "未读",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "mail",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "置顶",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "pin",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "已归档",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "archive",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取会话列表",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "更新状态",
+          "title": "更新状态",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "不会操作？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 128.734375,
+          "h": 48,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取并保存消息",
+          "title": null,
+          "icon_only": false,
+          "w": 154,
+          "h": 48,
+          "icons": [
+            {
+              "name": "download",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "加入后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 118,
+          "h": 48,
+          "icons": [
+            {
+              "name": "plus",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "开启后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 42,
+          "icons": [
+            {
+              "name": "play",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 42,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": [
+        "Desktop inbox: target 全部会话 (105x41.796875)",
+        "Desktop inbox: target 未读 (105x41.796875)",
+        "Desktop inbox: target 置顶 (105x41.796875)",
+        "Desktop inbox: target 已归档 (105x41.796875)",
+        "Desktop inbox: target 开启后台读取 (128x42)",
+        "Desktop inbox: target 暂停后台读取 (128x42)"
+      ]
+    },
+    {
+      "label": "Desktop Agent modal",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 163,
+          "h": 45.09375,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 163,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "刷新消息中心",
+          "title": "刷新消息中心",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "导入消息",
+          "title": null,
+          "icon_only": false,
+          "w": 112,
+          "h": 44,
+          "icons": [
+            {
+              "name": "import",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "找不到？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 128.734375,
+          "h": 48,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "搜索",
+          "title": null,
+          "icon_only": false,
+          "w": 84,
+          "h": 48.390625,
+          "icons": [
+            {
+              "name": "search",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "清除搜索关键词",
+          "title": "清除搜索关键词",
+          "icon_only": true,
+          "w": 44,
+          "h": 48,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "全部会话",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "未读",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "mail",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "置顶",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "pin",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "已归档",
+          "title": null,
+          "icon_only": false,
+          "w": 105,
+          "h": 41.796875,
+          "icons": [
+            {
+              "name": "archive",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "标为未读",
+          "title": null,
+          "icon_only": false,
+          "w": 87,
+          "h": 44,
+          "icons": [
+            {
+              "name": "mail",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "置顶",
+          "title": null,
+          "icon_only": false,
+          "w": 63,
+          "h": 44,
+          "icons": [
+            {
+              "name": "pin",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "归档",
+          "title": null,
+          "icon_only": false,
+          "w": 63,
+          "h": 44,
+          "icons": [
+            {
+              "name": "archive",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "AI 管理",
+          "title": null,
+          "icon_only": false,
+          "w": 78.53125,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 帮我处理",
+          "title": null,
+          "icon_only": false,
+          "w": 73.796875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "个人档案",
+          "title": null,
+          "icon_only": false,
+          "w": 63,
+          "h": 44,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "搜索正文",
+          "title": null,
+          "icon_only": false,
+          "w": 112,
+          "h": 48.390625,
+          "icons": [
+            {
+              "name": "search",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "查看全部消息",
+          "title": "查看全部消息",
+          "icon_only": true,
+          "w": 44,
+          "h": 48,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取会话列表",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "更新状态",
+          "title": "更新状态",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 48,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "不会操作？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 128.734375,
+          "h": 48,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取并保存消息",
+          "title": null,
+          "icon_only": false,
+          "w": 154,
+          "h": 48,
+          "icons": [
+            {
+              "name": "download",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "加入后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 118,
+          "h": 48,
+          "icons": [
+            {
+              "name": "plus",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "开启后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 42,
+          "icons": [
+            {
+              "name": "play",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 42,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "关闭助手",
+          "title": "关闭助手",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "刷新状态",
+          "title": "刷新状态",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "模型设置",
+          "title": null,
+          "icon_only": false,
+          "w": 108,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "提交本轮请求",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "send",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "只读恢复",
+          "title": null,
+          "icon_only": false,
+          "w": 108,
+          "h": 44,
+          "icons": [
+            {
+              "name": "eye",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "新建助手会话",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "plus",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": [
+        "Desktop Agent modal: target 全部会话 (105x41.796875)",
+        "Desktop Agent modal: target 未读 (105x41.796875)",
+        "Desktop Agent modal: target 置顶 (105x41.796875)",
+        "Desktop Agent modal: target 已归档 (105x41.796875)",
+        "Desktop Agent modal: target 开启后台读取 (128x42)",
+        "Desktop Agent modal: target 暂停后台读取 (128x42)"
+      ]
+    },
+    {
+      "label": "390px Agent modal",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 77,
+          "h": 60,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 109.671875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 103,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "刷新消息中心",
+          "title": "刷新消息中心",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "导入消息",
+          "title": null,
+          "icon_only": false,
+          "w": 100,
+          "h": 44,
+          "icons": [
+            {
+              "name": "import",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "找不到？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 343,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "搜索",
+          "title": null,
+          "icon_only": false,
+          "w": 291,
+          "h": 44,
+          "icons": [
+            {
+              "name": "search",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "清除搜索关键词",
+          "title": "清除搜索关键词",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "返回会话列表",
+          "title": "返回会话列表",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "back",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "标为未读",
+          "title": null,
+          "icon_only": false,
+          "w": 87,
+          "h": 44,
+          "icons": [
+            {
+              "name": "mail",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "置顶",
+          "title": null,
+          "icon_only": false,
+          "w": 63,
+          "h": 44,
+          "icons": [
+            {
+              "name": "pin",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "归档",
+          "title": null,
+          "icon_only": false,
+          "w": 63,
+          "h": 44,
+          "icons": [
+            {
+              "name": "archive",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "AI 管理",
+          "title": null,
+          "icon_only": false,
+          "w": 78.53125,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 帮我处理",
+          "title": null,
+          "icon_only": false,
+          "w": 73.796875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "个人档案",
+          "title": null,
+          "icon_only": false,
+          "w": 63,
+          "h": 44,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "搜索正文",
+          "title": null,
+          "icon_only": false,
+          "w": 112,
+          "h": 48.390625,
+          "icons": [
+            {
+              "name": "search",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "查看全部消息",
+          "title": "查看全部消息",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取会话列表",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "更新状态",
+          "title": "更新状态",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "不会操作？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 311,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取并保存消息",
+          "title": null,
+          "icon_only": false,
+          "w": 154,
+          "h": 44,
+          "icons": [
+            {
+              "name": "download",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "加入后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 118,
+          "h": 44,
+          "icons": [
+            {
+              "name": "plus",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "开启后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 44,
+          "icons": [
+            {
+              "name": "play",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 44,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "关闭助手",
+          "title": "关闭助手",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "刷新状态",
+          "title": "刷新状态",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "模型设置",
+          "title": null,
+          "icon_only": false,
+          "w": 108,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "提交本轮请求",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "send",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "只读恢复",
+          "title": null,
+          "icon_only": false,
+          "w": 108,
+          "h": 44,
+          "icons": [
+            {
+              "name": "eye",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "新建助手会话",
+          "title": null,
+          "icon_only": false,
+          "w": 134,
+          "h": 44,
+          "icons": [
+            {
+              "name": "plus",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": []
+    },
+    {
+      "label": "390px inbox",
+      "buttons": [
+        {
+          "label": "概览",
+          "title": "概览",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "overview",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "消息",
+          "title": "消息",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "联系人",
+          "title": "联系人",
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "contacts",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "待审批",
+          "title": "待审批",
+          "icon_only": false,
+          "w": 77,
+          "h": 60,
+          "icons": [
+            {
+              "name": "approvals",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": "Agent 助手",
+          "icon_only": false,
+          "w": 109.671875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "飞书早晚报",
+          "title": "飞书早晚报",
+          "icon_only": false,
+          "w": 103,
+          "h": 44,
+          "icons": [
+            {
+              "name": "calendar",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "设置",
+          "title": "设置",
+          "icon_only": false,
+          "w": 64,
+          "h": 44,
+          "icons": [
+            {
+              "name": "settings",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "Agent 助手",
+          "title": null,
+          "icon_only": false,
+          "w": 123.546875,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "刷新消息中心",
+          "title": "刷新消息中心",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "导入消息",
+          "title": null,
+          "icon_only": false,
+          "w": 100,
+          "h": 44,
+          "icons": [
+            {
+              "name": "import",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "找不到？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 343,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "搜索",
+          "title": null,
+          "icon_only": false,
+          "w": 291,
+          "h": 44,
+          "icons": [
+            {
+              "name": "search",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "清除搜索关键词",
+          "title": "清除搜索关键词",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "close",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "全部会话",
+          "title": null,
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "未读",
+          "title": null,
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "mail",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "置顶",
+          "title": null,
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "pin",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "已归档",
+          "title": null,
+          "icon_only": false,
+          "w": 77,
+          "h": 44,
+          "icons": [
+            {
+              "name": "archive",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取会话列表",
+          "title": null,
+          "icon_only": false,
+          "w": 132,
+          "h": 44,
+          "icons": [
+            {
+              "name": "messages",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "更新状态",
+          "title": "更新状态",
+          "icon_only": true,
+          "w": 44,
+          "h": 44,
+          "icons": [
+            {
+              "name": "refresh",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "私聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "user",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "群聊",
+          "title": null,
+          "icon_only": false,
+          "w": 96,
+          "h": 47.09375,
+          "icons": [
+            {
+              "name": "group",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "不会操作？让 Agent 帮我",
+          "title": null,
+          "icon_only": false,
+          "w": 311,
+          "h": 44,
+          "icons": [
+            {
+              "name": "assistant",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "读取并保存消息",
+          "title": null,
+          "icon_only": false,
+          "w": 154,
+          "h": 44,
+          "icons": [
+            {
+              "name": "download",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "加入后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 118,
+          "h": 44,
+          "icons": [
+            {
+              "name": "plus",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "开启后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 44,
+          "icons": [
+            {
+              "name": "play",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        },
+        {
+          "label": "暂停后台读取",
+          "title": null,
+          "icon_only": false,
+          "w": 128,
+          "h": 44,
+          "icons": [
+            {
+              "name": "pause",
+              "hidden": "true",
+              "focusable": "false"
+            }
+          ]
+        }
+      ],
+      "violations": []
+    }
+  ],
+  "icon_violations": [
+    "Desktop settings: target 启用每日计划 (130x39.5)",
+    "Desktop settings: target 暂停当前计划 (130x39.5)",
+    "Desktop settings: target 生成 / 读取今日摘要 (169.25x39.5)",
+    "860px settings: target 启用每日计划 (130x39.5)",
+    "860px settings: target 暂停当前计划 (130x39.5)",
+    "860px settings: target 生成 / 读取今日摘要 (169.25x39.5)",
+    "Desktop inbox: target 全部会话 (105x41.796875)",
+    "Desktop inbox: target 未读 (105x41.796875)",
+    "Desktop inbox: target 置顶 (105x41.796875)",
+    "Desktop inbox: target 已归档 (105x41.796875)",
+    "Desktop inbox: target 开启后台读取 (128x42)",
+    "Desktop inbox: target 暂停后台读取 (128x42)",
+    "Desktop Agent modal: target 全部会话 (105x41.796875)",
+    "Desktop Agent modal: target 未读 (105x41.796875)",
+    "Desktop Agent modal: target 置顶 (105x41.796875)",
+    "Desktop Agent modal: target 已归档 (105x41.796875)",
+    "Desktop Agent modal: target 开启后台读取 (128x42)",
+    "Desktop Agent modal: target 暂停后台读取 (128x42)"
+  ],
+  "native_keyboard_keys": 17,
+  "native_modal_focus": [
+    {
+      "step": "Native Tab stays out of background content (1)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "INPUT",
+      "id": "",
+      "index": 6,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (2)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 8,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (3)",
+      "modal": true,
+      "inside": false,
+      "document_container": true,
+      "page_focused": false,
+      "tag": "BODY",
+      "id": "",
+      "index": -1,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (4)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 0,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (5)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 2,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (6)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 3,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (7)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 4,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (8)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "TEXTAREA",
+      "id": "assistant-message",
+      "index": 5,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (9)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "INPUT",
+      "id": "",
+      "index": 6,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (10)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 8,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (11)",
+      "modal": true,
+      "inside": false,
+      "document_container": true,
+      "page_focused": false,
+      "tag": "BODY",
+      "id": "",
+      "index": -1,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (12)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 0,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (13)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 2,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (14)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "BUTTON",
+      "id": "",
+      "index": 3,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (15)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "SUMMARY",
+      "id": "",
+      "index": 4,
+      "hidden_recovery": false
+    },
+    {
+      "step": "Native Tab stays out of background content (16)",
+      "modal": true,
+      "inside": true,
+      "document_container": false,
+      "page_focused": true,
+      "tag": "TEXTAREA",
+      "id": "assistant-message",
+      "index": 5,
+      "hidden_recovery": false
+    }
+  ],
+  "native_touch_taps": 2,
+  "frozen_sources": 50,
+  "frozen_dist": 5,
+  "fingerprints_unchanged": true,
+  "result": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Every audited icon target, name, hover label and decorative SVG must pass; accumulated failures cannot be ignored\n+ actual - expected\n\n+ [\n+   'Desktop settings: target 启用每日计划 (130x39.5)',\n+   'Desktop settings: target 暂停当前计划 (130x39.5)',\n+   'Desktop settings: target 生成 / 读取今日摘要 (169.25x39.5)',\n+   '860px settings: target 启用每日计划 (130x39.5)',\n+   '860px settings: target 暂停当前计划 (130x39.5)',\n+   '860px settings: target 生成 / 读取今日摘要 (169.25x39.5)',\n+   'Desktop inbox: target 全部会话 (105x41.796875)',\n+   'Desktop inbox: target 未读 (105x41.796875)',\n+   'Desktop inbox: target 置顶 (105x41.796875)',\n+   'Desktop inbox: target 已归档 (105x41.796875)',\n+   'Desktop inbox: target 开启后台读取 (128x42)',\n+   'Desktop inbox: target 暂停后台读取 (128x42)',\n+   'Desktop Agent modal: target 全部会话 (105x41.796875)',\n+   'Desktop Agent modal: target 未读 (105x41.796875)',\n+   'Desktop Agent modal: target 置顶 (105x41.796875)',\n+   'Desktop Agent modal: target 已归档 (105x41.796875)',\n+   'Desktop Agent modal: target 开启后台读取 (128x42)',\n+   'Desktop Agent modal: target 暂停后台读取 (128x42)'\n+ ]\n- []\n\n    at file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/model-api-icons-browser.mjs:870:10",
+  "failureText": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务可访问\nAgent 助手\n消息\n\n已入库会话与消息记录。\n\n导入消息\n来源以实际配置与入库记录为准；本页不发送聊天消息或邮件。\n私聊\n群聊\nAgent 帮我\n关键词匹配搜索\n搜索\n\n在当前群聊和筛选条件内，按字面匹配名称或已入库正文；不会自动读取来源。\n\n记录还没入库？\n读取微信消息\n同步邮箱\n\n后台记录已有更新。当前阅读位置和编辑内容已保留。\n\n查看最新消息\n全部会话\n未读\n置顶\n已归档\n全部平台\n6\nQQ\n0\n微信\n6\nTelegram\n0\n闪聊\n0\n邮箱\n0\n关系分类\n全部分类\n朋友\n家人\n同事\n客户\n合作伙伴\n其他\n未分类\n群聊 · 全部平台 · 全部会话\n2 个会话\n合\n微\n合成项目群\n11/18 12:00\n最近一条：准备下班\n正文命中：较早原文：项目交付请安排在周五，保留历史记录。\n未分类\n微信 · synthetic-account\n交\n微\n交付名称匹配群\n11/18 12:00\n最近一条：准备下班\n名称或资料匹配 · 打开核对正文\n未分类\n微信 · synthetic-account\n读取本机微信消息\n\n按需保存私聊与群聊，或授权后台定时读取。\n\n读取会话列表\n已配置，等待读取\n本地账号：synthetic-account\n只读 · 发送关闭\n私聊\n群聊\nAgent 帮我\n按联系人或群名查找\n仅筛选已读取的会话名称和ID，不搜索消息正文。\n选择私聊\n请选择一个私聊\n正文关键词匹配（可选）\n只匹配微信本地库本次读取窗口内的文本，不改变源库；已入库历史请用上方关键词匹配搜索。\n读取并保存消息\n加入后台读取\n\n还未读取会话。先点击“读取会话列表”，再选择私聊或群聊。\n\n后台自动读取\n后台读取已暂停\n\n先读取会话列表，选择私聊或群聊并点击“加入后台读取”，再开启。最多选择20个会话。关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。\n\n读取间隔（秒）\n开启后台读取\n暂停后台读取\n\n间隔10至300秒。设置保存在本机，重启后台后恢复已开启的读取。\n\n读取微信 Windows 4.x 本机已有的私聊与群聊文本；源库只读、不发送聊天消息。 已授权的自动整理或日报可能将入库内容发给所配置模型并产生费用；读取不新增这些授权。 每次只读取最近一批记录，暂停、离线或超出窗口时可能无法补齐历史。\n\n邮箱，也整理在这里\n\n按需收取最近邮件到本地，保留原邮箱状态。暂不支持发信。\n\n同步邮箱\n更新状态\n尚未配置\n\n请按项目的邮箱接入说明，在本机配置账号与授权码后重启服务。工作台不会收集你的邮箱密码。",
+  "failureFocus": {
+    "page_focused": true,
+    "tag": "BUTTON",
+    "id": "",
+    "classes": "inbox-conversation ",
+    "dialog_open": false,
+    "inside_dialog": false
+  }
+}

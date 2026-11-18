@@ -4,9 +4,11 @@
 
 可把已导入或同步到消息中心的一段会话交给 DeepSeek 或兼容服务，保存摘要、风险提示、回复草稿和待核实记忆。当前不自动接管聊天或发送消息。
 
-## 在界面配置（2026-11-16）
+## 在界面配置（2026-11-18 更新）
 
-启动后台并连接服务后，进入“设置 → AI 模型”，填写服务地址、模型名称、API 密钥及每日调用上限，核对目标后保存。设置保存在本机 SQLCipher 加密库，保存即生效；成功后清空密钥输入框，读取设置不返回密钥。留空密钥表示保留原值，更换地址必须重新填写。保存不会测试调用或自动发送消息。
+启动后台并连接服务后，进入“设置 → AI 模型”，可选官方配置预设或手工填写服务地址，再填写本人控制台当前可用的模型 ID、API 密钥及每日调用上限，核对目标并明确勾选后保存。预设仅填地址，不保存、不探测、不调用模型；地址/预设变更清除表单的模型 ID、临时密钥和勾选，修改模型、密钥或额度也需重新确认。预设读取失败仍可手动配置。
+
+设置保存在本机 SQLCipher 加密库，保存即生效；成功后清空密钥输入框，读取设置不返回密钥。同一已保存服务地址的密钥可留空保留，更换地址不能携带旧密钥，公网 HTTPS 须重新填写；切换到通过完整校验的数字回环 HTTP 免密服务时，留空将清除旧云端密钥。保存不会测试调用或自动发送消息。六项模板、固定 GitHub 来源、许可和未实现协议见 [模型预设说明](<model-provider-presets.md>)。
 
 模型地址或名称变化后，需要为联系人重新确认自动整理/公开补充授权；每日额度允许1—1000，按上海时区自然日累计尝试次数，不能视为金额预算。并发修改导致冲突时先刷新核对，不自动覆盖。保存结果不确定时也先刷新；已填写的密钥不会写入浏览器存储。
 
@@ -27,12 +29,12 @@ $env:AI_DAILY_LIMIT = '50'
 
 环境变量方式的密钥存在该终端和后台进程的环境中；不要截图或提交实际值。更改环境变量需要重启后台，且不会覆盖已在页面加密保存的设置。数据库密钥仍由现有脚本准备，模型密钥与数据库密钥、平台令牌、本产品访问令牌分别管理。
 
-- `AI_BASE_URL`：公网 HTTPS 根路径或 `/v1`，后台追加 `/chat/completions`。拒绝用户名、查询串、重定向、代理、局域网目标和任意路径。
+- `AI_BASE_URL`：公网 HTTPS 根路径或 `/v1`，后台追加 `/chat/completions`；另仅对 Gemini / DashScope 的精确官方 HTTPS 主机、默认端口/443及文档兼容路径开放例外，见 [路径约束](<model-provider-presets.md#2-六项静态预设>)。拒绝用户名、查询串、重定向、代理、局域网目标和任意网关路径。
 - `AI_MODEL`：实际提供商当前支持的模型 ID，不预置默认值。
 - `AI_API_KEY`：HTTPS 必填，只由后台发送给固定服务；不进入模型输入、不返回前端。
 - `AI_DAILY_LIMIT`：1—1000，缺省50。按 Asia/Shanghai 自然日持久化累计尝试次数，失败或超时也计数。这是次数限制，不是金额预算；提供商自身可能另有费用和速率限制。
 
-兼容服务需支持非流式 Chat Completions、`response_format: {"type":"json_object"}` 和单条 assistant 文本结果。仅 `api.deepseek.com` 增加 `thinking: {"type":"disabled"}`；其他兼容服务不加此专属参数。当前无工具调用、Responses、图片/音频输入或任意网关路径，不能保证所有标称“兼容”的服务都可用。JSON 输出、模型 ID 和思考模式参照 [DeepSeek 官方接口文档](https://api-docs.deepseek.com/api/create-chat-completion/)。
+本说明的手动 Analyze 需支持非流式 Chat Completions、`response_format: {"type":"json_object"}` 和单条 assistant 文本结果；该流程仍拒绝工具调用。仅 `api.deepseek.com` 增加 `thinking: {"type":"disabled"}`；其他兼容服务不加此专属参数。独立的内置 Assistant 已实现非流式原生 `tools` / `tool_calls` / `tool_call_id` 多轮协议，不使用手动 Analyze 的 JSON 文本结果冒充工具协议；实际模型须另行核对是否支持原生工具。未实现 Responses、Anthropic 原生 Messages、原生 Gemini、图片/音频输入或任意网关路径，不能保证所有标称“兼容”的服务都可用。JSON 输出、模型 ID 和思考模式参照 [DeepSeek 官方接口文档](<https://api-docs.deepseek.com/api/create-chat-completion/>)；新预设和业务工具边界见 [模型与 Agent API 范围](<model-provider-presets.md>)。
 
 三个配置均留空时关闭模型调用，仍可管理消息、查看已有结果和记忆；不完整或不安全配置导致后台启动失败，错误不回显密钥。本机模拟器仅接受显式 `http://127.0.0.1:端口` 或 `http://[::1]:端口`，允许空密钥；不接受 `localhost`、其他本地地址和 HTTP 公网。
 
@@ -59,4 +61,4 @@ $env:AI_DAILY_LIMIT = '50'
 - 无效 JSON、超长/截断输出、越界证据、工具调用被拒绝，不保存新分析或候选，不展示上游原始错误正文。
 - 风险由模型建议和后端固定词追加提示组成，不能证明语义正确或覆盖全部风险。“未标出风险”不构成自动发送许可。
 
-[工程验证记录](acceptance/T13-ai-validation.md)、[架构决定](adr/0006-manual-ai-management.md)列明手动分析首版检查。新增的模型配置、全历史导入整理及关联文档见[本轮验证](acceptance/T13-import-profile-validation.md)。尚需用明确授权的数据做真实模型和界面验收：joey 审后端，angjustinl 审前端，kirinbao 组织验收。通用任务、审批和发送继续单独实施。
+[工程验证记录](acceptance/T13-ai-validation.md)、[架构决定](adr/0006-manual-ai-management.md)列明手动分析首版检查。新增的模型配置、全历史导入整理及关联文档见[本轮验证](acceptance/T13-import-profile-validation.md)。尚需用明确授权的数据做真实模型和界面验收：joey 审后端，angjustinl 审前端，kirinbao 组织验收。原生 Assistant 的工具调用、逐项固定确认与只读恢复见 [助手说明](<assistant.md>)，不能视为通用持久任务、审批及发件箱已完成或 QQ/邮箱发送已开放；飞书本人早晚报是 [独立授权的窄能力](<feishu-setup.md>)。

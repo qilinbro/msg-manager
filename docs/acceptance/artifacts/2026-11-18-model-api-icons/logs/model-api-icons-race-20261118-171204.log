@@ -1,0 +1,5 @@
+ok  	github.com/qilinbro/msg-manager/internal/agent	4.105s
+ok  	github.com/qilinbro/msg-manager/internal/api	24.129s
+ok  	github.com/qilinbro/msg-manager/internal/mcp	2.469s
+ok  	github.com/qilinbro/msg-manager/internal/store	24.651s
+RACE_PASS

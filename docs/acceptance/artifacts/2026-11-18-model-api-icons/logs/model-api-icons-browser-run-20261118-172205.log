@@ -1,0 +1,28 @@
+failed: D:\msg_manager\.runtime\main-push-20261116\repo\.runtime\model-api-icons-browser-9N15S1
+39 checks; 50 intercepted API requests; 0 mutations.
+AssertionError [ERR_ASSERTION]: Every audited icon target, name, hover label and decorative SVG must pass; accumulated failures cannot be ignored
++ actual - expected
+
++ [
++   'Desktop settings: target 启用每日计划 (130x39.5)',
++   'Desktop settings: target 暂停当前计划 (130x39.5)',
++   'Desktop settings: target 生成 / 读取今日摘要 (169.25x39.5)',
++   '860px settings: target 启用每日计划 (130x39.5)',
++   '860px settings: target 暂停当前计划 (130x39.5)',
++   '860px settings: target 生成 / 读取今日摘要 (169.25x39.5)',
++   'Desktop inbox: target 全部会话 (105x41.796875)',
++   'Desktop inbox: target 未读 (105x41.796875)',
++   'Desktop inbox: target 置顶 (105x41.796875)',
++   'Desktop inbox: target 已归档 (105x41.796875)',
++   'Desktop inbox: target 开启后台读取 (128x42)',
++   'Desktop inbox: target 暂停后台读取 (128x42)',
++   'Desktop Agent modal: target 全部会话 (105x41.796875)',
++   'Desktop Agent modal: target 未读 (105x41.796875)',
++   'Desktop Agent modal: target 置顶 (105x41.796875)',
++   'Desktop Agent modal: target 已归档 (105x41.796875)',
++   'Desktop Agent modal: target 开启后台读取 (128x42)',
++   'Desktop Agent modal: target 暂停后台读取 (128x42)'
++ ]
+- []
+
+    at file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/model-api-icons-browser.mjs:870:10

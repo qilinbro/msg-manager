@@ -46,6 +46,10 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Import analysis client regression checks failed.' }
         node scripts/test-ai-model-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'AI model client regression checks failed.' }
+        node scripts/test-model-presets-client.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Model preset metadata client regression checks failed.' }
+        node scripts/test-ui-icons.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Static icon provenance, license and rendering checks failed.' }
         node scripts/test-milky-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'QQ Milky client regression checks failed.' }
         node scripts/test-profiles.mjs

@@ -182,6 +182,11 @@ section.feishu-warning {
   max-inline-size: 100%;
   white-space: normal;
   text-align: center;
+  overflow-wrap: anywhere;
+}
+.feishu-page .icon-label {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
 }
 .feishu-disable {
   margin-block-start: 20px;
