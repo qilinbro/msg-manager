@@ -96,6 +96,14 @@ type Batch struct {
 	Skipped  int       `json:"skipped"`
 	Limited  bool      `json:"limited"`
 }
+
+// IncrementalBatch advances only after its messages have committed locally.
+// Cursor also covers unsupported raw records, so media/service messages do not
+// stall a text-only subscription forever.
+type IncrementalBatch struct {
+	Batch
+	Cursor string `json:"cursor"`
+}
 type Error struct {
 	Code       string
 	RetryAfter int
@@ -104,9 +112,11 @@ type Error struct {
 func (e *Error) Error() string { return "Telegram read failed: " + e.Code }
 
 type command struct {
-	Action string `json:"action"`
-	PeerID string `json:"peer_id,omitempty"`
-	Limit  int    `json:"limit,omitempty"`
+	Action            string  `json:"action"`
+	PeerID            string  `json:"peer_id,omitempty"`
+	Limit             int     `json:"limit,omitempty"`
+	ExpectedAccountID string  `json:"expected_account_id,omitempty"`
+	AfterID           *string `json:"after_id,omitempty"`
 }
 type envelope struct {
 	OK    bool            `json:"ok"`
@@ -152,13 +162,16 @@ func (c *Client) Probe(ctx context.Context) (Identity, error) {
 	}
 	return v, err
 }
-func (c *Client) Dialogs(ctx context.Context) (Dialogs, error) {
+func (c *Client) Dialogs(ctx context.Context, expected string) (Dialogs, error) {
+	if !ValidID(expected) {
+		return Dialogs{}, &Error{Code: "invalid_input"}
+	}
 	var v Dialogs
-	err := c.call(ctx, command{Action: "dialogs", Limit: MaxDialogs}, &v)
+	err := c.call(ctx, command{Action: "dialogs", Limit: MaxDialogs, ExpectedAccountID: expected}, &v)
 	if err != nil {
 		return Dialogs{}, err
 	}
-	if !ValidIdentity(v.Identity) || v.Items == nil || len(v.Items) > MaxDialogs {
+	if !ValidIdentity(v.Identity) || v.AccountID != expected || v.Items == nil || len(v.Items) > MaxDialogs {
 		return Dialogs{}, &Error{Code: "protocol_error"}
 	}
 	seen := map[string]bool{}
@@ -170,19 +183,69 @@ func (c *Client) Dialogs(ctx context.Context) (Dialogs, error) {
 	}
 	return v, nil
 }
-func (c *Client) Read(ctx context.Context, peer string, limit int) (Batch, error) {
-	if !ValidID(peer) || limit < 1 || limit > MaxMessages {
+func (c *Client) Read(ctx context.Context, expected, peer string, limit int) (Batch, error) {
+	if !ValidID(expected) || !ValidID(peer) || limit < 1 || limit > MaxMessages {
 		return Batch{}, &Error{Code: "invalid_input"}
 	}
 	var v Batch
-	err := c.call(ctx, command{Action: "read", PeerID: peer, Limit: limit}, &v)
+	err := c.call(ctx, command{Action: "read", PeerID: peer, Limit: limit, ExpectedAccountID: expected}, &v)
 	if err != nil {
 		return Batch{}, err
 	}
-	if !ValidBatch(v, peer, limit) {
+	if v.AccountID != expected || !ValidBatch(v, peer, limit) {
 		return Batch{}, &Error{Code: "protocol_error"}
 	}
 	return v, nil
+}
+
+func ValidCursor(value string) bool { return value == "0" || ValidID(value) }
+
+func (c *Client) Baseline(ctx context.Context, expected, peer string) (IncrementalBatch, error) {
+	if !ValidID(expected) || !ValidID(peer) {
+		return IncrementalBatch{}, &Error{Code: "invalid_input"}
+	}
+	var v IncrementalBatch
+	if err := c.call(ctx, command{Action: "baseline", PeerID: peer, ExpectedAccountID: expected}, &v); err != nil {
+		return IncrementalBatch{}, err
+	}
+	if !ValidBatch(v.Batch, peer, 1) || v.AccountID != expected || len(v.Messages) != 0 || v.Skipped != 0 || v.Limited || !ValidCursor(v.Cursor) {
+		return IncrementalBatch{}, &Error{Code: "protocol_error"}
+	}
+	return v, nil
+}
+
+func (c *Client) Scan(ctx context.Context, expected, peer, after string) (IncrementalBatch, error) {
+	if !ValidID(expected) || !ValidID(peer) || !ValidCursor(after) {
+		return IncrementalBatch{}, &Error{Code: "invalid_input"}
+	}
+	var v IncrementalBatch
+	if err := c.call(ctx, command{Action: "scan", PeerID: peer, ExpectedAccountID: expected, AfterID: &after, Limit: MaxMessages}, &v); err != nil {
+		return IncrementalBatch{}, err
+	}
+	if !ValidIncremental(v, expected, peer, after) {
+		return IncrementalBatch{}, &Error{Code: "protocol_error"}
+	}
+	return v, nil
+}
+
+func ValidIncremental(v IncrementalBatch, expected, peer, after string) bool {
+	if !ValidBatch(v.Batch, peer, MaxMessages) || v.AccountID != expected || !ValidCursor(after) || !ValidCursor(v.Cursor) {
+		return false
+	}
+	start, _ := strconv.ParseInt(after, 10, 64)
+	end, _ := strconv.ParseInt(v.Cursor, 10, 64)
+	if end < start || (end == start && (len(v.Messages) > 0 || v.Skipped > 0 || v.Limited)) || (end > start && len(v.Messages)+v.Skipped == 0) {
+		return false
+	}
+	last := start
+	for _, m := range v.Messages {
+		id, _ := strconv.ParseInt(strings.TrimPrefix(m.ExternalID, "telegram:user:"+peer+":"), 10, 64)
+		if id <= last || id > end {
+			return false
+		}
+		last = id
+	}
+	return true
 }
 
 func ValidID(v string) bool {

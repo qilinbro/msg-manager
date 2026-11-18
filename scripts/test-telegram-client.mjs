@@ -123,7 +123,7 @@ function panelHarness({ configured = true, deferred = null } = {}) {
     return { workspace_id: 'synthetic' };
   };
   const environment = {
-    ServiceError, AbortController,
+    ServiceError, AbortController, ReceiveMonitor: 'ReceiveMonitorStub',
     useState(initial) {
       const i = cursor++;
       if (!(i in slots)) slots[i] = { value: typeof initial === 'function' ? initial() : initial };

@@ -111,7 +111,7 @@ func (c *Client) open(ctx context.Context, budget int64) (*session, error) {
 	if mbox == nil || !mbox.ReadOnly || mbox.UidValidity == 0 {
 		return failClose(ProtocolError)
 	}
-	return &session{client: cl, conn: conn, stopCancel: stop, info: Info{AccountID: c.cfg.Username, Folder: c.cfg.Folder, UIDValidity: mbox.UidValidity, Messages: mbox.Messages, ReadOnly: true}}, nil
+	return &session{client: cl, conn: conn, stopCancel: stop, info: Info{AccountID: c.cfg.Username, Folder: c.cfg.Folder, UIDValidity: mbox.UidValidity, UIDNext: mbox.UidNext, Messages: mbox.Messages, ReadOnly: true}}, nil
 }
 
 func (c *Client) Probe(ctx context.Context) (Info, error) {

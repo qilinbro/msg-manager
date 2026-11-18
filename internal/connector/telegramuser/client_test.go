@@ -51,22 +51,22 @@ func TestReadIsBoundedAndStrictlyAccountScoped(t *testing.T) {
 	calls := 0
 	c.run = func(_ context.Context, input []byte) ([]byte, error) {
 		calls++
-		if string(input) != `{"action":"read","peer_id":"456","limit":1}` {
+		if string(input) != `{"action":"read","peer_id":"456","limit":1,"expected_account_id":"123"}` {
 			t.Fatal(string(input))
 		}
 		return []byte(body), nil
 	}
-	batch, err := c.Read(context.Background(), "456", 1)
+	batch, err := c.Read(context.Background(), "123", "456", 1)
 	if err != nil || len(batch.Messages) != 1 {
 		t.Fatal(err)
 	}
 	for _, peer := range []string{"", "0", "-1", "0456", "456.0", "9223372036854775808", "456\n"} {
-		if _, err := c.Read(context.Background(), peer, 1); err == nil {
+		if _, err := c.Read(context.Background(), "123", peer, 1); err == nil {
 			t.Fatal("invalid peer accepted")
 		}
 	}
 	for _, limit := range []int{0, 101, -1} {
-		if _, err := c.Read(context.Background(), "456", limit); err == nil {
+		if _, err := c.Read(context.Background(), "123", "456", limit); err == nil {
 			t.Fatal("unbounded read")
 		}
 	}
@@ -82,7 +82,7 @@ func TestReadIsBoundedAndStrictlyAccountScoped(t *testing.T) {
 		strings.Replace(body, `"skipped":0`, `"skipped":1`, 1),
 		strings.Replace(body, `"messages":[`, `"unexpected":"private", "messages":[`, 1),
 	} {
-		if _, err := testClient(t, bad).Read(context.Background(), "456", 1); err == nil {
+		if _, err := testClient(t, bad).Read(context.Background(), "123", "456", 1); err == nil {
 			t.Fatal("invalid read accepted", bad)
 		}
 	}
@@ -118,6 +118,68 @@ func TestEnvelopeFailureRedactionCancellationAndBounds(t *testing.T) {
 	}
 	if _, err := c.Probe(ctx); !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatal(err)
+	}
+}
+
+func TestIncrementalRequestsAndCursorValidation(t *testing.T) {
+	base := `{"ok":true,"data":{"account_id":"123","name":"synthetic owner","read_only":true,"sending_enabled":false,"peer_id":"456","peer_name":"synthetic friend","messages":[],"skipped":0,"limited":false,"cursor":"10"}}`
+	c := testClient(t, base)
+	calls := 0
+	c.run = func(_ context.Context, input []byte) ([]byte, error) {
+		calls++
+		if string(input) != `{"action":"baseline","peer_id":"456","expected_account_id":"123"}` {
+			t.Fatal(string(input))
+		}
+		return []byte(base), nil
+	}
+	if batch, err := c.Baseline(context.Background(), "123", "456"); err != nil || batch.Cursor != "10" {
+		t.Fatal(batch, err)
+	}
+	scan := strings.Replace(base, `"messages":[]`, `"messages":[{"external_id":"telegram:user:456:11","body":"new","direction":"incoming","occurred_at":"2026-01-01T00:00:00Z"}]`, 1)
+	scan = strings.Replace(scan, `"cursor":"10"`, `"cursor":"12"`, 1)
+	scan = strings.Replace(scan, `"skipped":0`, `"skipped":1`, 1)
+	c.run = func(_ context.Context, input []byte) ([]byte, error) {
+		calls++
+		if string(input) != `{"action":"scan","peer_id":"456","limit":100,"expected_account_id":"123","after_id":"10"}` {
+			t.Fatal(string(input))
+		}
+		return []byte(scan), nil
+	}
+	if batch, err := c.Scan(context.Background(), "123", "456", "10"); err != nil || batch.Cursor != "12" || batch.Skipped != 1 {
+		t.Fatal(batch, err)
+	}
+	for _, after := range []string{"", "-1", "01", "１２", "9223372036854775808"} {
+		if _, err := c.Scan(context.Background(), "123", "456", after); err == nil {
+			t.Fatal("unsafe cursor accepted", after)
+		}
+	}
+	if calls != 2 {
+		t.Fatal("invalid cursor invoked helper")
+	}
+	for _, bad := range []string{
+		strings.Replace(scan, `"cursor":"12"`, `"cursor":"9"`, 1),
+		strings.Replace(scan, `"cursor":"12"`, `"cursor":"10"`, 1),
+		strings.Replace(scan, `"cursor":"12"`, `"cursor":"01"`, 1),
+		strings.Replace(scan, "telegram:user:456:11", "telegram:user:456:10", 1),
+		strings.Replace(scan, "telegram:user:456:11", "telegram:user:456:13", 1),
+		strings.Replace(scan, `"account_id":"123"`, `"account_id":"789"`, 1),
+		strings.Replace(base, `"cursor":"10"`, `"cursor":"12"`, 1),
+	} {
+		if _, err := testClient(t, bad).Scan(context.Background(), "123", "456", "10"); err == nil {
+			t.Fatal("malformed scan accepted", bad)
+		}
+	}
+	for _, bad := range []string{scan, strings.Replace(base, `"limited":false`, `"limited":true`, 1), strings.Replace(base, `"skipped":0`, `"skipped":1`, 1)} {
+		if _, err := testClient(t, bad).Baseline(context.Background(), "123", "456"); err == nil {
+			t.Fatal("history-carrying baseline accepted")
+		}
+	}
+	if _, err := testClient(t, base).Scan(context.Background(), "123", "456", "10"); err != nil {
+		t.Fatal("empty unchanged scan rejected", err)
+	}
+	zero := strings.Replace(base, `"cursor":"10"`, `"cursor":"0"`, 1)
+	if _, err := testClient(t, zero).Scan(context.Background(), "123", "456", "0"); err != nil {
+		t.Fatal("empty new dialog rejected", err)
 	}
 }
 

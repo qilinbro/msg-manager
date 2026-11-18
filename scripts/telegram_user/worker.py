@@ -71,20 +71,34 @@ def parse_request(raw: bytes) -> dict:
         raise Failure("INVALID_INPUT")
     request = decode_object(raw)
     action = request.get("action")
-    allowed = {"probe": {"action"}, "dialogs": {"action", "limit"},
-               "read": {"action", "peer_id", "limit"}}
+    allowed = {"probe": {"action"}, "dialogs": {"action", "limit", "expected_account_id"},
+               "read": {"action", "peer_id", "limit", "expected_account_id"},
+               "baseline": {"action", "peer_id", "expected_account_id"},
+               "scan": {"action", "peer_id", "limit", "after_id", "expected_account_id"}}
     if type(action) is not str or action not in allowed or set(request) - allowed[action]:
         raise Failure("INVALID_INPUT")
-    if action == "read":
+    if action != "probe":
+        if type(request.get("expected_account_id")) is not str:
+            raise Failure("INVALID_INPUT")
+        exact_id(request["expected_account_id"])
+    if action in ("read", "baseline", "scan"):
         if type(request.get("peer_id")) is not str:
             raise Failure("INVALID_INPUT")
         request["peer_id"] = exact_id(request.get("peer_id"))
-    if action in ("dialogs", "read"):
+    if action in ("dialogs", "read", "scan"):
         limit = request.get("limit", 100 if action == "dialogs" else 50)
         if type(limit) is not int or not 1 <= limit <= 100:
             raise Failure("INVALID_INPUT")
         request["limit"] = limit
+    if action == "scan":
+        exact_cursor(request.get("after_id"))
     return request
+
+
+def exact_cursor(value: Any) -> str:
+    if type(value) is not str or not re.fullmatch(r"0|[1-9][0-9]{0,18}", value, re.ASCII) or int(value) > 2**63 - 1:
+        raise Failure("INVALID_INPUT")
+    return value
 
 
 def validate_credentials(value: Any) -> dict:
@@ -371,6 +385,9 @@ def normalize_message(message, self_id: str, peer_id: str) -> dict | None:
 
 
 async def perform(request: dict, credentials: dict, client=None, types_module=None) -> dict:
+    expected = credentials["account_id"] if request["action"] == "probe" else request["expected_account_id"]
+    if expected != credentials["account_id"]:
+        raise Failure("IDENTITY_MISMATCH")
     if types_module is None:
         from telethon.tl import types as types_module
     client = client or new_client(credentials)
@@ -379,7 +396,7 @@ async def perform(request: dict, credentials: dict, client=None, types_module=No
         me = await client.get_me()
         if me is None:
             raise Failure("AUTH_REQUIRED")
-        if getattr(me, "bot", False) or exact_id(me.id) != credentials["account_id"]:
+        if getattr(me, "bot", False) or exact_id(me.id) != expected:
             raise Failure("IDENTITY_MISMATCH")
         common = {"account_id": credentials["account_id"], "name": label(me), "read_only": True, "sending_enabled": False}
         if request["action"] == "probe":
@@ -390,6 +407,32 @@ async def perform(request: dict, credentials: dict, client=None, types_module=No
         peer = peers.get(request["peer_id"])
         if peer is None:
             raise Failure("PEER_NOT_AVAILABLE")
+        if request["action"] == "baseline":
+            cursor = "0"
+            async for message in client.iter_messages(peer, limit=1):
+                cursor = exact_id(message.id)
+                break
+            return {**common, "peer_id": request["peer_id"], "peer_name": label(peer), "messages": [],
+                    "skipped": 0, "limited": False, "cursor": cursor}
+        if request["action"] == "scan":
+            cursor = exact_cursor(request["after_id"])
+            messages, skipped, examined, limited = [], 0, 0, False
+            async for message in client.iter_messages(peer, min_id=int(cursor), reverse=True, limit=request["limit"] + 1):
+                examined += 1
+                if examined > request["limit"]:
+                    limited = True
+                    break
+                current = exact_id(message.id)
+                if int(current) <= int(cursor):
+                    raise Failure("UNAVAILABLE")
+                cursor = current
+                normalized = normalize_message(message, expected, request["peer_id"])
+                if normalized is None:
+                    skipped += 1
+                else:
+                    messages.append(normalized)
+            return {**common, "peer_id": request["peer_id"], "peer_name": label(peer), "messages": messages,
+                    "skipped": skipped, "limited": limited, "cursor": cursor}
         messages, skipped, examined = [], 0, 0
         async for message in client.iter_messages(peer, limit=request["limit"] + 1):
             examined += 1

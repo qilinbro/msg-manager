@@ -21,11 +21,17 @@ type mailboxFetcher interface {
 }
 
 type emailConnection struct {
-	client    mailboxFetcher
-	gate      chan struct{}
-	mu        sync.RWMutex
-	status    EmailStatus
-	accountID string
+	client     mailboxFetcher
+	gate       chan struct{}
+	mu         sync.RWMutex
+	status     EmailStatus
+	accountID  string
+	monitorMu  sync.Mutex
+	monitor    EmailMonitorStatus
+	checkpoint emailCheckpoint
+	cancel     context.CancelFunc
+	done       chan struct{}
+	closed     bool
 }
 
 type EmailResult struct {
@@ -47,7 +53,7 @@ type EmailStatus struct {
 }
 
 func newEmailConnection(cfg mailbox.Config) (*emailConnection, error) {
-	c := &emailConnection{gate: make(chan struct{}, 1), status: EmailStatus{State: "not_configured"}}
+	c := &emailConnection{gate: make(chan struct{}, 1), status: EmailStatus{State: "not_configured"}, monitor: newEmailMonitorStatus()}
 	if cfg.Host == "" && cfg.Username == "" && cfg.Password == "" && cfg.Folder == "" && cfg.Port == 0 && cfg.Limit == 0 {
 		return c, nil
 	}
@@ -127,7 +133,39 @@ func (h *handler) syncEmail(w http.ResponseWriter, r *http.Request, traceID stri
 		writeError(w, 503, "EMAIL_PROTOCOL_ERROR", "邮箱返回的账号或只读状态不匹配，本轮未保存。", traceID)
 		return
 	}
-	req := store.ImportRequest{Platform: "email", AccountID: c.accountID, AccountName: mailLabel(account, 128)}
+	req, skipped := emailImportBatch(c.accountID, account, folder, batch)
+	if ctx.Err() != nil {
+		c.mu.Lock()
+		c.status.State = "unreachable"
+		c.mu.Unlock()
+		writeError(w, 503, "EMAIL_UNREACHABLE", "同步已中断，尚未开始本地保存。", traceID)
+		return
+	}
+	result := store.ImportResult{}
+	if len(req.Messages) > 0 {
+		result, err = h.inbox.ImportIMAPContext(ctx, req)
+		if err != nil {
+			c.mu.Lock()
+			c.status.State = "protocol_error"
+			c.mu.Unlock()
+			writeInboxError(w, err, traceID)
+			return
+		}
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+	response := EmailResult{ImportResult: result, Skipped: skipped, Limited: batch.Truncated, SyncedAt: now, SendingEnabled: false}
+	c.mu.Lock()
+	c.status.State = "synced"
+	c.status.LastSyncedAt = &now
+	c.status.LastResult = &response
+	c.mu.Unlock()
+	writeJSON(w, http.StatusOK, response)
+}
+
+// Shared by manual and unattended reads, so replays cannot create a second
+// identity or reset local read state after switching between the two paths.
+func emailImportBatch(accountID, account, folder string, batch mailbox.Batch) (store.ImportRequest, int) {
+	req := store.ImportRequest{Platform: "email", AccountID: accountID, AccountName: mailLabel(account, 128)}
 	skipped := batch.Skipped
 	for _, item := range batch.Mails {
 		if item.UID == 0 {
@@ -152,32 +190,7 @@ func (h *handler) syncEmail(w http.ResponseWriter, r *http.Request, traceID stri
 		}
 		req.Messages = append(req.Messages, store.ImportMessage{ExternalID: externalID, PeerID: externalID, PeerName: title, Direction: "incoming", Body: body, OccurredAt: item.OccurredAt, Read: &seen, Email: &store.EmailHeaders{Subject: mailLabel(item.Subject, 1024), FromName: mailLabel(item.FromName, 128), FromAddress: item.FromAddress, To: to, Folder: folder}})
 	}
-	if ctx.Err() != nil {
-		c.mu.Lock()
-		c.status.State = "unreachable"
-		c.mu.Unlock()
-		writeError(w, 503, "EMAIL_UNREACHABLE", "同步已中断，尚未开始本地保存。", traceID)
-		return
-	}
-	result := store.ImportResult{}
-	if len(req.Messages) > 0 {
-		result, err = h.inbox.ImportIMAP(req)
-		if err != nil {
-			c.mu.Lock()
-			c.status.State = "protocol_error"
-			c.mu.Unlock()
-			writeInboxError(w, err, traceID)
-			return
-		}
-	}
-	now := time.Now().UTC().Format(time.RFC3339)
-	response := EmailResult{ImportResult: result, Skipped: skipped, Limited: batch.Truncated, SyncedAt: now, SendingEnabled: false}
-	c.mu.Lock()
-	c.status.State = "synced"
-	c.status.LastSyncedAt = &now
-	c.status.LastResult = &response
-	c.mu.Unlock()
-	writeJSON(w, http.StatusOK, response)
+	return req, skipped
 }
 
 func mailLabel(value string, limit int) string {

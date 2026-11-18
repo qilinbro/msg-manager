@@ -1,0 +1,47 @@
+.receive-monitor {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.receive-monitor h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.receive-monitor .section-heading {
+  flex-wrap: wrap;
+}
+.receive-monitor-peers {
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+}
+.receive-monitor-peers label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.receive-monitor-peers input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+}
+.receive-monitor-interval {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 0.8125rem;
+}
+.receive-monitor-interval input {
+  width: 100px;
+  min-height: 40px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--ink);
+}

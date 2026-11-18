@@ -145,7 +145,11 @@ func serveMockMailbox(conn net.Conn, opts testServerOptions, commands *[]string,
 			if opts.writable {
 				mode = "READ-WRITE"
 			}
-			fmt.Fprintf(conn, "* FLAGS (\\Seen)\r\n* %d EXISTS\r\n* OK [UIDVALIDITY %d] stable\r\n%s OK [%s] examined\r\n", opts.count, validity, tag, mode)
+			next := uint32(1)
+			if opts.count > 0 {
+				next = 78
+			}
+			fmt.Fprintf(conn, "* FLAGS (\\Seen)\r\n* %d EXISTS\r\n* OK [UIDVALIDITY %d] stable\r\n* OK [UIDNEXT %d] next\r\n%s OK [%s] examined\r\n", opts.count, validity, next, tag, mode)
 		case "FETCH":
 			size := len(raw)
 			if opts.oversized {
@@ -158,6 +162,17 @@ func serveMockMailbox(conn net.Conn, opts testServerOptions, commands *[]string,
 		case "UID":
 			if len(parts) < 3 || strings.ToUpper(parts[2]) != "FETCH" {
 				return
+			}
+			if strings.Contains(strings.ToUpper(line), "RFC822.SIZE") {
+				size := len(raw)
+				if opts.oversized {
+					size = MaxRawMessageBytes + 1
+				}
+				if opts.count > 0 {
+					fmt.Fprintf(conn, "* %d FETCH (UID 77 RFC822.SIZE %d FLAGS (\\Seen) INTERNALDATE \"01-Jan-2026 00:00:00 +0000\")\r\n", opts.count, size)
+				}
+				fmt.Fprintf(conn, "%s OK fetched metadata\r\n", tag)
+				continue
 			}
 			if opts.hugeLiteral {
 				fmt.Fprintf(conn, "* 1 FETCH (UID 77 BODY[] {4294967295}\r\n")

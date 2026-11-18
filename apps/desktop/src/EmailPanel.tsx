@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ServiceError } from './api';
 import { getEmailStatus, syncEmail } from './email-api';
 import type { EmailResult, EmailStatus } from './email-api';
+import { ReceiveMonitor } from './ReceiveMonitor';
 
 const STATE_NAMES: Record<EmailStatus['state'], string> = {
   not_configured: '尚未配置',
@@ -278,7 +279,7 @@ export default function EmailPanel({
         </p>
       ) : (
         <p className="email-panel-note">
-          同步是一次主动读取，不会持续自动抓取。已读、置顶和归档仅在本地工作台生效。
+          “同步邮箱”只读取一次；持续接收需在下方明确开启。已读、置顶和归档仅在本地工作台生效。
         </p>
       )}
       {status?.last_result ? (
@@ -288,6 +289,12 @@ export default function EmailPanel({
           封{status.last_result.limited ? ' · 最近一批，未包含全部历史' : ''}
         </p>
       ) : null}
+      <ReceiveMonitor
+        channel="email-imap"
+        token={token}
+        canEnable={storageEnabled && Boolean(status?.configured)}
+        onAuthFailure={onAuthFailure}
+      />
       <div aria-live="polite" aria-atomic="true">
         {notice ? (
           <p className="email-feedback" role="status">

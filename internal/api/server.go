@@ -100,6 +100,14 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted QQ Milky monitor configuration could not be restored")
 	}
+	if err := h.restoreEmailMonitor(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted email monitor configuration could not be restored")
+	}
+	if err := h.restoreTelegramMonitor(); err != nil {
+		_ = h.Close()
+		return nil, fmt.Errorf("encrypted Telegram monitor configuration could not be restored")
+	}
 	return h, nil
 }
 
@@ -110,6 +118,8 @@ func (h *handler) Close() error {
 	}
 	h.closeWechatMonitor()
 	h.closeMilkyMonitor()
+	h.closeEmailMonitor()
+	h.closeTelegramMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
 	}
@@ -143,7 +153,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !telegramMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !milkyConfigMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !telegramMutation(requestedMethod, r.URL.Path) && !receiveMonitorMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !milkyConfigMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -174,6 +184,19 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.URL.Path == modelConfigPath {
 			h.serveModelConfig(w, r, traceID)
+			return
+		}
+		if receiveMonitorRoute(r.URL.Path) {
+			if r.Method != http.MethodGet && r.Method != http.MethodPost {
+				w.Header().Set("Allow", "GET, POST")
+				writeError(w, http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED", "此接口仅支持查询或更新后台收件设置。", traceID)
+				return
+			}
+			if r.URL.Path == "/api/v1/connections/email-imap/monitor" {
+				h.serveEmailMonitor(w, r, traceID)
+			} else {
+				h.serveTelegramMonitor(w, r, traceID)
+			}
 			return
 		}
 		if telegramRead(r.URL.Path) || telegramMutation(r.Method, r.URL.Path) {
@@ -250,6 +273,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	writeError(w, http.StatusNotFound, "NOT_FOUND", "请求的接口不存在。", traceID)
+}
+
+func receiveMonitorRoute(path string) bool {
+	return path == "/api/v1/connections/email-imap/monitor" || path == "/api/v1/connections/telegram-user/monitor"
+}
+
+func receiveMonitorMutation(method, path string) bool {
+	return method == http.MethodPost && receiveMonitorRoute(path)
 }
 
 func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID string) {

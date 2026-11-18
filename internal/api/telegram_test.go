@@ -31,11 +31,11 @@ func (s *stubTelegram) Probe(context.Context) (telegramuser.Identity, error) {
 	s.calls.Add(1)
 	return s.identity, s.err
 }
-func (s *stubTelegram) Dialogs(context.Context) (telegramuser.Dialogs, error) {
+func (s *stubTelegram) Dialogs(context.Context, string) (telegramuser.Dialogs, error) {
 	s.calls.Add(1)
 	return s.dialogs, s.err
 }
-func (s *stubTelegram) Read(ctx context.Context, _ string, _ int) (telegramuser.Batch, error) {
+func (s *stubTelegram) Read(ctx context.Context, _ string, _ string, _ int) (telegramuser.Batch, error) {
 	s.calls.Add(1)
 	if s.entered != nil {
 		s.entered <- struct{}{}

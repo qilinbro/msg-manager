@@ -131,7 +131,7 @@ func shoppingLegacyV13(t *testing.T, path string) *Store {
 
 func shoppingDataSnapshot(t *testing.T, db *sql.DB) map[string]string {
 	t.Helper()
-	rows, err := db.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`)
+	rows, err := db.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name!='receive_monitors' ORDER BY name`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,8 +247,8 @@ func TestShoppingV14UpgradePreservesEntireGraphFTSSettingsAndHistory(t *testing.
 	}
 	assertShoppingFKEnabled(t, s)
 	var version, objects int
-	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != 14 {
-		t.Fatal("v14 not recorded")
+	if s.db.QueryRow(`SELECT max(version) FROM schema_migrations`).Scan(&version) != nil || version != currentSchemaVersion {
+		t.Fatal("latest migration not recorded")
 	}
 	if s.db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE name IN ('connections_display_name_test','connection_update_test')`).Scan(&objects) != nil || objects != 2 {
 		t.Fatal("existing indexes/triggers lost")

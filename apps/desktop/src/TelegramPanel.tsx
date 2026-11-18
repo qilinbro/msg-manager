@@ -9,6 +9,7 @@ import {
   type TelegramStatus,
 } from './telegram-api';
 import './telegram.css';
+import { ReceiveMonitor } from './ReceiveMonitor';
 
 interface Props {
   token: string;
@@ -188,7 +189,7 @@ export function TelegramPanel({ token, onAuthFailure, onSystemUpdate }: Props) {
       setDialogs(null);
       setPeerID('');
       setNotice(
-        `已核验本人账号：${next.name || next.account_id}。尚未读取私聊或开启后台接收。`,
+        `已核验本人账号：${next.name || next.account_id}。此次仅核验身份；历史同步和后台接收需分别确认。`,
       );
       const system = await getSystem(token, controller.signal);
       if (current()) callbacks.current.onSystemUpdate(system);
@@ -297,7 +298,7 @@ export function TelegramPanel({ token, onAuthFailure, onSystemUpdate }: Props) {
         <li>
           <h3>3. 核验并选择私聊</h3>
           <p>
-            先核验账号，再读取会话列表，选择联系人同步最近文本。首版没有自动收件、发送、群聊或完整历史补齐。
+            先核验账号，再读取会话列表，选择联系人同步最近文本。也可在下方明确开启指定私聊的后台接收；发送、群聊和完整历史补齐仍未开放。
           </p>
         </li>
       </ol>
@@ -423,6 +424,15 @@ export function TelegramPanel({ token, onAuthFailure, onSystemUpdate }: Props) {
           {busy === 'sync' ? '正在同步…' : '同步选定私聊'}
         </button>
       </div>
+      <ReceiveMonitor
+        channel="telegram-user"
+        token={token}
+        canEnable={verified && busy === null}
+        verifiedAccountID={verified ? status.account_id : undefined}
+        dialogsAccountID={dialogs?.account_id}
+        dialogs={dialogs?.items}
+        onAuthFailure={onAuthFailure}
+      />
       <div aria-live="polite" aria-atomic="true">
         {error ? (
           <p className="form-message error-message" role="alert">

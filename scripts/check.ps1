@@ -49,6 +49,8 @@ try {
     if (-not $SkipFrontend) {
         node scripts/test-telegram-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Personal Telegram client regression checks failed.' }
+        node scripts/test-receive-monitor.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Background receive client regression checks failed.' }
         node scripts/test-profile-links.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Profile links client checks failed.' }
         node scripts/test-import-analysis.mjs

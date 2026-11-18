@@ -956,7 +956,7 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   expired.unmount(); groups++;
 }
 
-// All nine shipped domain clients execute through the real device transport,
+// Shipped domain clients execute through the real device transport,
 // not a replacement auth stub. Each mutation gets one rejected dispatch and a
 // recovered access token, but reports an explicit 409 instead of replaying.
 {
@@ -967,6 +967,8 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
     ['model-config-api.ts', 'saveModelConfig', [handle, signal, { expected_revision: 0, base_url: 'https://synthetic.invalid/v1', model: 'synthetic-model', api_key: 'synthetic-model-secret', daily_limit: 1, confirmed: true }], 'PATCH'],
     ['digest-api.ts', 'runDigestNow', [handle], 'POST'],
     ['email-api.ts', 'syncEmail', [handle, signal], 'POST'],
+    ['receive-monitor-api.ts', 'saveReceiveMonitor', ['email-imap', handle, signal, { enabled: true, interval_seconds: 60 }], 'POST'],
+    ['receive-monitor-api.ts', 'saveReceiveMonitor', ['telegram-user', handle, signal, { enabled: true, interval_seconds: 60, expected_account_id: '12345', peer_ids: ['23456'] }], 'POST'],
     ['wechat-api.ts', 'saveWechatMonitor', [handle, signal, { enabled: true, peer_ids: ['synthetic-peer'], interval_seconds: 10 }], 'POST'],
     ['milky-api.ts', 'syncMilky', [handle, signal, '12345', 1], 'POST'],
     ['profile-api.ts', 'generateProfile', [handle, signal, 'synthetic-conversation', { expected_revision: 0, confirmed: true, model_config_id: 'synthetic-model' }], 'POST'],
@@ -1328,4 +1330,4 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   h.unmount(); groups++;
 }
 
-console.log(`Device auth synthetic checks passed (${groups} groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.`);
+console.log(`Device auth synthetic checks passed (${groups} groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through domain and receive-monitor clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.`);

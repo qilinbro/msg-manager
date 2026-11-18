@@ -67,9 +67,14 @@ class FakeClient:
         for peer in self.peers[:limit]:
             yield SimpleNamespace(entity=peer)
 
-    async def iter_messages(self, peer, *, limit):
-        self.calls.append(("messages", peer.id, limit))
-        for item in self.messages[:limit]:
+    async def iter_messages(self, peer, *, limit, min_id=None, reverse=False):
+        if min_id is None:
+            self.calls.append(("messages", peer.id, limit))
+            items = self.messages
+        else:
+            self.calls.append(("messages", peer.id, limit, min_id, reverse))
+            items = sorted((item for item in self.messages if item.id > min_id), key=lambda item: item.id)
+        for item in items[:limit]:
             yield item
 
 
@@ -90,17 +95,31 @@ class ProtocolTests(unittest.TestCase):
             with self.subTest(raw=raw[:50]):
                 self.assert_failure("INVALID_INPUT", worker.parse_request, raw)
         self.assertEqual(worker.parse_request(b'{"action":"probe"}'), {"action": "probe"})
-        self.assertEqual(worker.parse_request(b'{"action":"dialogs"}')["limit"], 100)
-        self.assertEqual(worker.parse_request(b'{"action":"read","peer_id":"123"}')["limit"], 50)
+        self.assertEqual(worker.parse_request(b'{"action":"dialogs","expected_account_id":"900"}')["limit"], 100)
+        self.assertEqual(worker.parse_request(b'{"action":"read","peer_id":"123","expected_account_id":"900"}')["limit"], 50)
+
+    def test_incremental_requests_require_canonical_account_peer_and_cursor(self):
+        base = {"action": "scan", "expected_account_id": "900", "peer_id": "123", "after_id": "0", "limit": 100}
+        self.assertEqual(worker.parse_request(json.dumps(base).encode()), base)
+        self.assertEqual(worker.parse_request(b'{"action":"baseline","expected_account_id":"900","peer_id":"123"}')["action"], "baseline")
+        for field in ("expected_account_id", "peer_id", "after_id"):
+            for value in (None, 123, True, "-1", "01", "１２", "9223372036854775808"):
+                self.assert_failure("INVALID_INPUT", worker.parse_request, json.dumps({**base, field: value}).encode())
+            missing = {key: value for key, value in base.items() if key != field}
+            self.assert_failure("INVALID_INPUT", worker.parse_request, json.dumps(missing).encode())
+        for action in ("dialogs", "read", "baseline", "scan"):
+            missing = {key: value for key, value in base.items() if key != "expected_account_id"}
+            missing["action"] = action
+            self.assert_failure("INVALID_INPUT", worker.parse_request, json.dumps(missing).encode())
 
     def test_peer_and_limits_are_strict_before_network(self):
         for peer in [None, 123, True, "0", "-1", "01", "+12", " 12", "1.0", "１２", "9223372036854775808"]:
-            raw = json.dumps({"action": "read", "peer_id": peer}).encode()
+            raw = json.dumps({"action": "read", "peer_id": peer,"expected_account_id":"900"}).encode()
             self.assert_failure("INVALID_INPUT", worker.parse_request, raw)
         for limit in [None, True, "10", 1.5, 0, -1, 101]:
             self.assert_failure("INVALID_INPUT", worker.parse_request,
-                                json.dumps({"action": "dialogs", "limit": limit}).encode())
-        self.assertEqual(worker.parse_request(b'{"action":"read","peer_id":"9223372036854775807","limit":100}')["limit"], 100)
+                                json.dumps({"action": "dialogs", "limit": limit,"expected_account_id":"900"}).encode())
+        self.assertEqual(worker.parse_request(b'{"action":"read","peer_id":"9223372036854775807","limit":100,"expected_account_id":"900"}')["limit"], 100)
 
     def test_credentials_strict_shape_and_types(self):
         self.assertEqual(worker.validate_credentials(credential()), credential())
@@ -189,20 +208,20 @@ class ReadOnlyTests(unittest.IsolatedAsyncioTestCase):
         peers = [User(123, "Friend"), SimpleNamespace(id=-10, title="Group"),
                  User(124, bot=True), User(125, is_self=True), User(126, deleted=True), User(127, "Other")]
         client = FakeClient(peers)
-        result = await worker.perform({"action": "dialogs", "limit": 100}, credential(), client, TYPES)
+        result = await worker.perform({"action": "dialogs", "limit": 100, "expected_account_id": "900"}, credential(), client, TYPES)
         self.assertEqual(result["items"], [{"peer_id": "123", "name": "Friend"}, {"peer_id": "127", "name": "Other"}])
         self.assertFalse(result["limited"])
 
     async def test_dialog_window_is_bounded(self):
         client = FakeClient([User(ident) for ident in range(1, 103)])
-        result = await worker.perform({"action": "dialogs", "limit": 100}, credential(), client, TYPES)
+        result = await worker.perform({"action": "dialogs", "limit": 100, "expected_account_id": "900"}, credential(), client, TYPES)
         self.assertEqual(len(result["items"]), 100)
         self.assertTrue(result["limited"])
         self.assertIn(("dialogs", 101), client.calls)
 
     async def test_read_only_selected_visible_private_peer(self):
         client = FakeClient([User(123)], [message(3), message(2, text=""), message(1, sender=900), message(4)])
-        result = await worker.perform({"action": "read", "peer_id": "123", "limit": 3}, credential(), client, TYPES)
+        result = await worker.perform({"action": "read", "peer_id": "123", "limit": 3, "expected_account_id": "900"}, credential(), client, TYPES)
         self.assertEqual([item["external_id"] for item in result["messages"]], ["telegram:user:123:1", "telegram:user:123:3"])
         self.assertEqual(result["skipped"], 1)
         self.assertTrue(result["limited"])
@@ -214,7 +233,7 @@ class ReadOnlyTests(unittest.IsolatedAsyncioTestCase):
                                  ([], "123")]:
             client = FakeClient(peers)
             with self.assertRaises(worker.Failure) as caught:
-                await worker.perform({"action": "read", "peer_id": requested, "limit": 10}, credential(), client, TYPES)
+                await worker.perform({"action": "read", "peer_id": requested, "limit": 10, "expected_account_id": "900"}, credential(), client, TYPES)
             self.assertEqual(caught.exception.code, "PEER_NOT_AVAILABLE")
             self.assertFalse(any(call[0] == "messages" for call in client.calls))
             self.assertEqual(client.calls[-1], ("disconnect",))
@@ -228,6 +247,57 @@ class ReadOnlyTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ConnectionError):
             await worker.perform({"action": "probe"}, credential(), client, TYPES)
         self.assertEqual(client.calls, [("connect",), ("get_me",), ("disconnect",)])
+
+    async def test_changed_expected_identity_fails_before_connect_or_read(self):
+        for action in ("dialogs", "read", "baseline", "scan"):
+            client = FakeClient([User(123)], [message()])
+            with self.assertRaises(worker.Failure) as caught:
+                await worker.perform({"action": action, "expected_account_id": "901", "peer_id": "123"}, credential(), client, TYPES)
+            self.assertEqual(caught.exception.code, "IDENTITY_MISMATCH")
+            self.assertEqual(client.calls, [])
+
+    async def test_changed_real_identity_fails_before_dialog_or_message_read(self):
+        client = FakeClient([User(123)], [message()], me=User(901))
+        with self.assertRaises(worker.Failure) as caught:
+            await worker.perform({"action": "scan", "expected_account_id": "900", "peer_id": "123", "after_id": "0", "limit": 100}, credential(), client, TYPES)
+        self.assertEqual(caught.exception.code, "IDENTITY_MISMATCH")
+        self.assertEqual(client.calls, [("connect",), ("get_me",), ("disconnect",)])
+
+    async def test_baseline_only_records_latest_id_and_never_imports_history(self):
+        for messages, expected in (([message(50), message(49)], "50"), ([], "0")):
+            client = FakeClient([User(123)], messages)
+            result = await worker.perform({"action": "baseline", "expected_account_id": "900", "peer_id": "123"}, credential(), client, TYPES)
+            self.assertEqual(result["cursor"], expected)
+            self.assertEqual(result["messages"], [])
+            self.assertEqual(result["skipped"], 0)
+            self.assertFalse(result["limited"])
+            self.assertIn(("messages", 123, 1), client.calls)
+
+    async def test_incremental_scan_is_ascending_bounded_and_advances_skipped_ids(self):
+        client = FakeClient([User(123)], [message(14), message(10), message(13, text=""), message(12, sender=900), message(11)])
+        result = await worker.perform({"action": "scan", "expected_account_id": "900", "peer_id": "123", "after_id": "10", "limit": 3}, credential(), client, TYPES)
+        self.assertEqual([item["external_id"] for item in result["messages"]], ["telegram:user:123:11", "telegram:user:123:12"])
+        self.assertEqual(result["cursor"], "13")
+        self.assertEqual(result["skipped"], 1)
+        self.assertTrue(result["limited"])
+        self.assertIn(("messages", 123, 4, 10, True), client.calls)
+        result = await worker.perform({"action": "scan", "expected_account_id": "900", "peer_id": "123", "after_id": "13", "limit": 100}, credential(), client, TYPES)
+        self.assertEqual(result["cursor"], "14")
+        self.assertFalse(result["limited"])
+        result = await worker.perform({"action": "scan", "expected_account_id": "900", "peer_id": "123", "after_id": "14", "limit": 100}, credential(), client, TYPES)
+        self.assertEqual(result["cursor"], "14")
+        self.assertEqual(result["messages"], [])
+
+    async def test_incremental_scan_rejects_nonmonotonic_server_ids(self):
+        class InvalidOrderClient(FakeClient):
+            async def iter_messages(self, peer, **kwargs):
+                for ident in (12, 11):
+                    yield message(ident)
+        client = InvalidOrderClient([User(123)])
+        with self.assertRaises(worker.Failure) as caught:
+            await worker.perform({"action": "scan", "expected_account_id": "900", "peer_id": "123", "after_id": "10", "limit": 100}, credential(), client, TYPES)
+        self.assertEqual(caught.exception.code, "UNAVAILABLE")
+        self.assertEqual(client.calls[-1], ("disconnect",))
 
 
 class ConstructionTests(unittest.TestCase):

@@ -4289,6 +4289,49 @@
         }
       }
     },
+    "/api/v1/connections/email-imap/monitor": {
+      "get": {
+        "description": "Cached status of read-only background mailbox polling. Does not connect to the mailbox.",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": { "description": "Mailbox monitor state.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReceiveMonitorStatus" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "description": "Enable or pause incremental read-only polling of the configured mailbox and folder. No credentials or host selection in this request.",
+        "x-implementation-status": "implemented",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EmailReceiveMonitorRequest" } } } },
+        "responses": {
+          "200": { "description": "Settings accepted; status does not imply receipt of a new message.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReceiveMonitorStatus" } } } },
+          "400": { "description": "Invalid monitor settings.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "503": { "description": "Mailbox or encrypted local storage unavailable.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-user/monitor": {
+      "get": {
+        "description": "Cached status of read-only monitoring for the authorized personal account and selected private chats.",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": { "description": "Telegram monitor state.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TelegramReceiveMonitorStatus" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "description": "Enable or pause read-only polling of explicit Telegram private conversations. The expected account is checked before reading.",
+        "x-implementation-status": "implemented",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TelegramReceiveMonitorRequest" } } } },
+        "responses": {
+          "200": { "description": "Settings accepted; status does not imply receipt of a new message.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TelegramReceiveMonitorStatus" } } } },
+          "400": { "description": "Invalid monitor settings.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "description": "Account identity changed or is not verified.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
+          "503": { "description": "Telegram helper or encrypted local storage unavailable.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      }
+    },
     "/api/v1/connections/qq-milky/monitor": {
       "post": {
         "operationId": "configureQQMilkyMonitor",
@@ -4859,6 +4902,10 @@
       }
     },
     "responses": {
+      "Unauthorized": {
+        "description": "Missing, invalid, or expired local authorization.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "DeviceBadRequest": {
         "description": "AUTH_INVALID_REQUEST: invalid, duplicate, mis-cased or extra JSON fields, non-UTF8 input, invalid key or noncanonical URL/query.",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
@@ -4889,6 +4936,61 @@
       }
     },
     "schemas": {
+      "ReceiveMonitorStatus": {
+        "type": "object",
+        "required": ["enabled", "interval_seconds", "state", "last_success_at", "last_error_code", "read_only", "sending_enabled"],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "interval_seconds": { "type": "integer", "minimum": 30, "maximum": 900 },
+          "state": { "type": "string" },
+          "last_success_at": { "type": ["string", "null"], "format": "date-time" },
+          "last_error_code": { "type": ["string", "null"] },
+          "baseline_mode": { "const": "future_only" },
+          "skipped": { "type": "integer", "minimum": 0 },
+          "missing_uid_count": { "type": "integer", "minimum": 0 },
+          "last_gap_reason": { "type": ["string", "null"] },
+          "limited": { "type": "boolean" },
+          "read_only": { "const": true },
+          "sending_enabled": { "const": false }
+        }
+      },
+      "TelegramReceiveMonitorStatus": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ReceiveMonitorStatus" },
+          {
+            "type": "object",
+            "required": ["peer_ids"],
+            "properties": {
+              "peer_ids": { "type": "array", "maxItems": 10, "items": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" } },
+              "expected_account_id": { "type": ["string", "null"] },
+              "skipped_count": { "type": "integer", "minimum": 0 },
+              "retry_not_before": { "type": ["string", "null"], "format": "date-time" }
+            }
+          }
+        ]
+      },
+      "EmailReceiveMonitorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["enabled"],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "interval_seconds": { "type": "integer", "minimum": 30, "maximum": 900 }
+        }
+      },
+      "TelegramReceiveMonitorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["enabled"],
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "interval_seconds": { "type": "integer", "minimum": 30, "maximum": 900 },
+          "expected_account_id": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" },
+          "peer_ids": { "type": "array", "minItems": 1, "maxItems": 10, "uniqueItems": true, "items": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" } }
+        },
+        "if": { "properties": { "enabled": { "const": true } } },
+        "then": { "required": ["expected_account_id", "peer_ids"] }
+      },
       "DeviceID": {
         "type": "string",
         "minLength": 22,

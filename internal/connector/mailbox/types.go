@@ -27,6 +27,7 @@ type Info struct {
 	AccountID   string `json:"account_id"`
 	Folder      string `json:"folder"`
 	UIDValidity uint32 `json:"uid_validity"`
+	UIDNext     uint32 `json:"uid_next"`
 	Messages    uint32 `json:"messages"`
 	ReadOnly    bool   `json:"read_only"`
 }
@@ -53,14 +54,15 @@ type Batch struct {
 type Kind string
 
 const (
-	NotConfigured Kind = "not_configured"
-	InvalidConfig Kind = "invalid_config"
-	AddressDenied Kind = "address_denied"
-	Unreachable   Kind = "unreachable"
-	TLSFailed     Kind = "tls_failed"
-	AuthFailed    Kind = "auth_failed"
-	MailboxFailed Kind = "mailbox_failed"
-	ProtocolError Kind = "protocol_error"
+	NotConfigured      Kind = "not_configured"
+	InvalidConfig      Kind = "invalid_config"
+	AddressDenied      Kind = "address_denied"
+	Unreachable        Kind = "unreachable"
+	TLSFailed          Kind = "tls_failed"
+	AuthFailed         Kind = "auth_failed"
+	MailboxFailed      Kind = "mailbox_failed"
+	ProtocolError      Kind = "protocol_error"
+	UIDValidityChanged Kind = "uidvalidity_changed"
 )
 
 type Error struct{ Kind Kind }

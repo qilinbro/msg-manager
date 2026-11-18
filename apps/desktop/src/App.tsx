@@ -77,7 +77,7 @@ const PLANNED_CONNECTORS: Connector[] = [
     status: 'not_configured',
     implementation_status: 'manual_sync_ready',
     description:
-      '本机个人账号初始化后核验并选择私聊同步；不提供发送或后台自动收件。',
+      '本人账号在本机初始化后核验，可手动同步私聊或明确开启指定私聊的后台接收；发送关闭。',
     capabilities: {
       receive_text: false,
       send_text: false,
@@ -215,7 +215,9 @@ function ConnectorCard({
         <h3>{connector.display_name}</h3>
         <p>{verified ? connector.description : '连接本地服务后查看接入状态'}</p>
         {identityVerified ? (
-          <p className="connector-boundary">尚未启用消息接收与发送</p>
+          <p className="connector-boundary">
+            账号已核验；后台接收是否开启及运行情况请查看设置。发送关闭。
+          </p>
         ) : null}
       </div>
       <span

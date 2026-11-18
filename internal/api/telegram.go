@@ -44,15 +44,22 @@ type TelegramSyncResult struct {
 type telegramReader interface {
 	Metadata() telegramuser.Metadata
 	Probe(context.Context) (telegramuser.Identity, error)
-	Dialogs(context.Context) (telegramuser.Dialogs, error)
-	Read(context.Context, string, int) (telegramuser.Batch, error)
+	Dialogs(context.Context, string) (telegramuser.Dialogs, error)
+	Read(context.Context, string, string, int) (telegramuser.Batch, error)
 }
 type telegramConnection struct {
-	client telegramReader
-	gate   chan struct{}
-	mu     sync.RWMutex
-	status TelegramStatus
-	peers  map[string]bool
+	client        telegramReader
+	gate          chan struct{}
+	mu            sync.RWMutex
+	status        TelegramStatus
+	peers         map[string]bool
+	monitorMu     sync.Mutex
+	monitor       TelegramMonitorStatus
+	monitorRecord telegramMonitorRecord
+	monitorCancel context.CancelFunc
+	monitorDone   chan struct{}
+	monitorClosed bool
+	monitorWait   func(context.Context, time.Duration) bool
 }
 
 func newTelegramConnection(cfg telegramuser.Config) (*telegramConnection, error) {
@@ -92,10 +99,12 @@ func (c *telegramConnection) snapshot() TelegramStatus {
 }
 func (h *handler) applyTelegram(items []connector.Descriptor) {
 	status := h.telegram.snapshot()
+	monitor := h.telegram.monitorSnapshot()
 	for i := range items {
 		if items[i].ID == "telegram-user" {
 			items[i].Status = status.State
 			items[i].Capabilities.HistoryImport = status.Configured && status.HelperAvailable && h.inbox != nil
+			items[i].Capabilities.ReceiveText = status.Configured && status.HelperAvailable && h.inbox != nil && monitor.Enabled && monitor.State != "blocked" && monitor.State != "stopped" && monitor.State != "disabled"
 		}
 	}
 }
@@ -187,10 +196,10 @@ func (h *handler) telegramDialogs(w http.ResponseWriter, r *http.Request, traceI
 	defer func() { <-h.telegram.gate }()
 	ctx, cancel := context.WithTimeout(r.Context(), 40*time.Second)
 	defer cancel()
-	result, err := h.telegram.client.Dialogs(ctx)
 	h.telegram.mu.RLock()
 	expected := h.telegram.status.AccountID
 	h.telegram.mu.RUnlock()
+	result, err := h.telegram.client.Dialogs(ctx, expected)
 	if err == nil && (!telegramuser.ValidIdentity(result.Identity) || result.AccountID != expected) {
 		err = &telegramuser.Error{Code: "identity_mismatch"}
 	}
@@ -254,7 +263,7 @@ func (h *handler) syncTelegram(w http.ResponseWriter, r *http.Request, traceID s
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 40*time.Second)
 	defer cancel()
-	batch, err := h.telegram.client.Read(ctx, input.PeerID, *input.Limit)
+	batch, err := h.telegram.client.Read(ctx, expected, input.PeerID, *input.Limit)
 	if err == nil && batch.AccountID != expected {
 		err = &telegramuser.Error{Code: "identity_mismatch"}
 	}

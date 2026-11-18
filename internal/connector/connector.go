@@ -29,8 +29,8 @@ func Planned() []Descriptor {
 	return []Descriptor{
 		{ID: "qq-milky", DisplayName: "QQ 个人号（Milky）", Platform: "qq", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "自有 Milky 1.3 适配器：账号与版本核验、好友私聊历史同步、显式开启的后台接收。发送保持关闭。"},
 		{ID: "weixin-clawbot", DisplayName: "微信 Clawbot", Platform: "weixin", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划验证微信 Clawbot 授权能力；不代表接管个人微信全部现有好友或聊天。"},
-		{ID: "telegram-user", DisplayName: "Telegram 个人账号（只读）", Platform: "telegram", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "使用本人 API 凭据在本机交互登录；显式列出最近私聊并选定读取。本产品仅开放文本读取与加密保存，不发送、不标记平台已读。"},
-		{ID: "email-imap", DisplayName: "邮箱（IMAP只读）", Platform: "email", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "支持本机配置邮箱后手动收取最近邮件；未启用后台自动收件或发信。"},
+		{ID: "telegram-user", DisplayName: "Telegram 个人账号（只读）", Platform: "telegram", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "本人本机登录、核验并选择私聊后，可明确开启后台增量读取。不发送、不标记平台已读。"},
+		{ID: "email-imap", DisplayName: "邮箱（IMAP只读）", Platform: "email", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "本机配置邮箱后可明确开启固定文件夹的后台增量收件，不改远端已读，不发信。"},
 		{ID: "wechat-db", DisplayName: "微信（本地数据库只读）", Platform: "weixin", Status: "not_configured", ImplementationStatus: "manual_read_ready", Description: "配置自己的本机微信4.x数据库后手动读取，或明确选定私聊开启后台定时读取；后台需保持运行，不代表完整历史同步。"},
 	}
 }

@@ -6,11 +6,12 @@ func (h *handler) connections() []connector.Descriptor {
 	items := connector.Planned()
 	h.email.mu.RLock()
 	emailConfigured := h.email.status.Configured
+	emailMonitorEnabled := h.email.monitor.Enabled
 	h.email.mu.RUnlock()
 	for i := range items {
 		if items[i].ID == "email-imap" && emailConfigured {
 			items[i].Status = "configured"
-			items[i].Capabilities.ReceiveText = h.inbox != nil
+			items[i].Capabilities.ReceiveText = emailMonitorEnabled && h.inbox != nil
 		}
 		if items[i].ID == "wechat-db" {
 			h.wechat.mu.RLock()

@@ -9,7 +9,10 @@ import (
 	"github.com/qilinbro/msg-manager/migrations"
 )
 
-const currentSchemaVersion = 14
+const (
+	shoppingSchemaVersion = 14
+	currentSchemaVersion  = 15
+)
 
 func migrate(db *sql.DB) error {
 	tx, err := db.Begin()
@@ -192,7 +195,10 @@ func migrate(db *sql.DB) error {
 	if tx.Commit() != nil {
 		return ErrUnavailable
 	}
-	return migrateShoppingConnections(db)
+	if err := migrateShoppingConnections(db); err != nil {
+		return err
+	}
+	return migrateReceiveMonitors(db)
 }
 
 // v14 changes a parent table's CHECK constraint. SQLite requires disabling
@@ -223,7 +229,7 @@ func migrateShoppingConnections(db *sql.DB) (result error) {
 	if conn.QueryRowContext(ctx, `SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
 		return ErrUnavailable
 	}
-	if version == currentSchemaVersion {
+	if version >= shoppingSchemaVersion && version <= currentSchemaVersion {
 		return nil
 	}
 	if version != 13 {
@@ -246,7 +252,7 @@ func migrateShoppingConnections(db *sql.DB) (result error) {
 	if tx.QueryRowContext(ctx, `SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
 		return ErrUnavailable
 	}
-	if version == currentSchemaVersion {
+	if version >= shoppingSchemaVersion && version <= currentSchemaVersion {
 		if tx.Commit() != nil {
 			return ErrUnavailable
 		}
@@ -338,4 +344,36 @@ func knownV13Connections(ctx context.Context, tx *sql.Tx) bool {
 		count++
 	}
 	return rows.Err() == nil && count == len(want)
+}
+
+func migrateReceiveMonitors(db *sql.DB) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return ErrUnavailable
+	}
+	defer tx.Rollback()
+	var version int
+	if tx.QueryRow(`SELECT coalesce(max(version),0) FROM schema_migrations`).Scan(&version) != nil {
+		return ErrUnavailable
+	}
+	if version == currentSchemaVersion {
+		return nil
+	}
+	if version != shoppingSchemaVersion {
+		return ErrUnavailable
+	}
+	raw, err := migrations.Files.ReadFile("0015_receive_monitors.sql")
+	if err != nil {
+		return ErrUnavailable
+	}
+	if _, err := tx.Exec(string(raw)); err != nil {
+		return ErrUnavailable
+	}
+	if _, err := tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(15,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+		return ErrUnavailable
+	}
+	if tx.Commit() != nil {
+		return ErrUnavailable
+	}
+	return nil
 }

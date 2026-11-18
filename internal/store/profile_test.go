@@ -377,7 +377,7 @@ func TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
-	if _, e = legacy.db.Exec(`DELETE FROM schema_migrations WHERE version>=6`); e != nil {
+	if _, e = legacy.db.Exec(`DROP TABLE receive_monitors; DELETE FROM schema_migrations WHERE version>=6`); e != nil {
 		legacy.Close()
 		t.Fatal(e)
 	}

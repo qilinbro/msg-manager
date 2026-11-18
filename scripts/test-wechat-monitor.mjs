@@ -180,11 +180,11 @@ assert.equal(saves.length, 1, 'leaving the page must never mutate monitor settin
 
 let inboxMessages = [{ id: 'message-1', conversation_id: 'conversation-1', external_id: 'synthetic-1', direction: 'incoming', body: 'synthetic initial message', occurred_at: '2026-01-01T00:00:00Z', read: false, source: 'wechatdb' }];
 const conversation = { id: 'conversation-1', connection_id: 'connection-1', platform: 'weixin', account_id: 'wxid_synthetic', peer_id: 'wxid_synthetic_peer', title: 'Synthetic contact', conversation_kind: 'private', last_message: 'synthetic initial message', last_message_at: '2026-01-01T00:00:00Z', unread_count: 1, pinned: false, archived: false };
-let historyReads = 0;
+let historyReads = 0, metadataReads = 0, listReads = 0;
 const inbox = hookHarness('Inbox.tsx', 'Inbox', {
   ...profileCategoriesModule.exports,
-  getInboxInfo: async () => ({ storage_enabled: true, source_mode: 'mixed', platforms: [{ id: 'weixin', name: '微信', live_status: 'configured', message_count: inboxMessages.length }], import_limit: 1000 }),
-  getConversations: async () => ({ items: [structuredClone(conversation)], next_cursor: 'synthetic-list-cursor' }),
+  getInboxInfo: async () => { metadataReads++; return { storage_enabled: true, source_mode: 'mixed', platforms: [{ id: 'weixin', name: '微信', live_status: 'configured', message_count: inboxMessages.length }], import_limit: 1000 }; },
+  getConversations: async () => { listReads++; return { items: [structuredClone(conversation)], next_cursor: 'synthetic-list-cursor' }; },
   getConversationMessages: async () => { historyReads++; return { items: structuredClone(inboxMessages), next_cursor: 'synthetic-message-cursor' }; },
   updateConversation: async () => structuredClone(conversation),
   importMessages() {}, importTelegram() {}, parseImport() {},
@@ -218,7 +218,20 @@ const beforeEditing = historyReads;
 await reconcile();
 assert.equal(historyReads, beforeEditing, 'background refresh must not replace messages under an open AI editor');
 assert.ok(find(inbox, (node) => node.type === 'AIPanelStub'), 'AI editor must remain mounted');
+const localPoll = [...inbox.intervals.values()].find(timer => timer.ms === 20_000);
+assert.ok(localPoll, 'message page watches only local persisted metadata');
+const beforeIdlePoll = { metadataReads, listReads, historyReads };
+localPoll.callback(); await inbox.flush();
+assert.equal(metadataReads, beforeIdlePoll.metadataReads + 1);
+assert.equal(listReads, beforeIdlePoll.listReads, 'unchanged message counts must not replace the list');
+assert.equal(historyReads, beforeIdlePoll.historyReads);
+inboxMessages.push({ ...inboxMessages[0], id: 'message-4', external_id: 'synthetic-4', body: 'synthetic background channel message' });
+localPoll.callback(); await inbox.flush();
+assert.ok(listReads > beforeIdlePoll.listReads, 'persisted background messages trigger the safe list refresh');
+assert.equal(historyReads, beforeIdlePoll.historyReads, 'background arrivals preserve an open editor');
+assert.ok(find(inbox, n => n.type === 'AIPanelStub'));
 inbox.unmount();
+assert.equal(inbox.intervals.size, 0);
 
 // A shopping intent uses the same real Inbox/ImportPanel and local source
 // filters. An older service must not receive an unsupported query or import.

@@ -909,6 +909,57 @@ export default function Inbox({
         backgroundRequest.current = null;
     }
   };
+  const localInfo = useRef(info);
+  localInfo.current = info;
+  const savedRefresh = useRef(refreshBackground);
+  savedRefresh.current = refreshBackground;
+  useEffect(() => {
+    if (!enabled || profilesOnly) return;
+    let active = true;
+    let pending: AbortController | null = null;
+    const counts = (value: InboxInfo) =>
+      JSON.stringify(
+        value.platforms
+          .map((item) => [item.id, item.message_count])
+          .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+      );
+    const check = async () => {
+      if (!active || pending || document.visibilityState !== 'visible') return;
+      const controller = new AbortController();
+      pending = controller;
+      try {
+        // Only local persisted metadata is inspected. This cannot fetch from a platform.
+        const next = await getInboxInfo(token, controller.signal);
+        if (
+          !active ||
+          controller.signal.aborted ||
+          document.visibilityState !== 'visible'
+        )
+          return;
+        if (localInfo.current && counts(next) !== counts(localInfo.current))
+          void savedRefresh.current();
+      } catch (failure: unknown) {
+        if (active && !controller.signal.aborted && authFailed(failure))
+          onAuthFailure();
+      } finally {
+        if (pending === controller) pending = null;
+      }
+    };
+    const visible = () => {
+      if (document.visibilityState === 'visible') void check();
+      else pending?.abort();
+    };
+    const timer = window.setInterval(() => void check(), 20_000);
+    document.addEventListener('visibilitychange', visible);
+    window.addEventListener('focus', visible);
+    return () => {
+      active = false;
+      pending?.abort();
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', visible);
+      window.removeEventListener('focus', visible);
+    };
+  }, [enabled, profilesOnly, token, onAuthFailure]);
   useEffect(() => {
     if (!token) return;
     const controller = new AbortController();

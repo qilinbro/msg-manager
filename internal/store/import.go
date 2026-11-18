@@ -25,6 +25,10 @@ func (s *Store) ImportWithProfileAnalysis(ctx context.Context, req ImportRequest
 // ImportIMAP is used only by the server-configured read-only mailbox adapter.
 // Browser imports cannot promote their source to a live protocol sync.
 func (s *Store) ImportIMAP(req ImportRequest) (ImportResult, error) {
+	return s.ImportIMAPContext(context.Background(), req)
+}
+
+func (s *Store) ImportIMAPContext(ctx context.Context, req ImportRequest) (ImportResult, error) {
 	if req.Platform != "email" {
 		return ImportResult{}, ErrInvalidInput
 	}
@@ -33,7 +37,7 @@ func (s *Store) ImportIMAP(req ImportRequest) (ImportResult, error) {
 			return ImportResult{}, ErrInvalidInput
 		}
 	}
-	return s.importBatch(req, "imap")
+	return s.importBatchContext(ctx, req, "imap")
 }
 
 // ImportWeChat is reserved for the server-configured read-only database

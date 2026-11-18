@@ -11,6 +11,8 @@ if ($hasExplicitApiToken) {
 }
 $apiTokenInjected = $false
 $wechatLoadedFromFile = $false
+$emailLoadedFromFile = $false
+$emailNames = @('EMAIL_IMAP_HOST','EMAIL_IMAP_USERNAME','EMAIL_IMAP_PORT','EMAIL_IMAP_FOLDER','EMAIL_IMAP_PASSWORD','EMAIL_IMAP_LIMIT')
 try {
     $projectRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
     $dataDirectory = Join-Path $projectRoot 'data'
@@ -92,11 +94,46 @@ try {
             Remove-Variable wechatConfig,wechatConfigPointer,wechatSecureConfig -ErrorAction SilentlyContinue
         }
     }
+    $emailLocalConfig = Join-Path $privateDirectory 'email-imap.dpapi'
+    $explicitMail = @([Environment]::GetEnvironmentVariables('Process').Keys | Where-Object { $_ -iin $emailNames })
+    if ((Test-Path -LiteralPath $emailLocalConfig) -and $explicitMail.Count -eq 0) {
+        $mailSecret = $null
+        $mailPointer = [IntPtr]::Zero
+        try {
+            $mailPath = Assert-WechatInitPath $emailLocalConfig
+            $mailFile = Get-Item -LiteralPath $mailPath -Force
+            if ($mailFile.PSIsContainer -or $mailFile.Length -lt 1 -or $mailFile.Length -gt 65536) { throw 'Invalid protected mail settings.' }
+            $mailSecret = ConvertTo-SecureString -String ([IO.File]::ReadAllText($mailPath))
+            $mailPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($mailSecret)
+            $mailSettings = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($mailPointer) | ConvertFrom-Json -AsHashtable
+            if ($mailSettings -isnot [System.Collections.IDictionary] -or $mailSettings.Count -ne 6 -or $mailSettings.format -ne 1 -or
+                $mailSettings.host -isnot [string] -or [string]::IsNullOrWhiteSpace($mailSettings.host) -or
+                $mailSettings.username -isnot [string] -or [string]::IsNullOrWhiteSpace($mailSettings.username) -or
+                $mailSettings.folder -isnot [string] -or [string]::IsNullOrWhiteSpace($mailSettings.folder) -or
+                $mailSettings.port -isnot [long] -or $mailSettings.port -lt 1 -or $mailSettings.port -gt 65535 -or
+                $mailSettings.password -isnot [string] -or $mailSettings.password -cnotmatch '^[!-~]{1,4096}$') {
+                throw 'Invalid protected mail settings.'
+            }
+            $emailLoadedFromFile = $true
+            $env:EMAIL_IMAP_HOST = $mailSettings.host
+            $env:EMAIL_IMAP_USERNAME = $mailSettings.username
+            $env:EMAIL_IMAP_PORT = [string]$mailSettings.port
+            $env:EMAIL_IMAP_FOLDER = $mailSettings.folder
+            $env:EMAIL_IMAP_PASSWORD = $mailSettings.password
+        } catch {
+            throw 'Protected mail settings could not be opened. Run configure-email.ps1 locally with the same Windows account.'
+        } finally {
+            if ($mailPointer -ne [IntPtr]::Zero) { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($mailPointer) }
+            if ($null -ne $mailSecret) { $mailSecret.Dispose() }
+            Remove-Variable mailSecret,mailPointer,mailSettings -ErrorAction SilentlyContinue
+        }
+    }
     & (Join-Path $PSScriptRoot 'dev-backend.ps1')
 } finally {
     Remove-Item Env:SOCIALD_DATABASE_KEY -ErrorAction SilentlyContinue
     if ($apiTokenInjected) { [Environment]::SetEnvironmentVariable('SOCIALD_API_TOKEN', [NullString]::Value, 'Process') }
     elseif ($hasExplicitApiToken) { [Environment]::SetEnvironmentVariable('SOCIALD_API_TOKEN', $explicitApiToken, 'Process') }
     if ($wechatLoadedFromFile) { 'WECHAT_DB_DIR','WECHAT_DB_ACCOUNT_ID','WECHAT_DB_KEY','WECHAT_DB_LIMIT' | ForEach-Object { Remove-Item -LiteralPath "Env:$_" -ErrorAction SilentlyContinue } }
+    if ($emailLoadedFromFile) { $emailNames | ForEach-Object { Remove-Item -LiteralPath "Env:$_" -ErrorAction SilentlyContinue } }
     $explicitApiToken = $null
 }

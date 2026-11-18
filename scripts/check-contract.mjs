@@ -68,8 +68,10 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/imports/messages',
   'post /api/v1/imports/telegram',
   'post /api/v1/connections/email-imap/sync',
+  'post /api/v1/connections/email-imap/monitor',
   'post /api/v1/connections/telegram-user/verify',
   'post /api/v1/connections/telegram-user/sync',
+  'post /api/v1/connections/telegram-user/monitor',
   'post /api/v1/connections/wechat-db/read',
   'post /api/v1/connections/wechat-db/monitor',
   'post /api/v1/connections/qq-milky/sync',
@@ -144,3 +146,7 @@ assert.equal(spec.paths["/api/v1/connections/telegram-user/verify"].post.request
 
 assert.ok(spec.components.schemas.TelegramSyncRequest.required.includes("expected_account_id"));
 assert.ok(spec.paths["/api/v1/connections/telegram-user/sync"].post.responses["409"]);
+assert.equal(spec.components.schemas.ReceiveMonitorStatus.properties.read_only.const, true);
+assert.equal(spec.components.schemas.ReceiveMonitorStatus.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.EmailReceiveMonitorRequest.additionalProperties, false);
+assert.deepEqual(spec.components.schemas.TelegramReceiveMonitorRequest.then.required, ['expected_account_id','peer_ids']);

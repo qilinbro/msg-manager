@@ -55,7 +55,7 @@ if (-not $RunChild) {
 $FixtureRoot = Assert-FixtureRoot $FixtureRoot
 if (-not (Test-Path -LiteralPath $FixtureRoot -PathType Container)) { throw 'Synthetic fixture root is missing.' }
 # Keep all stubs and environment changes inside this isolated child host.
-foreach ($name in @('WECHAT_DB_DIR','WECHAT_DB_ACCOUNT_ID','WECHAT_DB_KEY','WECHAT_DB_LIMIT','SOCIALD_DATABASE_KEY','SOCIALD_DATABASE_PATH')) { Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue }
+foreach ($name in @('WECHAT_DB_DIR','WECHAT_DB_ACCOUNT_ID','WECHAT_DB_KEY','WECHAT_DB_LIMIT','SOCIALD_DATABASE_KEY','SOCIALD_DATABASE_PATH','EMAIL_IMAP_HOST','EMAIL_IMAP_USERNAME','EMAIL_IMAP_PORT','EMAIL_IMAP_FOLDER','EMAIL_IMAP_PASSWORD','EMAIL_IMAP_LIMIT')) { Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue }
 $syntheticExplicitToken = 'synthetic-launcher-token-12345678901234567890'
 $env:SOCIALD_API_TOKEN = $syntheticExplicitToken
 $env:SOCIALD_CREDENTIAL_FILE = Join-Path $FixtureRoot 'must-not-use-default/service.dpapi'
@@ -135,6 +135,9 @@ if ($env:SOCIALD_DATABASE_PATH -cne (Join-Path $root 'data/messages.db') -or $en
 if (Test-Path -LiteralPath (Join-Path $root 'expect-wechat')) {
     if ($env:WECHAT_DB_ACCOUNT_ID -cne 'wxid_synthetic_launcher' -or $env:WECHAT_DB_KEY -cne ('22' * 32) -or $env:WECHAT_DB_DIR -cne (Join-Path $root 'synthetic-wechat/db_storage') -or $env:WECHAT_DB_LIMIT -cne '100') { throw 'Synthetic backend did not receive the protected WeChat configuration.' }
 }
+if (Test-Path -LiteralPath (Join-Path $root 'expect-email')) {
+    if ($env:EMAIL_IMAP_HOST -cne 'mail.example.test' -or $env:EMAIL_IMAP_USERNAME -cne 'owner@example.test' -or $env:EMAIL_IMAP_PORT -cne '993' -or $env:EMAIL_IMAP_FOLDER -cne 'INBOX' -or $env:EMAIL_IMAP_PASSWORD -cne 'synthetic-mail-leave-no-trace') { throw 'Synthetic backend did not receive the protected mail configuration.' }
+}
 if ($env:SOCIALD_API_TOKEN.Length -lt 32) { throw 'Synthetic backend did not receive a valid API token.' }
 $global:InboxLauncherTestState.backend_calls++
 $global:InboxLauncherTestState.backend_token_hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($env:SOCIALD_API_TOKEN)))
@@ -161,7 +164,7 @@ function Invoke-LauncherFixture([string]$Root, [switch]$Reject, [switch]$CopyApi
     elseif (-not $Reject) { Assert-LauncherTest (($global:InboxLauncherTestState.clipboard_calls - $copies) -eq 1) 'An explicit copy did not reach the clipboard exactly once.' }
     $afterToken = [Environment]::GetEnvironmentVariable('SOCIALD_API_TOKEN', 'Process')
     Assert-LauncherTest (($null -eq $beforeToken -and $null -eq $afterToken) -or ($null -ne $beforeToken -and $null -ne $afterToken -and $beforeToken -ceq $afterToken)) 'The launcher did not restore/clear the API token environment exactly.'
-    Assert-LauncherTest ($output -cnotmatch '[A-F0-9]{64}' -and -not $output.Contains($syntheticExplicitToken)) 'Launcher output exposed a synthetic token/key.'
+    Assert-LauncherTest ($output -cnotmatch '[A-F0-9]{64}' -and -not $output.Contains($syntheticExplicitToken) -and -not $output.Contains('synthetic-mail-leave-no-trace')) 'Launcher output exposed a synthetic secret.'
     Assert-LauncherTest (-not $env:SOCIALD_DATABASE_KEY) 'The launcher left the database key in its child environment.'
     foreach ($name in @('WECHAT_DB_DIR','WECHAT_DB_ACCOUNT_ID','WECHAT_DB_KEY','WECHAT_DB_LIMIT')) { Assert-LauncherTest (-not [Environment]::GetEnvironmentVariable($name)) 'The launcher left loaded WeChat configuration in its child environment.' }
     $global:InboxLauncherTestState.launches++
@@ -192,6 +195,31 @@ Assert-LauncherTest ((Get-FileHash -LiteralPath $configurationPath -Algorithm SH
 $afterACL = [IO.FileSystemAclExtensions]::GetAccessControl([IO.DirectoryInfo]::new($private), $sections).GetSecurityDescriptorSddlForm($sections)
 Assert-LauncherTest ($beforeACL -ceq $afterACL) 'An already-private directory was changed.'
 Assert-PrivateFixtureDirectory $private
+
+$root = New-LauncherFixture 'protected-mail-configuration'
+$private = Initialize-WechatPrivateDirectory (Join-Path $root 'data/private')
+$mailPath = Join-Path $private 'email-imap.dpapi'
+$mailRecord = @{ format = 1; host = 'mail.example.test'; username = 'owner@example.test'; port = 993; folder = 'INBOX'; password = 'synthetic-mail-leave-no-trace' } | ConvertTo-Json -Compress
+Save-SyntheticProtectedText $mailPath $mailRecord
+[IO.File]::WriteAllText((Join-Path $root 'expect-email'), 'synthetic')
+$mailDigest = (Get-FileHash -LiteralPath $mailPath -Algorithm SHA256).Hash
+Invoke-LauncherFixture $root
+Invoke-LauncherFixture $root
+foreach ($name in @('EMAIL_IMAP_HOST','EMAIL_IMAP_USERNAME','EMAIL_IMAP_PORT','EMAIL_IMAP_FOLDER','EMAIL_IMAP_PASSWORD','EMAIL_IMAP_LIMIT')) { Assert-LauncherTest (-not [Environment]::GetEnvironmentVariable($name)) 'The launcher left a loaded setting in the parent environment.' }
+Assert-LauncherTest ((Get-FileHash -LiteralPath $mailPath -Algorithm SHA256).Hash -ceq $mailDigest) 'The launcher replaced the saved mail configuration.'
+[IO.File]::WriteAllText($mailPath, 'synthetic-invalid-mail-dpapi')
+Invoke-LauncherFixture $root -Reject
+try {
+    $env:EMAIL_IMAP_HOST = 'mail.example.test'
+    $env:EMAIL_IMAP_USERNAME = 'owner@example.test'
+    $env:EMAIL_IMAP_PORT = '993'
+    $env:EMAIL_IMAP_FOLDER = 'INBOX'
+    $env:EMAIL_IMAP_PASSWORD = 'synthetic-mail-leave-no-trace'
+    Invoke-LauncherFixture $root
+    Assert-LauncherTest ($env:EMAIL_IMAP_PASSWORD -ceq 'synthetic-mail-leave-no-trace') 'The launcher cleared the explicit mail configuration.'
+} finally {
+    'EMAIL_IMAP_HOST','EMAIL_IMAP_USERNAME','EMAIL_IMAP_PORT','EMAIL_IMAP_FOLDER','EMAIL_IMAP_PASSWORD' | ForEach-Object { Remove-Item -LiteralPath "Env:$_" -ErrorAction SilentlyContinue }
+}
 
 # Explicit access for another identity must be removed, retaining the current owner.
 $root = New-LauncherFixture 'explicit-other-user-rule'
