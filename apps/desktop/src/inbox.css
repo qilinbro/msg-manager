@@ -20,12 +20,7 @@
   font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: -0.025em;
-  margin-bottom: 10px;
-}
-.inbox-title-row p {
-  color: var(--inbox-muted);
-  font-size: 0.875rem;
-  margin-bottom: 0;
+  margin: 0;
 }
 .inbox-header-actions,
 .inbox-inline-actions {
@@ -49,15 +44,6 @@
 .inbox-icon-button:hover {
   background: var(--surface-hover);
 }
-.inbox-source-note {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 22px;
-  font-size: 0.75rem;
-  line-height: 1.7;
-  color: var(--inbox-muted);
-}
 .inbox-notice {
   display: flex;
   align-items: center;
@@ -73,7 +59,7 @@
 }
 .inbox-layout {
   display: grid;
-  grid-template-columns: 144px minmax(260px, 320px) minmax(280px, 1fr);
+  grid-template-columns: 160px minmax(260px, 320px) minmax(280px, 1fr);
   min-height: 620px;
   height: calc(100dvh - 240px);
   max-height: 900px;
@@ -123,6 +109,14 @@
   background: var(--surface-hover);
   font-weight: 600;
 }
+.inbox-platform-filter {
+  gap: 5px;
+  padding-inline: 6px;
+}
+.inbox-platform-filter .inbox-platform-mark + span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .inbox-view-filters button:hover,
 .inbox-platform-filter:hover {
   background: var(--surface-hover);
@@ -165,12 +159,6 @@
 .inbox-avatar-source.is-qq {
   background: var(--surface);
   color: var(--secondary);
-}
-.inbox-filter-footnote {
-  font-size: 0.75rem;
-  line-height: 1.8;
-  color: var(--inbox-muted);
-  margin: 27px 10px 18px;
 }
 .inbox-live-states {
   display: grid;
@@ -534,17 +522,7 @@
   line-height: 1.65;
   font-weight: 500;
   color: var(--ink);
-  margin-bottom: 17px;
-}
-.inbox-detail-empty p {
-  font-size: 0.75rem;
-  line-height: 2;
-  margin-bottom: 28px;
-}
-.inbox-detail-empty > span {
-  font-size: 0.75rem;
-  color: var(--inbox-muted);
-  word-spacing: 8px;
+  margin: 0;
 }
 .inbox-start {
   min-height: 240px;
@@ -805,10 +783,6 @@
     font-size: 1.25rem;
     line-height: 1.35;
   }
-  .inbox-title-row p {
-    font-size: 0.75rem;
-    line-height: 1.8;
-  }
   .inbox-header-actions {
     gap: 4px;
     flex-shrink: 0;
@@ -816,10 +790,6 @@
   .inbox-header-actions .button {
     font-size: 0.75rem;
     padding: 11px 12px;
-  }
-  .inbox-source-note {
-    font-size: 0.75rem;
-    align-items: flex-start;
   }
   .inbox-layout {
     display: flex;
@@ -835,7 +805,6 @@
   }
   .inbox-filters h2,
   .inbox-filters h3,
-  .inbox-filter-footnote,
   .inbox-live-states {
     display: none;
   }
@@ -1254,11 +1223,8 @@
 
 /* Primary discovery controls stay above source setup and outside list scrolling. */
 .inbox-discovery {
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
 }
-.inbox-discovery-heading,
 .wechat-discovery-heading {
   display: flex;
   align-items: center;
@@ -1267,104 +1233,89 @@
   gap: 12px;
   margin-bottom: 16px;
 }
-.conversation-kind-tabs {
-  display: inline-flex;
-  border-bottom: 1px solid var(--border);
-  gap: 4px;
-}
-.conversation-kind-tabs button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-width: 96px;
-  min-height: 48px;
-  padding: 11px 20px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: transparent;
-  color: var(--secondary);
-  cursor: pointer;
-}
-.conversation-kind-tabs button[aria-selected='true'] {
-  border-bottom-color: var(--ink);
-  background: var(--surface);
-  color: var(--ink);
-  font-weight: 600;
-}
-.conversation-kind-tabs button:hover:not(:disabled) {
-  background: var(--surface-hover);
-  color: var(--ink);
-}
-.inbox-keyword-form > label,
-.inbox-message-search > label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
 .inbox-keyword-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-.inbox-keyword-row input {
-  flex: 1 1 200px;
-  min-width: 0;
-  min-height: 48px;
+.inbox-keyword-row select,
+.conversation-kind-select {
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   color: var(--ink);
   background: var(--paper);
 }
-.inbox-keyword-row button,
-.inbox-discovery-heading > button,
-.wechat-discovery-heading > button {
-  min-height: 48px;
+.inbox-keyword-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 190px;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--paper);
+  padding-inline-start: 12px;
+  color: var(--secondary);
 }
-.inbox-keyword-help,
+.inbox-keyword-field input[type='search'] {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px 10px 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+}
+.inbox-keyword-field input::placeholder {
+  color: var(--secondary);
+}
+.inbox-keyword-field input::-webkit-search-cancel-button {
+  appearance: none;
+}
+.inbox-keyword-field:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.inbox-keyword-field input:focus-visible {
+  outline: none;
+}
+.inbox-keyword-row > button,
+.wechat-discovery-heading > button {
+  min-height: 44px;
+}
 .inbox-keyword-error {
   font-size: 0.8125rem;
   line-height: 1.65;
   margin: 8px 0 0;
   overflow-wrap: anywhere;
-}
-.inbox-keyword-help {
-  color: var(--secondary);
-}
-.inbox-keyword-error {
   color: var(--danger);
 }
-.inbox-source-links {
-  display: flex;
-  gap: 4px 16px;
-  align-items: center;
-  flex-wrap: wrap;
+.inbox-sources {
   margin-top: 8px;
-  font-size: 0.8125rem;
+}
+.inbox-sources > summary,
+.wechat-read-options > summary {
+  width: fit-content;
+  padding: 12px 0;
   color: var(--secondary);
+  font-size: 0.8125rem;
+  cursor: pointer;
 }
-.inbox-source-links a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  color: var(--ink);
-  text-underline-offset: 4px;
+.inbox-sources > .email-panel + .email-panel {
+  margin-top: 12px;
 }
-.inbox-source-section {
-  margin-top: 24px;
-  scroll-margin-top: 88px;
+.inbox-source-attention {
+  color: var(--danger);
 }
-.inbox-message-search {
-  flex-shrink: 0;
-  padding: 12px 18px;
-  border-bottom: 1px solid var(--border);
+.wechat-read-options {
+  flex-basis: 100%;
 }
-.inbox-message-search .inbox-keyword-row input {
-  flex-basis: 150px;
+.wechat-read-options[open] > label {
+  display: block;
+  margin-bottom: 6px;
 }
 .inbox-match-preview {
   display: block;
@@ -1398,20 +1349,7 @@
   line-height: 1.65;
 }
 @media (max-width: 600px) {
-  .inbox-discovery-heading > button,
-  .wechat-discovery-heading > button {
-    width: 100%;
-  }
-  .inbox-keyword-form .inbox-keyword-row input {
+  .inbox-keyword-field {
     flex-basis: 100%;
-  }
-  .inbox-keyword-form .inbox-keyword-row button:not(.button-icon) {
-    flex: 1;
-  }
-  .inbox-source-links {
-    column-gap: 14px;
-  }
-  .inbox-message-search {
-    padding: 12px 14px;
   }
 }

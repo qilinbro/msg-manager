@@ -836,7 +836,26 @@ let panel = componentHarness(
 );
 await panel.flush();
 assert.equal(checkbox(panel, '我同意本轮调用').props.checked, false);
-assert.equal(button(panel, '提交本轮请求').props.disabled, true);
+assert.equal(button(panel, '提交').props.disabled, true);
+const more = nodes(panel.tree).find(
+  (node) =>
+    node.type === 'details' && node.props.className === 'assistant-more',
+);
+assert.ok(more);
+assert.equal(
+  more.props.open,
+  undefined,
+  'nonessential controls are initially collapsed',
+);
+assert.equal(text(nodes(more).find((node) => node.type === 'summary')), '更多');
+assert.ok(text(panel.tree).includes('你想做什么？'));
+assert.equal(
+  nodes(panel.tree).find(
+    (node) => node.props.className === 'assistant-round-consent',
+  ).props.hidden,
+  true,
+  'model consent is shown when preparing a real round, not as empty-state instructions',
+);
 const refreshControl = button(panel, '刷新状态');
 assert.equal(refreshControl.props.title, '刷新状态');
 assert.equal(text(refreshControl).trim(), '');
@@ -858,6 +877,12 @@ assert.ok(catalogue);
 assert.equal(catalogue.props.open, undefined);
 assert.ok(text(catalogue).includes('human_model_settings'));
 await draft(panel, '只处理这个合成记录');
+assert.equal(
+  nodes(panel.tree).find(
+    (node) => node.props.className === 'assistant-round-consent',
+  ).props.hidden,
+  false,
+);
 await check(panel, '我同意本轮调用');
 await draft(panel, '修改后的合成请求');
 assert.equal(
@@ -880,11 +905,25 @@ assert.equal(
   false,
   'round consent must not pre-authorize a write',
 );
-assert.equal(button(panel, '确认并继续').props.disabled, true);
+assert.equal(button(panel, '确认').props.disabled, true);
 const preview = nodes(panel.tree).find(
   (node) => node.props.className === 'assistant-confirmation',
 );
-assert.ok(text(preview).includes('"mode": "paused"'));
+const modeField = nodes(preview).find(
+  (node) => node.props['data-parameter-key'] === 'mode',
+);
+assert.ok(modeField);
+assert.ok(
+  nodes(modeField).some(
+    (node) =>
+      node.props['data-value-kind'] === 'string' && text(node) === 'paused',
+  ),
+);
+assert.equal(
+  nodes(preview).some((node) => node.type === 'pre'),
+  false,
+  'fixed parameters use readable fields rather than a JSON dump',
+);
 assert.equal(
   nodes(preview).filter(
     (node) =>
@@ -898,13 +937,13 @@ const writesBeforeRevalidation = uiNetwork.requests.filter(
   (request) => request.options.method === 'POST',
 ).length;
 await check(panel, '我已核对工具');
-await click(panel, '读取运行结果');
+await click(panel, '查看结果');
 assert.equal(
   checkbox(panel, '我已核对工具').props.checked,
   false,
   'reading the same pending action invalidates its previous checkbox',
 );
-assert.equal(button(panel, '确认并继续').props.disabled, true);
+assert.equal(button(panel, '确认').props.disabled, true);
 await check(panel, '我已核对工具');
 await click(panel, '刷新状态');
 assert.equal(
@@ -912,7 +951,7 @@ assert.equal(
   false,
   'refreshing an unchanged model binding invalidates action consent',
 );
-assert.equal(button(panel, '确认并继续').props.disabled, true);
+assert.equal(button(panel, '确认').props.disabled, true);
 assert.equal(
   uiNetwork.requests.filter((request) => request.options.method === 'POST')
     .length,
@@ -922,7 +961,7 @@ assert.equal(
 await check(panel, '我已核对工具');
 confirmHangs = true;
 const beforeConfirm = uiNetwork.requests.length;
-await click(panel, '确认并继续');
+await click(panel, '确认');
 await click(panel, '停止等待');
 assert.equal(
   uiNetwork.requests.length,
@@ -931,18 +970,18 @@ assert.equal(
 );
 assert.ok(text(panel.tree).includes('停止等待不等于后台取消'));
 assert.ok(text(panel.tree).includes('后台可能已处理并产生费用'));
-assert.equal(button(panel, '确认并继续').props.disabled, true);
-assert.equal(button(panel, '拒绝此项').props.disabled, true);
-assert.equal(button(panel, '提交本轮请求').props.disabled, true);
+assert.equal(button(panel, '确认').props.disabled, true);
+assert.equal(button(panel, '拒绝').props.disabled, true);
+assert.equal(button(panel, '提交').props.disabled, true);
 const writesBeforeRecovery = uiNetwork.requests.filter(
   (request) => request.options.method === 'POST',
 ).length;
 current = run('unknown', { tool_results: [tool('unknown')] });
-await click(panel, '读取运行结果');
+await click(panel, '查看结果');
 assert.ok(text(panel.tree).includes('结果未知'));
-assert.equal(button(panel, '提交本轮请求').props.disabled, true);
+assert.equal(button(panel, '提交').props.disabled, true);
 current = run('completed');
-await click(panel, '读取运行结果');
+await click(panel, '查看结果');
 assert.ok(text(panel.tree).includes('工具已完成'));
 assert.ok(text(panel.tree).includes('actual_synthetic_record'));
 assert.equal(
@@ -980,7 +1019,7 @@ uiNetwork.respond((request) =>
         410,
       ),
 );
-await click(panel, '读取运行结果');
+await click(panel, '查看结果');
 assert.equal(
   authFailures,
   0,
@@ -990,9 +1029,9 @@ assert.equal(
   field(panel, 'assistant-message').props.value,
   '跨页保留的合成草稿',
 );
-assert.equal(button(panel, '新建助手会话').props.disabled, true);
+assert.equal(button(panel, '新会话').props.disabled, true);
 await check(panel, '我已记录必要的运行编号');
-await click(panel, '新建助手会话');
+await click(panel, '新会话');
 assert.equal(cache.get(TOKEN).sessionID, '');
 panel.unmount();
 await tick();
@@ -1031,8 +1070,8 @@ await check(lostPanel, '我同意本轮调用');
 await submit(lostPanel);
 assert.equal(lostCache.get(TOKEN).turns.at(-1).uncertain, true);
 assert.equal(lostCache.get(TOKEN).turns.at(-1).runID, null);
-assert.equal(button(lostPanel, '提交本轮请求').props.disabled, true);
-assert.equal(button(lostPanel, '新建助手会话').props.disabled, true);
+assert.equal(button(lostPanel, '提交').props.disabled, true);
+assert.equal(button(lostPanel, '新会话').props.disabled, true);
 lostPanel.unmount();
 await tick();
 lostPanel = componentHarness(
@@ -1043,7 +1082,7 @@ lostPanel = componentHarness(
   lostNetwork,
 );
 await lostPanel.flush();
-assert.equal(button(lostPanel, '新建助手会话').props.disabled, true);
+assert.equal(button(lostPanel, '新会话').props.disabled, true);
 assert.equal(
   lostNetwork.requests.filter((request) => request.options.method === 'POST')
     .length,
@@ -1214,13 +1253,44 @@ assert.deepEqual(
   },
 );
 assert.equal(
+  nodes(digestPanel.tree).filter(
+    (node) =>
+      node.type === 'button' && /^(启用|更新)每日计划$/.test(text(node).trim()),
+  ).length,
+  0,
+  'an unchanged enabled plan only offers pause, without a redundant save',
+);
+assert.equal(checkbox(digestPanel, '我同意仅本次把').props.checked, false);
+assert.equal(button(digestPanel, '暂停当前计划').props.disabled, false);
+digestModel = { ...digestModel, model_config_revision: 1 };
+await click(digestPanel, '读取实际计划与最近摘要');
+assert.equal(button(digestPanel, '更新每日计划').props.disabled, true);
+assert.equal(
   checkbox(digestPanel, '我同意启用 / 更新每日计划').props.checked,
   false,
 );
-assert.equal(checkbox(digestPanel, '我同意仅本次把').props.checked, false);
+digestModel = { ...digestModel, model_config_revision: 0 };
+await click(digestPanel, '读取实际计划与最近摘要');
+assert.equal(
+  nodes(digestPanel.tree).filter(
+    (node) => node.type === 'button' && text(node).trim() === '更新每日计划',
+  ).length,
+  0,
+  'matching the saved model binding hides the unchanged update action',
+);
 nodes(digestPanel.tree)
   .find((node) => node.type === 'input' && node.props.type === 'time')
   .props.onChange({ target: { value: '17:55' } });
+await digestPanel.flush();
+assert.equal(button(digestPanel, '更新每日计划').props.disabled, true);
+assert.equal(button(digestPanel, '暂停当前计划').props.disabled, false);
+await check(digestPanel, '我同意启用 / 更新每日计划');
+await click(digestPanel, '更新每日计划');
+assert.equal(plan.enabled, true);
+assert.equal(plan.local_time, '17:55');
+nodes(digestPanel.tree)
+  .find((node) => node.type === 'input' && node.props.type === 'time')
+  .props.onChange({ target: { value: '18:10' } });
 await digestPanel.flush();
 await click(digestPanel, '暂停当前计划');
 assert.deepEqual(
@@ -1231,9 +1301,9 @@ assert.deepEqual(
   ),
   {
     enabled: false,
-    local_time: '18:30',
+    local_time: '17:55',
     timezone: 'Asia/Shanghai',
-    expected_revision: 2,
+    expected_revision: 3,
     confirmed: true,
   },
   'pause preserves actual saved time and carries no model binding',

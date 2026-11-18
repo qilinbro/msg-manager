@@ -128,6 +128,14 @@ export function DigestPanel({
   const quotaExhausted = Boolean(
     model?.configured && model.used_today >= model.daily_limit,
   );
+  const scheduleChanged = Boolean(
+    schedule?.enabled &&
+    (time !== schedule.local_time ||
+      (model?.configured &&
+        (model.model_config_id !== schedule.model_config_id ||
+          model.model_config_revision !== schedule.model_config_revision))),
+  );
+  const showScheduleSave = !schedule?.enabled || scheduleChanged;
   const mutate = async (kind: 'save' | 'run', enable = false) => {
     if (!token || active.current || (kind === 'save' && !schedule)) return;
     if (
@@ -323,46 +331,56 @@ export function DigestPanel({
           />
         </label>
       </div>
-      <label className="assistant-check">
-        <input
-          type="checkbox"
-          checked={scheduleConsent}
-          disabled={!schedule || !modelReady || unverified || !time}
-          onChange={(event) => setScheduleConsent(event.target.checked)}
-        />
-        <span>
-          我同意启用 / 更新每日计划：今后每天 {time || '所选时间'}
-          （Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 {
-            consentTarget
-          }{' '}
-          处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。
-        </span>
-      </label>
+      {showScheduleSave ? (
+        <label className="assistant-check">
+          <input
+            type="checkbox"
+            checked={scheduleConsent}
+            disabled={!schedule || !modelReady || unverified || !time}
+            onChange={(event) => setScheduleConsent(event.target.checked)}
+          />
+          <span>
+            我同意启用 / 更新每日计划：今后每天 {time || '所选时间'}
+            （Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 {
+              consentTarget
+            }{' '}
+            处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。
+          </span>
+        </label>
+      ) : null}
       <div className="profile-inline-actions">
-        <button
-          className="button button-secondary"
-          type="button"
-          disabled={
-            !schedule || !modelReady || !scheduleConsent || !time || unverified
-          }
-          onClick={() => void mutate('save', true)}
-        >
-          <Icon name={schedule?.enabled ? 'save' : 'calendar'} />
-          {busy === 'save'
-            ? '正在保存…'
-            : schedule?.enabled
-              ? '更新每日计划'
-              : '启用每日计划'}
-        </button>
-        <button
-          className="button button-quiet"
-          type="button"
-          disabled={!schedule?.enabled || Boolean(busy)}
-          onClick={() => void mutate('save', false)}
-        >
-          <Icon name="pause" />
-          暂停当前计划
-        </button>
+        {showScheduleSave ? (
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={
+              !schedule ||
+              !modelReady ||
+              !scheduleConsent ||
+              !time ||
+              unverified
+            }
+            onClick={() => void mutate('save', true)}
+          >
+            <Icon name={schedule?.enabled ? 'save' : 'calendar'} />
+            {busy === 'save'
+              ? '正在保存…'
+              : schedule?.enabled
+                ? '更新每日计划'
+                : '启用每日计划'}
+          </button>
+        ) : null}
+        {schedule?.enabled ? (
+          <button
+            className="button button-quiet"
+            type="button"
+            disabled={Boolean(busy)}
+            onClick={() => void mutate('save', false)}
+          >
+            <Icon name="pause" />
+            暂停当前计划
+          </button>
+        ) : null}
       </div>
       <div className="digest-manual">
         <h3 className="icon-label">

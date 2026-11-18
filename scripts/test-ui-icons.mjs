@@ -92,7 +92,7 @@ for (const [alias, upstream] of Object.entries(manifest.aliases)) {
 }
 const iconSource = read('apps/desktop/src/Icon.tsx').toString('utf8');
 assert.ok(!/dangerouslySetInnerHTML|<img\b|<image\b|<use\b|fetch\s*\(|https?:\/\//.test(iconSource.replace(/^\/\*[^]*?\*\//, '')), 'renderer cannot fetch or inject SVG');
-const files = ['App', 'AIModelPanel', 'AssistantPanel', 'Inbox', 'WechatPanel', 'FeishuPanel', 'DigestPanel', 'ConversationKindTabs'];
+const files = ['App', 'AIModelPanel', 'AssistantPanel', 'Inbox', 'WechatPanel', 'FeishuPanel', 'DigestPanel'];
 const used = new Set();
 for (const file of files) {
   const source = read(`apps/desktop/src/${file}.tsx`).toString('utf8');

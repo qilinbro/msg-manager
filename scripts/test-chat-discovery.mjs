@@ -183,7 +183,7 @@ const form = (h, className) =>
     (node) => node.type === "form" && hasClass(node, className),
     className,
   );
-const tab = (h, id, kind) => field(h, `${id}-kind-${kind}`);
+
 const listRows = (h) =>
   nodes(h.tree).filter(
     (node) => node.type === "button" && hasClass(node, "inbox-conversation"),
@@ -396,7 +396,7 @@ function environment(responder) {
     { ...globals, ...auth, ...core },
   );
   const helpers = {
-    ...load("ConversationKindTabs.tsx", ["ConversationKindTabs"], globals),
+    ...load("ConversationKindSelect.tsx", ["ConversationKindSelect"], globals),
     ...load(
       "keyword-search.tsx",
       ["KeywordMatch", "asciiFold", "keywordError"],
@@ -595,12 +595,6 @@ function mount(env, file, name, suppliedProps = {}) {
     element.checked = Boolean(node.props.checked);
     node.props.disabled = Boolean(disabled || node.props.disabled);
     element.disabled = node.props.disabled;
-    element.querySelectorAll = (selector) => {
-      assert.equal(selector, '[role="tab"]');
-      return nodes(element.node)
-        .filter((item) => item.props.role === "tab")
-        .map((item) => item.element);
-    };
     if (typeof node.props.ref === "function") node.props.ref(element);
     else if (node.props.ref) node.props.ref.current = element;
     node.props.children = expand(
@@ -727,28 +721,22 @@ const wechatProps = (help = []) => ({
     help.push(plain(request));
   },
 });
-function assertTabs(h, prefix, selected) {
-  const list = find(
-    h,
-    (node) =>
-      node.props.role === "tablist" &&
-      nodes(node).some((item) => item.props.id === `${prefix}-kind-private`),
+function assertKind(h, prefix, selected) {
+  const select = field(h, prefix + "-kind");
+  assert.equal(select.type, "select");
+  assert.equal(select.props.value, selected);
+  assert.ok(
+    select.props["aria-label"],
+    "kind dropdown needs an accessible name",
   );
-  assert.ok(list.props["aria-label"], "tablist needs an accessible name");
-  const tabs = nodes(list).filter((node) => node.props.role === "tab");
-  assert.deepEqual(tabs.map(text), ["私聊", "群聊"]);
-  for (const [i, kind] of ["private", "group"].entries()) {
-    assert.equal(tabs[i].props["aria-selected"], kind === selected);
-    assert.equal(tabs[i].props.tabIndex, kind === selected ? 0 : -1);
-    assert.equal(tabs[i].props["aria-controls"], `${prefix}-kind-panel`);
-  }
-  const panel = nodes(h.tree).find(
-    (node) => node.props.id === `${prefix}-kind-panel`,
+  const choices =
+    prefix === "wechat" ? ["私聊", "群聊"] : ["全部类型", "私聊", "群聊"];
+  assert.deepEqual(
+    nodes(select)
+      .filter((node) => node.type === "option")
+      .map(text),
+    choices,
   );
-  if (panel) {
-    assert.equal(panel.props.role, "tabpanel");
-    assert.equal(panel.props["aria-labelledby"], `${prefix}-kind-${selected}`);
-  }
 }
 function assertOutside(h, child, excludedClass) {
   const containers = nodes(h.tree).filter((node) =>
@@ -769,8 +757,47 @@ function helpConditions(request, expectedKeys) {
   assert.deepEqual(Object.keys(request).sort(), ["prompt", "source"]);
   assert.equal(typeof request.source, "string");
   assert.equal(typeof request.prompt, "string");
-  const conditions = JSON.parse(
-    request.prompt.slice(request.prompt.lastIndexOf("\n") + 1),
+  const labels = {
+    会话类型: "conversation_kind",
+    平台: "platform",
+    关系分类: "category",
+    会话视图: "view",
+    列表关键词: "keyword",
+    "所选会话 ID":
+      request.source === "微信只读接入" ? "peer_id" : "conversation_id",
+    会话关键词: "session_keyword",
+    正文关键词:
+      request.source === "微信只读接入" ? "body_keyword" : "message_keyword",
+  };
+  const names = {
+    私聊: "private",
+    群聊: "group",
+    全部: "all",
+    全部会话: "all",
+  };
+  const conditions = Object.fromEntries(
+    request.prompt
+      .split("\n")
+      .slice(2)
+      .map((line) => {
+        const delimiter = line.indexOf("：");
+        const key = labels[line.slice(0, delimiter)];
+        const value = line.slice(delimiter + 1);
+        assert.ok(key, "handoff used an unexpected label");
+        return [
+          key,
+          value === "无"
+            ? key === "peer_id" ||
+              key === "conversation_id" ||
+              (key === "message_keyword" &&
+                request.prompt.includes("所选会话 ID：无"))
+              ? null
+              : ""
+            : value.startsWith('"')
+              ? JSON.parse(value)
+              : (names[value] ?? value),
+        ];
+      }),
   );
   assert.deepEqual(
     Object.keys(conditions).sort(),
@@ -1012,20 +1039,8 @@ function helpConditions(request, expectedKeys) {
   );
   const h = mount(env, "Inbox.tsx", "Inbox", { ...inboxProps(), token: "" });
   await h.flush();
-  assertTabs(h, "inbox", "private");
-  assert.equal(
-    text(
-      find(
-        h,
-        (node) =>
-          node.type === "label" && node.props.htmlFor === "inbox-keyword",
-      ),
-    ),
-    "关键词匹配搜索",
-  );
-  field(h, "inbox-keyword");
-  button(h, "搜索");
-  assertIconOnly(h, "清除搜索关键词", "close");
+  assertKind(h, "inbox", "private");
+  assert.equal(field(h, "inbox-keyword").props["aria-label"], "搜索会话与消息");
   assert.equal(env.requests.length, 0);
   h.unmount();
 }
@@ -1052,11 +1067,19 @@ function helpConditions(request, expectedKeys) {
     peer_id: "@@synthetic_group",
   });
   const help = [];
+  let sourceNeedsAttention = false;
   const env = environment((request) => {
     const { pathname, searchParams } = request.url;
     if (pathname === "/api/v1/inbox") return inboxInfo;
     if (pathname === "/api/v1/connections/wechat-db/status")
-      return wechatStatus();
+      return sourceNeedsAttention
+        ? wechatStatus({
+            monitor: monitorStatus({
+              state: "error",
+              last_error_code: "WECHAT_DB_UNAVAILABLE",
+            }),
+          })
+        : wechatStatus();
     if (pathname === "/api/v1/conversations") {
       const q = searchParams.get("q") ?? "";
       if (q === "后端拒绝")
@@ -1104,8 +1127,8 @@ function helpConditions(request, expectedKeys) {
   });
   const h = mount(env, "Inbox.tsx", "Inbox", inboxProps(help));
   await h.flush();
-  assertTabs(h, "inbox", "private");
-  assertTabs(h, "wechat", "private");
+  assertKind(h, "inbox", "private");
+  assertKind(h, "wechat", "private");
   assert.equal(
     listRequests(env)[0].url.searchParams.get("conversation_kind"),
     "private",
@@ -1125,10 +1148,8 @@ function helpConditions(request, expectedKeys) {
   );
   for (const control of [
     discovery,
-    tab(h, "inbox", "private"),
+    field(h, "inbox-kind"),
     field(h, "inbox-keyword"),
-    button(h, "搜索"),
-    button(h, "清除搜索关键词"),
   ])
     assertOutside(h, control, "inbox-conversation-scroll");
   const beforeType = listRequests(env).length;
@@ -1176,7 +1197,32 @@ function helpConditions(request, expectedKeys) {
     h,
     listRows(h).find((node) => text(node).includes("TITLE_PRIVATE_SENTINEL")),
   );
-  assert.equal(field(h, "inbox-message-keyword").props.value, query);
+  assert.equal(
+    nodes(h.tree).filter(
+      (node) =>
+        node.type === "input" &&
+        node.props.type === "search" &&
+        node.props.id.startsWith("inbox-"),
+    ).length,
+    1,
+  );
+  assert.equal(
+    nodes(h.tree).filter(
+      (node) =>
+        hasClass(node, "inbox-sources") &&
+        node.type === "details" &&
+        !node.props.open,
+    ).length,
+    1,
+  );
+  const beforeScope = env.requests.length;
+  await fill(h, "inbox-search-scope", "current");
+  assert.equal(
+    env.requests.length,
+    beforeScope,
+    "switching search scope alone does not fetch",
+  );
+  assert.equal(field(h, "inbox-keyword").props.value, query);
   assert.equal(
     messageRequests(env).at(-1).url.searchParams.get("q"),
     query,
@@ -1188,7 +1234,7 @@ function helpConditions(request, expectedKeys) {
     ),
   );
   const beforeHelp = env.requests.length;
-  await click(h, button(h, "找不到？让 Agent 帮我"));
+  await click(h, button(h, "Agent 帮我"));
   assert.equal(
     env.requests.length,
     beforeHelp,
@@ -1218,7 +1264,7 @@ function helpConditions(request, expectedKeys) {
     "matched-message content must never become Agent context",
   );
   const listCount = listRequests(env).length;
-  await search(h, env, "inbox-message-keyword", "独立 body");
+  await search(h, env, "inbox-keyword", "独立 body");
   assert.equal(
     messageRequests(env).at(-1).url.searchParams.get("q"),
     "独立 body",
@@ -1228,7 +1274,10 @@ function helpConditions(request, expectedKeys) {
     listCount,
     "body search is independent from list search",
   );
+  await fill(h, "inbox-search-scope", "list");
   assert.equal(field(h, "inbox-keyword").props.value, `  ${query}  `);
+  await fill(h, "inbox-search-scope", "current");
+  assert.equal(field(h, "inbox-keyword").props.value, "独立 body");
   await click(h, button(h, "加载更早消息"));
   assert.equal(
     messageRequests(env).at(-1).url.searchParams.get("cursor"),
@@ -1240,8 +1289,8 @@ function helpConditions(request, expectedKeys) {
     "earlier-page requests must retain q",
   );
   assert.ok(text(h.tree).includes("更早 独立 body"));
-  await click(h, assertIconOnly(h, "查看全部消息", "close"));
-  assert.equal(field(h, "inbox-message-keyword").props.value, "");
+  await click(h, assertIconOnly(h, "清除搜索关键词", "close"));
+  assert.equal(field(h, "inbox-keyword").props.value, "");
   assert.equal(messageRequests(env).at(-1).url.searchParams.has("q"), false);
   assert.equal(
     messageRequests(env).at(-1).url.searchParams.has("cursor"),
@@ -1252,10 +1301,9 @@ function helpConditions(request, expectedKeys) {
 
   for (const invalid of ["a".repeat(257), "中".repeat(86), "a\0b"]) {
     const before = messageRequests(env).length;
-    await fill(h, "inbox-message-keyword", invalid);
-    assert.equal(field(h, "inbox-message-keyword").props["aria-invalid"], true);
-    assert.equal(button(h, "搜索正文").props.disabled, true);
-    await submit(h, "inbox-message-search");
+    await fill(h, "inbox-keyword", invalid);
+    assert.equal(field(h, "inbox-keyword").props["aria-invalid"], true);
+    await submit(h, "inbox-keyword-form");
     await env.elapse(250, h);
     assert.equal(
       messageRequests(env).length,
@@ -1263,23 +1311,23 @@ function helpConditions(request, expectedKeys) {
       "invalid body q must be stopped before fetch",
     );
     assert.ok(nodes(h.tree).some((node) => node.props.role === "alert"));
-    await fill(h, "inbox-message-keyword", "");
+    await fill(h, "inbox-keyword", "");
     await env.elapse(250, h);
   }
-  await search(h, env, "inbox-message-keyword", "😀".repeat(64));
+  await search(h, env, "inbox-keyword", "😀".repeat(64));
   assert.equal(
     messageRequests(env).at(-1).url.searchParams.get("q"),
     "😀".repeat(64),
     "exact 256-byte body q must be accepted",
   );
-  await search(h, env, "inbox-message-keyword", "后端拒绝");
+  await search(h, env, "inbox-keyword", "后端拒绝");
   assert.ok(nodes(h.tree).some((node) => node.props.role === "alert"));
   assert.ok(
     !text(h.tree).includes(RAW_ERROR),
     "backend fallback must not expose raw errors",
   );
   const beforeErrorHelp = env.requests.length;
-  await click(h, button(h, "找不到？让 Agent 帮我"));
+  await click(h, button(h, "Agent 帮我"));
   assert.equal(env.requests.length, beforeErrorHelp);
   helpConditions(help.at(-1), [
     "conversation_kind",
@@ -1291,6 +1339,7 @@ function helpConditions(request, expectedKeys) {
     "message_keyword",
   ]);
 
+  await fill(h, "inbox-search-scope", "list");
   await click(h, button(h, "清除搜索关键词"));
   assert.equal(field(h, "inbox-keyword").props.value, "");
   assert.equal(listRequests(env).at(-1).url.searchParams.has("q"), false);
@@ -1298,7 +1347,6 @@ function helpConditions(request, expectedKeys) {
     const before = listRequests(env).length;
     await fill(h, "inbox-keyword", invalid);
     assert.equal(field(h, "inbox-keyword").props["aria-invalid"], true);
-    assert.equal(button(h, "搜索").props.disabled, true);
     await submit(h, "inbox-keyword-form");
     await env.elapse(250, h);
     assert.equal(
@@ -1319,10 +1367,9 @@ function helpConditions(request, expectedKeys) {
   assert.ok(!text(h.tree).includes(RAW_ERROR));
   await search(h, env, "inbox-keyword", "没有任何匹配");
   assert.ok(text(h.tree).includes("没有找到相关会话"));
-  assert.ok(text(h.tree).includes("当前私聊及筛选条件内没有匹配"));
   assert.equal(listRows(h).length, 0);
   const emptyHelpCount = env.requests.length;
-  await click(h, button(h, "让 Agent 帮我查找"));
+  await click(h, button(h, "Agent 帮我"));
   assert.equal(env.requests.length, emptyHelpCount);
   assert.equal(
     helpConditions(help.at(-1), [
@@ -1338,54 +1385,45 @@ function helpConditions(request, expectedKeys) {
   );
   await search(h, env, "inbox-keyword", "名称独有");
   await click(h, listRows(h)[0]);
-  assert.ok(
-    text(h.tree).includes(
-      "当前会话没有正文匹配；列表可能匹配了名称或邮件资料。",
-    ),
-  );
-  button(h, "让 Agent 帮我");
+  assert.ok(text(h.tree).includes("当前会话没有匹配的正文。"));
   await click(h, button(h, "清除搜索关键词"));
-  await click(h, tab(h, "inbox", "group"));
-  assertTabs(h, "inbox", "group");
+  await fill(h, "inbox-kind", "group");
+  assertKind(h, "inbox", "group");
   assert.equal(
     listRequests(env).at(-1).url.searchParams.get("conversation_kind"),
     "group",
   );
   assert.ok(text(h.tree).includes("合成群聊"));
   assert.equal(
-    nodes(h.tree).some((node) => node.props.id === "inbox-message-keyword"),
+    nodes(h.tree).some((node) => node.props.id === "inbox-search-scope"),
     false,
     "kind change clears the selected conversation",
   );
-  for (const [key, expected] of [
-    ["ArrowLeft", "private"],
-    ["End", "group"],
-    ["Home", "private"],
-    ["ArrowRight", "group"],
-  ]) {
-    const current = find(
-      h,
-      (node) =>
-        node.props.role === "tab" &&
-        node.props.id?.startsWith("inbox-kind-") &&
-        node.props["aria-selected"],
-    );
-    const keyEvent = event(current, { key });
-    current.props.onKeyDown(keyEvent);
-    await h.flush();
-    assert.equal(keyEvent.prevented, true);
-    assertTabs(h, "inbox", expected);
-    assert.equal(
-      env.focused?.node.props.id,
-      `inbox-kind-${expected}`,
-      "tab handler must request focus on the new roving tab",
-    );
-  }
+  await fill(h, "inbox-kind", "all");
+  assertKind(h, "inbox", "all");
+  assert.equal(
+    listRequests(env).at(-1).url.searchParams.has("conversation_kind"),
+    false,
+  );
   assert.equal(
     sourceRequests(env).length,
     0,
     "all stored-history discovery stays independent of source reads",
   );
+  const sourceSummary = () =>
+    find(
+      h,
+      (node) => node.type === "summary" && text(node).startsWith("消息来源"),
+    );
+  sourceNeedsAttention = true;
+  await click(h, button(h, "刷新消息中心"));
+  assert.ok(
+    text(sourceSummary()).includes("微信需检查"),
+    "source errors stay visible in the collapsed summary",
+  );
+  sourceNeedsAttention = false;
+  await click(h, button(h, "刷新消息中心"));
+  assert.equal(text(sourceSummary()), "消息来源");
   assert.ok(env.requests.every((request) => request.method === "GET"));
   h.unmount();
   assert.equal(
@@ -1439,7 +1477,7 @@ function helpConditions(request, expectedKeys) {
   await h.flush();
   await search(h, env, "inbox-keyword", "旧查询");
   const privateOld = listRequests(env).at(-1);
-  await click(h, tab(h, "inbox", "group"));
+  await fill(h, "inbox-kind", "group");
   const groupOld = listRequests(env).at(-1);
   assert.equal(privateOld.signal.aborted, true);
   await search(h, env, "inbox-keyword", "新查询");
@@ -1476,9 +1514,10 @@ function helpConditions(request, expectedKeys) {
   assert.ok(!text(h.tree).includes("STALE_"));
   assert.ok(text(h.tree).includes("最新列表 更新查询"));
   await click(h, listRows(h)[0]);
-  await search(h, env, "inbox-message-keyword", "旧正文");
+  await fill(h, "inbox-search-scope", "current");
+  await search(h, env, "inbox-keyword", "旧正文");
   const oldMessageQuery = messageRequests(env).at(-1);
-  await search(h, env, "inbox-message-keyword", "新正文");
+  await search(h, env, "inbox-keyword", "新正文");
   assert.equal(oldMessageQuery.signal.aborted, true);
   pending
     .get("message-query")
@@ -1488,7 +1527,7 @@ function helpConditions(request, expectedKeys) {
   assert.ok(!text(h.tree).includes("STALE_"));
   await click(h, button(h, "加载更早消息"));
   const oldMessagePage = messageRequests(env).at(-1);
-  await click(h, tab(h, "inbox", "private"));
+  await fill(h, "inbox-kind", "private");
   assert.equal(oldMessagePage.signal.aborted, true);
   pending
     .get("message-page")
@@ -1498,10 +1537,10 @@ function helpConditions(request, expectedKeys) {
   await h.flush();
   assert.ok(!text(h.tree).includes("STALE_"));
   assert.equal(
-    nodes(h.tree).some((node) => node.props.id === "inbox-message-keyword"),
+    nodes(h.tree).some((node) => node.props.id === "inbox-search-scope"),
     false,
   );
-  assertTabs(h, "inbox", "private");
+  assertKind(h, "inbox", "private");
   assert.ok(env.requests.every((request) => request.method === "GET"));
   h.unmount();
 }
@@ -1552,7 +1591,7 @@ function helpConditions(request, expectedKeys) {
   });
   const h = mount(env, "WechatPanel.tsx", "WechatPanel", wechatProps(help));
   await h.flush();
-  assertTabs(h, "wechat", "private");
+  assertKind(h, "wechat", "private");
   assertIconOnly(h, "更新状态", "refresh");
   field(h, "wechat-session-keyword");
   field(h, "wechat-keyword");
@@ -1566,7 +1605,7 @@ function helpConditions(request, expectedKeys) {
     ),
   );
   const beforeHelp = env.requests.length;
-  await click(h, button(h, "不会操作？让 Agent 帮我"));
+  await click(h, button(h, "排查接入"));
   assert.equal(env.requests.length, beforeHelp);
   assert.equal(help.at(-1).source, "微信只读接入");
   let conditions = helpConditions(help.at(-1), [
@@ -1583,8 +1622,8 @@ function helpConditions(request, expectedKeys) {
   });
   await fill(h, "wechat-session-keyword", "gRoUp%_");
   await fill(h, "wechat-keyword", "正文选词");
-  await click(h, tab(h, "wechat", "group"));
-  assertTabs(h, "wechat", "group");
+  await fill(h, "wechat-kind", "group");
+  assertKind(h, "wechat", "group");
   assert.equal(
     sourceRequests(env).length,
     0,
@@ -1610,11 +1649,11 @@ function helpConditions(request, expectedKeys) {
     "kind/name filtering is ASCII-insensitive and %/_ are literal",
   );
   assert.equal(field(h, "wechat-keyword").props.value, "正文选词");
-  assert.ok(text(h.tree).includes("已入库历史请用上方关键词匹配搜索"));
+  assert.ok(text(h.tree).includes("仅筛选本次读取的消息"));
   await fill(h, "wechat-peer", "@@synthetic_group");
   assert.equal(button(h, "读取并保存消息").props.disabled, false);
   const beforeSelectedHelp = env.requests.length;
-  await click(h, button(h, "不会操作？让 Agent 帮我"));
+  await click(h, button(h, "排查接入"));
   assert.equal(env.requests.length, beforeSelectedHelp);
   conditions = helpConditions(help.at(-1), [
     "conversation_kind",
@@ -1653,7 +1692,7 @@ function helpConditions(request, expectedKeys) {
     "hidden selection must not submit a read or save monitor state",
   );
   assert.equal(button(h, "开启后台读取").props.disabled, true);
-  await click(h, button(h, "不会操作？让 Agent 帮我"));
+  await click(h, button(h, "排查接入"));
   assert.equal(
     helpConditions(help.at(-1), [
       "conversation_kind",
@@ -1670,7 +1709,7 @@ function helpConditions(request, expectedKeys) {
     "clearing the filter must not resurrect the old selection",
   );
   await fill(h, "wechat-peer", "@@synthetic_group");
-  await click(h, tab(h, "wechat", "private"));
+  await fill(h, "wechat-kind", "private");
   assert.equal(
     field(h, "wechat-peer").props.value,
     "",
@@ -1698,7 +1737,7 @@ function helpConditions(request, expectedKeys) {
     "all subsequent metadata filtering stays local",
   );
   await fill(h, "wechat-session-keyword", "");
-  await click(h, tab(h, "wechat", "group"));
+  await fill(h, "wechat-kind", "group");
   await fill(h, "wechat-peer", "@@synthetic_group");
   const beforeRead = env.requests.length;
   await submit(h, "wechat-read-form");
@@ -1727,8 +1766,7 @@ function helpConditions(request, expectedKeys) {
   find(
     h,
     (node) =>
-      node.type === "ul" &&
-      node.props["aria-label"] === "已选择的后台读取会话",
+      node.type === "ul" && node.props["aria-label"] === "已选择的后台读取会话",
   );
   const remove = assertIconOnly(h, "移除会话 @@synthetic_group", "close");
   await click(h, remove);
@@ -1745,7 +1783,7 @@ function helpConditions(request, expectedKeys) {
     "re-adding a peer does not save or start background reads",
   );
   assert.equal(button(h, "开启后台读取").props.disabled, false);
-  await click(h, tab(h, "wechat", "private"));
+  await fill(h, "wechat-kind", "private");
   assert.equal(button(h, "读取并保存消息").props.disabled, true);
   assert.equal(
     button(h, "开启后台读取").props.disabled,
@@ -1774,7 +1812,7 @@ function helpConditions(request, expectedKeys) {
     1,
   );
   const beforeFinalHelp = env.requests.length;
-  await click(h, button(h, "不会操作？让 Agent 帮我"));
+  await click(h, button(h, "排查接入"));
   assert.equal(
     env.requests.length,
     beforeFinalHelp,
@@ -1801,5 +1839,5 @@ for (const env of testEnvironments) {
 }
 
 console.log(
-  "Chat discovery synthetic regressions passed: actual Inbox/WeChat components, required kind contracts, query URLs, bounded server snippets, literal ASCII highlights, 256-byte/NUL guards, independent history search/clear/cursors, honest empty states, persistent named/keyboard tabs, safe UI-only help, hidden-peer guards, explicit monitor actions, and stale response cancellation. No real services/accounts/platforms/models; DOM layout and assistive-technology acceptance remain separate.",
+  "Chat discovery synthetic regressions passed: conversation type selects, one search field with independent scopes, query URLs, bounded snippets, literal highlights, 256-byte/NUL guards, pagination, empty states, safe UI-only help, explicit source actions, and stale response cancellation. Synthetic data only.",
 );

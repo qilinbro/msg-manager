@@ -361,11 +361,24 @@ async function submitRound(panel) {
   await app.flush();
   assert.equal(assistant().props.visible, true);
   assert.deepEqual(structuredClone(assistant().props.helpRequest), request);
-  appFind(app, (node) =>
-    node.props.className?.includes("topbar-assistant"),
+  assert.ok(
+    !appNodes(app.value).some((node) =>
+      node.props.className?.includes("topbar-assistant"),
+    ),
+    "messages already has contextual help and does not repeat it in the header",
+  );
+  appFind(
+    app,
+    (node) => node.type === "button" && node.props["aria-label"] === "概览",
   ).props.onClick();
   await app.flush();
-  assert.equal(assistant().props.helpRequest.source, "消息");
+  const pageHelp = appFind(app, (node) =>
+    node.props.className?.includes("topbar-assistant"),
+  );
+  assert.equal(text(pageHelp).trim(), "页面求助");
+  pageHelp.props.onClick();
+  await app.flush();
+  assert.equal(assistant().props.helpRequest.source, "概览");
   assert.equal(Object.keys(assistant().props.helpRequest).length, 2);
   assert.ok(
     !JSON.stringify(assistant().props.helpRequest).includes("业务草稿不带走"),
@@ -384,6 +397,12 @@ async function submitRound(panel) {
     typeof appFind(app, (node) => node.type === "InboxStub").props
       .onAssistantHelp,
     "function",
+  );
+  assert.ok(
+    !appNodes(app.value).some((node) =>
+      node.props.className?.includes("topbar-assistant"),
+    ),
+    "contacts already has contextual help and does not repeat it in the header",
   );
   // A different authorization identity must not inherit the old pending task.
   appFind(
@@ -414,17 +433,17 @@ async function submitRound(panel) {
   const env = await panelFor({ helpRequest: task(), strict: true });
   const { panel, browser } = env;
   assert.equal(field(panel, "assistant-message").props.value, "");
-  assert.ok(text(panel.tree).includes("预备任务，尚未提交"));
+  assert.ok(text(panel.tree).includes(`带入${task().source}？`));
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
   assert.equal(checkbox(panel, roundConsent)._disabled, true);
   await submitRound(panel);
   assert.equal(browser.writes().length, 0);
-  await click(panel, "确认带入草稿");
+  await click(panel, "带入");
   assert.equal(env.workspace.draft, `来源：${task().source}\n${task().prompt}`);
   assert.equal(env.dismissed, 1);
   assert.equal(env.focusTarget, "assistant-message");
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
-  assert.equal(button(panel, "提交本轮请求")._disabled, true);
+  assert.equal(button(panel, "提交")._disabled, true);
   assert.equal(browser.writes().length, 0);
   browser.respond(({ options }) =>
     options.method === "GET"
@@ -446,7 +465,7 @@ async function submitRound(panel) {
   assert.equal(body.message, `来源：${task().source}\n${task().prompt}`);
   assert.equal(body.model_config_revision, 0);
   assert.equal(checkbox(panel, actionConsent).props.checked, false);
-  assert.equal(button(panel, "确认并继续")._disabled, true);
+  assert.equal(button(panel, "确认")._disabled, true);
   assert.equal(
     browser.writes().length,
     1,
@@ -465,8 +484,8 @@ async function submitRound(panel) {
   await panel.flush();
   assert.equal(env.workspace.draft, original);
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
-  assert.equal(button(panel, "提交本轮请求")._disabled, true);
-  await click(panel, "追加到现有草稿");
+  assert.equal(button(panel, "提交")._disabled, true);
+  await click(panel, "追加");
   assert.equal(
     env.workspace.draft,
     `${original}\n\n来源：${task().source}\n${task().prompt}`,
@@ -475,7 +494,7 @@ async function submitRound(panel) {
   panel.updateProps({ helpRequest: task("第二项合成任务") });
   await panel.flush();
   const beforeDismiss = env.workspace;
-  await click(panel, "暂不带入");
+  await click(panel, "忽略");
   assert.equal(env.workspace, beforeDismiss);
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
   assert.equal(env.focusTarget, "assistant-message");
@@ -484,14 +503,14 @@ async function submitRound(panel) {
 {
   const original = "x".repeat(7995);
   const env = await panelFor({ draft: original, helpRequest: task() });
-  assert.equal(button(env.panel, "追加到现有草稿")._disabled, true);
-  button(env.panel, "追加到现有草稿").props.onClick();
+  assert.equal(button(env.panel, "追加")._disabled, true);
+  button(env.panel, "追加").props.onClick();
   await env.panel.flush();
   assert.equal(env.workspace.draft, original);
   assert.ok(text(env.panel.tree).includes("不会截断或覆盖内容"));
   assert.equal(env.browser.writes().length, 0);
   await fill(env.panel, "assistant-message", "手动精简后的草稿");
-  await click(env.panel, "追加到现有草稿");
+  await click(env.panel, "追加");
   assert.ok(env.workspace.draft.startsWith("手动精简后的草稿\n\n来源："));
   env.finish();
 }
@@ -508,8 +527,8 @@ for (const snapshot of [
   const originalTurn = turn(snapshot, snapshot ? {} : { uncertain: true });
   const env = await panelFor({ turns: [originalTurn], helpRequest: task() });
   const { panel, browser } = env;
-  assert.equal(button(panel, "确认带入草稿")._disabled, true);
-  button(panel, "确认带入草稿").props.onClick();
+  assert.equal(button(panel, "带入")._disabled, true);
+  button(panel, "带入").props.onClick();
   await panel.flush();
   assert.equal(env.workspace.turns[0], originalTurn);
   assert.equal(env.workspace.draft, "");
@@ -530,12 +549,12 @@ for (const snapshot of [
   browser.respond(({ url }) =>
     reply(new URL(url).pathname.endsWith("/status") ? status() : run()),
   );
-  await click(panel, "读取运行结果");
+  await click(panel, "查看结果");
   assert.equal(browser.writes().length, 0);
   assert.ok(browser.requests.at(-1).url.endsWith("/runs/synthetic-help-run"));
   assert.equal(browser.requests.at(-1).options.method, "GET");
-  assert.equal(button(panel, "确认带入草稿")._disabled, false);
-  await click(panel, "确认带入草稿");
+  assert.equal(button(panel, "带入")._disabled, false);
+  await click(panel, "带入");
   assert.equal(env.workspace.turns[0].run.run_id, "synthetic-help-run");
   assert.equal(env.workspace.turns[0].run.state, "completed");
   assert.equal(browser.writes().length, 0);
@@ -557,19 +576,19 @@ for (const snapshot of [
   panel.updateProps({ visible: false });
   await panel.flush();
   assert.equal(checkbox(panel, actionConsent).props.checked, false);
-  assert.equal(button(panel, "确认并继续")._disabled, true);
-  button(panel, "确认并继续").props.onClick();
+  assert.equal(button(panel, "确认")._disabled, true);
+  button(panel, "确认").props.onClick();
   await panel.flush();
   assert.equal(browser.writes().length, 0);
   panel.updateProps({ visible: true });
   await panel.flush();
   assert.equal(checkbox(panel, actionConsent).props.checked, false);
-  assert.equal(button(panel, "确认带入草稿")._disabled, true);
+  assert.equal(button(panel, "带入")._disabled, true);
   browser.respond(({ options }) =>
     reply(options.method === "GET" ? status() : run()),
   );
   await check(panel, actionConsent);
-  await click(panel, "确认并继续");
+  await click(panel, "确认");
   assert.equal(browser.writes().length, 1);
   const request = browser.writes()[0];
   assert.ok(request.url.endsWith("/runs/synthetic-help-run/confirm"));
@@ -612,7 +631,7 @@ for (const snapshot of [
   assert.equal(browser.writes().length, 1);
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
   assert.equal(env.workspace.draft, "");
-  await click(panel, "确认带入草稿");
+  await click(panel, "带入");
   assert.equal(browser.writes().length, 1);
   env.finish();
 }
@@ -622,12 +641,12 @@ for (const snapshot of [
 {
   const env = await panelFor({ token: "", helpRequest: task() });
   assert.ok(text(env.panel.tree).includes(task().prompt));
-  assert.equal(button(env.panel, "确认带入草稿")._disabled, true);
+  assert.equal(button(env.panel, "带入")._disabled, true);
   assert.equal(env.browser.requests.length, 0);
-  await click(env.panel, "打开连接设置");
+  await click(env.panel, "去设置");
   assert.equal(env.settingsOpened, 1);
   assert.equal(env.browser.requests.length, 0);
-  await click(env.panel, "暂不带入");
+  await click(env.panel, "忽略");
   assert.equal(env.focusTarget, "assistant-title");
   assert.equal(env.workspace.draft, "");
   env.finish();
@@ -647,10 +666,10 @@ for (const unit of ["中", "😀"]) {
   const { panel, browser } = env;
   assert.equal(Buffer.byteLength(`${original}${suffix}`, "utf8"), 8001);
   assert.ok(`${original}${suffix}`.length < 8000);
-  assert.equal(button(panel, "追加到现有草稿")._disabled, true);
+  assert.equal(button(panel, "追加")._disabled, true);
   assert.ok(text(panel.tree).includes("字节（UTF-8）"));
   const before = env.workspace;
-  button(panel, "追加到现有草稿").props.onClick();
+  button(panel, "追加").props.onClick();
   await panel.flush();
   assert.equal(
     env.workspace,
@@ -659,8 +678,8 @@ for (const unit of ["中", "😀"]) {
   );
   assert.equal(browser.writes().length, 0);
   await fill(panel, "assistant-message", exact);
-  assert.equal(button(panel, "追加到现有草稿")._disabled, false);
-  await click(panel, "追加到现有草稿");
+  assert.equal(button(panel, "追加")._disabled, false);
+  await click(panel, "追加");
   assert.equal(env.workspace.draft, `${exact}${suffix}`);
   assert.equal(Buffer.byteLength(env.workspace.draft, "utf8"), 8000);
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
@@ -672,15 +691,15 @@ for (const unit of ["中", "😀"]) {
   const fillEnv = await panelFor({
     helpRequest: { source: "消息", prompt: `${prompt}x` },
   });
-  assert.equal(button(fillEnv.panel, "确认带入草稿")._disabled, true);
+  assert.equal(button(fillEnv.panel, "带入")._disabled, true);
   assert.ok(text(fillEnv.panel.tree).includes(`${prompt}x`));
-  button(fillEnv.panel, "确认带入草稿").props.onClick();
+  button(fillEnv.panel, "带入").props.onClick();
   await fillEnv.panel.flush();
   assert.equal(fillEnv.workspace.draft, "");
   assert.equal(fillEnv.browser.writes().length, 0);
   fillEnv.panel.updateProps({ helpRequest: { source: "消息", prompt } });
   await fillEnv.panel.flush();
-  await click(fillEnv.panel, "确认带入草稿");
+  await click(fillEnv.panel, "带入");
   assert.equal(fillEnv.workspace.draft, `${prefix}${prompt}`);
   assert.equal(Buffer.byteLength(fillEnv.workspace.draft, "utf8"), 8000);
   assert.equal(fillEnv.browser.writes().length, 0);
@@ -732,7 +751,7 @@ for (const [exact, invalid, issue] of [
       `${Buffer.byteLength(invalid, "utf8")} / 8000 字节（UTF-8）`,
     ),
   );
-  assert.equal(button(panel, "提交本轮请求")._disabled, true);
+  assert.equal(button(panel, "提交")._disabled, true);
   assert.equal(checkbox(panel, roundConsent)._disabled, true);
   checkbox(panel, roundConsent).props.onChange({ target: { checked: true } });
   await panel.flush();
@@ -757,7 +776,7 @@ for (const [exact, invalid, issue] of [
     false,
   );
   assert.equal(checkbox(panel, roundConsent).props.checked, false);
-  assert.equal(button(panel, "提交本轮请求")._disabled, true);
+  assert.equal(button(panel, "提交")._disabled, true);
   browser.respond(({ options }) =>
     options.method === "GET" ? reply(status()) : reply(run()),
   );
@@ -771,9 +790,9 @@ for (const [exact, invalid, issue] of [
 {
   const helpRequest = { source: "消息", prompt: "合成\0任务" };
   const env = await panelFor({ helpRequest });
-  assert.equal(button(env.panel, "确认带入草稿")._disabled, true);
+  assert.equal(button(env.panel, "带入")._disabled, true);
   assert.ok(text(env.panel.tree).includes("空字符（NUL）"));
-  button(env.panel, "确认带入草稿").props.onClick();
+  button(env.panel, "带入").props.onClick();
   await env.panel.flush();
   assert.equal(env.workspace.draft, "");
   assert.equal(env.browser.writes().length, 0);

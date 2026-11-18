@@ -300,28 +300,30 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
         </p>
       </div>
       <div className="form-actions">
-        <button
-          type="button"
-          className="button button-quiet"
-          onClick={() => onMonitor(true)}
-          disabled={
-            !token ||
-            !verified ||
-            monitorSaved ||
-            parsePeers(peers).length === 0 ||
-            busy !== null
-          }
-        >
-          {busy === 'monitor' ? '正在处理…' : '开启后台接收'}
-        </button>
-        <button
-          type="button"
-          className="button button-quiet"
-          onClick={() => onMonitor(false)}
-          disabled={!token || !monitorSaved || busy !== null}
-        >
-          {monitorPending ? '清除已保存的后台接收' : '停止后台接收'}
-        </button>
+        {monitorSaved ? (
+          <button
+            type="button"
+            className="button button-quiet"
+            onClick={() => onMonitor(false)}
+            disabled={!token || busy !== null}
+          >
+            {monitorPending ? '清除已保存的后台接收' : '停止后台接收'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="button button-quiet"
+            onClick={() => onMonitor(true)}
+            disabled={
+              !token ||
+              !verified ||
+              parsePeers(peers).length === 0 ||
+              busy !== null
+            }
+          >
+            {busy === 'monitor' ? '正在处理…' : '开启后台接收'}
+          </button>
+        )}
       </div>
 
       <div aria-live="polite" aria-atomic="true">

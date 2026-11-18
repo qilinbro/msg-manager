@@ -11,6 +11,7 @@ import {
 } from './assistant-api';
 import type {
   AssistantAction,
+  AssistantJSON,
   AssistantRun,
   AssistantStatus,
 } from './assistant-api';
@@ -85,10 +86,97 @@ const unresolved = (turn: AssistantTurn | undefined): boolean =>
       turn.run?.tool_results.some((item) => item.state === 'unknown')),
   );
 
+const PARAMETER_LABELS: Record<string, string> = {
+  enabled: '启用',
+  mode: '模式',
+  text: '完整正文',
+  report_preview: '发送内容',
+  report_id: '报告编号',
+  report_hash: '正文校验值',
+  body_hash: '正文校验值',
+  content_hash: '正文校验值',
+  target: '目标',
+  target_preview: '目标信息',
+  recipient: '收件人',
+  recipient_preview: '收件人信息',
+  recipient_id: '收件人编号',
+  open_id: '账号标识',
+  redacted_target: '脱敏目标',
+  window_start: '窗口开始',
+  window_end: '窗口结束',
+  timezone: '时区',
+  schedule_version: '计划版本',
+  config_revision: '配置版本',
+  model_config_id: '模型配置编号',
+  model_config_revision: '模型配置版本',
+  conversation_id: '会话编号',
+  contact_id: '联系人编号',
+  limit: '数量上限',
+};
+
+// Render every immutable field without exposing a business JSON dump. React
+// escapes values, including multiline text; no field is editable or shortened.
+function ParameterValue({ value }: { value: AssistantJSON }) {
+  if (Array.isArray(value))
+    return value.length ? (
+      <ol className="assistant-parameter-list" data-value-kind="array">
+        {value.map((item, index) => (
+          <li key={index}>
+            <ParameterValue value={item} />
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <ol
+        className="assistant-parameter-list"
+        data-value-kind="array"
+        aria-label="空列表"
+      />
+    );
+  if (value !== null && typeof value === 'object')
+    return (
+      <dl className="assistant-parameters" data-value-kind="object">
+        {Object.entries(value).map(([key, item]) => (
+          <div key={key} data-parameter-key={key}>
+            <dt>
+              {Object.hasOwn(PARAMETER_LABELS, key)
+                ? PARAMETER_LABELS[key]
+                : key}
+            </dt>
+            <dd>
+              <ParameterValue value={item} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    );
+  return (
+    <span
+      className="assistant-parameter-value"
+      data-value-kind={value === null ? 'null' : typeof value}
+    >
+      {value === null
+        ? '未设置'
+        : typeof value === 'boolean'
+          ? value
+            ? '是'
+            : '否'
+          : String(value)}
+    </span>
+  );
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  update_feishu_schedule: '调整飞书早晚报计划',
+  send_feishu_report: '发送飞书报告',
+  generate_feishu_preview: '生成飞书报告预览',
+};
+
 function ActionPreview({
   action,
   run,
   modelReady,
+  modelDescription,
   busy,
   uncertain,
   now,
@@ -98,6 +186,7 @@ function ActionPreview({
   action: AssistantAction;
   run: AssistantRun;
   modelReady: boolean;
+  modelDescription: string;
   busy: boolean;
   uncertain: boolean;
   now: number;
@@ -125,52 +214,63 @@ function ActionPreview({
       className="assistant-confirmation"
       aria-labelledby={`confirm-${encodeURIComponent(action.id)}`}
     >
-      <h3 id={`confirm-${encodeURIComponent(action.id)}`}>确认此项操作</h3>
+      <h3 id={`confirm-${encodeURIComponent(action.id)}`}>确认操作</h3>
       <p>
-        以下为服务器生成的固定预览。确认仅绑定此操作编号与模型版本，参数不可在这里修改。
+        {Object.hasOwn(ACTION_LABELS, action.operation_id)
+          ? ACTION_LABELS[action.operation_id]
+          : action.operation_id}
       </p>
-      <dl className="assistant-action-facts">
-        <div>
-          <dt>操作</dt>
-          <dd>
-            <code>{action.operation_id}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>业务接口</dt>
-          <dd>
-            <code>
-              {action.method} {action.path}
-            </code>
-          </dd>
-        </div>
-        <div>
-          <dt>确认编号</dt>
-          <dd>
-            <code>{action.id}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>有效至</dt>
-          <dd>
-            <time dateTime={action.expires_at}>
-              {formatTime(action.expires_at)}
-            </time>
-          </dd>
-        </div>
-        <div>
-          <dt>模型配置</dt>
-          <dd>
-            <code>{run.model_config_id}</code> · 版本{' '}
-            {run.model_config_revision}
-          </dd>
-        </div>
-      </dl>
-      <h4>本次参数</h4>
-      <pre tabIndex={0} aria-label="服务器固定操作参数">
-        {JSON.stringify(action.arguments, null, 2)}
-      </pre>
-      <h4>服务器声明的影响</h4>
+      <p className="assistant-note">
+        {modelDescription} · 配置版本 {run.model_config_revision}
+      </p>
+      <h4>固定参数</h4>
+      <div aria-label="服务器固定操作参数">
+        <ParameterValue value={action.arguments} />
+      </div>
+      <details className="assistant-action-details">
+        <summary>操作详情</summary>
+        <p className="assistant-note">
+          服务器固定预览，仅确认此编号与模型版本；参数不可修改。
+        </p>
+        <dl className="assistant-action-facts">
+          <div>
+            <dt>操作</dt>
+            <dd>
+              <code>{action.operation_id}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>业务接口</dt>
+            <dd>
+              <code>
+                {action.method} {action.path}
+              </code>
+            </dd>
+          </div>
+          <div>
+            <dt>确认编号</dt>
+            <dd>
+              <code>{action.id}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>有效至</dt>
+            <dd>
+              <time dateTime={action.expires_at}>
+                {formatTime(action.expires_at)}
+              </time>
+            </dd>
+          </div>
+          <div>
+            <dt>模型配置</dt>
+            <dd>
+              <code>{run.model_config_id}</code> · 版本{' '}
+              {run.model_config_revision}
+            </dd>
+          </div>
+        </dl>
+      </details>
+      <h4>影响</h4>
       {action.effects.length ? (
         <ul>
           {action.effects.map((effect, index) => (
@@ -269,7 +369,7 @@ function ActionPreview({
             onConfirm();
           }}
         >
-          确认并继续
+          确认
         </button>
         <button
           type="button"
@@ -281,7 +381,7 @@ function ActionPreview({
             onReject();
           }}
         >
-          拒绝此项
+          拒绝
         </button>
       </div>
       <p className="assistant-note">
@@ -695,29 +795,29 @@ export function AssistantPanel({
     : null;
   const preparedTask = preparedHelp ? (
     <section className="assistant-help" aria-labelledby="assistant-help-title">
-      <h2 id="assistant-help-title">预备任务，尚未提交</h2>
-      <p className="assistant-note">来源：{preparedHelp.source}</p>
-      <p className="assistant-help-prompt">{preparedHelp.prompt}</p>
+      <h2 id="assistant-help-title">带入{preparedHelp.source}？</h2>
+      <details className="assistant-help-details">
+        <summary>查看带入内容</summary>
+        <p className="assistant-help-prompt">{`来源：${preparedHelp.source}\n${preparedHelp.prompt}`}</p>
+      </details>
       <p className="assistant-note" id="assistant-help-note">
-        只带入这里可见的来源与任务，不自动附带原页面聊天正文、错误详情、业务草稿或凭据。确认带入后仍需你核对草稿并同意本轮模型调用；不会自动提交或执行操作。
+        只更新助手草稿，不会自动提交。提交前仍需核对内容并授权。
       </p>
       {hasUnresolved || sessionExpired ? (
         <p className="assistant-warning">
-          当前助手运行仍需读取、确认或核实，或会话已过期。请先处理原运行；这里不会清空它，也不会重放请求。
+          请先核实当前运行；带入不会清空它或重放请求。
         </p>
       ) : helpDraft && !helpDraft.ok && helpDraft.reason === 'too_long' ? (
         <p className="assistant-warning">
           带入后会超过 {ASSISTANT_MESSAGE_BYTE_LIMIT}{' '}
-          字节（UTF-8）。请手动精简现有草稿，或暂不带入后手动整理任务；不会截断或覆盖内容。
+          字节（UTF-8）。请精简现有草稿；不会截断或覆盖内容。
         </p>
       ) : helpDraft && !helpDraft.ok && helpDraft.reason === 'nul' ? (
         <p className="assistant-warning">
-          带入内容包含不支持的空字符（NUL）。请先移除草稿中的空字符，或暂不带入后手动整理任务；不会截断或覆盖内容。
+          内容包含空字符（NUL），请先移除；不会截断或覆盖内容。
         </p>
       ) : workspace.draft.length ? (
-        <p className="assistant-note">
-          已有助手草稿保持原样。你可以明确追加，不会替换原内容。
-        </p>
+        <p className="assistant-note">已有草稿，将追加在末尾。</p>
       ) : null}
       <div className="assistant-actions">
         <button
@@ -727,14 +827,14 @@ export function AssistantPanel({
           disabled={!visible || !token || Boolean(busy) || !helpDraft?.ok}
           onClick={applyHelp}
         >
-          {workspace.draft.length ? '追加到现有草稿' : '确认带入草稿'}
+          {workspace.draft.length ? '追加' : '带入'}
         </button>
         <button
           type="button"
           className="button button-quiet"
           onClick={finishHelp}
         >
-          暂不带入
+          忽略
         </button>
       </div>
     </section>
@@ -743,132 +843,103 @@ export function AssistantPanel({
   if (!token)
     return (
       <section className="assistant-page">
-        <h1 id="assistant-title" ref={headingRef} tabIndex={-1}>
+        <h1
+          className="assistant-sr-only"
+          id="assistant-title"
+          ref={headingRef}
+          tabIndex={-1}
+        >
           Agent 助手
         </h1>
-        <p className="page-description">
-          说明要做的事，助手会按实际业务范围协助。首次连接、模型配置和凭据仍需你手动完成。
-        </p>
         {preparedTask}
         <div className="assistant-empty">
-          <h2>尚未授权本地服务</h2>
-          <p>助手不会绕过本机鉴权，也不会直接取得平台凭据。</p>
+          <p>请先连接本地服务。</p>
           <button
             type="button"
             className="button button-primary"
             onClick={onSettings}
           >
-            打开连接设置
+            去设置
           </button>
         </div>
       </section>
     );
 
-  return (
-    <section className="assistant-page" aria-labelledby="assistant-title">
-      <header className="assistant-heading">
-        <div>
-          <h1 id="assistant-title" ref={headingRef} tabIndex={-1}>
-            Agent 助手
-          </h1>
-          <p className="page-description">
-            通过业务接口协助，操作逐项确认，以工具审计为准。连接、模型与凭据请在设置中配置。
-          </p>
-        </div>
-        <div className="assistant-actions">
+  const runControls =
+    currentRunID || busy ? (
+      <div className="assistant-run-controls">
+        {currentRunID ? (
           <button
             type="button"
-            className="button button-secondary button-icon"
-            aria-label="刷新状态"
-            title="刷新状态"
-            disabled={statusBusy || Boolean(busy)}
-            onClick={() => void loadStatus()}
+            className="button button-secondary"
+            disabled={Boolean(busy)}
+            onClick={refresh}
           >
-            <Icon name="refresh" />
+            <Icon name="refresh" /> 查看结果
           </button>
+        ) : null}
+        {busy ? (
           <button
             type="button"
             className="button button-quiet"
-            onClick={onSettings}
+            disabled={busy === 'stopping'}
+            onClick={stopWaiting}
           >
-            <Icon name="settings" /> 模型设置
+            <Icon name="pause" /> 停止等待
+          </button>
+        ) : null}
+        {busy || latest?.uncertain ? (
+          <p className="assistant-note">
+            停止等待不等于后台取消；后台可能已处理并产生费用，请先核实。
+          </p>
+        ) : null}
+      </div>
+    ) : null;
+
+  return (
+    <section className="assistant-page" aria-labelledby="assistant-title">
+      <h1
+        className="assistant-sr-only"
+        id="assistant-title"
+        ref={headingRef}
+        tabIndex={-1}
+      >
+        Agent 助手
+      </h1>
+      {preparedTask}
+      {statusBusy ? (
+        <p className="assistant-note" role="status">
+          正在读取配置…
+        </p>
+      ) : statusError ? (
+        <div className="assistant-setup-notice" role="status">
+          <p className="assistant-error">{statusError}</p>
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={() => void loadStatus()}
+          >
+            重试
           </button>
         </div>
-      </header>
-      {preparedTask}
-      <div className="assistant-status" role="status">
-        {statusBusy ? (
-          <p>正在读取助手配置与业务目录…</p>
-        ) : statusError ? (
-          <p className="assistant-error">{statusError}</p>
-        ) : !status?.configured ? (
-          <p>模型尚未配置。可先查看业务目录；配置完成后刷新状态。</p>
-        ) : (
-          <p>
-            模型 <strong>{status.model}</strong> · 目标{' '}
-            <strong>{status.endpoint_host}</strong> ·{' '}
-            {status.external ? '外部模型' : '本地模型'}
-            <br />
-            <span>
-              共享今日额度：{status.used_today} / {status.daily_limit} 次 ·
-              通用会话发送未开放，飞书本人早晚报需独立授权
-            </span>
-          </p>
-        )}
-      </div>
-      {status ? (
-        <details className="assistant-scope">
-          <summary>
-            <span className="icon-label">
-              <Icon name="book" />
-              业务范围与权限目录（{status.operations.length} 项）
-            </span>
-          </summary>
-          <p>
-            只覆盖本项目已实现接口，不是系统终端、任意网络、文件或数据库访问。凭据与授权生命周期由你在设置中管理。外部读取、费用和写入以服务器逐项预览为准。
-          </p>
-          <ul className="assistant-catalogue">
-            {status.operations.map((item) => (
-              <li key={item.id}>
-                <div>
-                  <strong>{item.id}</strong>
-                  <span>
-                    {Object.hasOwn(AVAILABILITY_LABELS, item.availability)
-                      ? AVAILABILITY_LABELS[item.availability]
-                      : `未知权限（${item.availability}）`}
-                  </span>
-                </div>
-                <code>
-                  {item.method} {item.path}
-                </code>
-                <p>
-                  {Object.hasOwn(EFFECT_LABELS, item.effect)
-                    ? EFFECT_LABELS[item.effect]
-                    : `未知影响（${item.effect}）`}
-                  {item.reason ? ` · ${item.reason}` : ''}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </details>
+      ) : !status?.configured ? (
+        <div className="assistant-setup-notice" role="status">
+          <p>请先配置模型。</p>
+          <button
+            type="button"
+            className="button button-secondary"
+            onClick={onSettings}
+          >
+            去设置
+          </button>
+        </div>
       ) : null}
 
-      <section
-        className="assistant-conversation"
-        aria-labelledby="assistant-conversation-title"
-      >
-        <div className="assistant-conversation-heading">
-          <h2 id="assistant-conversation-title">对话</h2>
-          <span className="assistant-note">仅保存在当前授权身份的内存中</span>
-        </div>
+      <section className="assistant-conversation" aria-label="助手对话">
         <div className="assistant-transcript">
-          {!workspace.turns.length ? (
+          {!workspace.turns.length && !preparedHelp ? (
             <div className="assistant-empty">
-              <h3>说清要查什么、要改什么</h3>
-              <p>
-                从业务页面选择“Agent
-                帮我”，或直接输入请求。每轮模型授权与工具操作确认分开；结果以审计为准。
-              </p>
+              <h2>你想做什么？</h2>
             </div>
           ) : null}
           {workspace.turns.map((turn) => (
@@ -879,9 +950,7 @@ export function AssistantPanel({
                   <p>{turn.prompt}</p>
                 </div>
               ) : (
-                <p className="assistant-note">
-                  读取已有运行，不会重新执行模型或工具。
-                </p>
+                <p className="assistant-note">已读取原运行，不会重新执行。</p>
               )}
               <div className="assistant-reply">
                 <div className="assistant-reply-heading">
@@ -892,80 +961,20 @@ export function AssistantPanel({
                       : turn.run
                         ? RUN_LABELS[turn.run.state]
                         : turn.notice
-                          ? '未取得运行结果'
-                          : '正在等待运行结果'}
+                          ? '未取得结果'
+                          : '等待结果'}
                   </span>
                 </div>
                 {turn.run?.assistant_message ? (
                   <p>{turn.run.assistant_message}</p>
-                ) : (
+                ) : turn.run?.state === 'awaiting_confirmation' ? (
+                  <p className="assistant-note">请核对下方操作。</p>
+                ) : turn.run ? (
                   <p className="assistant-note">
-                    {turn.run?.state === 'awaiting_confirmation'
-                      ? '请先核对下方固定操作预览。'
-                      : turn.run
-                        ? '本次没有助手文本，请查看运行状态与工具审计。'
-                        : '未取得服务器返回的助手文本。'}
+                    本轮无回复文本，详情见“更多”。
                   </p>
-                )}
+                ) : null}
               </div>
-              {turn.runID ? (
-                <p className="assistant-run-id">
-                  运行编号 <code>{turn.runID}</code>
-                  {turn.run ? (
-                    <>
-                      {' '}
-                      · 会话有效至{' '}
-                      <time dateTime={turn.run.expires_at}>
-                        {formatTime(turn.run.expires_at)}
-                      </time>
-                    </>
-                  ) : null}
-                </p>
-              ) : null}
-              {turn.run?.tool_results.length ? (
-                <details className="assistant-audit">
-                  <summary>
-                    <span className="icon-label">
-                      <Icon name="eye" />
-                      真实工具审计（{turn.run.tool_results.length} 项）
-                    </span>
-                  </summary>
-                  <ol>
-                    {turn.run.tool_results.map((item) => (
-                      <li key={item.call_id}>
-                        <div className="assistant-audit-heading">
-                          <code>{item.operation_id}</code>
-                          <strong>{TOOL_LABELS[item.state]}</strong>
-                        </div>
-                        <p className="assistant-note">
-                          调用编号 <code>{item.call_id}</code>
-                          {item.http_status === null
-                            ? ' · 无 HTTP 状态'
-                            : ` · HTTP ${item.http_status}`}
-                          {item.error_code ? (
-                            <>
-                              {' '}
-                              · <code>{item.error_code}</code>
-                            </>
-                          ) : null}
-                        </p>
-                        {item.data !== null ? (
-                          <details>
-                            <summary>查看服务器返回数据</summary>
-                            <pre tabIndex={0}>
-                              {JSON.stringify(item.data, null, 2)}
-                            </pre>
-                          </details>
-                        ) : (
-                          <p className="assistant-note">没有返回数据。</p>
-                        )}
-                      </li>
-                    ))}
-                  </ol>
-                </details>
-              ) : turn.run ? (
-                <p className="assistant-note">本轮没有工具执行记录。</p>
-              ) : null}
               {turn.run?.error ? (
                 <p className="assistant-error" role="alert">
                   <code>{turn.run.error.code}</code> · {turn.run.error.message}
@@ -983,7 +992,12 @@ export function AssistantPanel({
               ) : null}
               {turn.uncertain && !turn.notice ? (
                 <p className="assistant-warning">
-                  至少一项结果未知。请先核实业务状态；不要把重新提交当作安全重试。
+                  结果未知，请先核实业务状态，不要重新提交。
+                </p>
+              ) : null}
+              {turn === latest && turn.uncertain && !currentRunID ? (
+                <p className="assistant-note">
+                  未取得运行编号，请返回原业务页核对。
                 </p>
               ) : null}
               {turn === latest &&
@@ -994,6 +1008,11 @@ export function AssistantPanel({
                   action={turn.run.pending_action}
                   run={turn.run}
                   modelReady={modelMatchesRun}
+                  modelDescription={
+                    modelMatchesRun && status?.configured
+                      ? `${status.model} · ${status.endpoint_host}`
+                      : '模型状态未就绪'
+                  }
                   busy={Boolean(busy) || !visible}
                   uncertain={turn.uncertain}
                   now={now}
@@ -1010,55 +1029,31 @@ export function AssistantPanel({
               {busy === 'start'
                 ? '正在调用模型…'
                 : busy === 'read'
-                  ? '正在读取运行结果…'
+                  ? '正在读取结果…'
                   : busy === 'confirm'
-                    ? '正在提交此项确认…'
+                    ? '正在确认操作…'
                     : busy === 'reject'
-                      ? '正在拒绝此项…'
-                      : '正在停止本地等待…'}
+                      ? '正在拒绝操作…'
+                      : '正在停止等待…'}
             </span>
-          ) : hasUnresolved ? (
-            <span>本轮仍需读取、确认或核实；暂不提交新一轮。</span>
+          ) : hasUnresolved && run?.state !== 'awaiting_confirmation' ? (
+            <span>请先查看或核实当前结果。</span>
           ) : null}
         </div>
-        {currentRunID || busy ? (
-          <div className="assistant-run-controls">
-            {currentRunID ? (
-              <button
-                type="button"
-                className="button button-secondary"
-                disabled={Boolean(busy)}
-                onClick={refresh}
-              >
-                <Icon name="refresh" /> 读取运行结果
-              </button>
-            ) : null}
-            {busy ? (
-              <button
-                type="button"
-                className="button button-quiet"
-                disabled={busy === 'stopping'}
-                onClick={stopWaiting}
-              >
-                <Icon name="pause" /> 停止等待
-              </button>
-            ) : null}
-            <p className="assistant-note">
-              读取不重跑模型或工具。停止等待不等于后台取消；当前没有远程取消接口。
-            </p>
-          </div>
-        ) : null}
+        {busy || hasUnresolved || sessionExpired ? runControls : null}
         <form className="assistant-composer" onSubmit={submit}>
-          <label htmlFor="assistant-message">本轮请求</label>
+          <label className="assistant-sr-only" htmlFor="assistant-message">
+            请求
+          </label>
           <textarea
             id="assistant-message"
             ref={composerRef}
             value={workspace.draft}
             aria-invalid={draftLimits.issue !== null}
             aria-describedby={`assistant-message-limit${draftLimits.issue ? ' assistant-message-error' : ''}`}
-            rows={4}
+            rows={3}
             disabled={Boolean(busy) || hasUnresolved || sessionExpired}
-            placeholder="输入问题或具体操作要求；回车换行，使用按钮提交。"
+            placeholder="输入请求"
             onChange={(event) => {
               const draft = event.target.value;
               update((current) => ({ ...current, draft }));
@@ -1068,51 +1063,61 @@ export function AssistantPanel({
           {draftLimits.issue ? (
             <p className="assistant-warning" id="assistant-message-error">
               {draftLimits.issue === 'too_long'
-                ? `本轮请求超过 ${ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8），请手动精简后再提交；内容已完整保留，不会自动截断。`
-                : '本轮请求包含不支持的空字符（NUL），请移除后再提交；内容不会自动截断或修改。'}
+                ? `超过 ${ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8），请精简后提交；输入已保留，不会自动截断。`
+                : '输入含空字符（NUL），请移除后提交；输入已保留，不会自动修改。'}
             </p>
           ) : null}
-          <p className="assistant-note" id="assistant-round-disclosure">
-            本轮会把输入、此助手会话上下文及获准工具返回的业务资料交给下方模型处理，可能产生费用。每轮同意独立，不默认勾选；通用会话发送未开放，飞书本人早晚报的启用或真实发送还需独立确认。
-          </p>
-          <label className="assistant-check">
-            <input
-              type="checkbox"
-              checked={consented}
-              disabled={
-                !visible ||
-                Boolean(preparedHelp) ||
-                !modelReady ||
-                Boolean(busy) ||
-                hasUnresolved ||
-                sessionExpired ||
-                quotaExhausted ||
-                draftLimits.issue !== null
-              }
-              aria-describedby="assistant-round-disclosure"
-              onChange={(event) => setConsented(event.target.checked)}
-            />
-            <span>
-              我同意本轮调用{' '}
-              <strong>{status?.model || '尚未配置的模型'}</strong>，目标{' '}
-              <strong>{status?.endpoint_host || '尚未读取'}</strong>，配置版本{' '}
-              {status?.model_config_revision ?? '—'}，范围与费用如上。
-            </span>
-          </label>
+          <div
+            className="assistant-round-consent"
+            hidden={
+              !workspace.draft.trim() ||
+              !modelReady ||
+              hasUnresolved ||
+              sessionExpired
+            }
+          >
+            <p className="assistant-note" id="assistant-round-disclosure">
+              本轮输入、助手上下文及获准工具返回的业务资料将交给模型处理，可能产生费用。发送或持续外发另行确认。
+            </p>
+            <label className="assistant-check">
+              <input
+                type="checkbox"
+                checked={consented}
+                disabled={
+                  !visible ||
+                  Boolean(preparedHelp) ||
+                  !modelReady ||
+                  Boolean(busy) ||
+                  hasUnresolved ||
+                  sessionExpired ||
+                  quotaExhausted ||
+                  draftLimits.issue !== null
+                }
+                aria-describedby="assistant-round-disclosure"
+                onChange={(event) => setConsented(event.target.checked)}
+              />
+              <span>
+                我同意本轮调用{' '}
+                <strong>{status?.model || '尚未配置的模型'}</strong> ·{' '}
+                <strong>{status?.endpoint_host || '尚未读取'}</strong> ·
+                配置版本 {status?.model_config_revision ?? '—'}
+              </span>
+            </label>
+          </div>
           {quotaExhausted ? (
             <p className="assistant-warning">
-              今日共享模型额度已用尽。仍可读取已有运行，不会自动重试。
+              今日模型额度已用尽，可查看已有结果。
             </p>
           ) : null}
           {sessionExpired ? (
             <p className="assistant-warning">
-              按本机时间此会话已过期。请读取并核实结果，再新建会话；过期不会撤回已完成的操作。
+              会话已过期。请先核实结果，再从“更多”新建会话；已执行操作不会撤回。
             </p>
           ) : null}
-          <div className="assistant-actions">
+          <div className="assistant-actions assistant-submit-row">
             <button
               type="submit"
-              className="button button-primary"
+              className={`button ${preparedHelp || hasUnresolved || !modelReady ? 'button-secondary' : 'button-primary'}`}
               disabled={
                 !visible ||
                 Boolean(preparedHelp) ||
@@ -1126,71 +1131,205 @@ export function AssistantPanel({
                 quotaExhausted
               }
             >
-              <Icon name="send" /> 提交本轮请求
+              <Icon name="send" /> 提交
             </button>
-            <span className="assistant-note" id="assistant-message-limit">
+            <span
+              className={
+                draftLimits.bytes >= ASSISTANT_MESSAGE_BYTE_LIMIT * 0.8
+                  ? 'assistant-note'
+                  : 'assistant-sr-only'
+              }
+              id="assistant-message-limit"
+            >
               {draftLimits.bytes} / {ASSISTANT_MESSAGE_BYTE_LIMIT} 字节（UTF-8）
             </span>
           </div>
         </form>
       </section>
 
-      <details className="assistant-recovery">
-        <summary>恢复运行与会话管理</summary>
-        <p>
-          后台仅在内存保留约 30
-          分钟，重启后可能丢失。页面刷新不会自动发现旧运行；请自行记录不含正文的运行编号，再用同一授权身份读取。
-        </p>
-        <form className="assistant-recovery-form" onSubmit={recover}>
-          <label htmlFor="assistant-recovery-id">已有运行编号</label>
-          <input
-            id="assistant-recovery-id"
-            value={workspace.recoveryID}
-            maxLength={256}
-            autoComplete="off"
-            spellCheck={false}
-            disabled={Boolean(busy) || hasUnresolved}
-            onChange={(event) => {
-              const recoveryID = event.target.value;
-              update((current) => ({ ...current, recoveryID }));
-            }}
-          />
-          <button
-            type="submit"
-            className="button button-secondary"
-            disabled={
-              Boolean(busy) || hasUnresolved || !workspace.recoveryID.trim()
-            }
+      <details className="assistant-more">
+        <summary>更多</summary>
+        <div className="assistant-more-body">
+          <div className="assistant-actions">
+            <button
+              type="button"
+              className="button button-secondary button-icon"
+              aria-label="刷新状态"
+              title="刷新状态"
+              disabled={statusBusy || Boolean(busy)}
+              onClick={() => void loadStatus()}
+            >
+              <Icon name="refresh" />
+            </button>
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={onSettings}
+            >
+              <Icon name="settings" /> 模型设置
+            </button>
+          </div>
+          {status?.configured ? (
+            <p className="assistant-note">
+              {status.model} · {status.endpoint_host} ·{' '}
+              {status.external ? '外部模型' : '本地模型'} · 今日额度{' '}
+              {status.used_today} / {status.daily_limit}
+            </p>
+          ) : null}
+          {!busy && !hasUnresolved && !sessionExpired ? runControls : null}
+          <section
+            className="assistant-recovery"
+            aria-labelledby="assistant-recovery-title"
           >
-            <Icon name="eye" /> 只读恢复
-          </button>
-        </form>
-        <p>
-          新建只清空本页助手会话，不会取消后台运行、撤销写入或清除业务 AI 草稿。
-        </p>
-        {needsResetAcknowledgment ? (
-          <label className="assistant-check">
-            <input
-              type="checkbox"
-              checked={resetAcknowledged}
-              disabled={Boolean(busy)}
-              onChange={(event) => setResetAcknowledged(event.target.checked)}
-            />
-            <span>
-              我已记录必要的运行编号，并已在业务页面核实未决或未知结果，理解新建会话不会取消或撤销后台操作。
-            </span>
-          </label>
-        ) : null}
-        <button
-          type="button"
-          className="button button-secondary"
-          disabled={
-            Boolean(busy) || (needsResetAcknowledgment && !resetAcknowledged)
-          }
-          onClick={reset}
-        >
-          <Icon name="plus" /> 新建助手会话
-        </button>
+            <h2 id="assistant-recovery-title">运行与会话</h2>
+            <p>
+              运行仅在后台内存保留约 30
+              分钟，重启后可能丢失。只用已知编号和同一授权身份读取，不会重跑。
+            </p>
+            <form className="assistant-recovery-form" onSubmit={recover}>
+              <label htmlFor="assistant-recovery-id">已有运行编号</label>
+              <input
+                id="assistant-recovery-id"
+                value={workspace.recoveryID}
+                maxLength={256}
+                autoComplete="off"
+                spellCheck={false}
+                disabled={Boolean(busy) || hasUnresolved}
+                onChange={(event) => {
+                  const recoveryID = event.target.value;
+                  update((current) => ({ ...current, recoveryID }));
+                }}
+              />
+              <button
+                type="submit"
+                className="button button-secondary"
+                disabled={
+                  Boolean(busy) || hasUnresolved || !workspace.recoveryID.trim()
+                }
+              >
+                <Icon name="eye" /> 只读恢复
+              </button>
+            </form>
+            <p>新会话只清助手上下文，不取消后台操作，也不清业务草稿。</p>
+            {needsResetAcknowledgment ? (
+              <label className="assistant-check">
+                <input
+                  type="checkbox"
+                  checked={resetAcknowledged}
+                  disabled={Boolean(busy)}
+                  onChange={(event) =>
+                    setResetAcknowledged(event.target.checked)
+                  }
+                />
+                <span>
+                  我已记录必要的运行编号，并已在业务页面核实未决或未知结果；新会话不会取消或撤销后台操作。
+                </span>
+              </label>
+            ) : null}
+            <button
+              type="button"
+              className="button button-secondary"
+              disabled={
+                Boolean(busy) ||
+                (needsResetAcknowledgment && !resetAcknowledged)
+              }
+              onClick={reset}
+            >
+              <Icon name="plus" /> 新会话
+            </button>
+          </section>
+          {workspace.turns.map((turn, index) => (
+            <details className="assistant-audit" key={turn.key}>
+              <summary>
+                第 {index + 1} 轮运行与审计
+                {turn.run ? ` · ${turn.run.tool_results.length} 项` : ''}
+              </summary>
+              {turn.runID ? (
+                <p className="assistant-run-id">
+                  运行编号 <code>{turn.runID}</code>
+                  {turn.run ? (
+                    <>
+                      {' '}
+                      · 有效至{' '}
+                      <time dateTime={turn.run.expires_at}>
+                        {formatTime(turn.run.expires_at)}
+                      </time>
+                    </>
+                  ) : null}
+                </p>
+              ) : (
+                <p className="assistant-note">
+                  未取得运行编号，请在原业务页核实。
+                </p>
+              )}
+              {turn.run?.tool_results.length ? (
+                <ol>
+                  {turn.run.tool_results.map((item) => (
+                    <li key={item.call_id}>
+                      <div className="assistant-audit-heading">
+                        <code>{item.operation_id}</code>
+                        <strong>{TOOL_LABELS[item.state]}</strong>
+                      </div>
+                      <p className="assistant-note">
+                        调用编号 <code>{item.call_id}</code>
+                        {item.http_status === null
+                          ? ' · 无 HTTP 状态'
+                          : ` · HTTP ${item.http_status}`}
+                        {item.error_code ? (
+                          <>
+                            {' '}
+                            · <code>{item.error_code}</code>
+                          </>
+                        ) : null}
+                      </p>
+                      {item.data !== null ? (
+                        <details>
+                          <summary>查看返回数据</summary>
+                          <ParameterValue value={item.data} />
+                        </details>
+                      ) : (
+                        <p className="assistant-note">没有返回数据。</p>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="assistant-note">本轮没有工具执行记录。</p>
+              )}
+            </details>
+          ))}
+          {status ? (
+            <details className="assistant-scope">
+              <summary>权限目录（{status.operations.length} 项）</summary>
+              <p>
+                仅覆盖本项目业务接口。凭据与授权在设置中管理；外部读取、费用和写入以固定预览为准。通用会话发送未开放；本人飞书早晚报须独立授权。
+              </p>
+              <ul className="assistant-catalogue">
+                {status.operations.map((item) => (
+                  <li key={item.id}>
+                    <div>
+                      <strong>{item.id}</strong>
+                      <span>
+                        {Object.hasOwn(AVAILABILITY_LABELS, item.availability)
+                          ? AVAILABILITY_LABELS[item.availability]
+                          : `未知权限（${item.availability}）`}
+                      </span>
+                    </div>
+                    <code>
+                      {item.method} {item.path}
+                    </code>
+                    <p>
+                      {Object.hasOwn(EFFECT_LABELS, item.effect)
+                        ? EFFECT_LABELS[item.effect]
+                        : `未知影响（${item.effect}）`}
+                      {item.reason ? ` · ${item.reason}` : ''}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
       </details>
     </section>
   );

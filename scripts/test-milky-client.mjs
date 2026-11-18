@@ -124,4 +124,96 @@ assert.deepEqual(JSON.parse(requests.at(-1).body), {
   peer_ids: ['987654321'],
 });
 assert.equal(requests.at(-1).credentials, 'omit');
-console.log('Milky client checks passed: single QQ catalog/settings integration, pending verification, persisted peer display, safe stop payload, and component compilation. Synthetic data only.');
+
+// Render already-read server snapshots without running connection effects.
+// Exercise the actual button handlers; network and all account data are inert.
+const renderablePanel = transformSync('MilkyPanel.tsx', panel
+  .replace(/^import[\s\S]*?from ['"][^'"]+['"];?\r?$/gm, '')
+  .replace(/^export /gm, ''), {
+  jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' },
+});
+function monitorFixture({ enabled, state, accountState = 'identity_verified', busy = null }) {
+  const initial = {
+    ...structuredClone(response), state: accountState,
+    monitor: { ...response.monitor, enabled, state, peer_ids: ['987654321'] },
+  };
+  const values = [initial, null, null, busy, '', '987654321'];
+  const refs = [];
+  let stateIndex = 0, refIndex = 0, release;
+  const operations = [];
+  const component = { exports: {} };
+  runInNewContext(renderablePanel.code + '\nmodule.exports=MilkyPanel;', {
+    module: component, jsx, AbortController,
+    useState(initialValue) {
+      const index = stateIndex++;
+      if (!(index in values)) values[index] = initialValue;
+      return [values[index], (value) => {
+        values[index] = typeof value === 'function' ? value(values[index]) : value;
+      }];
+    },
+    useRef(initialValue) {
+      const index = refIndex++;
+      return refs[index] ??= { current: initialValue };
+    },
+    useCallback: (callback) => callback,
+    useEffect() {},
+    ServiceError: class ServiceError extends Error {},
+    configureMilkyMonitor(_token, _signal, nextEnabled, peers) {
+      operations.push({ enabled: nextEnabled, peer_ids: Array.from(peers) });
+      return new Promise((resolve) => {
+        release = () => resolve({ ...initial, monitor: { ...initial.monitor,
+          enabled: nextEnabled, state: nextEnabled ? 'running' : 'disabled',
+        } });
+      });
+    },
+  });
+  const render = () => {
+    stateIndex = refIndex = 0;
+    return component.exports({ token: 'synthetic-token', onSystemUpdate() {}, onAuthFailure() {} });
+  };
+  const monitorButtons = () => {
+    const all = [];
+    const walk = (node) => {
+      if (Array.isArray(node)) return node.forEach(walk);
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'button' && /后台接收/.test(label(node))) all.push(node);
+      walk(node.props?.children);
+    };
+    walk(render());
+    return all;
+  };
+  return { monitorButtons, operations, release: () => release() };
+}
+function label(node) {
+  if (Array.isArray(node)) return node.map(label).join('');
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  return node && typeof node === 'object' ? label(node.props?.children) : '';
+}
+for (const state of ['running', 'pending_verification']) {
+  for (const busy of [null, 'verify']) {
+    const fixture = monitorFixture({ enabled: true, state, busy,
+      accountState: state === 'running' ? 'identity_verified' : 'configured' });
+    const controls = fixture.monitorButtons();
+    assert.equal(controls.length, 1, 'saved authorization keeps one visible stop/clear action');
+    assert.equal(label(controls[0]), state === 'running' ? '停止后台接收' : '清除已保存的后台接收');
+    assert.equal(controls[0].props.disabled, busy !== null, 'in-flight requests retain the visible authorized stop with the existing busy guard');
+  }
+}
+const startFixture = monitorFixture({ enabled: false, state: 'disabled' });
+assert.equal(startFixture.monitorButtons().length, 1);
+assert.equal(label(startFixture.monitorButtons()[0]), '开启后台接收');
+startFixture.monitorButtons()[0].props.onClick();
+assert.deepEqual(startFixture.operations, [{ enabled: true, peer_ids: ['987654321'] }]);
+startFixture.release();
+for (let i = 0; i < 10; i++) await Promise.resolve();
+assert.equal(label(startFixture.monitorButtons()[0]), '停止后台接收');
+const clearFixture = monitorFixture({ enabled: true, state: 'pending_verification', accountState: 'configured' });
+clearFixture.monitorButtons()[0].props.onClick();
+assert.equal(label(clearFixture.monitorButtons()[0]), '清除已保存的后台接收');
+assert.equal(clearFixture.monitorButtons()[0].props.disabled, true);
+assert.deepEqual(clearFixture.operations, [{ enabled: false, peer_ids: ['987654321'] }]);
+clearFixture.release();
+for (let i = 0; i < 10; i++) await Promise.resolve();
+assert.equal(label(clearFixture.monitorButtons()[0]), '开启后台接收');
+assert.equal(clearFixture.monitorButtons()[0].props.disabled, true, 'clearing pending authorization does not bypass account verification');
+console.log('Milky client checks passed: single QQ catalog/settings integration, one state-aware monitor action, visible guarded stop during in-flight requests, pending clear without re-verification, persisted peers, safe payloads, and component compilation. Synthetic data only.');

@@ -36,6 +36,43 @@ const assistantExports = [
 ];
 const { confirmed: _confirmed, ...binding } = BINDING;
 const FUTURE = '2099-06-01T12:00:00Z';
+// Reconstruct the readonly field presentation, proving no frozen field or full
+// outgoing text was dropped when replacing raw JSON with readable labels.
+function previewValue(node) {
+  const children = [node.props.children]
+    .flat(Infinity)
+    .filter((item) => item && typeof item === 'object');
+  switch (node.props['data-value-kind']) {
+    case 'object':
+      return Object.fromEntries(
+        children.map((field) => {
+          const definition = nodes(field).find((item) => item.type === 'dd');
+          const value = [definition.props.children]
+            .flat(Infinity)
+            .find((item) => item && typeof item === 'object');
+          return [field.props['data-parameter-key'], previewValue(value)];
+        }),
+      );
+    case 'array':
+      return children.map((item) =>
+        previewValue(
+          [item.props.children]
+            .flat(Infinity)
+            .find((child) => child && typeof child === 'object'),
+        ),
+      );
+    case 'null':
+      return null;
+    case 'boolean':
+      return text(node) === '是';
+    case 'number':
+      return Number(text(node));
+    case 'string':
+      return text(node);
+    default:
+      throw new Error('not a readable fixed parameter');
+  }
+}
 const catalogue = () => ({
   ...model(),
   external: true,
@@ -248,26 +285,35 @@ for (const kind of ['enable', 'send']) {
   assert.ok(
     confirmationCheckboxes(panel).every((node) => node.props.checked === false),
   );
-  assert.equal(button(panel, '确认并继续')._disabled, true);
+  assert.equal(button(panel, '确认')._disabled, true);
   const specificConsent = kind === 'enable' ? enableConsent : sendConsent;
   await check(panel, originalConsent);
   assert.equal(
-    button(panel, '确认并继续')._disabled,
+    button(panel, '确认')._disabled,
     true,
     'model processing consent alone cannot authorize Feishu sending',
   );
   await check(panel, originalConsent, false);
   await check(panel, specificConsent);
   assert.equal(
-    button(panel, '确认并继续')._disabled,
+    button(panel, '确认')._disabled,
     true,
     'Feishu sending consent cannot replace model processing consent',
   );
   await check(panel, originalConsent);
-  assert.equal(button(panel, '确认并继续')._disabled, false);
+  assert.equal(button(panel, '确认')._disabled, false);
   const preview = confirmation(panel),
-    body = nodes(preview).find((node) => node.type === 'pre');
-  assert.deepEqual(JSON.parse(text(body)), action(kind).arguments);
+    body = nodes(preview).find(
+      (node) => node.props['aria-label'] === '服务器固定操作参数',
+    );
+  const renderedArguments = previewValue(
+    nodes(body).find((node) => node.props['data-value-kind'] === 'object'),
+  );
+  assert.deepEqual(renderedArguments, action(kind).arguments);
+  assert.equal(
+    nodes(preview).some((node) => node.type === 'pre'),
+    false,
+  );
   assert.equal(
     nodes(preview).filter(
       (node) =>
@@ -287,7 +333,7 @@ for (const kind of ['enable', 'send']) {
     assert.ok(text(preview).includes('离线不补发'));
   } else {
     assert.equal(
-      JSON.parse(text(body)).report_preview.text,
+      renderedArguments.report_preview.text,
       report().text,
       'the full frozen outgoing text, not just its model summary, is shown',
     );
@@ -298,7 +344,7 @@ for (const kind of ['enable', 'send']) {
     assert.ok(text(preview).includes('HTTP 202 或 unknown 都不是成功'));
     assert.ok(text(preview).includes('未知结果请人工核实且不要重发'));
   }
-  await click(panel, '读取运行结果');
+  await click(panel, '查看结果');
   assert.ok(
     confirmationCheckboxes(panel).every((node) => node.props.checked === false),
   );
@@ -334,7 +380,7 @@ for (const kind of ['enable', 'send']) {
     test.server.run = run('running');
     return reply(test.server.run, 202);
   };
-  await click(panel, '确认并继续');
+  await click(panel, '确认');
   assert.equal(writes(test).length, 1);
   assert.ok(
     writes(test)[0].url.endsWith('/assistant/runs/synthetic-run/confirm'),
@@ -363,7 +409,7 @@ for (const kind of ['enable', 'send']) {
       },
     ],
   });
-  await click(panel, '读取运行结果');
+  await click(panel, '查看结果');
   assert.equal(
     writes(test).length,
     1,
@@ -396,12 +442,12 @@ for (const kind of ['preview', 'disable']) {
     assert.ok(text(preview).includes('本助手确认后仍可能继续模型处理'));
   }
   await check(panel, originalConsent);
-  assert.equal(button(panel, '确认并继续')._disabled, false);
+  assert.equal(button(panel, '确认')._disabled, false);
   test.server.confirm = () => {
     test.server.run = run('completed');
     return reply(test.server.run);
   };
-  await click(panel, '确认并继续');
+  await click(panel, '确认');
   assert.equal(writes(test).length, 1);
   assert.deepEqual(
     Object.keys(JSON.parse(writes(test)[0].options.body)).sort(),
@@ -428,7 +474,7 @@ for (const pending of [
   await panel.flush();
   assert.equal(confirmationCheckboxes(panel).length, 2);
   await check(panel, originalConsent);
-  assert.equal(button(panel, '确认并继续')._disabled, true);
+  assert.equal(button(panel, '确认')._disabled, true);
   assert.equal(writes(test).length, 0);
   panel.unmount();
 }
@@ -447,7 +493,7 @@ assert.ok(
     (node) => !node.props.checked && node._disabled,
   ),
 );
-assert.equal(button(panel, '确认并继续')._disabled, true);
+assert.equal(button(panel, '确认')._disabled, true);
 test.server.run = run(
   'awaiting_confirmation',
   action('send', {
@@ -459,12 +505,12 @@ test.server.run = run(
   }),
   { model_config_revision: 1 },
 );
-await click(panel, '读取运行结果');
+await click(panel, '查看结果');
 assert.ok(confirmationCheckboxes(panel).every((node) => !node.props.checked));
 await check(panel, originalConsent);
-assert.equal(button(panel, '确认并继续')._disabled, true);
+assert.equal(button(panel, '确认')._disabled, true);
 await check(panel, sendConsent);
-assert.equal(button(panel, '确认并继续')._disabled, false);
+assert.equal(button(panel, '确认')._disabled, false);
 assert.equal(writes(test).length, 0);
 panel.unmount();
 
@@ -478,24 +524,24 @@ for (const kind of ['enable', 'send']) {
   await check(panel, originalConsent);
   await check(panel, kind === 'enable' ? enableConsent : sendConsent);
   test.server.confirm = waitForAbort;
-  await click(panel, '确认并继续');
+  await click(panel, '确认');
   await click(panel, '停止等待');
   assert.equal(writes(test).length, 1);
-  assert.equal(button(panel, '确认并继续')._disabled, true);
-  assert.equal(button(panel, '拒绝此项')._disabled, true);
+  assert.equal(button(panel, '确认')._disabled, true);
+  assert.equal(button(panel, '拒绝')._disabled, true);
   assert.ok(confirmationCheckboxes(panel).every((node) => !node.props.checked));
   panel.unmount();
   await tick();
   panel = test.mount();
   await panel.flush();
   assert.equal(writes(test).length, 1);
-  assert.equal(button(panel, '确认并继续')._disabled, true);
+  assert.equal(button(panel, '确认')._disabled, true);
   test.server.run = run('unknown');
-  await click(panel, '读取运行结果');
+  await click(panel, '查看结果');
   assert.ok(text(panel.tree).includes('结果未知'));
   assert.equal(writes(test).length, 1);
   test.server.run = run('completed');
-  await click(panel, '读取运行结果');
+  await click(panel, '查看结果');
   assert.equal(writes(test).length, 1);
   assert.equal(test.browser.storageReads, 0);
   panel.unmount();
@@ -507,9 +553,9 @@ test = setup('send');
 test.server.statusFailure = () => errorReply('AI_NOT_CONFIGURED', 503);
 panel = test.mount();
 await panel.flush();
-assert.equal(button(panel, '确认并继续')._disabled, true);
-assert.equal(button(panel, '拒绝此项')._disabled, false);
-await click(panel, '拒绝此项');
+assert.equal(button(panel, '确认')._disabled, true);
+assert.equal(button(panel, '拒绝')._disabled, false);
+await click(panel, '拒绝');
 assert.equal(writes(test).length, 1);
 assert.ok(writes(test)[0].url.endsWith('/reject'));
 assert.deepEqual(JSON.parse(writes(test)[0].options.body), {
@@ -525,7 +571,7 @@ await check(panel, sendConsent);
 test.browser.setTime(Date.parse(NEXT));
 test.browser.fireTimeout(Date.parse(FUTURE) - NOW + 50);
 await panel.flush();
-assert.equal(button(panel, '确认并继续')._disabled, true);
+assert.equal(button(panel, '确认')._disabled, true);
 assert.equal(writes(test).length, 0);
 panel.unmount();
 console.log(

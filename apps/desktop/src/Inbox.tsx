@@ -29,7 +29,7 @@ import AIPanel from './AIPanel';
 import type { AIDraftBuffer } from './ai-api';
 import ProfilePanel from './ProfilePanel';
 import type { AssistantHelpRequest } from './assistant-help';
-import { ConversationKindTabs } from './ConversationKindTabs';
+import { ConversationKindSelect } from './ConversationKindSelect';
 import type { ConversationKind } from './inbox-api';
 import { KeywordMatch, keywordError } from './keyword-search';
 import {
@@ -576,19 +576,22 @@ export default function Inbox({
   const [platform, setPlatform] = useState<Platform | undefined>();
   const [category, setCategory] = useState<ProfileCategory | undefined>();
   const [view, setView] = useState<View>('all');
-  const [kind, setKind] = useState<ConversationKind>('private');
+  const [kind, setKind] = useState<ConversationKind | undefined>('private');
+  const [searchScope, setSearchScope] = useState<'list' | 'current'>('list');
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [messageSearch, setMessageSearch] = useState('');
   const [messageQuery, setMessageQuery] = useState('');
-  const searchError = keywordError(search);
-  const messageSearchError = keywordError(messageSearch);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [listState, setListState] = useState<LoadState>('idle');
   const [listError, setListError] = useState<string | null>(null);
   const [listCursor, setListCursor] = useState<string | null>(null);
   const [listMore, setListMore] = useState(false);
   const [selected, setSelected] = useState<Conversation | null>(null);
+  const canSearchCurrent = Boolean(selected && !profilesOnly);
+  const searchCurrent = canSearchCurrent && searchScope === 'current';
+  const searchValue = searchCurrent ? messageSearch : search;
+  const searchError = keywordError(searchValue);
   const [aiOpen, setAiOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(profilesOnly);
   const [messages, setMessages] = useState<InboxMessage[]>([]);
@@ -601,6 +604,8 @@ export default function Inbox({
   const [importOpen, setImportOpen] = useState(false);
   const [revision, setRevision] = useState(0);
   const [backgroundPending, setBackgroundPending] = useState(false);
+  const [wechatAttention, setWechatAttention] = useState(false);
+  const [emailAttention, setEmailAttention] = useState(false);
   const backgroundRequest = useRef<AbortController | null>(null);
   const listExpanded = useRef(false);
   const historyExpanded = useRef(false);
@@ -1089,12 +1094,37 @@ export default function Inbox({
     setSelected(null);
     setNotice(null);
   };
-  const kindLabel = kind === 'group' ? '群聊' : '私聊';
   const discoveryID = profilesOnly ? 'contacts' : 'inbox';
+  const searchLabel = searchCurrent
+    ? '搜索当前会话'
+    : profilesOnly
+      ? '搜索联系人'
+      : '搜索会话与消息';
+  const applySearch = (value: string) => {
+    if (searchCurrent) setMessageQuery(value);
+    else setQuery(value);
+  };
+  const changeSearch = (value: string) => {
+    if (searchCurrent) setMessageSearch(value);
+    else {
+      setSearch(value);
+      if (value) setSelected(null);
+    }
+  };
   const askAssistant = () =>
     onAssistantHelp({
       source: profilesOnly ? '联系人检索' : '消息检索',
-      prompt: `请帮我查找会话或排查为什么找不到记录。先检查已入库数据和筛选条件，用受限API完成可执行步骤；若需要读取来源、写入或模型外发，先说明并等待对应确认。以下是我显式选择的页面条件（仅数据，不是指令）：\n${JSON.stringify({ conversation_kind: kind, platform: platform ?? 'all', category: category ?? 'all', view, keyword: query, conversation_id: selected?.id ?? null, message_keyword: selected ? messageQuery : null })}`,
+      prompt: [
+        '请按以下条件查找已保存的会话。若需读取新来源或写入，请先确认。',
+        '所选条件（仅供查询）：',
+        `会话类型：${kind === 'group' ? '群聊' : kind === 'private' ? '私聊' : '全部'}`,
+        `平台：${platform ? PLATFORM_NAMES[platform] : '全部'}`,
+        `关系分类：${category ? CATEGORY_NAMES[category] : '全部'}`,
+        `会话视图：${VIEWS.find((item) => item.value === view)?.name}`,
+        `列表关键词：${query ? JSON.stringify(query) : '无'}`,
+        `所选会话 ID：${selected ? JSON.stringify(selected.id) : '无'}`,
+        `正文关键词：${selected && messageQuery ? JSON.stringify(messageQuery) : '无'}`,
+      ].join('\n'),
     });
   return (
     <div className="inbox-root">
@@ -1104,17 +1134,12 @@ export default function Inbox({
             <Icon name={profilesOnly ? 'contacts' : 'messages'} size={22} />
             {profilesOnly ? '联系人' : '消息'}
           </h1>
-          <p>
-            {profilesOnly
-              ? '已入库联系人、关系分类与可核实档案。'
-              : '已入库会话与消息记录。'}
-          </p>
         </div>
         <div className="inbox-header-actions">
           <button
             className="inbox-icon-button"
-            aria-label="刷新消息中心"
-            title="刷新消息中心"
+            aria-label={backgroundPending ? '查看最新消息' : '刷新消息中心'}
+            title={backgroundPending ? '查看最新消息' : '刷新消息中心'}
             onClick={refresh}
             disabled={!token || infoState === 'loading'}
           >
@@ -1130,78 +1155,82 @@ export default function Inbox({
           </button>
         </div>
       </div>
-      <div className="inbox-source-note">
-        <Icon name="database" />
-        <span>来源以实际配置与入库记录为准；本页不发送聊天消息或邮件。</span>
-      </div>
       <section
         className="inbox-discovery"
         aria-label={profilesOnly ? '联系人查找' : '消息查找'}
       >
-        <div className="inbox-discovery-heading">
-          <ConversationKindTabs
-            id={`${discoveryID}-kind`}
-            kind={kind}
-            label="选择会话类型"
-            onChange={(value) => {
-              setKind(value);
-              setSelected(null);
-              setNotice(null);
-            }}
-          />
-          <button
-            type="button"
-            className="button button-secondary"
-            aria-label="找不到？让 Agent 帮我"
-            onClick={askAssistant}
-          >
-            <Icon name="assistant" />
-            Agent 帮我
-          </button>
-        </div>
         <form
           className="inbox-keyword-form"
           onSubmit={(event) => {
             event.preventDefault();
-            if (!searchError) setQuery(search.trim());
+            if (enabled && !searchError) applySearch(searchValue.trim());
           }}
         >
-          <label htmlFor={`${discoveryID}-keyword`}>关键词匹配搜索</label>
           <div className="inbox-keyword-row">
-            <input
-              id={`${discoveryID}-keyword`}
-              type="search"
-              ref={searchField}
-              placeholder="联系人、群名或消息正文"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
+            <ConversationKindSelect
+              id={`${discoveryID}-kind`}
+              value={kind ?? 'all'}
+              includeAll
+              onChange={(value) => {
+                setKind(value === 'all' ? undefined : value);
                 setSelected(null);
+                setNotice(null);
               }}
-              autoComplete="off"
-              aria-invalid={Boolean(searchError)}
-              aria-describedby={`${discoveryID}-keyword-help${searchError ? ` ${discoveryID}-keyword-error` : ''}`}
             />
+            {canSearchCurrent ? (
+              <select
+                id="inbox-search-scope"
+                aria-label="搜索范围"
+                value={searchScope}
+                onChange={(event) =>
+                  setSearchScope(
+                    event.target.value === 'current' ? 'current' : 'list',
+                  )
+                }
+              >
+                <option value="list">会话列表</option>
+                <option value="current">当前会话</option>
+              </select>
+            ) : null}
+            <div className="inbox-keyword-field">
+              <Icon name="search" size={16} />
+              <input
+                id={`${discoveryID}-keyword`}
+                type="search"
+                ref={searchField}
+                aria-label={searchLabel}
+                placeholder={searchCurrent ? '搜索正文' : '名称或消息正文'}
+                value={searchValue}
+                onChange={(event) => changeSearch(event.target.value)}
+                autoComplete="off"
+                aria-invalid={Boolean(searchError)}
+                aria-describedby={
+                  searchError ? `${discoveryID}-keyword-error` : undefined
+                }
+              />
+              {searchValue ? (
+                <button
+                  className="inbox-icon-button"
+                  type="button"
+                  aria-label="清除搜索关键词"
+                  title="清除搜索关键词"
+                  onClick={() => {
+                    changeSearch('');
+                    applySearch('');
+                    searchField.current?.focus({ preventScroll: true });
+                  }}
+                >
+                  <Icon name="close" />
+                </button>
+              ) : null}
+            </div>
             <button
-              className="button button-primary"
-              type="submit"
-              disabled={!enabled || Boolean(searchError)}
-            >
-              <Icon name="search" />
-              搜索
-            </button>
-            <button
-              className="button button-secondary button-icon"
               type="button"
-              aria-label="清除搜索关键词"
-              title="清除搜索关键词"
-              disabled={!search}
-              onClick={() => {
-                setSearch('');
-                setQuery('');
-              }}
+              className="button button-secondary"
+              onClick={askAssistant}
             >
-              <Icon name="close" />
+              <Icon name="assistant" />
+              Agent 帮我
             </button>
           </div>
           {searchError ? (
@@ -1213,31 +1242,42 @@ export default function Inbox({
               {searchError}
             </p>
           ) : null}
-          <p id={`${discoveryID}-keyword-help`} className="inbox-keyword-help">
-            在当前{kindLabel}
-            和筛选条件内，按字面匹配名称或已入库正文；不会自动读取来源。
-          </p>
         </form>
-        {!profilesOnly && token ? (
-          <nav className="inbox-source-links" aria-label="读取消息来源">
-            <span>记录还没入库？</span>
-            <a href="#inbox-wechat-source">
-              <Icon name="message" />
-              读取微信消息
-            </a>
-            <a href="#inbox-email-source">
-              <Icon name="mail" />
-              同步邮箱
-            </a>
-          </nav>
+        {token && !profilesOnly ? (
+          <details className="inbox-sources">
+            <summary>
+              消息来源
+              <span className="inbox-source-attention" aria-live="polite">
+                {wechatAttention ? ' · 微信需检查' : ''}
+                {emailAttention ? ' · 邮箱需检查' : ''}
+              </span>
+            </summary>
+            <WechatPanel
+              key={`wechat:${token}`}
+              token={token}
+              storageEnabled={enabled}
+              revision={revision}
+              onSynced={refresh}
+              onBackgroundSynced={() => void refreshBackground()}
+              onAuthFailure={onAuthFailure}
+              onAssistantHelp={onAssistantHelp}
+              onAttentionChange={setWechatAttention}
+            />
+            <EmailPanel
+              key={`email:${token}`}
+              token={token}
+              storageEnabled={enabled}
+              revision={revision}
+              onSynced={refresh}
+              onAuthFailure={onAuthFailure}
+              onAttentionChange={setEmailAttention}
+            />
+          </details>
         ) : null}
       </section>
       {backgroundPending ? (
         <div className="inbox-notice" role="status">
-          <p>后台记录已有更新。当前阅读位置和编辑内容已保留。</p>
-          <button className="email-text-button" type="button" onClick={refresh}>
-            {profilesOnly ? '刷新联系人列表' : '查看最新消息'}
-          </button>
+          <p>后台已有新记录，可刷新查看。</p>
         </div>
       ) : null}
       {notice ? (
@@ -1279,9 +1319,6 @@ export default function Inbox({
         <section className="inbox-start">
           <h2>消息中心暂时无法读取</h2>
           <p role="alert">{infoError}</p>
-          <button className="button button-secondary" onClick={refresh}>
-            重新读取
-          </button>
         </section>
       ) : !info ? (
         <section className="inbox-start" aria-busy="true">
@@ -1298,12 +1335,7 @@ export default function Inbox({
           </button>
         </section>
       ) : (
-        <div
-          className={`inbox-layout ${selected ? 'has-selection' : ''}`}
-          role="tabpanel"
-          id={`${discoveryID}-kind-panel`}
-          aria-labelledby={`${discoveryID}-kind-${kind}`}
-        >
+        <div className={`inbox-layout ${selected ? 'has-selection' : ''}`}>
           <aside className="inbox-filters" aria-label="会话筛选">
             <h2>收件箱</h2>
             <div className="inbox-view-filters">
@@ -1352,9 +1384,6 @@ export default function Inbox({
                 </button>
               );
             })}
-            <p className="inbox-filter-footnote">
-              接收能力以实际设置为准；也可导入历史记录。
-            </p>
             <label className="inbox-category-filter">
               关系分类
               <select
@@ -1403,7 +1432,6 @@ export default function Inbox({
             <div className="inbox-list-header">
               <div className="inbox-list-summary">
                 <strong>
-                  {kindLabel} ·{' '}
                   {platform ? PLATFORM_NAMES[platform] : '全部平台'} ·{' '}
                   {VIEWS.find((item) => item.value === view)?.name}
                 </strong>
@@ -1427,9 +1455,6 @@ export default function Inbox({
               ) : listState === 'error' ? (
                 <div className="inbox-list-message">
                   <p role="alert">{listError}</p>
-                  <button className="button button-secondary" onClick={refresh}>
-                    重试
-                  </button>
                 </div>
               ) : conversations.length === 0 ? (
                 <div className="inbox-list-empty">
@@ -1444,22 +1469,7 @@ export default function Inbox({
                             ? '还没有置顶的会话'
                             : '暂无会话记录'}
                   </h3>
-                  <p>
-                    {query
-                      ? `当前${kindLabel}及筛选条件内没有匹配。可清除关键词、切换私聊/群聊或读取尚未入库的来源。`
-                      : view === 'all'
-                        ? '导入已有消息后，会话将按时间汇集在这里。'
-                        : '可以切换到全部会话，继续查看已有记录。'}
-                  </p>
-                  {view === 'all' && !query ? (
-                    <button
-                      className="inbox-text-button"
-                      onClick={() => setImportOpen(true)}
-                    >
-                      导入消息
-                      <Icon name="arrow" size={15} />
-                    </button>
-                  ) : (
+                  {view !== 'all' || platform || category ? (
                     <button
                       className="inbox-text-button"
                       onClick={() => {
@@ -1470,16 +1480,9 @@ export default function Inbox({
                         setCategory(undefined);
                       }}
                     >
-                      查看当前类型全部会话
+                      重置筛选
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    className="inbox-text-button"
-                    onClick={askAssistant}
-                  >
-                    <Icon name="assistant" />让 Agent 帮我查找
-                  </button>
+                  ) : null}
                 </div>
               ) : (
                 <ul className="inbox-conversation-list">
@@ -1662,89 +1665,18 @@ export default function Inbox({
                       AI 管理
                     </button>
                   ) : null}
-                  <button
-                    type="button"
-                    aria-label="Agent 帮我处理"
-                    onClick={askAssistant}
-                  >
-                    <Icon name="assistant" />
-                    Agent
-                  </button>
-                  <button
-                    onClick={() =>
-                      setProfileOpen((value) => profilesOnly || !value)
-                    }
-                    aria-label="个人档案"
-                    aria-expanded={profileOpen}
-                    aria-controls={`personal-profile-${selected.id}`}
-                  >
-                    <Icon name="user" />
-                    档案
-                  </button>
-                </div>
-                {!profilesOnly ? (
-                  <form
-                    className="inbox-message-search"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      if (!messageSearchError)
-                        setMessageQuery(messageSearch.trim());
-                    }}
-                  >
-                    <label htmlFor="inbox-message-keyword">
-                      当前会话正文关键词
-                    </label>
-                    <div className="inbox-keyword-row">
-                      <input
-                        id="inbox-message-keyword"
-                        type="search"
-                        value={messageSearch}
-                        placeholder="匹配这段会话的已入库消息"
-                        onChange={(event) =>
-                          setMessageSearch(event.target.value)
-                        }
-                        aria-invalid={Boolean(messageSearchError)}
-                        aria-describedby="inbox-message-search-help"
-                      />
-                      <button
-                        className="button button-secondary"
-                        type="submit"
-                        disabled={Boolean(messageSearchError)}
-                      >
-                        <Icon name="search" />
-                        搜索正文
-                      </button>
-                      {messageSearch ? (
-                        <button
-                          className="button button-secondary button-icon"
-                          type="button"
-                          aria-label="查看全部消息"
-                          title="查看全部消息"
-                          onClick={() => {
-                            setMessageSearch('');
-                            setMessageQuery('');
-                          }}
-                        >
-                          <Icon name="close" />
-                        </button>
-                      ) : null}
-                    </div>
-                    <p
-                      id="inbox-message-search-help"
-                      className={
-                        messageSearchError
-                          ? 'inbox-keyword-error'
-                          : 'inbox-keyword-help'
-                      }
-                      role={messageSearchError ? 'alert' : undefined}
+                  {!profilesOnly ? (
+                    <button
+                      onClick={() => setProfileOpen((value) => !value)}
+                      aria-label="个人档案"
+                      aria-expanded={profileOpen}
+                      aria-controls={`personal-profile-${selected.id}`}
                     >
-                      {messageSearchError ||
-                        (messageQuery
-                          ? `仅展示正文包含“${messageQuery}”的消息；继续向前加载也只读取匹配项。`
-                          : '按字面包含匹配，可检索已入库历史；邮件头不参与此处正文搜索。')}
-                    </p>
-                  </form>
-                ) : null}
+                      <Icon name="user" />
+                      档案
+                    </button>
+                  ) : null}
+                </div>
                 <div
                   className="inbox-history"
                   ref={messageViewport}
@@ -1767,12 +1699,14 @@ export default function Inbox({
                   ) : messageState === 'error' ? (
                     <div className="inbox-history-note">
                       <p role="alert">{messageError}</p>
-                      <button className="inbox-text-button" onClick={refresh}>
-                        重新读取
-                      </button>
                     </div>
                   ) : (
                     <>
+                      {messageQuery && !searchCurrent ? (
+                        <p className="inbox-history-note" role="status">
+                          正文包含「{messageQuery}」
+                        </p>
+                      ) : null}
                       {messageCursor ? (
                         <button
                           className="inbox-load-more"
@@ -1789,30 +1723,9 @@ export default function Inbox({
                                 ? '已显示最早的正文匹配记录'
                                 : '已显示当前保存的最早记录'
                               : messageQuery
-                                ? '当前会话没有正文匹配；列表可能匹配了名称或邮件资料。'
+                                ? '当前会话没有匹配的正文。'
                                 : '这个会话还没有消息'}
                           </p>
-                          {!messages.length && messageQuery ? (
-                            <button
-                              type="button"
-                              className="email-text-button"
-                              onClick={() => {
-                                setMessageSearch('');
-                                setMessageQuery('');
-                              }}
-                            >
-                              查看全部消息
-                            </button>
-                          ) : null}
-                          {!messages.length ? (
-                            <button
-                              type="button"
-                              className="email-text-button"
-                              onClick={askAssistant}
-                            >
-                              <Icon name="assistant" />让 Agent 帮我
-                            </button>
-                          ) : null}
                         </div>
                       )}
                       {messages.map((item) => (
@@ -1897,52 +1810,11 @@ export default function Inbox({
             ) : (
               <div className="inbox-detail-empty">
                 <h2>{profilesOnly ? '选择联系人' : '选择会话'}</h2>
-                <p>
-                  选择后查看
-                  {profilesOnly
-                    ? '关系分类与个人档案'
-                    : '消息正文、来源与处理状态'}
-                  。
-                </p>
               </div>
             )}
           </section>
         </div>
       )}
-      {token && !profilesOnly ? (
-        <div
-          id="inbox-wechat-source"
-          className="inbox-source-section"
-          tabIndex={-1}
-        >
-          <WechatPanel
-            key={token}
-            token={token}
-            storageEnabled={enabled}
-            revision={revision}
-            onSynced={refresh}
-            onBackgroundSynced={() => void refreshBackground()}
-            onAuthFailure={onAuthFailure}
-            onAssistantHelp={onAssistantHelp}
-          />
-        </div>
-      ) : null}
-      {token && !profilesOnly ? (
-        <div
-          id="inbox-email-source"
-          className="inbox-source-section"
-          tabIndex={-1}
-        >
-          <EmailPanel
-            key={token}
-            token={token}
-            storageEnabled={enabled}
-            revision={revision}
-            onSynced={refresh}
-            onAuthFailure={onAuthFailure}
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

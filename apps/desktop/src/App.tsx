@@ -229,14 +229,16 @@ function Overview({
       <section aria-labelledby="platform-title">
         <div className="section-heading">
           <h2 id="platform-title">平台接入</h2>
-          <button
-            type="button"
-            className="button button-quiet"
-            onClick={onSettings}
-          >
-            <Icon name="settings" />
-            连接设置
-          </button>
+          {system ? (
+            <button
+              type="button"
+              className="button button-quiet"
+              onClick={onSettings}
+            >
+              <Icon name="settings" />
+              连接设置
+            </button>
+          ) : null}
         </div>
         <div className="connector-list">
           {connectors.map((connector) => (
@@ -779,22 +781,24 @@ export default function App() {
           </div>
           <div className="topbar-actions">
             <Status state={session.status} />
-            <button
-              type="button"
-              className="button button-secondary topbar-assistant"
-              aria-haspopup="dialog"
-              aria-controls="assistant-workspace"
-              aria-expanded={assistantVisible}
-              onClick={() =>
-                onAssistantHelp({
-                  source: PAGE_TITLES[page],
-                  prompt:
-                    '请帮助我了解这个页面可以完成哪些工作，并说明下一步。先解释可用能力和限制；需要首次连接、模型配置或凭据时提醒我手动完成；有影响的操作必须先预览并逐项确认。',
-                })
-              }
-            >
-              <Icon name="assistant" /> Agent 助手
-            </button>
+            {page !== 'messages' && page !== 'contacts' ? (
+              <button
+                type="button"
+                className="button button-secondary topbar-assistant"
+                aria-haspopup="dialog"
+                aria-controls="assistant-workspace"
+                aria-expanded={assistantVisible}
+                onClick={() =>
+                  onAssistantHelp({
+                    source: PAGE_TITLES[page],
+                    prompt:
+                      '请帮助我了解这个页面可以完成哪些工作，并说明下一步。先解释可用能力和限制；需要首次连接、模型配置或凭据时提醒我手动完成；有影响的操作必须先预览并逐项确认。',
+                  })
+                }
+              >
+                <Icon name="assistant" /> 页面求助
+              </button>
+            ) : null}
           </div>
         </header>
         <main id="main-content" className="main-content" tabIndex={-1}>
@@ -871,11 +875,15 @@ export default function App() {
         onClose={() => setAssistantOpen(false)}
       >
         <div className="assistant-workspace-bar">
-          <p>关闭后返回原页面；不会取消已提交的运行。</p>
+          <strong aria-hidden="true">Agent 助手</strong>
+          <span id="assistant-close-note" className="assistant-sr-only">
+            关闭后返回原页面，不取消已提交的运行。
+          </span>
           <button
             type="button"
             className="button button-secondary button-icon"
             aria-label="关闭助手"
+            aria-describedby="assistant-close-note"
             title="关闭助手"
             autoFocus
             onClick={closeAssistant}

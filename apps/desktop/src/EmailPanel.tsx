@@ -45,12 +45,14 @@ export default function EmailPanel({
   revision,
   onSynced,
   onAuthFailure,
+  onAttentionChange,
 }: {
   token: string;
   storageEnabled: boolean;
   revision: number;
   onSynced: () => void;
   onAuthFailure: () => void;
+  onAttentionChange?: (required: boolean) => void;
 }) {
   const [status, setStatus] = useState<EmailStatus | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,6 +62,13 @@ export default function EmailPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [uncertain, setUncertain] = useState(false);
   const [statusRevision, setStatusRevision] = useState(0);
+  const requiresAttention =
+    Boolean(statusError || syncError || uncertain) ||
+    (status?.configured === true &&
+      ['auth_failed', 'unreachable', 'protocol_error'].includes(status.state));
+  useEffect(() => {
+    onAttentionChange?.(requiresAttention);
+  }, [onAttentionChange, requiresAttention]);
   const pendingSync = useRef<AbortController | null>(null);
   const pendingStatus = useRef<AbortController | null>(null);
   const readEpoch = useRef(0);

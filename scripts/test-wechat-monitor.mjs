@@ -101,7 +101,7 @@ const helperJSX = (type, supplied, ...children) => {
 };
 const discoveryBindings = { Icon: loadIcon(helperJSX) };
 for (const [file, names] of [
-  ['ConversationKindTabs.tsx', ['ConversationKindTabs']],
+  ['ConversationKindSelect.tsx', ['ConversationKindSelect']],
   ['keyword-search.tsx', ['KeywordMatch', 'asciiFold', 'keywordError']],
 ]) {
   const source = readFileSync(new URL(`../apps/desktop/src/${file}`, import.meta.url), 'utf8')
@@ -168,7 +168,7 @@ const tick = async () => { for (const timer of panel.intervals.values()) { asser
 await tick();
 assert.ok(calls.every((call) => call.action === 'status'), 'mount and polling must never start a source read');
 assert.equal(saves.length, 0, 'mount must not enable automation');
-assert.equal(nodes(panel.tree).filter((node) => node.props.role === 'tab').length, 2, 'discovery tabs must render before sessions are loaded');
+assert.equal(find(panel, (node) => node.type === 'select' && node.props.id === 'wechat-kind').props.value, 'private');
 assert.ok(find(panel, (node) => node.props.id === 'wechat-session-keyword'));
 assert.ok(find(panel, (node) => node.props.id === 'wechat-keyword'));
 const refreshControl = find(panel, (node) => node.type === 'button' && (node.props['aria-label'] ?? text(node)).trim() === '更新状态');
@@ -176,7 +176,7 @@ assert.equal(refreshControl.props.title, '更新状态');
 assert.equal(text(refreshControl).trim(), '');
 assert.ok(nodes(refreshControl).some((node) => node.type === 'svg' && node.props['data-icon'] === 'refresh' && node.props['aria-hidden'] === 'true' && node.props.focusable === 'false'), 'status control must render the shipped decorative SVG');
 const beforeHelp = calls.length;
-find(panel, (node) => node.type === 'button' && (node.props['aria-label'] ?? text(node)) === '不会操作？让 Agent 帮我').props.onClick();
+find(panel, (node) => node.type === 'button' && (node.props['aria-label'] ?? text(node)) === '排查接入').props.onClick();
 await panel.flush();
 assert.equal(helpRequests.length, 1, 'help must prepare a UI-only request');
 assert.deepEqual(Object.keys(helpRequests[0]).sort(), ['prompt', 'source']);
@@ -246,7 +246,7 @@ await reconcile();
 assert.equal(historyReads, beforeScrolled, 'background refresh must not replace scrolled history');
 assert.equal(viewport.scrollTop, 100, 'background refresh must preserve reading position');
 assert.ok(!text(inbox.tree).includes('synthetic later message'));
-assert.ok(text(inbox.tree).includes('查看最新消息'));
+assert.equal(nodes(inbox.tree).filter((node) => node.type === 'button' && node.props['aria-label'] === '查看最新消息').length, 1);
 viewport.scrollTop = 800;
 find(inbox, (node) => node.type === 'button' && node.props['aria-controls'] === 'ai-management-conversation-1').props.onClick();
 await inbox.flush();
