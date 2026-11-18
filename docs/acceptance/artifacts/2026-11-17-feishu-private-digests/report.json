@@ -1,0 +1,2233 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-11-17T14:30:37.677Z",
+  "runtimeTestsExecuted": true,
+  "realServicesUsed": false,
+  "scope": "Synthetic frozen-dist desktop/mobile UI only; no application server is started",
+  "expectedOpenAPIMethodRoutes": 77,
+  "assistantCatalogScope": "Only exercised send_feishu_report, not full catalog acceptance",
+  "screenshots": [
+    "01-desktop-default-off.png",
+    "02-desktop-frozen-report.png",
+    "03-desktop-native-assistant-feishu-risk.png",
+    "04-mobile-frozen-report.png",
+    "05-mobile-unknown-receipt.png",
+    "06-mobile-failed-reload.png"
+  ],
+  "checks": [
+    "Remember-device choice is explicit and initially checked",
+    "Real browser nonextractable ECDSA P-256 key persists; reload reuses device and obtains independently verified proof/session, no persisted bearer",
+    "Unconfigured Feishu is OFF with all independent consents initially unchecked",
+    "UI declares fixed Shanghai08/20 slots and half-open windows, not a rolling digest",
+    "生成最近完整窗口预览: disabled=true",
+    "启用固定早晚报: disabled=true",
+    "Navigation discards temporary secret/OpenID and config consent without saving",
+    "保存本机配置: disabled=true",
+    "Successful save clears raw secret/OpenID and one-shot config consent",
+    "启用固定早晚报: disabled=true",
+    "启用固定早晚报: disabled=true",
+    "启用固定早晚报: disabled=true",
+    "启用固定早晚报: disabled=false",
+    "Standing plan dual consents reset and do not grant a one-shot preview",
+    "关闭后续计划: disabled=true",
+    "生成最近完整窗口预览: disabled=true",
+    "生成最近完整窗口预览: disabled=false",
+    "202 preview does not expose a completed body or receipt and resets consent",
+    "生成最近完整窗口预览: disabled=true",
+    "202 preview recovery uses GET only, never regenerates",
+    "生成最近完整窗口预览: disabled=true",
+    "Frozen binding hash, masked target and literal unsafe text rendered as text",
+    "Successful preview never supplies actual-send consent",
+    "发送这份预览至本人飞书: disabled=true",
+    "Native Assistant round model consent is independently unchecked",
+    "Native Assistant shows exact server report/bindings and separate external-send risk, never treats202/unknown as success",
+    "确认并继续: disabled=true",
+    "确认并继续: disabled=true",
+    "确认并继续: disabled=true",
+    "确认并继续: disabled=false",
+    "Returning to Feishu does not retain actual-send consent",
+    "发送这份预览至本人飞书: disabled=true",
+    "发送这份预览至本人飞书: disabled=false",
+    "202 running delivery is not success and resets send consent",
+    "发送这份预览至本人飞书: disabled=true",
+    "202 delivery recovery is GET-only with no duplicate send or preview",
+    "Read-only test reference reaches Feishu recovery Map",
+    "After leaving Feishu during running delivery: Feishu cache contains metadata only, no body/credentials/consent",
+    "Returning from another page recovers known report/delivery using GET only",
+    "Unknown is not success; frozen report and minimal receipt remain distinguishable, manual verification/no resend explicit",
+    "发送这份预览至本人飞书: disabled=true",
+    "Binding-invalid report body stays absent after failed reload while minimal unknown delivery metadata remains accessible",
+    "Failed binding reload is GET-only; no fallback generation/send",
+    "After failed binding reload: Feishu cache contains metadata only, no body/credentials/consent",
+    "All frontend bytes from immutable dist snapshot; exact synthetic mutations only; no real business/model/platform request or implicit retry"
+  ],
+  "layouts": [
+    {
+      "label": "desktop unconfigured OFF 1440x1000",
+      "width": 1440,
+      "height": 1000,
+      "documentWidth": 1425,
+      "bodyWidth": 1425,
+      "rootBackground": "rgb(255, 255, 255)",
+      "shellBackground": "rgba(0, 0, 0, 0)",
+      "coarse": false,
+      "controls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "重新读取",
+          "width": 82,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "人工配置自建应用与本人 Open ID",
+          "width": 230.953125,
+          "height": 36
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-id",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-secret",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-open-id",
+          "label": "",
+          "width": 1040,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "保存本机配置",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "清除本机飞书配置",
+          "width": 126.828125,
+          "height": 36
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认清除本机飞书配置并关闭计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "清除配置并关闭计划",
+          "width": 147,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 synthetic-model（synthetic-model.invalid），可能产生",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "启用固定早晚报",
+          "width": 121,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "关闭后续计划",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "生成最近完整窗口预览",
+          "width": 160,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "按记录编号只读恢复",
+          "width": 140.828125,
+          "height": 36
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-report-id",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取报告",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-delivery-id",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取回执",
+          "width": 108,
+          "height": 38
+        }
+      ]
+    },
+    {
+      "label": "desktop frozen report 1440x1000",
+      "width": 1440,
+      "height": 1000,
+      "documentWidth": 1425,
+      "bodyWidth": 1425,
+      "rootBackground": "rgb(255, 255, 255)",
+      "shellBackground": "rgba(0, 0, 0, 0)",
+      "coarse": false,
+      "controls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "重新读取",
+          "width": 82,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "人工配置自建应用与本人 Open ID",
+          "width": 230.953125,
+          "height": 36
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-id",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-secret",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-open-id",
+          "label": "",
+          "width": 1040,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "保存本机配置",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "清除本机飞书配置",
+          "width": 126.828125,
+          "height": 36
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认清除本机飞书配置并关闭计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "清除配置并关闭计划",
+          "width": 147,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 synthetic-model（synthetic-model.invalid），可能产生",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我另行同意持续向已保存的本人飞书私聊 ou_***0001 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "启用固定早晚报",
+          "width": 121,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 896,
+          "height": 40
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "关闭后续计划",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "生成最近完整窗口预览",
+          "width": 160,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "核对候选待办与最少来源证据",
+          "width": 196.828125,
+          "height": 36
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已核对以上完整正文、12 小时窗口、固定本人目标、哈希与版本，另行同意真实发送这份服务器冻结正文至本人飞书私聊 ou_***0001；理解平台接受不代表手机系统通知或已",
+          "width": 896,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "发送这份预览至本人飞书",
+          "width": 173,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "按记录编号只读恢复",
+          "width": 140.828125,
+          "height": 36
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-report-id",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取报告",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-delivery-id",
+          "label": "",
+          "width": 508,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取回执",
+          "width": 108,
+          "height": 38
+        }
+      ]
+    },
+    {
+      "label": "desktop Native Assistant Feishu risk 1440x1000",
+      "width": 1440,
+      "height": 1000,
+      "documentWidth": 1425,
+      "bodyWidth": 1425,
+      "rootBackground": "rgb(255, 255, 255)",
+      "shellBackground": "rgba(0, 0, 0, 0)",
+      "coarse": false,
+      "controls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "刷新状态",
+          "width": 82,
+          "height": 38
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "模型设置",
+          "width": 82,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "业务范围与权限目录（1 项）",
+          "width": 1173,
+          "height": 32
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已核对工具、目标、完整参数和上述影响，仅确认这一项操作及其后续模型处理，可能产生费用。",
+          "width": 1093,
+          "height": 44
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我另行同意将上面完整核对的冻结正文真实发送至固定的本人飞书私聊；理解平台接受不等于手机系统通知或已读，结果未知时不重发。此飞书发送同意不替代模型数据处理同意。",
+          "width": 1093,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "确认并继续",
+          "width": 95,
+          "height": 38
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "拒绝此项",
+          "width": 82,
+          "height": 38
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "读取运行结果",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "TEXTAREA",
+          "id": "assistant-message",
+          "label": "",
+          "width": 1131,
+          "height": 130.75
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意本轮调用 synthetic-model，目标 synthetic-model.invalid，配置版本 0，范围与费用如上。",
+          "width": 1131,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "提交本轮请求",
+          "width": 108,
+          "height": 38
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "恢复运行与会话管理",
+          "width": 1173,
+          "height": 32
+        },
+        {
+          "tag": "INPUT",
+          "id": "assistant-recovery-id",
+          "label": "",
+          "width": 626,
+          "height": 49.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读恢复",
+          "width": 82,
+          "height": 38
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已记录必要的运行编号，并已在业务页面核实未决或未知结果，理解新建会话不会取消或撤销后台操作。",
+          "width": 1173,
+          "height": 44
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "新建助手会话",
+          "width": 108,
+          "height": 38
+        }
+      ]
+    },
+    {
+      "label": "mobile frozen report 390x844",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "rootBackground": "rgb(255, 255, 255)",
+      "shellBackground": "rgba(0, 0, 0, 0)",
+      "coarse": true,
+      "controls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "重新读取",
+          "width": 82,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "人工配置自建应用与本人 Open ID",
+          "width": 230.953125,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-secret",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-open-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。",
+          "width": 358,
+          "height": 56.1875
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "保存本机配置",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "清除本机飞书配置",
+          "width": 126.828125,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认清除本机飞书配置并关闭计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "清除配置并关闭计划",
+          "width": 147,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 synthetic-model（synthetic-model.invalid），可能产生",
+          "width": 358,
+          "height": 102.375
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我另行同意持续向已保存的本人飞书私聊 ou_***0001 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "启用固定早晚报",
+          "width": 121,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 358,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "关闭后续计划",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "width": 358,
+          "height": 125.46875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "生成最近完整窗口预览",
+          "width": 160,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "核对候选待办与最少来源证据",
+          "width": 196.828125,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已核对以上完整正文、12 小时窗口、固定本人目标、哈希与版本，另行同意真实发送这份服务器冻结正文至本人飞书私聊 ou_***0001；理解平台接受不代表手机系统通知或已",
+          "width": 358,
+          "height": 125.46875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "发送这份预览至本人飞书",
+          "width": 173,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "按记录编号只读恢复",
+          "width": 140.828125,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-report-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取报告",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-delivery-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取回执",
+          "width": 108,
+          "height": 48
+        }
+      ]
+    },
+    {
+      "label": "mobile unknown receipt 390x844",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "rootBackground": "rgb(255, 255, 255)",
+      "shellBackground": "rgba(0, 0, 0, 0)",
+      "coarse": true,
+      "controls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "重新读取",
+          "width": 82,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "人工配置自建应用与本人 Open ID",
+          "width": 230.953125,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-secret",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-open-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。",
+          "width": 358,
+          "height": 56.1875
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "保存本机配置",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "清除本机飞书配置",
+          "width": 126.828125,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认清除本机飞书配置并关闭计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "清除配置并关闭计划",
+          "width": 147,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 synthetic-model（synthetic-model.invalid），可能产生",
+          "width": 358,
+          "height": 102.375
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我另行同意持续向已保存的本人飞书私聊 ou_***0001 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "启用固定早晚报",
+          "width": 121,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 358,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "关闭后续计划",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "width": 358,
+          "height": 125.46875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "生成最近完整窗口预览",
+          "width": 160,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "核对候选待办与最少来源证据",
+          "width": 196.828125,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已核对以上完整正文、12 小时窗口、固定本人目标、哈希与版本，另行同意真实发送这份服务器冻结正文至本人飞书私聊 ou_***0001；理解平台接受不代表手机系统通知或已",
+          "width": 358,
+          "height": 125.46875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "发送这份预览至本人飞书",
+          "width": 173,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "按记录编号只读恢复",
+          "width": 140.828125,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-report-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取报告",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-delivery-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取回执",
+          "width": 108,
+          "height": 48
+        }
+      ]
+    },
+    {
+      "label": "mobile failed reload 390x844",
+      "width": 390,
+      "height": 844,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "rootBackground": "rgb(255, 255, 255)",
+      "shellBackground": "rgba(0, 0, 0, 0)",
+      "coarse": true,
+      "controls": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "重新读取",
+          "width": 82,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "人工配置自建应用与本人 Open ID",
+          "width": 230.953125,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-app-secret",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-open-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。",
+          "width": 358,
+          "height": 56.1875
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "保存本机配置",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "清除本机飞书配置",
+          "width": 126.828125,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认清除本机飞书配置并关闭计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "清除配置并关闭计划",
+          "width": 147,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 synthetic-model（synthetic-model.invalid），可能产生",
+          "width": 358,
+          "height": 102.375
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我另行同意持续向已保存的本人飞书私聊 ou_***0001 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。",
+          "width": 358,
+          "height": 79.28125
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "启用固定早晚报",
+          "width": 121,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。",
+          "width": 358,
+          "height": 56.1875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "关闭后续计划",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "label": "我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "width": 358,
+          "height": 125.46875
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "生成最近完整窗口预览",
+          "width": 160,
+          "height": 48
+        },
+        {
+          "tag": "SUMMARY",
+          "id": "",
+          "label": "按记录编号只读恢复",
+          "width": 140.828125,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-report-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取报告",
+          "width": 108,
+          "height": 48
+        },
+        {
+          "tag": "INPUT",
+          "id": "feishu-delivery-id",
+          "label": "",
+          "width": 358,
+          "height": 48
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "label": "只读获取回执",
+          "width": 108,
+          "height": 48
+        }
+      ]
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/",
+      "queryKeys": [],
+      "kind": "frozen-dist",
+      "sha256": "6cab8d6f109612e77d79abfe459a2c0bb784d99178849a59b49a55ad4a8921c0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-DgxOb7py.js",
+      "queryKeys": [],
+      "kind": "frozen-dist",
+      "sha256": "df2a8f5daf5aa53af0aa5f365c309a672eb3952ea20a2d2f5378cfdc67af6796",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-CbyCaN4E.css",
+      "queryKeys": [],
+      "kind": "frozen-dist",
+      "sha256": "df6c0c7065af31e1f8d35ee57c412d4ce7da3db7f1a0a280563565500e642e2a",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/favicon.ico",
+      "queryKeys": [],
+      "kind": "frozen-optional-favicon",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/system",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/system",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/auth/devices",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/auth/devices",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 201
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/auth/challenges",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/auth/challenges",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/auth/sessions",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/auth/sessions",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/",
+      "queryKeys": [],
+      "kind": "frozen-dist",
+      "sha256": "6cab8d6f109612e77d79abfe459a2c0bb784d99178849a59b49a55ad4a8921c0",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-DgxOb7py.js",
+      "queryKeys": [],
+      "kind": "frozen-dist",
+      "sha256": "df2a8f5daf5aa53af0aa5f365c309a672eb3952ea20a2d2f5378cfdc67af6796",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-CbyCaN4E.css",
+      "queryKeys": [],
+      "kind": "frozen-dist",
+      "sha256": "df6c0c7065af31e1f8d35ee57c412d4ce7da3db7f1a0a280563565500e642e2a",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/favicon.ico",
+      "queryKeys": [],
+      "kind": "frozen-optional-favicon",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/auth/challenges",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/auth/challenges",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/auth/sessions",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/auth/sessions",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/system",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/system",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "PATCH",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/preview",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/preview",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 202
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/runs",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/runs",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 202
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/runs/synthetic-feishu-run-1/reject",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/runs/synthetic-feishu-run-1/reject",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/assistant/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111/send",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "POST",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111/send",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 202
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/deliveries/fd_22222222222222222222222222222222",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/deliveries/fd_22222222222222222222222222222222",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/deliveries/fd_22222222222222222222222222222222",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/deliveries/fd_22222222222222222222222222222222",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/deliveries/fd_22222222222222222222222222222222",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/reports/fr_11111111111111111111111111111111",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/feishu/deliveries/fd_22222222222222222222222222222222",
+      "queryKeys": [],
+      "kind": "synthetic-api",
+      "status": 200
+    }
+  ],
+  "exceptions": [],
+  "consoleErrors": [],
+  "networkFailures": [
+    {
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    },
+    {
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    },
+    {
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    },
+    {
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    },
+    {
+      "url": "http://127.0.0.1:17890/api/v1/ai/status",
+      "errorText": "net::ERR_ABORTED",
+      "canceled": true
+    }
+  ],
+  "interceptionErrors": [],
+  "unexpectedTargets": [],
+  "limitations": [
+    "No real Feishu tenant/account/owner verification, permissions, quota, receipt or phone notification/read check",
+    "No real model/secret store/encryption, daemon scheduler, offline/startup/grace tick, durable claim or source-ABA proof",
+    "Native Assistant fixture advertises only send_feishu_report; confirmation gates are inspected, never confirmed",
+    "No native Tauri/WebView, screen reader, physical touch device, complete keyboard/contrast/zoom or 320px acceptance",
+    "Controlled single page only: CSP denies workers/frames and injection denies sockets/popups/RTC; not an OS network firewall audit",
+    "Feishu metadata-cache assertion depends on production React __reactFiber$ and memoizedProps.recoveryCache",
+    "HTTP202, running and unknown are fixtures, not evidence of any production backend state transition"
+  ],
+  "sourceManifestScope": "Desktop src/public, desktop npm/package/TS/Vite/HTML metadata, OpenAPI, Feishu API/worker/render/store bindings and this helper; not a full-repository manifest",
+  "freezeBuildNotBefore": "2026-11-17T14:30:19.089Z",
+  "openAPIMethodRouteCount": 77,
+  "feishuMethodRoutes": [
+    "DELETE /api/v1/feishu/config",
+    "GET /api/v1/feishu/deliveries/{delivery_id}",
+    "GET /api/v1/feishu/reports/latest",
+    "GET /api/v1/feishu/reports/{report_id}",
+    "GET /api/v1/feishu/schedule",
+    "GET /api/v1/feishu/status",
+    "PATCH /api/v1/feishu/config",
+    "PATCH /api/v1/feishu/schedule",
+    "POST /api/v1/feishu/preview",
+    "POST /api/v1/feishu/reports/{report_id}/send"
+  ],
+  "assistantOperations": [
+    {
+      "id": "send_feishu_report",
+      "method": "POST",
+      "path": "/api/v1/feishu/reports/{report_id}/send",
+      "effect": "external_send",
+      "availability": "confirmation_required",
+      "reason": "合成目录子集：仅核对本人飞书冻结报告的独立发送确认 UI，不实际确认。"
+    }
+  ],
+  "window": {
+    "start": "2026-11-17T00:00:00.000Z",
+    "end": "2026-11-17T12:00:00.000Z",
+    "next": "2026-11-18T00:00:00.000Z",
+    "timezone": "Asia/Shanghai",
+    "slots": [
+      "08:00",
+      "20:00"
+    ]
+  },
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/149.0.7827.55",
+    "revision": "@3188f8a607ae7e067593be8aab7f02d2451fec07",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36",
+    "jsVersion": "14.9.207.21"
+  },
+  "deviceBeforeReload": {
+    "deviceID": "guAEFNyoJrgGlwm3C5O1fQ",
+    "keys": [
+      "device_id",
+      "expires_at",
+      "frontend_origin",
+      "private_key",
+      "service_origin",
+      "service_url",
+      "version"
+    ],
+    "extractable": false,
+    "type": "private",
+    "algorithm": "ECDSA",
+    "curve": "P-256",
+    "usage": "sign",
+    "webLeak": false,
+    "indexedDBLeak": false
+  },
+  "deviceAfterReload": {
+    "deviceID": "guAEFNyoJrgGlwm3C5O1fQ",
+    "keys": [
+      "device_id",
+      "expires_at",
+      "frontend_origin",
+      "private_key",
+      "service_origin",
+      "service_url",
+      "version"
+    ],
+    "extractable": false,
+    "type": "private",
+    "algorithm": "ECDSA",
+    "curve": "P-256",
+    "usage": "sign",
+    "webLeak": false,
+    "indexedDBLeak": false
+  },
+  "recoveryCache": {
+    "rowCount": 2,
+    "onlyMetadata": true,
+    "leak": false,
+    "hasPendingSend": true,
+    "fieldNames": [
+      "configRevision",
+      "deliveryId",
+      "key",
+      "kind",
+      "reportId",
+      "scheduleRevision",
+      "settled",
+      "windowEnd"
+    ]
+  },
+  "temporaryProfileRemoved": true,
+  "finishedAt": "2026-11-17T14:30:41.312Z",
+  "elapsedMs": 3635,
+  "counts": {
+    "bootstrapSystemReads": 1,
+    "enrollments": 1,
+    "challenges": 2,
+    "sessions": 2,
+    "configSaves": 1,
+    "configDeletes": 0,
+    "scheduleEnables": 1,
+    "scheduleDisables": 1,
+    "previews": 1,
+    "sends": 1,
+    "assistantStarts": 1,
+    "assistantConfirms": 0,
+    "assistantRejects": 1
+  }
+}

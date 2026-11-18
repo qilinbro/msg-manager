@@ -43,6 +43,9 @@ func (h *handler) StartBackground(ctx context.Context) error {
 	if ctx == nil {
 		return store.ErrInvalidInput
 	}
+	if err := h.startFeishuBackground(ctx); err != nil {
+		return err
+	}
 	if h.profiles == nil || h.inbox == nil {
 		return nil
 	}

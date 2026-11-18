@@ -336,7 +336,7 @@ func TestLocalDevicesMigrationRollsBackAndRejectsFutureSchema(t *testing.T) {
 	if err := migrate(legacy.db); err != nil {
 		t.Fatal("v12 migration retry failed", err)
 	}
-	if _, err := legacy.db.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(14,'2026-01-01T00:00:00Z')`); err != nil {
+	if _, err := legacy.db.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(?,'2026-01-01T00:00:00Z')`, currentSchemaVersion+1); err != nil {
 		t.Fatal(err)
 	}
 	if err := legacy.Close(); err != nil {

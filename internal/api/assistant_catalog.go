@@ -57,7 +57,7 @@ func makeAssistantOperations() []assistantOperation {
 		operations = append(operations, newOperation(id, method, path, description, schema))
 		return &operations[len(operations)-1]
 	}
-	add("get_system_status", "GET", "/api/v1/system", "读取本机服务状态。发送始终关闭，在线检测不代表已接管平台。", empty())
+	add("get_system_status", "GET", "/api/v1/system", "读取本机服务状态。会话自动回复保持关闭；飞书本人摘要使用独立授权与状态，在线检测不代表已接管平台。", empty())
 	add("get_connections", "GET", "/api/v1/connections", "读取连接器能力及缓存状态；不配置平台凭据。", empty())
 	add("get_inbox_status", "GET", "/api/v1/inbox", "读取加密收件箱状态与导入能力，不返回聊天正文。", empty())
 	add("get_inbox_connections", "GET", "/api/v1/inbox/connections", "读取已导入账号的连接摘要。", empty())
@@ -134,6 +134,23 @@ func makeAssistantOperations() []assistantOperation {
 	add("get_latest_digest", "GET", "/api/v1/digest/latest", "读取最近每日摘要；如果任一摘要来源已暂停AI则整份不回传模型。", empty())
 	digest := add("run_digest", "POST", "/api/v1/digest/run", "逐次确认使用当前模型及版本立即生成并保存每日摘要；可能进行多次模型调用且分别计入额度，不发送消息。", empty())
 	digest.Effect, digest.confirmed, digest.configConsent, digest.configRevision = "model_call", true, true, true
+	add("get_feishu_status", "GET", feishuPrefix+"/status", "读取飞书本人私聊摘要配置状态、脱敏目标、固定08:00/20:00计划及最新报告/投递元数据；绝不返回凭据或完整OpenID，也不证明目标归属。", empty())
+	add("get_feishu_schedule", "GET", feishuPrefix+"/schedule", "只读飞书Asia/Shanghai固定08:00/20:00十二小时窗口计划；默认关闭，不补发、不重试。", empty())
+	feishuSchedule := add("update_feishu_schedule", "PATCH", feishuPrefix+"/schedule", "逐次人工核对脱敏目标及服务器冻结的四项配置绑定后启停飞书本人摘要计划。启用授权后续固定窗口的模型调用及一次性发送；从下一未来时点开始，休眠关机错过即跳过，无自动补发。", assistantObject(map[string]*assistantSchema{"enabled": assistantBoolean(), "expected_revision": assistantInteger(1, 9007199254740991)}, "enabled", "expected_revision"))
+	feishuSchedule.Effect, feishuSchedule.confirmed, feishuSchedule.configConsent, feishuSchedule.configRevision = "external_send", true, true, true
+	feishuPreview := add("generate_feishu_preview", "POST", feishuPrefix+"/preview", "经单独人工确认，对最近已结束的固定十二小时窗口生成有界AI摘要、待人工核对事项候选和原文摘录并不可变保存；不发送。服务器固定窗口与目标/模型绑定。同窗口任意状态均不重算；202只表示已受理，需只读查询报告。", empty())
+	feishuPreview.Effect, feishuPreview.confirmed, feishuPreview.configConsent, feishuPreview.configRevision = "model_call", true, true, true
+	feishuReportIDSchema := &assistantSchema{kind: "string", min: 35, max: 35, pattern: `^fr_[0-9a-f]{32}$`}
+	feishuDeliveryIDSchema := &assistantSchema{kind: "string", min: 35, max: 35, pattern: `^fd_[0-9a-f]{32}$`}
+	add("get_latest_feishu_report", "GET", feishuPrefix+"/reports/latest", "只读最新不可变飞书报告；返回摘要正文前复核所有来源权限及完整配置绑定。running不代表生成成功，todo是待人工核对候选。", empty())
+	add("get_feishu_report", "GET", feishuPrefix+"/reports/{report_id}", "只读指定不可变飞书报告，不重新生成或发送。来源暂停/版本改变或目标/配置改变后拒绝旧正文。", assistantObject(map[string]*assistantSchema{"report_id": feishuReportIDSchema}, "report_id"))
+	feishuSend := add("send_feishu_report", "POST", feishuPrefix+"/reports/{report_id}/send", "仅提出report_id；服务器读取成功且未过期的不可变报告，冻结完整文本、时间窗、哈希及目标/模型四绑定供人类独立核对。确认后仅向人工配置的本人私聊尝试发送一次；不接受文本/URL/接收方，任意投递状态均不重发。202只表示已受理，绝非已送达，需只读查询投递台账。", assistantObject(map[string]*assistantSchema{"report_id": feishuReportIDSchema}, "report_id"))
+	feishuSend.Effect, feishuSend.confirmed = "external_send", true
+	add("get_feishu_delivery", "GET", feishuPrefix+"/deliveries/{delivery_id}", "只读飞书一次性投递台账最小元数据。running是处理中，unknown必须人工核实；failed/unknown也禁止自动重试。", assistantObject(map[string]*assistantSchema{"delivery_id": feishuDeliveryIDSchema}, "delivery_id"))
+	for _, entry := range []struct{ id, method string }{{"configure_feishu", "PATCH"}, {"delete_feishu_config", "DELETE"}} {
+		operation := add(entry.id, entry.method, feishuPrefix+"/config", "飞书应用凭据和本人OpenID仅限人工设置；模型无执行工具，保存或删除总会撤销旧计划授权。", nil)
+		operation.Effect, operation.Availability = "credential", "human_only"
+	}
 	add("get_health_live", "GET", "/health/live", "读取本机存活探针，不代表业务就绪。", empty())
 	add("get_health_ready", "GET", "/health/ready", "读取就绪探针；当前实现固定503，不能据此宣称业务可用。", empty())
 	for _, entry := range []struct{ id, method, path string }{
@@ -182,6 +199,7 @@ type assistantPreparedOperation struct {
 	Body            []byte
 	Arguments       json.RawMessage
 	ConversationIDs []string
+	FeishuWindowEnd string
 }
 
 func prepareAssistantOperation(operation *assistantOperation, raw string, configID string, revision int64) (assistantPreparedOperation, error) {
@@ -196,7 +214,7 @@ func prepareAssistantOperation(operation *assistantOperation, raw string, config
 	for name, value := range arguments {
 		body[name] = value
 	}
-	for _, name := range []string{"conversation_id", "memory_id", "fact_id", "target_conversation_id"} {
+	for _, name := range []string{"conversation_id", "memory_id", "fact_id", "target_conversation_id", "report_id", "delivery_id"} {
 		if value, exists := arguments[name]; exists {
 			if name == "conversation_id" || name == "target_conversation_id" {
 				prepared.ConversationIDs = append(prepared.ConversationIDs, value.(string))

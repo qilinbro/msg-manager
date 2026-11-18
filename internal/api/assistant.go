@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/qilinbro/msg-manager/internal/agent"
+	"github.com/qilinbro/msg-manager/internal/store"
 )
 
 const (
@@ -68,16 +69,33 @@ type assistantRunResponse struct {
 type assistantPrivacyRefs struct {
 	IDs    map[string]bool
 	Global bool
+	// Frozen report provenance covers every actual Analyze input, including
+	// conversations not shown in excerpts. Revisions are not refreshed by a
+	// pause/resume cycle, a later tool call, or a new session turn.
+	Revisions map[string]int64
+	Bindings  map[store.FeishuBinding]bool
+	Invalid   bool
 }
 
 func newAssistantPrivacyRefs() assistantPrivacyRefs {
-	return assistantPrivacyRefs{IDs: map[string]bool{}}
+	return assistantPrivacyRefs{IDs: map[string]bool{}, Revisions: map[string]int64{}, Bindings: map[store.FeishuBinding]bool{}}
 }
 
 func (references *assistantPrivacyRefs) merge(other assistantPrivacyRefs) {
 	for id := range other.IDs {
 		references.IDs[id] = true
 	}
+	for id, revision := range other.Revisions {
+		if previous, exists := references.Revisions[id]; exists && previous != revision {
+			references.Invalid = true
+		}
+		references.Revisions[id] = revision
+		references.IDs[id] = true
+	}
+	for binding := range other.Bindings {
+		references.Bindings[binding] = true
+	}
+	references.Invalid = references.Invalid || other.Invalid || len(references.Bindings) > 1 || len(references.Revisions) > 1024
 	references.Global = references.Global || other.Global
 }
 
@@ -344,7 +362,7 @@ func (h *handler) startAssistantRun(w http.ResponseWriter, r *http.Request, trac
 	state.runs[id] = run
 	state.mu.Unlock()
 	h.executeAssistantRun(r, run, nil)
-	h.writeAssistantRun(w, run)
+	h.writeAssistantRun(w, r, run)
 }
 
 func (h *handler) recoverAssistantRun(w http.ResponseWriter, r *http.Request, id, traceID string) {
@@ -352,9 +370,8 @@ func (h *handler) recoverAssistantRun(w http.ResponseWriter, r *http.Request, id
 	state.mu.Lock()
 	run, status, code := state.lookupRunLocked(id, assistantOwner(r))
 	if code == "" {
-		payload := cloneAssistantResponse(run.response)
 		state.mu.Unlock()
-		writeAssistantResponse(w, payload)
+		h.writeAssistantRun(w, r, run)
 		return
 	}
 	state.mu.Unlock()
@@ -405,9 +422,8 @@ func (h *handler) resolveAssistantRun(w http.ResponseWriter, r *http.Request, id
 		run.messages = append(run.messages, agent.ToolMessage{Role: "tool", ToolCallID: pending.callID, Content: string(encoded)}, agent.ToolMessage{Role: "assistant", Content: "已按你的选择拒绝该操作，未执行，也未继续调用模型。"})
 		run.response.AssistantMessage = "已拒绝该操作；没有执行业务操作，也没有继续调用模型。"
 		state.finishRunLocked(run, "rejected", true)
-		payload := cloneAssistantResponse(run.response)
 		state.mu.Unlock()
-		writeAssistantResponse(w, payload)
+		h.writeAssistantRun(w, r, run)
 		return
 	}
 	if input["model_config_id"] != run.response.ModelConfigID || assistantNumber(input["model_config_revision"]) != run.response.ModelConfigRevision {
@@ -430,7 +446,7 @@ func (h *handler) resolveAssistantRun(w http.ResponseWriter, r *http.Request, id
 		return
 	}
 	h.executeAssistantRun(r, run, pending)
-	h.writeAssistantRun(w, run)
+	h.writeAssistantRun(w, r, run)
 }
 
 func cloneAssistantResponse(response assistantRunResponse) assistantRunResponse {
@@ -442,10 +458,44 @@ func cloneAssistantResponse(response assistantRunResponse) assistantRunResponse 
 	return cloned
 }
 
-func (h *handler) writeAssistantRun(w http.ResponseWriter, run *assistantRun) {
+func (h *handler) writeAssistantRun(w http.ResponseWriter, r *http.Request, run *assistantRun) {
 	h.assistant.mu.Lock()
 	response := cloneAssistantResponse(run.response)
+	references := run.references.clone()
 	h.assistant.mu.Unlock()
+	// Serialization is a bounded read-only recovery step, not authorization for
+	// further IO. A disconnected request must not relabel a consumed unknown
+	// action as a timeout/failure before its truthful receipt can be returned.
+	ctx, cancel := context.WithTimeout(context.WithoutCancel(r.Context()), 15*time.Second)
+	defer cancel()
+	unlock, code := h.assistantPrivacyBarrier(ctx, response.ModelConfigID, response.ModelConfigRevision, references)
+	if code != "" {
+		// Cached recovery is not an exemption from provenance checks. Return a
+		// small failure envelope, never old tool data, pending preview or model text.
+		if code == "ASSISTANT_SOURCE_CHANGED" || code == "ASSISTANT_AI_PAUSED" || code == "ASSISTANT_CONFIG_CHANGED" {
+			h.assistant.mu.Lock()
+			status := "failed"
+			if run.executing || run.response.State == "unknown" {
+				status = "unknown"
+			}
+			if run.cancel != nil {
+				run.cancel()
+			}
+			h.assistant.failRunLocked(run, status, code)
+			response = cloneAssistantResponse(run.response)
+			h.assistant.mu.Unlock()
+		}
+		if response.State != "unknown" {
+			response.State = "failed"
+		}
+		response.AssistantMessage = "旧来源权限或配置绑定已变化，缓存内容已隐藏；这不改变已有投递结果，请只读核实投递台账。"
+		response.PendingAction = nil
+		response.ToolResults = []assistantToolResult{}
+		response.Error = &assistantRunError{Code: code, Message: assistantErrorMessage(code)}
+		writeAssistantResponse(w, response)
+		return
+	}
+	defer unlock()
 	writeAssistantResponse(w, response)
 }
 
@@ -461,6 +511,8 @@ func assistantErrorMessage(code string) string {
 	switch code {
 	case "ASSISTANT_CONFIG_CHANGED":
 		return "模型配置或版本已变化；旧同意和待确认操作已失效，请刷新并重新开始。"
+	case "ASSISTANT_SOURCE_CHANGED":
+		return "报告来源权限版本或飞书目标/配置绑定已变化，旧正文和相关助手历史不再可读；请重新开始，只读核实已有投递台账，勿重发。"
 	case "ASSISTANT_ACTION_CONSUMED":
 		return "该操作已被处理或正在执行，不能重复确认；请只读恢复运行结果。"
 	case "ASSISTANT_NOT_FOUND":
@@ -610,7 +662,7 @@ func (state *assistantState) failRunLocked(run *assistantRun, status, code strin
 		}
 	}
 	run.response.Error = &assistantRunError{Code: code, Message: assistantErrorMessage(code)}
-	if code == "ASSISTANT_AI_PAUSED" {
+	if code == "ASSISTANT_AI_PAUSED" || code == "ASSISTANT_SOURCE_CHANGED" || code == "ASSISTANT_CONFIG_CHANGED" {
 		if session := state.sessions[run.response.SessionID]; session != nil {
 			session.history = nil
 			session.references = newAssistantPrivacyRefs()

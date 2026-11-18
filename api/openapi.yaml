@@ -3,7 +3,7 @@
   "info": {
     "title": "Social Intelligence OS — local business and Assistant API",
     "version": "0.1.0",
-    "description": "本机 Bearer/可撤销设备授权 API：加密消息管理、只读平台同步与监控、人工同意的 AI/档案/摘要，以及原生工具调用 Assistant。Assistant 覆盖已实现业务 API 并复用原处理器，所有变更逐项确认；认证生命周期及模型配置保存仍仅人工。共享持久化额度、模型标识与版本绑定、暂停会话数据隔离始终生效。任务/审批/发送/SSE 等占位不可执行，自动发送关闭。JSON 语法是有效 YAML 1.2，实际业务请求始终鉴权。"
+    "description": "本机 Bearer/可撤销设备授权 API：加密消息管理、只读平台同步与监控、人工同意的 AI/档案/摘要，以及原生工具调用 Assistant。Assistant 覆盖已实现业务 API 并复用原处理器，所有变更逐项确认；认证生命周期、模型与飞书凭据配置仍仅人工。共享持久化额度、模型标识与版本绑定、暂停会话数据隔离始终生效。通用任务/审批/会话发送/SSE等占位不可执行；新增默认关闭的飞书本人私聊早晚报，固定上海08:00/20:00，独立同意后才可外发冻结摘要，不开放任意收件人或文本。JSON 语法是有效 YAML 1.2，实际业务请求始终鉴权。"
   },
   "servers": [
     {
@@ -5067,6 +5067,1112 @@
           }
         }
       }
+    },
+    "/api/v1/feishu/status": {
+      "get": {
+        "operationId": "getFeishuStatus",
+        "summary": "读取本人飞书早晚报状态（本机，无平台请求）",
+        "description": "状态读取不取token、不发消息；完整收件人和秘密永不返回。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feishu/config": {
+      "patch": {
+        "operationId": "saveFeishuConfig",
+        "summary": "人工保存本人飞书应用与接收目标",
+        "description": "人工专用；最小授权im:message:send_as_bot。只保存加密配置，不验证平台或本人归属、不隐式启用计划。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuConfigSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-assistant-availability": "human_only",
+        "x-automatic-retry": false
+      },
+      "delete": {
+        "operationId": "deleteFeishuConfig",
+        "summary": "人工清除飞书凭据并停止周期计划",
+        "description": "人工专用；保留防重复账本与回执，不能撤回在途/已接受消息。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuConfigDelete"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-assistant-availability": "human_only",
+        "x-automatic-retry": false
+      }
+    },
+    "/api/v1/feishu/schedule": {
+      "get": {
+        "operationId": "getFeishuSchedule",
+        "summary": "读取固定上海08:00/20:00周期授权",
+        "description": "仅读本机状态；默认关闭，关闭不依赖可用模型或凭据。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "saveFeishuSchedule",
+        "summary": "显式启用或关闭本人飞书早晚报",
+        "description": "启用需独立模型数据和固定本人目标外发同意；绑定当前版本，只从未来slot开始，无离线补跑。错过2分钟宽限跳过，不追发。关闭与配置/暂停使用外呼屏障。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuScheduleSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuSchedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-assistant-availability": "confirmation_required",
+        "x-automatic-retry": false
+      }
+    },
+    "/api/v1/feishu/preview": {
+      "post": {
+        "operationId": "previewFeishuReport",
+        "summary": "生成最近固定12小时窗口的飞书报告预览（不发送）",
+        "description": "共享gate后持久claim再独立后台运行，最多4个限域Analyze且逐次扣共享额度；不排无界队列。返回running时只读恢复，任何已占用窗口都不重新计算。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuPreviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuReportResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "仅已持久受理，仍在后台处理；不是成功。只GET读取同一报告/回执，不重新POST。服务关闭会取消并将未确认结果持久为unknown。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuReportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-assistant-availability": "confirmation_required",
+        "x-automatic-retry": false
+      }
+    },
+    "/api/v1/feishu/reports/latest": {
+      "get": {
+        "operationId": "getLatestFeishuReport",
+        "summary": "只读恢复最新飞书早晚报",
+        "description": "从不启动模型或重发；没有报告时report=null。读取前检查当前模型/飞书配置/目标及所有输入来源AI版本；变化/暂停后不给旧正文。Report.delivery可恢复丢失的发送响应。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuLatest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feishu/reports/{report_id}": {
+      "get": {
+        "operationId": "getFeishuReport",
+        "summary": "按ID只读恢复飞书报告与关联回执",
+        "description": "GET从不推进后台或重新外发。检查所有来源和绑定；不存在404。保留Report.delivery便于发送丢响应后只读核对。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuReportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/FeishuReportID"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/feishu/reports/{report_id}/send": {
+      "post": {
+        "operationId": "sendFeishuReport",
+        "summary": "独立确认后发送冻结报告到本人飞书私聊",
+        "description": "只允许服务端冻结正文/目标/hash，验证来源与当前绑定并持久claim一次投递后后台外呼；下个slot过期。token、send均无重试、重定向、代理或任意URL；权限/鉴权/接收目标永久拒绝会CAS撤销当前周期授权。HTTP2xx+显式code0+message_id才记平台接受，网络/5xx/坏JSON/230049转unknown，人工核对而不是重发。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeishuSendRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuDeliveryResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "仅已持久受理，仍在后台处理；不是成功。只GET读取同一报告/回执，不重新POST。服务关闭会取消并将未确认结果持久为unknown。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuDeliveryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/FeishuReportID"
+            }
+          }
+        ],
+        "x-assistant-availability": "confirmation_required",
+        "x-automatic-retry": false
+      }
+    },
+    "/api/v1/feishu/deliveries/{delivery_id}": {
+      "get": {
+        "operationId": "getFeishuDelivery",
+        "summary": "只读查询最小投递回执",
+        "description": "不含正文/凭据/完整接收者；绑定或来源变化后仍可核对平台接受/失败/unknown。读取不会再次发送，也不能证明手机通知或已读。",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "成功读取/保存，或返回已有的持久状态；嵌套state决定业务结果，HTTP200不代表发送成功。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeishuDeliveryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "FEISHU_INVALID_INPUT / FEISHU_CONFIRMATION_REQUIRED：输入不是精确允许的结构或缺独立确认。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHORIZED / DEVICE_UNAUTHORIZED：本机主令牌或当前设备授权失效；平台鉴权故障不是设备撤权。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin/Host或设备授权边界不满足；ASSISTANT_HUMAN_ONLY禁止Agent操作配置凭据。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "FEISHU_NOT_FOUND：报告/回执不存在或路径不正确。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "CAS冲突、模型/配置/目标/来源revision变化、暂停、报告过期或共享gate忙。受理后只用GET恢复；不得自动重放POST/PATCH/DELETE。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "整个本机JSON请求超过8192字节上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "AI_QUOTA_EXCEEDED：共享模型自然日额度耗尽；实际失败尝试不退还，不自动重算窗口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "STORAGE_DISABLED / AI_NOT_CONFIGURED / FEISHU_UNAVAILABLE：加密存储、模型或受控后台生命周期不可用。受理后的生成/投递结果见持久state；丢响应不得重发。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "delivery_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/FeishuDeliveryID"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -8618,6 +9724,814 @@
           }
         },
         "description": "主体隔离的内存快照（服务重启不恢复会话；额度持久化）。运行/会话30分钟，待确认5分钟，最多64会话、每会话16运行、每会话一个活跃或待确认运行、每轮6次模型/12次工具/累计120秒；历史最多64条/256KiB。HTTP 200不保证业务成功，必须检查run与tool状态；unknown不回滚、不重放。每次模型调用前检查历史来源暂停状态。"
+      },
+      "FeishuReportID": {
+        "type": "string",
+        "pattern": "^fr_[a-f0-9]{32}$"
+      },
+      "FeishuDeliveryID": {
+        "type": "string",
+        "pattern": "^fd_[a-f0-9]{32}$"
+      },
+      "FeishuState": {
+        "type": "string",
+        "enum": [
+          "running",
+          "succeeded",
+          "failed",
+          "unknown"
+        ]
+      },
+      "FeishuSourceRef": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "conversation_id",
+          "settings_revision"
+        ],
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
+          },
+          "settings_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        }
+      },
+      "FeishuTodo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "evidence_ids",
+          "needs_review"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "maxItems": 20
+          },
+          "needs_review": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "从已选证据原文构成的候选待办，必须人工核对；不把模型Draft或推测冒充已确认任务。"
+      },
+      "FeishuExcerpt": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "message_id",
+          "conversation_id",
+          "text",
+          "occurred_at"
+        ],
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
+          },
+          "conversation_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FeishuSchedule": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "revision",
+          "timezone",
+          "slots",
+          "model_config_id",
+          "model_config_revision",
+          "config_revision",
+          "target_binding_id",
+          "next_window_end",
+          "last_window_end"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Shanghai"
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "08:00"
+              },
+              {
+                "const": "20:00"
+              }
+            ],
+            "items": false
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "next_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "description": "初始关闭且revision=1；未绑定的config_revision=0合法（配置本身revision从1开始）。启用从未来时段开始，后台周期检查，迟到超过2分钟跳过，不补离线旧窗口。固定上海08:00/20:00；每次模型或飞书配置保存均原子撤销周期授权，重复保存也使旧绑定失效。"
+      },
+      "FeishuDelivery": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "report_id",
+          "window_start",
+          "window_end",
+          "state",
+          "model_config_id",
+          "model_config_revision",
+          "config_revision",
+          "target_binding_id",
+          "content_hash",
+          "message_id",
+          "error_code",
+          "created_at",
+          "completed_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/FeishuDeliveryID"
+          },
+          "report_id": {
+            "$ref": "#/components/schemas/FeishuReportID"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "$ref": "#/components/schemas/FeishuState"
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "message_id": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "error_code": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "description": "不含凭据/原始接收者/正文的持久最小回执。succeeded仅表示HTTP2xx且显式code=0并有message_id，不能证明手机通知或已读。running/unknown/失败均不可自动重发；重启将遗留running转unknown。本地workspace+window_end唯一约束跨配置、目标与重启保持，平台UUID去重不替代本机账本。"
+      },
+      "FeishuReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "window_start",
+          "window_end",
+          "state",
+          "model_config_id",
+          "model_config_revision",
+          "config_revision",
+          "target_binding_id",
+          "schedule_revision",
+          "trigger",
+          "summary",
+          "todos",
+          "excerpts",
+          "conversation_ids",
+          "source_refs",
+          "conversation_count",
+          "text",
+          "content_hash",
+          "truncated",
+          "error_code",
+          "created_at",
+          "generated_at",
+          "delivery"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/FeishuReportID"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "$ref": "#/components/schemas/FeishuState"
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "schedule_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "schedule"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "todos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeishuTodo"
+            },
+            "maxItems": 8
+          },
+          "excerpts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeishuExcerpt"
+            },
+            "maxItems": 3
+          },
+          "conversation_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 256,
+              "minLength": 1
+            },
+            "maxItems": 4
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeishuSourceRef"
+            },
+            "maxItems": 4
+          },
+          "conversation_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "error_code": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "delivery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FeishuDelivery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "description": "固定相邻上海时段的半开窗口[start,end)，取最近已结束的12小时，不接受客户端自选窗口。最多500候选、4个相关会话×20条，每个实际Analyze单独消耗共享上海自然日额度（失败亦计）。source_refs保存所有输入会话及settings revision，非仅引用证据。text为UTF8最多8000字节的精确冻结外发正文；双层平台JSON另受16384字节预算，截断/省略明确标示，<at>不会形成活跃提及。content_hash为SHA256(包含报告ID/窗口/text/模型及目标绑定的规范服务端对象)，非纯正文哈希。任何状态占用窗口后不重算；手动发送在下个时段过期。读取/模型处理/发送均复核来源和绑定，暂停→恢复也使旧正文不可读/不可发送；投递最小元数据可独立查询。"
+      },
+      "FeishuReportResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "report"
+        ],
+        "properties": {
+          "report": {
+            "$ref": "#/components/schemas/FeishuReport"
+          }
+        }
+      },
+      "FeishuLatest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "report"
+        ],
+        "properties": {
+          "report": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FeishuReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "FeishuDeliveryResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "delivery"
+        ],
+        "properties": {
+          "delivery": {
+            "$ref": "#/components/schemas/FeishuDelivery"
+          }
+        }
+      },
+      "FeishuStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "configured",
+          "key_configured",
+          "app_id",
+          "config_revision",
+          "target_binding_id",
+          "target_label_masked",
+          "recipient_open_id_masked",
+          "recipient_ownership_verified",
+          "schedule",
+          "latest_report_id",
+          "latest_delivery",
+          "capabilities",
+          "timezone",
+          "slots"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "key_configured": {
+            "type": "boolean"
+          },
+          "app_id": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^(|cli_[A-Za-z0-9_-]+)$"
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^(|[a-f0-9]{64})$"
+          },
+          "target_label_masked": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "recipient_open_id_masked": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "recipient_ownership_verified": {
+            "type": "boolean",
+            "const": false
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/FeishuSchedule"
+          },
+          "latest_report_id": {
+            "type": "string",
+            "pattern": "^(|fr_[a-f0-9]{32})$"
+          },
+          "latest_delivery": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FeishuDelivery"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capabilities": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "private_self_only",
+              "automatic_retry"
+            ],
+            "properties": {
+              "private_self_only": {
+                "type": "boolean",
+                "const": true
+              },
+              "automatic_retry": {
+                "type": "boolean",
+                "const": false
+              }
+            }
+          },
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Shanghai"
+          },
+          "slots": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              {
+                "const": "08:00"
+              },
+              {
+                "const": "20:00"
+              }
+            ],
+            "items": false
+          }
+        },
+        "description": "仅读本机加密配置与账本，不请求平台。仅返回AppID、密钥是否已配置、掩码本人接收者和非凭据绑定ID，不回显app_secret、完整open_id、access_token。保存与configured不证明平台可用或接收者确属本人：recipient_ownership_verified固定false；本人必须在专用表单自行声明并核对同应用open_id。"
+      },
+      "FeishuConfigSave": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "app_id",
+          "app_secret",
+          "retain_secret",
+          "recipient_open_id",
+          "confirmed"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "app_id": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 128,
+            "pattern": "^cli_[A-Za-z0-9_-]+$"
+          },
+          "app_secret": {
+            "type": "string",
+            "maxLength": 4096,
+            "pattern": "^[!-~]*$",
+            "writeOnly": true,
+            "format": "password"
+          },
+          "retain_secret": {
+            "type": "boolean"
+          },
+          "recipient_open_id": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 128,
+            "pattern": "^ou_[A-Za-z0-9_-]+$",
+            "writeOnly": true
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "retain_secret": {
+                  "const": true
+                }
+              },
+              "required": [
+                "retain_secret"
+              ]
+            },
+            "then": {
+              "properties": {
+                "app_secret": {
+                  "const": ""
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "app_secret": {
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        ],
+        "description": "仅人工专用表单，不生成Agent可执行schema；严格区分大小写、拒绝重复/未知/null/错类型/尾随JSON，整个本机请求最多8192字节。expected_revision初始1。retain_secret=true仅允许AppID保持不变、app_secret为空且已存密钥；不读回秘密。本人重新输入同应用open_id并明确确认；配置变更（含同值保存）撤销周期授权，旧报告不可借换目标重发。SQLCipher中加密保存，不放浏览器持久存储或对话。"
+      },
+      "FeishuConfigDelete": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expected_revision",
+          "confirmed"
+        ],
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "仅人工；清除本机AppID、AppSecret、open_id并递增版本、撤销周期计划。保留防重复账本与最小回执，不承诺撤回在途请求或平台已接受消息。"
+      },
+      "FeishuScheduleSave": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "expected_revision",
+          "confirmed"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          },
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "enabled": {
+                  "const": true
+                }
+              },
+              "required": [
+                "enabled"
+              ]
+            },
+            "then": {
+              "required": [
+                "model_config_id",
+                "model_config_revision",
+                "config_revision",
+                "target_binding_id"
+              ]
+            }
+          }
+        ],
+        "description": "启用须独立明确同意：固定08:00/20:00、当前模型/版本、飞书配置版本与本人目标的持续模型处理及外发风险；没有任意recipient/text/URL/scopes字段。关闭只需enabled=false、CAS revision和confirmed，模型/凭据不可用时仍可关闭。成功关闭的屏障之后不再开始新的本流程外呼；不能撤回在途/已接受消息。"
+      },
+      "FeishuPreviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model_config_id",
+          "model_config_revision",
+          "config_revision",
+          "target_binding_id",
+          "confirmed"
+        ],
+        "properties": {
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "只生成最近已结束固定窗口的本机预览，不直接发飞书。须重新勾选向当前模型提交未暂停、限量消息的当次同意。没有window、recipient、text或force输入。共享gate空闲后才持久占用窗口，无无界后台队列；一旦占用，任意终态均禁止重新模型计算。"
+      },
+      "FeishuSendRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "model_config_id",
+          "model_config_revision",
+          "config_revision",
+          "target_binding_id",
+          "confirmed",
+          "content_hash"
+        ],
+        "properties": {
+          "model_config_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "model_config_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "target_binding_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "const": true
+          },
+          "content_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "description": "独立外发确认，精确引用服务端已冻结报告的正文及绑定hash，不能提交自选正文/接收者/URL/权限。检查报告在下个时段前、所有输入来源revision、当前模型/配置/目标；本机每窗口最多一次投递，不自动重试。"
       }
     }
   }

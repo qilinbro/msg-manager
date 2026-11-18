@@ -1,0 +1,272 @@
+.feishu-page {
+  max-inline-size: 1040px;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.feishu-page h2 {
+  font-size: 1rem;
+  font-weight: 650;
+}
+.feishu-page h3 {
+  margin-block-end: 12px;
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+.feishu-page h4 {
+  margin-block: 20px 10px;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+.feishu-page p {
+  margin-block-end: 12px;
+}
+.feishu-toolbar,
+.feishu-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+.feishu-toolbar > p {
+  max-inline-size: 42rem;
+}
+.feishu-actions {
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  justify-content: flex-start;
+}
+.feishu-note,
+.feishu-page figcaption {
+  color: var(--secondary);
+  font-size: 0.8125rem;
+}
+.feishu-feedback {
+  margin-block: 16px;
+}
+.feishu-feedback:empty {
+  display: none;
+}
+.feishu-error {
+  color: var(--danger);
+}
+.feishu-warning {
+  color: var(--warning);
+}
+section.feishu-warning {
+  margin-block: 24px;
+  padding-inline-start: 16px;
+  border-inline-start: 2px solid var(--warning);
+}
+.feishu-warning h2 {
+  color: var(--ink);
+}
+.feishu-section,
+.feishu-receipt {
+  margin-block-start: 28px;
+  padding-block-start: 24px;
+  border-block-start: 1px solid var(--border);
+}
+.feishu-page .section-heading {
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.feishu-page .section-heading h3 {
+  margin: 0;
+}
+.feishu-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 28px;
+  margin-block: 20px;
+}
+.feishu-facts > div,
+.feishu-form-grid > * {
+  min-inline-size: 0;
+}
+.feishu-facts dt {
+  margin-block-end: 3px;
+  color: var(--secondary);
+  font-size: 0.75rem;
+}
+.feishu-facts dd {
+  margin: 0;
+}
+.feishu-page code {
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.feishu-page details {
+  margin-block-start: 20px;
+}
+.feishu-page summary {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-block-size: 36px;
+  cursor: pointer;
+  font-weight: 550;
+}
+.feishu-page details[open] > summary {
+  margin-block-end: 12px;
+}
+.feishu-page fieldset {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.feishu-page legend {
+  padding: 0;
+  margin-block-end: 10px;
+  color: var(--secondary);
+  font-size: 0.8125rem;
+}
+.feishu-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+  margin-block-end: 16px;
+}
+.feishu-wide {
+  grid-column: 1 / -1;
+}
+.feishu-field > label,
+.feishu-recovery form > label {
+  display: block;
+  margin-block-end: 4px;
+  font-weight: 550;
+}
+.feishu-field > .feishu-note {
+  display: block;
+  margin-block-end: 7px;
+}
+.feishu-page input:not([type='checkbox']) {
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  color: var(--ink);
+  background: var(--paper);
+}
+.feishu-page input:user-invalid {
+  border-color: var(--danger);
+}
+.feishu-page input:disabled {
+  background: var(--surface);
+  color: var(--secondary);
+}
+.feishu-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-inline-size: 56rem;
+  min-block-size: 40px;
+  margin-block: 10px;
+  padding-block: 5px;
+  cursor: pointer;
+}
+.feishu-check > input {
+  flex: 0 0 auto;
+  inline-size: 16px;
+  block-size: 16px;
+  margin: 4px 0 0;
+}
+.feishu-check > span {
+  min-inline-size: 0;
+}
+.feishu-page .button {
+  max-inline-size: 100%;
+  white-space: normal;
+  text-align: center;
+}
+.feishu-disable {
+  margin-block-start: 20px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--border);
+}
+.feishu-danger-zone > p {
+  max-inline-size: 52rem;
+}
+.feishu-empty {
+  margin-block: 20px;
+  color: var(--secondary);
+}
+.feishu-report {
+  margin-block-start: 28px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid var(--border);
+}
+.feishu-frozen-text {
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.feishu-evidence figure {
+  margin: 16px 0;
+}
+.feishu-evidence blockquote {
+  margin: 0 0 4px;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--border-strong);
+}
+.feishu-page ul {
+  padding-inline-start: 22px;
+}
+.feishu-page li + li {
+  margin-block-start: 6px;
+}
+.feishu-recovery {
+  padding-block: 20px;
+  border-block-start: 1px solid var(--border);
+}
+.feishu-recovery input {
+  margin-block-end: 12px;
+}
+@media (max-width: 700px) {
+  .feishu-toolbar {
+    flex-direction: column;
+    gap: 0;
+  }
+  .feishu-actions {
+    margin-block-end: 14px;
+  }
+  .feishu-facts,
+  .feishu-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .feishu-page input:not([type='checkbox']) {
+    min-block-size: 48px;
+    font-size: 1rem;
+  }
+  .feishu-page .button,
+  .feishu-page summary {
+    min-block-size: 44px;
+  }
+  .feishu-check {
+    min-block-size: 44px;
+    margin-block: 12px;
+  }
+  .feishu-frozen-text {
+    padding: 12px;
+  }
+}
+@media (pointer: coarse) {
+  .feishu-page .button,
+  .feishu-page summary,
+  .feishu-check {
+    min-block-size: 48px;
+  }
+}

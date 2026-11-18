@@ -320,7 +320,7 @@ func TestAssistantCatalogExactlyCoversExistingOpenAPIWithoutRecursiveTools(t *te
 			delete(catalog, key)
 		}
 	}
-	if len(catalog) != 0 || count != 62 || controls != 5 {
+	if len(catalog) != 0 || count != 72 || controls != 5 {
 		t.Fatalf("inventory drift: business=%d assistant=%d unexpected=%v", count, controls, catalog)
 	}
 	definitions := map[string]bool{}
@@ -342,7 +342,7 @@ func TestAssistantCatalogExactlyCoversExistingOpenAPIWithoutRecursiveTools(t *te
 			}
 		}
 	}
-	if human != 5 || unavailable != 13 || len(definitions) != 44 {
+	if human != 7 || unavailable != 13 || len(definitions) != 52 {
 		t.Fatal("credential/unimplemented/executable inventory drift", human, unavailable, len(definitions))
 	}
 	if definitions["verify_qq_onebot"] || assistantOperationByID("verify_qq_onebot") != nil {

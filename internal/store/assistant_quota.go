@@ -22,7 +22,7 @@ func (s *Store) ReserveAssistantCallContext(ctx context.Context, day string, lim
 	}
 	defer tx.Rollback()
 	var count int
-	if tx.QueryRowContext(ctx, aiCallCountSQL, workspaceID, day, workspaceID, day).Scan(&count) != nil {
+	if tx.QueryRowContext(ctx, aiCallCountSQL, workspaceID, day, workspaceID, day, workspaceID, day).Scan(&count) != nil {
 		if err := ctx.Err(); err != nil {
 			return "", err
 		}

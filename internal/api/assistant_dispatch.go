@@ -8,14 +8,16 @@ import (
 	"strings"
 
 	"github.com/qilinbro/msg-manager/internal/agent"
+	"github.com/qilinbro/msg-manager/internal/store"
 )
 
 type assistantDispatchKey struct{}
 
 type assistantDispatchBinding struct {
-	configID string
-	revision int64
-	owner    string
+	configID        string
+	revision        int64
+	owner           string
+	feishuWindowEnd string
 }
 
 type assistantRecorder struct {
@@ -110,6 +112,12 @@ func (h *handler) reauthenticateAssistant(ctx context.Context, original *http.Re
 }
 
 func assistantGloballySensitive(operation *assistantOperation, prepared assistantPreparedOperation) bool {
+	// Feishu filters bounded inputs and persists exact source revisions itself.
+	// Unrelated paused conversations must not become a blanket schedule grant
+	// blocker, nor may this exception bypass any report's frozen provenance.
+	if assistantFeishuOperation(operation.ID) {
+		return false
+	}
 	if len(prepared.ConversationIDs) == 0 && operation.Availability == "confirmation_required" {
 		// Global sync/import/monitoring cannot safely infer every affected
 		// conversation from a peer string. Fail closed if any source is paused.
@@ -123,7 +131,10 @@ func assistantGloballySensitive(operation *assistantOperation, prepared assistan
 }
 
 func (h *handler) checkAssistantPrivacy(ctx context.Context, references assistantPrivacyRefs) string {
-	if len(references.IDs) == 0 && !references.Global {
+	if references.Invalid {
+		return "ASSISTANT_SOURCE_CHANGED"
+	}
+	if len(references.IDs) == 0 && !references.Global && len(references.Bindings) == 0 && len(references.Revisions) == 0 {
 		return ""
 	}
 	if h.inbox == nil {
@@ -145,6 +156,20 @@ func (h *handler) checkAssistantPrivacy(ctx context.Context, references assistan
 		}
 		if settings.Mode == "paused" {
 			return "ASSISTANT_AI_PAUSED"
+		}
+	}
+	refs := make([]store.FeishuSourceRef, 0, len(references.Revisions))
+	for id, revision := range references.Revisions {
+		refs = append(refs, store.FeishuSourceRef{ConversationID: id, SettingsRevision: revision})
+	}
+	if len(refs) > 0 {
+		if err := h.inbox.CheckFeishuSourceRefs(ctx, refs); err != nil {
+			return "ASSISTANT_SOURCE_CHANGED"
+		}
+	}
+	for binding := range references.Bindings {
+		if err := h.validateFeishuBinding(ctx, binding, false); err != nil {
+			return "ASSISTANT_SOURCE_CHANGED"
 		}
 	}
 	return ""
@@ -176,16 +201,22 @@ func (h *handler) dispatchAssistantTool(ctx context.Context, original *http.Requ
 		// paused conversation. Other reads/writes cannot auto-unpause it.
 		privacyChecks = newAssistantPrivacyRefs()
 	}
-	if code := h.checkAssistantPrivacy(ctx, privacyChecks); code != "" {
+	h.assistant.mu.Lock()
+	prior := run.references.clone()
+	h.assistant.mu.Unlock()
+	prior.merge(privacyChecks)
+	unlock, code := h.assistantPrivacyBarrier(ctx, run.response.ModelConfigID, run.response.ModelConfigRevision, prior)
+	if code != "" {
 		status := http.StatusConflict
 		result.HTTPStatus, result.ErrorCode = &status, code
 		return result, references
 	}
+	unlock() // Never recursively ServeHTTP while holding aiMu/dispatch leases.
 	if ctx.Err() != nil {
 		result.ErrorCode = "ASSISTANT_TIMEOUT"
 		return result, references
 	}
-	binding := assistantDispatchBinding{configID: run.response.ModelConfigID, revision: run.response.ModelConfigRevision, owner: run.owner}
+	binding := assistantDispatchBinding{configID: run.response.ModelConfigID, revision: run.response.ModelConfigRevision, owner: run.owner, feishuWindowEnd: prepared.FeishuWindowEnd}
 	ctx = context.WithValue(ctx, assistantDispatchKey{}, binding)
 	request, err := http.NewRequestWithContext(ctx, prepared.Method, "http://"+original.Host+prepared.Path, bytes.NewReader(prepared.Body))
 	if err != nil {
@@ -252,29 +283,39 @@ func (h *handler) dispatchAssistantTool(ctx context.Context, original *http.Requ
 	} else {
 		assistantCollectConversationIDs(value, references.IDs)
 	}
-	if operation.ID != "update_ai_settings" {
-		if code := h.checkAssistantPrivacy(ctx, references); code != "" {
-			result.ErrorCode = code
-			if operation.Availability == "confirmation_required" {
-				// HTTP success is known even if a newly paused source makes the
-				// response private. Do not misreport a completed write as failed.
-				result.State = "succeeded"
-			}
-			return result, references
+	assistantCollectFeishuRefs(value, &references)
+	desiredState, desiredCode := "succeeded", ""
+	if assistantFeishuOperation(operation.ID) {
+		if state, code := assistantFeishuResultState(value); state != "" {
+			desiredState, desiredCode = state, code
 		}
 	}
-	h.aiMu.RLock()
-	modelKey := h.modelConfig.APIKey
-	h.aiMu.RUnlock()
+	privacyAfter := references
+	if operation.ID == "update_ai_settings" {
+		privacyAfter = newAssistantPrivacyRefs()
+	}
+	unlock, code = h.assistantPrivacyBarrier(ctx, run.response.ModelConfigID, run.response.ModelConfigRevision, privacyAfter)
+	if code != "" {
+		result.ErrorCode = code
+		if operation.Availability == "confirmation_required" {
+			result.State = "succeeded"
+			if status == http.StatusAccepted {
+				result.State, result.ErrorCode = "unknown", "ASSISTANT_UNKNOWN"
+			}
+		}
+		return result, references
+	}
+	defer unlock()
 	bearer := strings.TrimPrefix(original.Header.Get("Authorization"), "Bearer ")
-	if assistantValueContainsSecret(value, modelKey, bearer) {
+	secrets, secretErr := h.assistantSecretValues(ctx, h.modelConfig.APIKey, bearer)
+	if secretErr != nil || assistantValueContainsSecret(value, secrets...) {
 		return assistantUnreadableToolResult(result, operation, "ASSISTANT_SECRET_BLOCKED"), references
 	}
 	data, err := json.Marshal(value)
 	if err != nil || len(data) > agent.MaxToolResponseBytes {
 		return assistantUnreadableToolResult(result, operation, "ASSISTANT_TOOL_RESPONSE_LIMIT"), references
 	}
-	result.State, result.Data = "succeeded", data
+	result.State, result.Data, result.ErrorCode = desiredState, data, desiredCode
 	return result, references
 }
 
@@ -356,7 +397,7 @@ func assistantValueContainsSecret(value any, secrets ...string) bool {
 	case map[string]any:
 		for name, item := range typed {
 			switch strings.ToLower(name) {
-			case "api_key", "access_token", "authorization", "password", "database_key", "private_key":
+			case "api_key", "access_token", "tenant_access_token", "app_secret", "client_secret", "recipient_open_id", "authorization", "password", "database_key", "private_key":
 				return true
 			}
 			if assistantValueContainsSecret(item, secrets...) {

@@ -1,0 +1,366 @@
+[
+  {
+    "file": ".runtime/feishu-white-browser-check.mjs",
+    "frontend": false,
+    "bytes": 68275,
+    "sha256": "320c5bf45ef2e14b82fd187a2124b17197be79936dd9396ee1e024372fa22908",
+    "mtimeMs": 1794925631385.3286
+  },
+  {
+    "file": "api/openapi.yaml",
+    "frontend": false,
+    "bytes": 327959,
+    "sha256": "ce898ff7345092f0b2809f483d517c5d2fc768bc7125f353e35df00ce5a04547",
+    "mtimeMs": 1794923680921.9487
+  },
+  {
+    "file": "apps/desktop/index.html",
+    "frontend": true,
+    "bytes": 490,
+    "sha256": "9637349f3e4099ca5ed1dde6f0fe17d10a8aec870a1f867d65868b4edec297f1",
+    "mtimeMs": 1794904003520.5059
+  },
+  {
+    "file": "apps/desktop/package-lock.json",
+    "frontend": true,
+    "bytes": 54563,
+    "sha256": "0edc58f730c92a103d602faf1f6558c79fc32cadca84ea6650a869c51b40c010",
+    "mtimeMs": 1794799617198.911
+  },
+  {
+    "file": "apps/desktop/package.json",
+    "frontend": true,
+    "bytes": 989,
+    "sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479",
+    "mtimeMs": 1794904003539.9849
+  },
+  {
+    "file": "apps/desktop/src/ai-api.ts",
+    "frontend": true,
+    "bytes": 11764,
+    "sha256": "82df7eb029225b5a5cecb9275f0d469dcd0e43322aaf6330ffb1b154aad6279e",
+    "mtimeMs": 1794917277145.5293
+  },
+  {
+    "file": "apps/desktop/src/ai.css",
+    "frontend": true,
+    "bytes": 7125,
+    "sha256": "2c22d116b34bd9c9eeb02097ceb40656501cc66be799534f03a8fe546026c968",
+    "mtimeMs": 1794915391466.192
+  },
+  {
+    "file": "apps/desktop/src/AIModelPanel.tsx",
+    "frontend": true,
+    "bytes": 7672,
+    "sha256": "7e8756c677f63464fdd3d4b87e00704ed0df9f28ef59c22bb7972cf05205c977",
+    "mtimeMs": 1794914077643.859
+  },
+  {
+    "file": "apps/desktop/src/AIPanel.tsx",
+    "frontend": true,
+    "bytes": 24738,
+    "sha256": "55ccbc5dd8c4b1bcc650a4f085b33ed0bea2a65a0acbf518bcaafaf880ebeafd",
+    "mtimeMs": 1794904003385.8435
+  },
+  {
+    "file": "apps/desktop/src/api.ts",
+    "frontend": true,
+    "bytes": 6023,
+    "sha256": "d9173de6d658a6c390ea78758f64d88c6b91c7d98ebdecc35a85e3ffc3b66bed",
+    "mtimeMs": 1794917764874.2632
+  },
+  {
+    "file": "apps/desktop/src/App.tsx",
+    "frontend": true,
+    "bytes": 28742,
+    "sha256": "cf033cf0ba35a24c0999c1d95abf788dc5866bfd30b34a57b6566d5decd9168c",
+    "mtimeMs": 1794924700691.2068
+  },
+  {
+    "file": "apps/desktop/src/assistant-api.ts",
+    "frontend": true,
+    "bytes": 14753,
+    "sha256": "a0cddb4afb75321c14095dd8ce21fd8f289648c2ad5de06ff50d075c425ebb46",
+    "mtimeMs": 1794917331886.733
+  },
+  {
+    "file": "apps/desktop/src/assistant.css",
+    "frontend": true,
+    "bytes": 7317,
+    "sha256": "749110e6da29250be6fb15e83cf701e34c7889987e2ea67752b17a3a6e0f29e7",
+    "mtimeMs": 1794914537450.626
+  },
+  {
+    "file": "apps/desktop/src/AssistantPanel.tsx",
+    "frontend": true,
+    "bytes": 37570,
+    "sha256": "c583f218d312393211a3a35023d5c42e2d01120880d77eb647fa8c645dabc236",
+    "mtimeMs": 1794924700768.95
+  },
+  {
+    "file": "apps/desktop/src/device-auth.ts",
+    "frontend": true,
+    "bytes": 26544,
+    "sha256": "34605011d65de3401b2d5b394c765f78f22b6e58c279702f92ac398f71cbb838",
+    "mtimeMs": 1794911474818.2495
+  },
+  {
+    "file": "apps/desktop/src/digest-api.ts",
+    "frontend": true,
+    "bytes": 10299,
+    "sha256": "9438dfda6ca4d4a83850da533e5ebc9d90984d904b95c15931bed80c866f00f0",
+    "mtimeMs": 1794917331921.9531
+  },
+  {
+    "file": "apps/desktop/src/DigestPanel.tsx",
+    "frontend": true,
+    "bytes": 17747,
+    "sha256": "c3c70812f114db2e826233fbad49121e75b08c57aa24017bb511179fa92eb487",
+    "mtimeMs": 1794917367057.473
+  },
+  {
+    "file": "apps/desktop/src/email-api.ts",
+    "frontend": true,
+    "bytes": 6554,
+    "sha256": "dc63c217485ef35c69100421b76ad2f17f9de9c6b8a7900b2776ac8a7cf2d724",
+    "mtimeMs": 1794908984088.2585
+  },
+  {
+    "file": "apps/desktop/src/EmailPanel.tsx",
+    "frontend": true,
+    "bytes": 10125,
+    "sha256": "e247fa91047ec6e2e752941f17c56f54be8abde492b289b7cc755faf01eff2d6",
+    "mtimeMs": 1794904003457.4463
+  },
+  {
+    "file": "apps/desktop/src/feishu-api.ts",
+    "frontend": true,
+    "bytes": 26740,
+    "sha256": "6aead0f7be87dd1e78682f19e4bc28d4e8840f7042fd302bc1f8a341497caa27",
+    "mtimeMs": 1794925266928.6956
+  },
+  {
+    "file": "apps/desktop/src/feishu.css",
+    "frontend": true,
+    "bytes": 5279,
+    "sha256": "0d7448b3beaa0d75e83451d55e44ad90ba6a1e94a8ec8148eb68557899f0081e",
+    "mtimeMs": 1794924332394.911
+  },
+  {
+    "file": "apps/desktop/src/FeishuPanel.tsx",
+    "frontend": true,
+    "bytes": 56277,
+    "sha256": "a1ea0391bb530b7c450c9ae62daa19494ecd41660a1b368a35d01388a26c64d0",
+    "mtimeMs": 1794925288629.0298
+  },
+  {
+    "file": "apps/desktop/src/inbox-api.ts",
+    "frontend": true,
+    "bytes": 15182,
+    "sha256": "6be330012ba1914a0b78f26ec24476ae013bdf0169f8d13888de6e5fda0d37a4",
+    "mtimeMs": 1794908984058.0696
+  },
+  {
+    "file": "apps/desktop/src/inbox.css",
+    "frontend": true,
+    "bytes": 24486,
+    "sha256": "27127cb5f365d41571097b3829487142f5e16436dccafd74496743c61533f8ae",
+    "mtimeMs": 1794917277408.9077
+  },
+  {
+    "file": "apps/desktop/src/Inbox.tsx",
+    "frontend": true,
+    "bytes": 60103,
+    "sha256": "bfb5fc0d75d61d0588d20d846c8ff6089f1e84b62f1c2cd374b91b5e3736281b",
+    "mtimeMs": 1794917277024.4558
+  },
+  {
+    "file": "apps/desktop/src/main.tsx",
+    "frontend": true,
+    "bytes": 307,
+    "sha256": "c5c74c6bcb9fb4089023e4d5b24c643ecc690e45b24f61f63ef3bb5c81d63a77",
+    "mtimeMs": 1794904003463.129
+  },
+  {
+    "file": "apps/desktop/src/milky-api.ts",
+    "frontend": true,
+    "bytes": 6367,
+    "sha256": "9cb1e04b15e2bd5f6db68e48061508dc0a28e8c3e6e2e28b7972ae65daf1e822",
+    "mtimeMs": 1794908984122.545
+  },
+  {
+    "file": "apps/desktop/src/MilkyPanel.tsx",
+    "frontend": true,
+    "bytes": 10820,
+    "sha256": "921a83d94a24aca4898c3c82c0eb092344e587184425c4e4d39eeb95874da2e1",
+    "mtimeMs": 1794917277049.939
+  },
+  {
+    "file": "apps/desktop/src/model-config-api.ts",
+    "frontend": true,
+    "bytes": 5271,
+    "sha256": "c6ad7725d1c013fafe7a0479b42079ff528028beb302a422f6a6d0f0c919087c",
+    "mtimeMs": 1794908984139.698
+  },
+  {
+    "file": "apps/desktop/src/model-config.css",
+    "frontend": true,
+    "bytes": 351,
+    "sha256": "1fd7543bae0e3e47df08b09f41eed31df2b603af0a22ed665a6d543af61605d7",
+    "mtimeMs": 1794917093299.5835
+  },
+  {
+    "file": "apps/desktop/src/profile-api.ts",
+    "frontend": true,
+    "bytes": 17892,
+    "sha256": "22942dea1c750d870fbcc2853e888d2d1de7895a6fce42f65f5d2a966dbcd7e7",
+    "mtimeMs": 1794908984180.085
+  },
+  {
+    "file": "apps/desktop/src/profile-links-api.ts",
+    "frontend": true,
+    "bytes": 6297,
+    "sha256": "61e383d53a51cca592fed5a8040c057f3c5e9c8ed22e9f54b99e196925312c64",
+    "mtimeMs": 1794908984192.004
+  },
+  {
+    "file": "apps/desktop/src/profile.css",
+    "frontend": true,
+    "bytes": 7410,
+    "sha256": "1eeb35921ca90ed4879f3d624524fe6293b5828d4307e96f340f7acc9809db64",
+    "mtimeMs": 1794915391466.192
+  },
+  {
+    "file": "apps/desktop/src/ProfileLinksPanel.tsx",
+    "frontend": true,
+    "bytes": 8587,
+    "sha256": "37dbcc2cb3383ef38210d5fc92ffd20b20215a3a1da68027e22a3acb837e1209",
+    "mtimeMs": 1794809442382.9614
+  },
+  {
+    "file": "apps/desktop/src/ProfilePanel.tsx",
+    "frontend": true,
+    "bytes": 35348,
+    "sha256": "7c4afb8fb65825d97d82c4be25a6c2ab45a322eee84ef5526a982994253aac28",
+    "mtimeMs": 1794917277116.1309
+  },
+  {
+    "file": "apps/desktop/src/service-session.ts",
+    "frontend": true,
+    "bytes": 2057,
+    "sha256": "01141e0d4f1c5ce400a2b0ecd4cfbaba4066adf511db03999950e48a9c9f149e",
+    "mtimeMs": 1794908156167.0212
+  },
+  {
+    "file": "apps/desktop/src/styles.css",
+    "frontend": true,
+    "bytes": 14726,
+    "sha256": "41aebf3b10ab47b0f2ff1602d4c21112da00fd9902be808050ad8ead74eef46b",
+    "mtimeMs": 1794917277496.9993
+  },
+  {
+    "file": "apps/desktop/src/useServiceSession.ts",
+    "frontend": true,
+    "bytes": 15808,
+    "sha256": "b2b1562216a4cc5f5132b10b2f870f62beaf8ef1ed7f88478bbb91c9618a56c8",
+    "mtimeMs": 1794909773795.458
+  },
+  {
+    "file": "apps/desktop/src/wechat-api.ts",
+    "frontend": true,
+    "bytes": 12723,
+    "sha256": "fb6eb74ba2653e4573ad085e9cb95bf4755584bcf0e9f09a04dfe904a2cebccd",
+    "mtimeMs": 1794908984109.3005
+  },
+  {
+    "file": "apps/desktop/src/WechatPanel.tsx",
+    "frontend": true,
+    "bytes": 25879,
+    "sha256": "2353d6395754fa994926e02ec9473b144b2f7f9c23622720394cf6d6c506d6dc",
+    "mtimeMs": 1794903878294.357
+  },
+  {
+    "file": "apps/desktop/tsconfig.json",
+    "frontend": true,
+    "bytes": 572,
+    "sha256": "b1e546717c0d0af0741eb2d0d3206bdf8b559bb03ab7bf8b9e0bf7962da16b92",
+    "mtimeMs": 1794904003546.1067
+  },
+  {
+    "file": "apps/desktop/vite.config.ts",
+    "frontend": true,
+    "bytes": 356,
+    "sha256": "b3d008acd4415638800b1d3c6e2d21b8e6f03548808aa79dc006be603d752b35",
+    "mtimeMs": 1794904003551.3557
+  },
+  {
+    "file": "internal/api/assistant_catalog.go",
+    "frontend": false,
+    "bytes": 26952,
+    "sha256": "5aad6d879fb1179e4bc27dd125e8ee7212505c035f800b4605e81e0f4c071bd4",
+    "mtimeMs": 1794924482039.4646
+  },
+  {
+    "file": "internal/api/assistant_feishu.go",
+    "frontend": false,
+    "bytes": 10571,
+    "sha256": "76edb09bf5f01e213d66889f4209c95a74fb8239b5d68a98fe7a6d5be0837a94",
+    "mtimeMs": 1794925363647.0122
+  },
+  {
+    "file": "internal/api/feishu_render.go",
+    "frontend": false,
+    "bytes": 8331,
+    "sha256": "9af0919c4247fbaaa011345a6d96481a1bf7b9e2277c6a22c7b04a49613b02ba",
+    "mtimeMs": 1794924919933.887
+  },
+  {
+    "file": "internal/api/feishu_worker.go",
+    "frontend": false,
+    "bytes": 15676,
+    "sha256": "a60449473eab4f99df2449143e783fbd1e746a0e57c645b44a3e01a00e4d5302",
+    "mtimeMs": 1794924482039.768
+  },
+  {
+    "file": "internal/api/feishu.go",
+    "frontend": false,
+    "bytes": 18086,
+    "sha256": "50010b0909c3feb6ca4d7ef410d62fb580d2c6d2bb050446265e5a0676fe598a",
+    "mtimeMs": 1794925297409.026
+  },
+  {
+    "file": "internal/store/feishu_config.go",
+    "frontend": false,
+    "bytes": 9585,
+    "sha256": "4b5f927f1f1efdb5a56fa07846dcb8c20028bdf7243a3d9af7cb3b091a24c374",
+    "mtimeMs": 1794923404880.0896
+  },
+  {
+    "file": "internal/store/feishu_deliveries.go",
+    "frontend": false,
+    "bytes": 8004,
+    "sha256": "ba5b4e50863665ca3549da72a58d10c716083bd4b407a18da5b76ff3fce3d06b",
+    "mtimeMs": 1794924919933.126
+  },
+  {
+    "file": "internal/store/feishu_reports.go",
+    "frontend": false,
+    "bytes": 12383,
+    "sha256": "e2d47b5548f3b9209c1a650db6bdb43dd1557e9ad58bd40912288aba437e77b9",
+    "mtimeMs": 1794924919933.126
+  },
+  {
+    "file": "internal/store/feishu_types.go",
+    "frontend": false,
+    "bytes": 6044,
+    "sha256": "4e0c3940bb5707427a9c345f0f97ff86abb17614f2b98ced4dde10cf2f2fb143",
+    "mtimeMs": 1794922746771.8093
+  },
+  {
+    "file": "internal/store/feishu_validation.go",
+    "frontend": false,
+    "bytes": 5411,
+    "sha256": "2096a2852476ade12e471b5b601a4477df3a0040927223eae50e336be93001cb",
+    "mtimeMs": 1794924919933.126
+  }
+]

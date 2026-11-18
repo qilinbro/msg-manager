@@ -1,0 +1,4 @@
+# Preserve this acceptance batch's original bytes, including Windows log line endings.
+/docs/acceptance/artifacts/2026-11-17-feishu-private-digests/** -text whitespace=cr-at-eol
+# Preserve t.Fatal's trailing space in the raw red-test log; all other checks remain.
+/docs/acceptance/artifacts/2026-11-17-feishu-private-digests/schedule-revocation-red.log whitespace=cr-at-eol,-blank-at-eol

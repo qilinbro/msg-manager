@@ -56,6 +56,10 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Persistent device authorization regression checks failed.' }
         node scripts/test-assistant-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Assistant client and consent regression checks failed.' }
+        node scripts/test-feishu-client.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Feishu client and panel regression checks failed.' }
+        node scripts/test-feishu-assistant.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Feishu Assistant independent-consent checks failed.' }
         node scripts/test-wechat-monitor.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Wechat monitor client regression checks failed.' }
         node scripts/test-inbox-import.mjs

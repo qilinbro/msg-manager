@@ -109,6 +109,9 @@ ON CONFLICT(conversation_id) DO UPDATE SET revision=ai_preferences.revision+1`, 
 	if _, err = tx.ExecContext(ctx, `UPDATE digest_schedules SET enabled=0,model_config_id='',model_config_revision=0,revision=revision+1 WHERE workspace_id=? AND (enabled<>0 OR model_config_id<>'' OR model_config_revision<>0)`, workspaceID); err != nil {
 		return ModelConfig{}, wechatMonitorDBError(ctx)
 	}
+	if err = revokeFeishuScheduleTx(ctx, tx); err != nil {
+		return ModelConfig{}, err
+	}
 	if err = tx.Commit(); err != nil {
 		return ModelConfig{}, wechatMonitorDBError(ctx)
 	}

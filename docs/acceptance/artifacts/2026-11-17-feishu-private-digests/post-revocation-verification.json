@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "checkedAt": "2026-11-18T04:20:41.669Z",
+  "scope": "Post-revocation backend repair and immutable browser-evidence reconciliation; NOT a new browser run or real-service acceptance",
+  "realServicesUsed": false,
+  "originalBrowserBatch": {
+    "startedAt": "2026-11-17T14:30:37.677Z",
+    "checks": 45,
+    "screenshots": 6,
+    "archivedFilesVerifiedAgainstOriginalOutput": 9,
+    "rerun": false
+  },
+  "sourceReconciliation": {
+    "baselineEntries": 52,
+    "unchangedContentEntries": 50,
+    "frontendEntries": 40,
+    "allFrontendContentUnchanged": true,
+    "changedEntries": [
+      {
+        "file": "internal/api/feishu_worker.go",
+        "frontend": false,
+        "contentUnchanged": false,
+        "before": {
+          "bytes": 15676,
+          "sha256": "a60449473eab4f99df2449143e783fbd1e746a0e57c645b44a3e01a00e4d5302",
+          "mtimeMs": 1794924482039.768
+        },
+        "after": {
+          "bytes": 16279,
+          "sha256": "5dcedab9e634dd531ccc50f50f80456563c408df3d2b8152063314fddc20c19b",
+          "mtime": "2026-11-17T14:56:20.810Z"
+        }
+      },
+      {
+        "file": "internal/api/feishu.go",
+        "frontend": false,
+        "contentUnchanged": false,
+        "before": {
+          "bytes": 18086,
+          "sha256": "50010b0909c3feb6ca4d7ef410d62fb580d2c6d2bb050446265e5a0676fe598a",
+          "mtimeMs": 1794925297409.026
+        },
+        "after": {
+          "bytes": 18271,
+          "sha256": "0b7750c39728f5e0a105175e96b2e0fd8493d3ed9c800446eebb2c1c00429bf1",
+          "mtime": "2026-11-17T14:56:07.961Z"
+        }
+      }
+    ],
+    "note": "Historical manifest is retained as originally generated. Two backend production inputs changed after that batch; the new regression test was not in the original 52-input manifest."
+  },
+  "currentRepairSources": [
+    {
+      "file": "internal/api/feishu.go",
+      "bytes": 18271,
+      "sha256": "0b7750c39728f5e0a105175e96b2e0fd8493d3ed9c800446eebb2c1c00429bf1",
+      "mtime": "2026-11-17T14:56:07.961Z"
+    },
+    {
+      "file": "internal/api/feishu_worker.go",
+      "bytes": 16279,
+      "sha256": "5dcedab9e634dd531ccc50f50f80456563c408df3d2b8152063314fddc20c19b",
+      "mtime": "2026-11-17T14:56:20.810Z"
+    },
+    {
+      "file": "internal/api/feishu_privacy_test.go",
+      "bytes": 10510,
+      "sha256": "c7b3890f2e29775db142006c5be8b7193b6f3d622ad8a41ff6a4bf4ad7a50396",
+      "mtime": "2026-11-17T14:54:37.854Z"
+    }
+  ],
+  "distReconciliation": {
+    "allThreeContentHashesAndSizesMatchOriginalBatch": true,
+    "mtimeEqualityClaimed": false,
+    "note": "The post-repair complete engineering check rebuilt dist. Content is identical; rebuilt-file mtime need not equal the original batch.",
+    "currentFiles": [
+      {
+        "file": "assets/index-CbyCaN4E.css",
+        "bytes": 53759,
+        "sha256": "df6c0c7065af31e1f8d35ee57c412d4ce7da3db7f1a0a280563565500e642e2a",
+        "mtime": "2026-11-17T15:00:46.272Z"
+      },
+      {
+        "file": "assets/index-DgxOb7py.js",
+        "bytes": 487350,
+        "sha256": "df2a8f5daf5aa53af0aa5f365c309a672eb3952ea20a2d2f5378cfdc67af6796",
+        "mtime": "2026-11-17T15:00:46.271Z"
+      },
+      {
+        "file": "index.html",
+        "bytes": 588,
+        "sha256": "6cab8d6f109612e77d79abfe459a2c0bb784d99178849a59b49a55ad4a8921c0",
+        "mtime": "2026-11-17T15:00:46.272Z"
+      }
+    ]
+  },
+  "engineeringEvidence": [
+    {
+      "file": "schedule-revocation-red.log",
+      "phase": "pre-repair expected red: four epoch cases and late registration fail; two unchanged positive controls pass",
+      "observedExitCode": 1,
+      "source": {
+        "file": ".runtime/feishu-schedule-revocation-red-v2.log",
+        "bytes": 2121,
+        "sha256": "e388fe9883fd2bf706613960a9833f82ff286967c98401091384ec7f848b9666",
+        "mtime": "2026-11-17T14:55:18.134Z"
+      },
+      "archiveSHA256": "e388fe9883fd2bf706613960a9833f82ff286967c98401091384ec7f848b9666"
+    },
+    {
+      "file": "schedule-revocation-race-green.log",
+      "phase": "post-repair targeted race, count=20",
+      "observedExitCode": 0,
+      "wallSeconds": 33.298,
+      "source": {
+        "file": ".runtime/feishu-schedule-revocation-green.log",
+        "bytes": 93,
+        "sha256": "d7b8e97ba61d1b64ab03934100229794f88be3fdb1d680726c510f999b33cb89",
+        "mtime": "2026-11-17T14:57:11.353Z"
+      },
+      "archiveSHA256": "d7b8e97ba61d1b64ab03934100229794f88be3fdb1d680726c510f999b33cb89"
+    },
+    {
+      "file": "engineering-check-post-revocation.log",
+      "phase": "post-repair complete engineering check",
+      "observedExitCode": 0,
+      "wallSeconds": 83.853,
+      "source": {
+        "file": ".runtime/feishu-post-revocation-check.log",
+        "bytes": 7683,
+        "sha256": "c68a8a894aa380175f6024bb3d0c3088df0b8396378ef4610ff39fc490853e04",
+        "mtime": "2026-11-17T15:00:46.389Z"
+      },
+      "archiveSHA256": "c68a8a894aa380175f6024bb3d0c3088df0b8396378ef4610ff39fc490853e04"
+    },
+    {
+      "file": "backend-race-post-revocation.log",
+      "phase": "post-repair expanded uncached backend race",
+      "observedExitCode": 0,
+      "wallSeconds": 43.972,
+      "source": {
+        "file": ".runtime/feishu-post-revocation-race.log",
+        "bytes": 634,
+        "sha256": "8e10752ae028feea088272f6a0e3a8bfe7fa434cb3e6cb147c1903023740b97d",
+        "mtime": "2026-11-17T15:00:07.547Z"
+      },
+      "archiveSHA256": "8e10752ae028feea088272f6a0e3a8bfe7fa434cb3e6cb147c1903023740b97d"
+    }
+  ],
+  "archiveInventoryExcludingThisReport": [
+    {
+      "file": "01-desktop-default-off.png",
+      "bytes": 90173,
+      "sha256": "4d4b770446a4d9691192ba8800b6fb15e4aad1a985d57db648deced1a0043500"
+    },
+    {
+      "file": "02-desktop-frozen-report.png",
+      "bytes": 87267,
+      "sha256": "e976dea22b8631949e2676c98598ed3edc347be776af87848a43bf8559f23249"
+    },
+    {
+      "file": "03-desktop-native-assistant-feishu-risk.png",
+      "bytes": 103374,
+      "sha256": "162a2962f0169a07211c992bbb40a1e040fc6de34779a66d3632bc3677e11882"
+    },
+    {
+      "file": "04-mobile-frozen-report.png",
+      "bytes": 54582,
+      "sha256": "cb1ec8d2341692246f875a1d911d2fbf972d2ad55c16807a97a8ed054a02c821"
+    },
+    {
+      "file": "05-mobile-unknown-receipt.png",
+      "bytes": 34450,
+      "sha256": "9684e8a74f9d295ce2196fbadffcdc30d61192a1475c4e8cd82a161cbd2df3c4"
+    },
+    {
+      "file": "06-mobile-failed-reload.png",
+      "bytes": 49165,
+      "sha256": "8efbbe77a52242ff302cc24279a686a90423a3571557d9cf06513bc5b6f268b4"
+    },
+    {
+      "file": "backend-race-post-revocation.log",
+      "bytes": 634,
+      "sha256": "8e10752ae028feea088272f6a0e3a8bfe7fa434cb3e6cb147c1903023740b97d"
+    },
+    {
+      "file": "backend-race.log",
+      "bytes": 599,
+      "sha256": "297ba1f24dc864a2235310346033f3ed33981548a5cf73e370e463888df9981d"
+    },
+    {
+      "file": "dist-manifest.json",
+      "bytes": 542,
+      "sha256": "1a94db441e3f6d4e28fc547826260ff51899bdb9e0d210b2b594045315245183"
+    },
+    {
+      "file": "engineering-check-post-revocation.log",
+      "bytes": 7683,
+      "sha256": "c68a8a894aa380175f6024bb3d0c3088df0b8396378ef4610ff39fc490853e04"
+    },
+    {
+      "file": "engineering-check.log",
+      "bytes": 7745,
+      "sha256": "23a2279ee1713bc7ceeeb377f5978bb5708c1021d8420a290a8b52736cde4e37"
+    },
+    {
+      "file": "fresh-build.log",
+      "bytes": 536,
+      "sha256": "3517fc072faced654c83acaf1f8ee01e0e021766afb366855632b313ef44d7c4"
+    },
+    {
+      "file": "report.json",
+      "bytes": 63331,
+      "sha256": "be84e356a1ea2ee49075a0d85921c8c1d39d2c1b6e4cac4f9194d30a6c155a07"
+    },
+    {
+      "file": "schedule-revocation-race-green.log",
+      "bytes": 93,
+      "sha256": "d7b8e97ba61d1b64ab03934100229794f88be3fdb1d680726c510f999b33cb89"
+    },
+    {
+      "file": "schedule-revocation-red.log",
+      "bytes": 2121,
+      "sha256": "e388fe9883fd2bf706613960a9833f82ff286967c98401091384ec7f848b9666"
+    },
+    {
+      "file": "source-manifest.json",
+      "bytes": 11033,
+      "sha256": "51f83cb394f3657d3cda6a78662074162597c3149b345a35e1eb9917a0d491dd"
+    }
+  ],
+  "limitations": [
+    "No designated-person approval",
+    "No deployment or running-service restart",
+    "No real configuration, chat, model, Feishu request, enabled schedule, phone notification or read acceptance"
+  ]
+}

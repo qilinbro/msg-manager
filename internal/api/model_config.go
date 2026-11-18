@@ -89,6 +89,9 @@ func (h *handler) serveModelConfig(w http.ResponseWriter, r *http.Request, trace
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 45*time.Second)
 	defer cancel()
+	// Cancel before aiMu: accepted Feishu analyses hold an immutable model
+	// snapshot. The dispatch writer below also drains already-started sends.
+	h.feishu.cancelOperations()
 	// All in-flight manual/profile requests finish under a read lock. Switching
 	// waits for their immutable configuration snapshot, never mixes two models.
 	for !h.aiMu.TryLock() {
@@ -126,6 +129,11 @@ func (h *handler) serveModelConfig(w http.ResponseWriter, r *http.Request, trace
 			return
 		}
 	}
+	if err := lockFeishu(ctx, &h.feishuDispatchMu, true); err != nil {
+		writeError(w, 503, "AI_CONFIG_BUSY", "飞书操作正在停止；本次模型设置未保存。", traceID)
+		return
+	}
+	defer h.feishuDispatchMu.Unlock()
 	saved, err := h.inbox.SaveModelConfig(ctx, store.ModelConfig{BaseURL: input.BaseURL, Model: input.Model, APIKey: key, DailyLimit: next.dailyLimit}, *input.ExpectedRevision, h.ai.configID)
 	if err != nil {
 		if errors.Is(err, store.ErrStaleContext) {

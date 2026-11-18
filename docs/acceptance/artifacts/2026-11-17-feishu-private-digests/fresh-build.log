@@ -1,0 +1,16 @@
+FEISHU_FREEZE_BUILD_NOT_BEFORE=2026-11-17T14:30:19.0897917Z
+
+> @social-intelligence/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 48 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.58 kB │ gzip:   0.36 kB
+dist/assets/index-CbyCaN4E.css   53.75 kB │ gzip:   9.54 kB
+dist/assets/index-DgxOb7py.js   487.35 kB │ gzip: 143.04 kB
+
+✓ built in 181ms
+BUILD_EXIT=0 ELAPSED_SECONDS=1.618

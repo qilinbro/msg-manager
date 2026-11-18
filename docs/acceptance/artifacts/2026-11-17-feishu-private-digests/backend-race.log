@@ -1,0 +1,9 @@
+ok  	github.com/qilinbro/msg-manager/cmd/sociald	3.707s
+ok  	github.com/qilinbro/msg-manager/cmd/sociald-mcp	11.687s
+ok  	github.com/qilinbro/msg-manager/internal/api	26.653s
+ok  	github.com/qilinbro/msg-manager/internal/localcredentials	10.503s
+?   	github.com/qilinbro/msg-manager/internal/localcredentials/credentialstest	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/mcp	2.624s
+ok  	github.com/qilinbro/msg-manager/internal/store	29.622s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	3.754s
+ok  	github.com/qilinbro/msg-manager/tests/integration	8.754s

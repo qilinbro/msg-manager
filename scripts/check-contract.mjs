@@ -86,6 +86,11 @@ assert.deepEqual(implementedMutations.sort(), [
   'patch /api/v1/conversations/{conversation_id}/profile/facts/{fact_id}',
   'patch /api/v1/digest/schedule',
   'post /api/v1/digest/run',
+  'patch /api/v1/feishu/config',
+  'delete /api/v1/feishu/config',
+  'patch /api/v1/feishu/schedule',
+  'post /api/v1/feishu/preview',
+  'post /api/v1/feishu/reports/{report_id}/send',
   'post /api/v1/assistant/runs',
   'post /api/v1/assistant/runs/{run_id}/confirm',
   'post /api/v1/assistant/runs/{run_id}/reject',
@@ -165,4 +170,68 @@ assert.ok(!schemas.DigestScheduleSave.required.includes('model_config_id'), 'Dis
 assert.deepEqual(schemas.DigestReport.properties.state.enum, ['running', 'succeeded', 'failed', 'unknown']);
 assert.equal(spec.paths['/api/v1/digest/run'].post.requestBody.content['application/json'].schema.$ref, '#/components/schemas/DigestRunRequest');
 assert.equal(spec.paths['/api/v1/digest/run'].post.responses['200'].content['application/json'].schema.$ref, '#/components/schemas/DigestLatest');
-console.log('API contracts, Assistant confirmation/unknown states, bound digest consent and disabled sender boundaries verified.');
+const feishuMethods = Object.entries(spec.paths)
+  .filter(([path]) => path.startsWith('/api/v1/feishu/'))
+  .flatMap(([path, operations]) => Object.entries(operations).map(([method, op]) => ({ path, method, op })));
+assert.equal(feishuMethods.length, 10, 'Only the frozen self-private Feishu control surface may be exposed');
+for (const { path, method, op } of feishuMethods) {
+  assert.equal(op['x-implementation-status'], 'implemented', `${method} ${path}`);
+  assert.ok(op.responses['200'] && op.responses['401'] && op.responses['409']);
+  if (method !== 'get') {
+    assert.equal(op['x-automatic-retry'], false, 'Feishu mutations must never be automatically replayed');
+    const name = op.requestBody.content['application/json'].schema.$ref.split('/').at(-1);
+    assert.equal(schemas[name].additionalProperties, false);
+    assert.equal(schemas[name].properties.confirmed.const, true);
+    assert.ok(schemas[name].required.includes('confirmed'));
+  }
+}
+for (const method of ['patch', 'delete']) {
+  assert.equal(spec.paths['/api/v1/feishu/config'][method]['x-assistant-availability'], 'human_only');
+}
+for (const [path, method, wrapper] of [
+  ['/api/v1/feishu/preview', 'post', 'FeishuReportResult'],
+  ['/api/v1/feishu/reports/{report_id}/send', 'post', 'FeishuDeliveryResult'],
+]) {
+  const operation = spec.paths[path][method];
+  assert.equal(operation['x-assistant-availability'], 'confirmation_required');
+  for (const status of ['200', '202']) {
+    assert.equal(operation.responses[status].content['application/json'].schema.$ref, '#/components/schemas/' + wrapper);
+  }
+}
+assert.deepEqual(schemas.FeishuConfigSave.required, ['expected_revision', 'app_id', 'app_secret', 'retain_secret', 'recipient_open_id', 'confirmed']);
+assert.equal(schemas.FeishuConfigSave.properties.expected_revision.minimum, 1);
+assert.equal(schemas.FeishuConfigSave.properties.app_secret.writeOnly, true);
+assert.equal(schemas.FeishuConfigSave.properties.recipient_open_id.writeOnly, true);
+assert.deepEqual(schemas.FeishuConfigDelete.required, ['expected_revision', 'confirmed']);
+assert.equal(schemas.FeishuSchedule.properties.revision.minimum, 1);
+assert.equal(schemas.FeishuSchedule.properties.config_revision.minimum, 0, 'An initially disabled schedule is unbound');
+assert.equal(schemas.FeishuStatus.properties.config_revision.minimum, 1, 'Configuration CAS starts at one, including unconfigured');
+assert.equal(schemas.FeishuStatus.properties.recipient_ownership_verified.const, false, 'Saving a self-declared recipient is not platform ownership verification');
+assert.equal(schemas.FeishuStatus.properties.capabilities.properties.private_self_only.const, true);
+assert.equal(schemas.FeishuStatus.properties.capabilities.properties.automatic_retry.const, false);
+assert.deepEqual(schemas.FeishuSchedule.properties.slots.prefixItems, [{ const: '08:00' }, { const: '20:00' }]);
+assert.equal(schemas.FeishuSchedule.properties.timezone.const, 'Asia/Shanghai');
+assert.deepEqual(schemas.FeishuScheduleSave.required, ['enabled', 'expected_revision', 'confirmed']);
+const feishuBinding = ['model_config_id', 'model_config_revision', 'config_revision', 'target_binding_id'];
+assert.deepEqual(schemas.FeishuScheduleSave.allOf[0].then.required, feishuBinding, 'Only enabling requires usable bound model and recipient settings');
+for (const name of ['FeishuPreviewRequest', 'FeishuSendRequest']) {
+  for (const field of feishuBinding) assert.ok(schemas[name].required.includes(field));
+  assert.equal(schemas[name].properties.model_config_revision.minimum, 0);
+  assert.equal(schemas[name].properties.config_revision.minimum, 1);
+  for (const field of ['text', 'recipient_open_id', 'window_start', 'window_end', 'force', 'url', 'scopes']) {
+    assert.ok(!schemas[name].properties[field], 'Clients/Agent must not replace frozen content, window, recipient, endpoint or scope');
+  }
+}
+assert.ok(schemas.FeishuSendRequest.required.includes('content_hash'));
+assert.equal(schemas.FeishuReportID.pattern, '^fr_[a-f0-9]{32}$');
+assert.equal(schemas.FeishuDeliveryID.pattern, '^fd_[a-f0-9]{32}$');
+assert.deepEqual(schemas.FeishuState.enum, ['running', 'succeeded', 'failed', 'unknown']);
+assert.equal(schemas.FeishuReport.properties.source_refs.maxItems, 4);
+assert.ok(schemas.FeishuReport.required.includes('source_refs'));
+assert.equal(schemas.FeishuReport.properties.delivery.anyOf[0].$ref, '#/components/schemas/FeishuDelivery');
+assert.equal(schemas.FeishuTodo.properties.needs_review.const, true);
+for (const field of ['app_secret', 'access_token', 'recipient_open_id']) {
+  for (const name of ['FeishuStatus', 'FeishuReport', 'FeishuDelivery']) assert.ok(!schemas[name].properties[field]);
+}
+assert.ok(!schemas.FeishuDelivery.properties.text, 'Receipts remain content-free for manual verification after binding revocation');
+console.log('API contracts, bounded Assistant, local digest compatibility and 10 bound no-retry Feishu methods verified.');

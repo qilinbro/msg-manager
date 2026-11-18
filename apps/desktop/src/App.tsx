@@ -7,13 +7,21 @@ import { MilkyPanel } from './MilkyPanel';
 import { AIModelPanel } from './AIModelPanel';
 import { DigestPanel } from './DigestPanel';
 import { AssistantPanel } from './AssistantPanel';
+import { FeishuPanel } from './FeishuPanel';
+import type { FeishuRecoveryCache } from './FeishuPanel';
 import type { AssistantWorkspace } from './AssistantPanel';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
 
 type Page =
-  'overview' | 'messages' | 'contacts' | 'approvals' | 'assistant' | 'settings';
+  | 'overview'
+  | 'messages'
+  | 'contacts'
+  | 'approvals'
+  | 'assistant'
+  | 'feishu'
+  | 'settings';
 type IconName =
   | 'overview'
   | 'messages'
@@ -30,6 +38,7 @@ const NAVIGATION: { page: Page; label: string; icon: IconName }[] = [
   { page: 'contacts', label: '联系人', icon: 'contacts' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
   { page: 'assistant', label: 'Agent 助手', icon: 'messages' },
+  { page: 'feishu', label: '飞书早晚报', icon: 'approvals' },
 ];
 const PAGE_TITLES: Record<Page, string> = {
   overview: '概览',
@@ -37,6 +46,7 @@ const PAGE_TITLES: Record<Page, string> = {
   contacts: '联系人',
   approvals: '待审批',
   assistant: 'Agent 助手',
+  feishu: '飞书早晚报',
   settings: '设置',
 };
 const PLANNED_CONNECTORS: Connector[] = [
@@ -272,7 +282,7 @@ function Overview({
             </dd>
           </div>
           <div>
-            <dt>自动发送</dt>
+            <dt>通用自动发送</dt>
             <dd>
               {system
                 ? system.automation.auto_send_enabled
@@ -284,7 +294,7 @@ function Overview({
         </dl>
         <p className="section-footnote">
           {system?.storage.configured
-            ? '可导入已有记录。实时接收需在对应平台中单独配置；当前未开放消息发送。'
+            ? '可导入已有记录。实时接收需单独配置；仅飞书本人早晚报支持独立授权后的摘要发送。'
             : system
               ? '在后台配置加密消息存储后，即可导入并整理已有记录。'
               : '在设置中授权本地服务后读取实际状态。主令牌仅保留在当前页面内存中。'}
@@ -623,8 +633,10 @@ function Settings({
         </div>
         <div className="settings-row">
           <div>
-            <h3>自动发送</h3>
-            <p>默认关闭，需在后续功能中逐联系人明确授权。</p>
+            <h3>通用自动发送</h3>
+            <p>
+              默认关闭，通用会话发送尚未开放；飞书本人早晚报使用独立授权与计划。
+            </p>
           </div>
           <span className="label label-neutral">
             {session.system
@@ -638,7 +650,7 @@ function Settings({
           <div>
             <h3>后台自动化</h3>
             <p>
-              暂停状态约束后台分析与整理；平台接收需单独开启。当前未开放消息发送。
+              暂停状态约束后台分析与整理；平台接收需单独开启。飞书本人早晚报需在独立页面授权。
             </p>
           </div>
           <span className="subtle-note">
@@ -681,7 +693,7 @@ function Settings({
         <p>
           当前支持加密消息管理、记录导入、已实现平台的接收、AI
           分析与草稿、档案和摘要。
-          各平台以实际配置及状态为准；账号核验不等于持续接收，自动发送保持关闭。
+          各平台以实际配置及状态为准；账号核验不等于持续接收，通用自动发送保持关闭。飞书本人早晚报默认关闭，需独立授权。
           微信 ClawBot 仅针对 Bot 联系人，不接管个人微信已有好友或聊天。
           后台服务独立于工作台窗口；休眠或关机后不承诺继续运行。
         </p>
@@ -697,6 +709,7 @@ export default function App() {
     () => new Map<string, AssistantWorkspace>(),
   );
   const [digestUnresolved] = useState(() => new Set<string>());
+  const [feishuRecoveries] = useState<FeishuRecoveryCache>(() => new Map());
   const {
     session,
     tokenDraft,
@@ -725,7 +738,10 @@ export default function App() {
     for (const identity of digestUnresolved) {
       if (identity !== activeToken) digestUnresolved.delete(identity);
     }
-  }, [activeToken, assistantWorkspaces, digestUnresolved]);
+    for (const identity of feishuRecoveries.keys()) {
+      if (identity !== activeToken) feishuRecoveries.delete(identity);
+    }
+  }, [activeToken, assistantWorkspaces, digestUnresolved, feishuRecoveries]);
   useEffect(() => {
     const warnUnsaved = (event: BeforeUnloadEvent) => {
       if (!aiDrafts.size) return;
@@ -813,6 +829,14 @@ export default function App() {
               onClear={clear}
               onCancel={cancel}
               onSystemUpdate={onSystemUpdate}
+              onAuthFailure={onAuthFailure}
+            />
+          ) : page === 'feishu' ? (
+            <FeishuPanel
+              key={`feishu:${activeToken}`}
+              token={activeToken}
+              recoveryCache={feishuRecoveries}
+              onSettings={onSettings}
               onAuthFailure={onAuthFailure}
             />
           ) : page === 'assistant' ? (

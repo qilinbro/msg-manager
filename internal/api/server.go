@@ -1,5 +1,6 @@
 // Package api exposes the local inbox, identity probes and explicitly requested
-// AI analysis. Model output is saved as local suggestions; no sender is installed.
+// AI analysis. Conversation auto-replies remain closed. The separately authorized
+// Feishu self-chat digest is the only bounded, one-shot outbound message path.
 package api
 
 import (
@@ -34,6 +35,10 @@ type handler struct {
 	deviceAuth  localDeviceAuth
 	listenAddr  string
 	assistant   *assistantState
+	feishu      *feishuRuntime
+	// Lock order: aiMu -> feishuDispatchMu -> Store. Privacy/config writers
+	// cancel accepted Feishu jobs before waiting for the exclusive barrier.
+	feishuDispatchMu sync.RWMutex
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -64,7 +69,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat, assistant: newAssistantState()}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat, assistant: newAssistantState(), feishu: newFeishuRuntime()}
 	if err := h.restoreLocalDevices(); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted device authorizations could not be restored")
@@ -95,6 +100,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 }
 
 func (h *handler) Close() error {
+	h.feishu.close()
 	h.closeAssistant()
 	h.closeLocalDevices()
 	if h.profiles != nil {
@@ -135,7 +141,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !assistantMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !feishuMutation(requestedMethod, r.URL.Path) && !assistantMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -172,6 +178,10 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.URL.Path == modelConfigPath {
 			h.serveModelConfig(w, r, traceID)
+			return
+		}
+		if feishuPath(r.URL.Path) {
+			h.serveFeishu(w, r, traceID)
 			return
 		}
 		if digestRead(r.URL.Path) || digestMutation(r.Method, r.URL.Path) {
@@ -225,7 +235,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.serveInbox(w, r, traceID)
 				return
 			}
-			writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "该操作尚未实现；已开放消息管理与手动AI分析，平台发送保持关闭。", traceID)
+			writeError(w, http.StatusNotImplemented, "NOT_IMPLEMENTED", "该操作尚未实现；会话自动回复保持关闭，飞书本人摘要仅走独立授权接口。", traceID)
 			return
 		}
 		h.serveRead(w, r, traceID)
@@ -257,6 +267,8 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 		}
 		writeJSON(w, http.StatusOK, SystemResponse{
 			Version: Version, Stage: stage, WorkspaceID: authenticatedWorkspace(r.Context()),
+			// Legacy conversation auto-replies only; scoped Feishu authorization
+			// is exposed exclusively by /api/v1/feishu/status.
 			Automation: AutomationStatus{Paused: true, AutoSendEnabled: false},
 			Storage:    StorageStatus{Configured: h.inbox != nil, Driver: driver}, Connectors: h.connections(),
 		})

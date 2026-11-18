@@ -234,6 +234,14 @@ func (h *handler) serveAI(w http.ResponseWriter, r *http.Request, traceID string
 			if !readInboxJSON(w, r, &input, traceID) {
 				return
 			}
+			h.feishu.cancelOperations()
+			privacyCtx, privacyCancel := context.WithTimeout(r.Context(), 15*time.Second)
+			defer privacyCancel()
+			if err := lockFeishu(privacyCtx, &h.feishuDispatchMu, true); err != nil {
+				writeAIError(w, err, traceID)
+				return
+			}
+			defer h.feishuDispatchMu.Unlock()
 			if err := h.inbox.UpdateAISettings(conversation, input.Mode, input.Tone); err != nil {
 				writeAIError(w, err, traceID)
 				return

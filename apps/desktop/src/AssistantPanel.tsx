@@ -97,6 +97,19 @@ function ActionPreview({
   onReject: () => void;
 }) {
   const [acknowledged, setAcknowledged] = useState(false);
+  const [feishuAcknowledged, setFeishuAcknowledged] = useState(false);
+  const feishuSchedule =
+    action.operation_id === 'update_feishu_schedule' ||
+    (action.method === 'PATCH' && action.path === '/api/v1/feishu/schedule');
+  const feishuEnable = feishuSchedule && action.arguments.enabled !== false;
+  const feishuSend =
+    action.operation_id === 'send_feishu_report' ||
+    (action.method === 'POST' &&
+      /^\/api\/v1\/feishu\/reports\/[^/]+\/send$/.test(action.path));
+  const feishuPreview =
+    action.operation_id === 'generate_feishu_preview' ||
+    (action.method === 'POST' && action.path === '/api/v1/feishu/preview');
+  const needsFeishuConsent = feishuEnable || feishuSend;
   const expired =
     Date.parse(action.expires_at) <= now || Date.parse(run.expires_at) <= now;
   return (
@@ -159,6 +172,34 @@ function ActionPreview({
       ) : (
         <p>未提供影响说明。请先核对业务范围，勿凭模型文字判断安全。</p>
       )}
+      {feishuEnable ? (
+        <p className="assistant-warning">
+          这是持续数据外发与自动发送授权：后台会在北京时间 08:00 /
+          20:00，按相邻时点的 12 小时半开窗口，
+          把相关已入库、未暂停的私聊与群聊内容交给绑定模型，再自动发至已保存的本人飞书私聊，不会逐次询问。
+          请核对固定目标与模型、配置版本；不是群
+          Webhook，不接受任意收件人。主机与后台须持续运行和联网，离线不补发。
+        </p>
+      ) : feishuSend ? (
+        <p className="assistant-warning">
+          这是一次真实的外部消息发送，不是草稿：仅向已保存的本人飞书私聊发送服务器冻结正文。
+          请核对上面的完整正文、12
+          小时窗口、脱敏目标、哈希与版本；不允许改正文或改收件人。
+          平台接受不代表手机系统已通知或已读；运行中、HTTP 202 或 unknown
+          都不是成功，未知结果请人工核实且不要重发。
+        </p>
+      ) : feishuPreview ? (
+        <p className="assistant-warning">
+          仅生成最近一个已完整结束的固定 12 小时窗口预览，不是过去 24
+          小时。相关已入库、未暂停的私聊与群聊内容会交给绑定模型，
+          可能产生费用；不会发至飞书，每窗口不重做。HTTP 202
+          仅表示后台处理中，请只读恢复。
+        </p>
+      ) : feishuSchedule ? (
+        <p className="assistant-note">
+          关闭计划会停止/取消后续处理，但不能保证撤回在途请求或平台已接受的消息；飞书业务本身不调用模型，但本助手确认后仍可能继续模型处理。
+        </p>
+      ) : null}
       {expired ? (
         <p className="assistant-warning">
           按本机时间此预览已过期。请读取结果，以后台时钟和状态为准。
@@ -186,15 +227,37 @@ function ActionPreview({
           我已核对工具、目标、完整参数和上述影响，仅确认这一项操作及其后续模型处理，可能产生费用。
         </span>
       </label>
+      {needsFeishuConsent ? (
+        <label className="assistant-check">
+          <input
+            type="checkbox"
+            checked={feishuAcknowledged}
+            disabled={busy || expired || uncertain || !modelReady}
+            onChange={(event) => setFeishuAcknowledged(event.target.checked)}
+          />
+          <span>
+            {feishuEnable
+              ? '我另行同意按上述固定目标、窗口与版本，持续向本人飞书私聊自动发送摘要；理解这会持续外发消息资料，不会逐次确认，平台接受不等于手机通知。'
+              : '我另行同意将上面完整核对的冻结正文真实发送至固定的本人飞书私聊；理解平台接受不等于手机系统通知或已读，结果未知时不重发。'}
+            此飞书发送同意不替代模型数据处理同意。
+          </span>
+        </label>
+      ) : null}
       <div className="assistant-actions">
         <button
           type="button"
           className="button button-primary"
           disabled={
-            !acknowledged || busy || expired || uncertain || !modelReady
+            !acknowledged ||
+            (needsFeishuConsent && !feishuAcknowledged) ||
+            busy ||
+            expired ||
+            uncertain ||
+            !modelReady
           }
           onClick={() => {
             setAcknowledged(false);
+            setFeishuAcknowledged(false);
             onConfirm();
           }}
         >
@@ -206,6 +269,7 @@ function ActionPreview({
           disabled={busy || expired || uncertain}
           onClick={() => {
             setAcknowledged(false);
+            setFeishuAcknowledged(false);
             onReject();
           }}
         >
@@ -213,7 +277,7 @@ function ActionPreview({
         </button>
       </div>
       <p className="assistant-note">
-        拒绝只提交此确认编号，不调用模型。当前没有消息发送执行器。
+        拒绝只提交此确认编号，不调用模型。通用会话发送尚未开放；仅本人飞书早晚报支持独立授权后的发送。
       </p>
     </section>
   );
@@ -622,7 +686,7 @@ export function AssistantPanel({
             <br />
             <span>
               共享今日额度：{status.used_today} / {status.daily_limit} 次 ·
-              消息发送未开放
+              通用会话发送未开放，飞书本人早晚报需独立授权
             </span>
           </p>
         )}
@@ -866,7 +930,7 @@ export function AssistantPanel({
             }}
           />
           <p className="assistant-note" id="assistant-round-disclosure">
-            本轮会把输入、此助手会话上下文及获准工具返回的业务资料交给下方模型处理，可能产生费用。每轮同意独立，不默认勾选；消息发送未开放。
+            本轮会把输入、此助手会话上下文及获准工具返回的业务资料交给下方模型处理，可能产生费用。每轮同意独立，不默认勾选；通用会话发送未开放，飞书本人早晚报的启用或真实发送还需独立确认。
           </p>
           <label className="assistant-check">
             <input

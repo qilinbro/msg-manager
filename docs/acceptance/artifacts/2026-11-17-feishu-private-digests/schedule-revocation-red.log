@@ -1,0 +1,24 @@
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch/disabled_before_first_model_dispatch
+    feishu_privacy_test.go:93: revoked epoch produced a report body or delivery succeeded 
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch/same_binding_re-enabled_after_revocation
+    feishu_privacy_test.go:93: revoked epoch produced a report body or delivery succeeded 
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch/same_enabled_binding_saved_with_new_revision
+    feishu_privacy_test.go:93: revoked epoch produced a report body or delivery succeeded 
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch/disabled_before_empty_report_completion
+    feishu_privacy_test.go:93: revoked epoch produced a report body or delivery succeeded 
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch/unchanged_authorization_permits_dispatch
+=== RUN   TestFeishuScheduledGenerationRechecksScheduleEpoch/unchanged_authorization_permits_empty_report
+--- FAIL: TestFeishuScheduledGenerationRechecksScheduleEpoch (0.81s)
+    --- FAIL: TestFeishuScheduledGenerationRechecksScheduleEpoch/disabled_before_first_model_dispatch (0.13s)
+    --- FAIL: TestFeishuScheduledGenerationRechecksScheduleEpoch/same_binding_re-enabled_after_revocation (0.13s)
+    --- FAIL: TestFeishuScheduledGenerationRechecksScheduleEpoch/same_enabled_binding_saved_with_new_revision (0.12s)
+    --- FAIL: TestFeishuScheduledGenerationRechecksScheduleEpoch/disabled_before_empty_report_completion (0.11s)
+    --- PASS: TestFeishuScheduledGenerationRechecksScheduleEpoch/unchanged_authorization_permits_dispatch (0.17s)
+    --- PASS: TestFeishuScheduledGenerationRechecksScheduleEpoch/unchanged_authorization_permits_empty_report (0.15s)
+=== RUN   TestFeishuScheduleRevocationCancelsLateRegisteredJobs
+    feishu_privacy_test.go:166: late registered job survived the revocation acknowledgement <nil>
+--- FAIL: TestFeishuScheduleRevocationCancelsLateRegisteredJobs (0.13s)
+FAIL
+FAIL	github.com/qilinbro/msg-manager/internal/api	2.719s
+FAIL

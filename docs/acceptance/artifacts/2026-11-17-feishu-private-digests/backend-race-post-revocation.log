@@ -1,0 +1,10 @@
+ok  	github.com/qilinbro/msg-manager/cmd/sociald	4.479s
+ok  	github.com/qilinbro/msg-manager/cmd/sociald-mcp	12.283s
+ok  	github.com/qilinbro/msg-manager/internal/api	31.465s
+ok  	github.com/qilinbro/msg-manager/internal/localcredentials	12.220s
+?   	github.com/qilinbro/msg-manager/internal/localcredentials/credentialstest	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/mcp	2.906s
+ok  	github.com/qilinbro/msg-manager/internal/store	33.556s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	4.603s
+ok  	github.com/qilinbro/msg-manager/tests/integration	10.457s
+wall_seconds=43.972; exit_code=0
