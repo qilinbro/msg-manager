@@ -1,0 +1,994 @@
+{
+  "published_on": "2026-11-18",
+  "checked_on": "2026-11-17",
+  "timezone": "Asia/Shanghai",
+  "scope": "公开资料与源码快照；未登录、部署或运行上游项目，未验证真实购物账号。",
+  "projects": [
+    {
+      "id": "ferdium-app",
+      "repo": "ferdium/ferdium-app",
+      "category": "desktop_web_aggregator",
+      "stars": 4800,
+      "archived": false,
+      "pushed_at": "2026-10-23T09:34:42Z",
+      "default_branch": "develop",
+      "head_sha": "deabf8308f37cde7d9baba5729f90d885fab3341",
+      "latest_release": {
+        "tag": "v7.2.3",
+        "published_at": "2026-09-07T16:23:40Z",
+        "url": "https://github.com/ferdium/ferdium-app/releases/tag/v7.2.3"
+      },
+      "license": {
+        "label": "Apache-2.0",
+        "source_urls": [
+          "https://api.github.com/repos/ferdium/ferdium-app"
+        ]
+      },
+      "maturity": "优先参考桌面服务聚合体验；截至核验日未归档且2026年仍有正式发行，不把Star作为成熟度排名。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/ferdium/ferdium-app"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/ferdium/ferdium-app/commit/deabf8308f37cde7d9baba5729f90d885fab3341"
+        },
+        {
+          "claim": "最新非预发布GitHub Release及发布时间",
+          "url": "https://github.com/ferdium/ferdium-app/releases/tag/v7.2.3"
+        },
+        {
+          "claim": "官方README描述将多个应用组合进一个桌面程序及工作区能力",
+          "url": "https://github.com/ferdium/ferdium-app/blob/deabf8308f37cde7d9baba5729f90d885fab3341/README.md"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/ferdium/ferdium-app/blob/deabf8308f37cde7d9baba5729f90d885fab3341/LICENSE.md"
+        }
+      ]
+    },
+    {
+      "id": "ferdium-recipes",
+      "repo": "ferdium/ferdium-recipes",
+      "category": "webview_recipe_catalog",
+      "stars": 117,
+      "archived": false,
+      "pushed_at": "2026-10-23T09:22:56Z",
+      "default_branch": "main",
+      "head_sha": "d606edecc575a08a22f05d8f6113e8906e3d1012",
+      "latest_release": null,
+      "license": {
+        "label": "MIT",
+        "source_urls": [
+          "https://api.github.com/repos/ferdium/ferdium-recipes"
+        ]
+      },
+      "maturity": "优先参考插件协议和目录；仓库持续维护，但没有GitHub Releases。它是网页集成配方库，不是消息协议桥。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/ferdium/ferdium-recipes"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/ferdium/ferdium-recipes/commit/d606edecc575a08a22f05d8f6113e8906e3d1012"
+        },
+        {
+          "claim": "配方在dom-ready初始化，并可用webview.js读取DOM、设置徽标和标题",
+          "url": "https://github.com/ferdium/ferdium-recipes/blob/d606edecc575a08a22f05d8f6113e8906e3d1012/docs/integration.md"
+        },
+        {
+          "claim": "配置中的serviceURL指定加载进WebView的URL",
+          "url": "https://github.com/ferdium/ferdium-recipes/blob/d606edecc575a08a22f05d8f6113e8906e3d1012/docs/configuration.md"
+        },
+        {
+          "claim": "存在允许自定义URL的Custom Website配方",
+          "url": "https://github.com/ferdium/ferdium-recipes/blob/d606edecc575a08a22f05d8f6113e8906e3d1012/recipes/franz-custom-website/package.json"
+        },
+        {
+          "claim": "GitHub Releases列表为空",
+          "url": "https://api.github.com/repos/ferdium/ferdium-recipes/releases?per_page=1"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/ferdium/ferdium-recipes/blob/d606edecc575a08a22f05d8f6113e8906e3d1012/LICENSE.md"
+        }
+      ]
+    },
+    {
+      "id": "mautrix-meta",
+      "repo": "mautrix/meta",
+      "category": "personal_account_protocol_bridge",
+      "stars": 482,
+      "archived": false,
+      "pushed_at": "2026-11-17T14:49:13Z",
+      "default_branch": "main",
+      "head_sha": "a426cd3ae28da3433d18c0e57c154a409445746a",
+      "latest_release": {
+        "tag": "v0.2611.0",
+        "published_at": "2026-11-16T22:17:02Z",
+        "url": "https://github.com/mautrix/meta/releases/tag/v0.2611.0"
+      },
+      "license": {
+        "label": "AGPL-3.0",
+        "source_urls": [
+          "https://api.github.com/repos/mautrix/meta"
+        ]
+      },
+      "maturity": "优先研究真实个人账号消息桥；2026-11-17有推送且近期有版本发布。成熟度需按Messenger/Instagram及加密模式分别判断。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/mautrix/meta"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/mautrix/meta/commit/a426cd3ae28da3433d18c0e57c154a409445746a"
+        },
+        {
+          "claim": "最新非预发布GitHub Release及发布时间",
+          "url": "https://github.com/mautrix/meta/releases/tag/v0.2611.0"
+        },
+        {
+          "claim": "同一仓库包含Messenger和Instagram两个桥",
+          "url": "https://github.com/mautrix/meta/blob/a426cd3ae28da3433d18c0e57c154a409445746a/README.md"
+        },
+        {
+          "claim": "功能清单分别列出普通Messenger、加密Messenger和Instagram能力",
+          "url": "https://github.com/mautrix/meta/blob/a426cd3ae28da3433d18c0e57c154a409445746a/ROADMAP.md"
+        },
+        {
+          "claim": "官方维护者文档说明按模式采用cookies或用户名密码认证及近期会话同步",
+          "url": "https://docs.mau.fi/bridges/go/meta/authentication.html"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/mautrix/meta/blob/a426cd3ae28da3433d18c0e57c154a409445746a/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "mautrix-whatsapp",
+      "repo": "mautrix/whatsapp",
+      "category": "personal_account_protocol_bridge",
+      "stars": 1930,
+      "archived": false,
+      "pushed_at": "2026-11-17T14:42:24Z",
+      "default_branch": "main",
+      "head_sha": "361d0afc15c94a21f5c15ba367ab18a9873adef2",
+      "latest_release": {
+        "tag": "v0.2611.0",
+        "published_at": "2026-11-16T22:16:56Z",
+        "url": "https://github.com/mautrix/whatsapp/releases/tag/v0.2611.0"
+      },
+      "license": {
+        "label": "AGPL-3.0",
+        "source_urls": [
+          "https://api.github.com/repos/mautrix/whatsapp"
+        ]
+      },
+      "maturity": "优先研究真实个人账号协议桥及后台同步；未归档、2026年持续维护、近期有正式发行。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/mautrix/whatsapp"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/mautrix/whatsapp/commit/361d0afc15c94a21f5c15ba367ab18a9873adef2"
+        },
+        {
+          "claim": "最新非预发布GitHub Release及发布时间",
+          "url": "https://github.com/mautrix/whatsapp/releases/tag/v0.2611.0"
+        },
+        {
+          "claim": "官方README说明基于whatsmeow的Matrix-WhatsApp个人号桥",
+          "url": "https://github.com/mautrix/whatsapp/blob/361d0afc15c94a21f5c15ba367ab18a9873adef2/README.md"
+        },
+        {
+          "claim": "功能清单列出私聊、群聊、消息、媒体及回执",
+          "url": "https://github.com/mautrix/whatsapp/blob/361d0afc15c94a21f5c15ba367ab18a9873adef2/ROADMAP.md"
+        },
+        {
+          "claim": "关联设备授权、回填范围及注销由维护者文档说明",
+          "url": "https://docs.mau.fi/bridges/go/whatsapp/authentication.html"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/mautrix/whatsapp/blob/361d0afc15c94a21f5c15ba367ab18a9873adef2/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "beeper-desktop-api-js",
+      "repo": "beeper/desktop-api-js",
+      "category": "desktop_api_sdk",
+      "stars": 24,
+      "archived": false,
+      "pushed_at": "2026-09-25T18:38:02Z",
+      "default_branch": "main",
+      "head_sha": "9d2d14d0eef05ef0c2cf6368f58d84489c56487a",
+      "latest_release": {
+        "tag": "v6.0.0",
+        "published_at": "2026-09-25T18:19:14Z",
+        "url": "https://github.com/beeper/desktop-api-js/releases/tag/v6.0.0"
+      },
+      "license": {
+        "label": "MIT",
+        "source_urls": [
+          "https://api.github.com/repos/beeper/desktop-api-js"
+        ]
+      },
+      "maturity": "官方发布的MIT TypeScript/JavaScript SDK，可优先借鉴接口；Star较少不能据此否定其官方API价值。它不是完整Beeper客户端源码。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/beeper/desktop-api-js"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/beeper/desktop-api-js/commit/9d2d14d0eef05ef0c2cf6368f58d84489c56487a"
+        },
+        {
+          "claim": "最新非预发布GitHub Release及发布时间",
+          "url": "https://github.com/beeper/desktop-api-js/releases/tag/v6.0.0"
+        },
+        {
+          "claim": "官方SDK提供本地Desktop API访问、查询与分页，文档注明默认重试",
+          "url": "https://github.com/beeper/desktop-api-js/blob/9d2d14d0eef05ef0c2cf6368f58d84489c56487a/README.md"
+        },
+        {
+          "claim": "官方API文档要求Beeper Desktop运行，说明历史可能有限",
+          "url": "https://developers.beeper.com/desktop-api/"
+        },
+        {
+          "claim": "官方内置MCP也依赖Beeper Desktop运行",
+          "url": "https://developers.beeper.com/desktop-api/mcp/"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/beeper/desktop-api-js/blob/9d2d14d0eef05ef0c2cf6368f58d84489c56487a/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "franz-5",
+      "repo": "meetfranz/franz",
+      "category": "historical_web_aggregator",
+      "stars": 4729,
+      "archived": false,
+      "pushed_at": "2026-06-12T13:36:11Z",
+      "default_branch": "master",
+      "head_sha": "94b1ef298aa72a41eac448f4e5e21a74d857f2fa",
+      "latest_release": {
+        "tag": "v5.11.0",
+        "published_at": "2025-04-09T10:12:43Z",
+        "url": "https://github.com/meetfranz/franz/releases/tag/v5.11.0"
+      },
+      "license": {
+        "label": "Apache-2.0",
+        "source_urls": [
+          "https://api.github.com/repos/meetfranz/franz"
+        ]
+      },
+      "maturity": "历史对照；仓库未归档不代表当前产品源码仍活跃。当前README明确仓库仅为Franz5，现行Franz6不是该仓库的活跃产品。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/meetfranz/franz"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/meetfranz/franz/commit/94b1ef298aa72a41eac448f4e5e21a74d857f2fa"
+        },
+        {
+          "claim": "最新非预发布GitHub Release及发布时间",
+          "url": "https://github.com/meetfranz/franz/releases/tag/v5.11.0"
+        },
+        {
+          "claim": "README明确区分当前Franz6和本仓库保留的Franz5源码",
+          "url": "https://github.com/meetfranz/franz/blob/94b1ef298aa72a41eac448f4e5e21a74d857f2fa/README.md"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/meetfranz/franz/blob/94b1ef298aa72a41eac448f4e5e21a74d857f2fa/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "rambox-community-edition",
+      "repo": "ramboxapp/community-edition",
+      "category": "historical_web_aggregator",
+      "stars": 6376,
+      "archived": true,
+      "pushed_at": "2022-04-21T20:52:34Z",
+      "default_branch": "master",
+      "head_sha": "eaa33fc8f3ce5f9600b032fd9ca7cfba1827b84f",
+      "latest_release": {
+        "tag": "0.8.0",
+        "published_at": "2022-04-21T20:44:44Z",
+        "url": "https://github.com/ramboxapp/community-edition/releases/tag/0.8.0"
+      },
+      "license": {
+        "label": "GPL-3.0",
+        "source_urls": [
+          "https://api.github.com/repos/ramboxapp/community-edition"
+        ]
+      },
+      "maturity": "历史对照；官方README明确EOL，仓库已归档，最新发行停在2022年。",
+      "evidence": [
+        {
+          "claim": "仓库元数据、Star、归档状态、推送时间、默认分支及许可证",
+          "url": "https://api.github.com/repos/ramboxapp/community-edition"
+        },
+        {
+          "claim": "默认分支核验时HEAD",
+          "url": "https://github.com/ramboxapp/community-edition/commit/eaa33fc8f3ce5f9600b032fd9ca7cfba1827b84f"
+        },
+        {
+          "claim": "最新非预发布GitHub Release及发布时间",
+          "url": "https://github.com/ramboxapp/community-edition/releases/tag/0.8.0"
+        },
+        {
+          "claim": "官方README明确EOL，并说明通过WebView partition持久化会话",
+          "url": "https://github.com/ramboxapp/community-edition/blob/eaa33fc8f3ce5f9600b032fd9ca7cfba1827b84f/README.md"
+        },
+        {
+          "claim": "核验许可证原文",
+          "url": "https://github.com/ramboxapp/community-edition/blob/eaa33fc8f3ce5f9600b032fd9ca7cfba1827b84f/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "beeper-ecosystem",
+      "repo": null,
+      "category": "product_ecosystem",
+      "stars": null,
+      "archived": null,
+      "pushed_at": null,
+      "default_branch": null,
+      "head_sha": null,
+      "latest_release": null,
+      "license": {
+        "label": null,
+        "source_urls": [
+          "https://developers.beeper.com/open-source/",
+          "https://github.com/beeper"
+        ]
+      },
+      "maturity": "成熟产品与桥接生态参考。只确认官方列明的桥接器、工具、SDK开源；没有核验到可移植的当前完整Beeper客户端源码或统一产品许可证。",
+      "evidence": [
+        {
+          "claim": "官方开源目录列出桥接器、工具、库，并标明旧Texts.com集成已停止维护",
+          "url": "https://developers.beeper.com/open-source/"
+        },
+        {
+          "claim": "官方GitHub组织说明开源的是大部分后端及桥接器、SDK等",
+          "url": "https://github.com/beeper"
+        },
+        {
+          "claim": "官方本地API及其运行、历史限制",
+          "url": "https://developers.beeper.com/desktop-api/"
+        }
+      ]
+    },
+    {
+      "id": "mailspring",
+      "repo": "Foundry376/Mailspring",
+      "category": "email_client",
+      "stars": 18010,
+      "archived": false,
+      "pushed_at": "2026-11-16T22:09:06Z",
+      "default_branch": "master",
+      "head_sha": "49bb433ca2c59e183383e78ead60e9bdb0da993b",
+      "latest_release": {
+        "tag": "1.26.2",
+        "published_at": "2026-10-22T14:51:00Z",
+        "url": "https://github.com/Foundry376/Mailspring/releases/tag/1.26.2"
+      },
+      "license": {
+        "label": "GPL-3.0；UI 与独立同步引擎分别核对",
+        "source_urls": [
+          "https://github.com/Foundry376/Mailspring/blob/49bb433ca2c59e183383e78ead60e9bdb0da993b/LICENSE.md",
+          "https://github.com/Foundry376/Mailspring/blob/49bb433ca2c59e183383e78ead60e9bdb0da993b/README.md"
+        ]
+      },
+      "maturity": "成熟邮箱客户端参考",
+      "evidence": [
+        {
+          "claim": "仓库维护及许可元数据快照",
+          "url": "https://api.github.com/repos/Foundry376/Mailspring"
+        },
+        {
+          "claim": "默认分支 HEAD",
+          "url": "https://api.github.com/repos/Foundry376/Mailspring/git/ref/heads/master"
+        },
+        {
+          "claim": "最新 GitHub Release",
+          "url": "https://github.com/Foundry376/Mailspring/releases/tag/1.26.2"
+        },
+        {
+          "claim": "功能、进程模型及开源范围",
+          "url": "https://github.com/Foundry376/Mailspring/blob/49bb433ca2c59e183383e78ead60e9bdb0da993b/README.md"
+        },
+        {
+          "claim": "许可证原文",
+          "url": "https://github.com/Foundry376/Mailspring/blob/49bb433ca2c59e183383e78ead60e9bdb0da993b/LICENSE.md"
+        }
+      ]
+    },
+    {
+      "id": "chatwoot",
+      "repo": "chatwoot/chatwoot",
+      "category": "客服团队全渠道共享收件箱",
+      "stars": 40031,
+      "archived": false,
+      "pushed_at": "2026-11-17T14:04:12Z",
+      "default_branch": "develop",
+      "head_sha": "d4433cfe1beebcfe8d5e044ac972f760122714cb",
+      "latest_release": {
+        "tag": "v4.19.1",
+        "published_at": "2026-10-24T04:48:08Z",
+        "url": "https://github.com/chatwoot/chatwoot/releases/tag/v4.19.1"
+      },
+      "license": {
+        "label": "混合许可：enterprise/之外为MIT Expat，enterprise/为Chatwoot Enterprise商用订阅许可；第三方组件遵循原许可",
+        "source_urls": [
+          "https://github.com/chatwoot/chatwoot/blob/develop/LICENSE",
+          "https://github.com/chatwoot/chatwoot/blob/develop/enterprise/LICENSE"
+        ]
+      },
+      "maturity": "有产品化渠道体系、API/管理文档、稳定版本发布、独立Sidekiq队列与并发邮件去重实现；星数仅为快照，不作为成熟度评分。",
+      "evidence": [
+        {
+          "claim": "仓库元数据快照",
+          "url": "https://api.github.com/repos/chatwoot/chatwoot"
+        },
+        {
+          "claim": "默认分支HEAD",
+          "url": "https://api.github.com/repos/chatwoot/chatwoot/branches/develop"
+        },
+        {
+          "claim": "最新GitHub发布",
+          "url": "https://github.com/chatwoot/chatwoot/releases/tag/v4.19.1"
+        },
+        {
+          "claim": "渠道目录与API渠道说明",
+          "url": "https://app.chatwoot.com/hc/user-guide/articles/1677492191-adding-inboxes"
+        },
+        {
+          "claim": "Telegram为Bot API",
+          "url": "https://www.chatwoot.com/features/telegram-integration"
+        },
+        {
+          "claim": "WhatsApp Business接入方式与coexistence边界",
+          "url": "https://app.chatwoot.com/hc/user-guide/articles/1791465157-2-choose-how-to-connect-whats_app"
+        },
+        {
+          "claim": "Shopify订单侧栏、匹配方式与默认禁用",
+          "url": "https://www.chatwoot.com/blog/shopify-custom-app-connections"
+        },
+        {
+          "claim": "Webhook事件",
+          "url": "https://app.chatwoot.com/hc/user-guide/articles/1677693021-how-to-use-webhooks"
+        },
+        {
+          "claim": "AgentBot通过API响应与移交人工",
+          "url": "https://www.chatwoot.com/hc/user-guide/articles/1677497472-how-to-use-agent-bots"
+        },
+        {
+          "claim": "Sidekiq队列配置",
+          "url": "https://github.com/chatwoot/chatwoot/blob/d4433cfe1beebcfe8d5e044ac972f760122714cb/config/sidekiq.yml"
+        },
+        {
+          "claim": "IMAP事务与并发重复保护",
+          "url": "https://github.com/chatwoot/chatwoot/blob/d4433cfe1beebcfe8d5e044ac972f760122714cb/app/mailboxes/imap/imap_mailbox.rb#L20"
+        }
+      ]
+    },
+    {
+      "id": "zammad",
+      "repo": "zammad/zammad",
+      "category": "多渠道客服工单系统",
+      "stars": 6125,
+      "archived": false,
+      "pushed_at": "2026-11-17T13:29:16Z",
+      "default_branch": "develop",
+      "head_sha": "97f8e9d7a1d123fadf9cd19620ea54266be44ac0",
+      "latest_release": null,
+      "official_release": {
+        "tag": "7.2.3",
+        "date": "2026-11-11",
+        "url": "https://zammad.com/en/product/releases/7-2-3"
+      },
+      "license": {
+        "label": "核心GNU AGPLv3，第三方组件/图标另有许可清单",
+        "source_urls": [
+          "https://github.com/zammad/zammad/blob/develop/LICENSE",
+          "https://github.com/zammad/zammad/blob/develop/README.md"
+        ]
+      },
+      "maturity": "系统、用户、管理和REST API文档完整；有部署体系、定时作业、工单历史及持续安全版本发布。GitHub releases/latest为404，不代表无发布。",
+      "evidence": [
+        {
+          "claim": "仓库元数据",
+          "url": "https://api.github.com/repos/zammad/zammad"
+        },
+        {
+          "claim": "默认分支HEAD",
+          "url": "https://api.github.com/repos/zammad/zammad/branches/develop"
+        },
+        {
+          "claim": "GitHub最新release接口404",
+          "url": "https://api.github.com/repos/zammad/zammad/releases/latest"
+        },
+        {
+          "claim": "官方7.2.3发布日期",
+          "url": "https://zammad.com/en/product/releases/7-2-3"
+        },
+        {
+          "claim": "官方渠道与管理目录",
+          "url": "https://admin-docs.zammad.org/en/latest/index.html"
+        },
+        {
+          "claim": "Telegram机器人接入",
+          "url": "https://admin-docs.zammad.org/en/latest/channels/telegram.html"
+        },
+        {
+          "claim": "WhatsApp Cloud API要求",
+          "url": "https://admin-docs.zammad.org/en/latest/channels/whatsapp/index.html"
+        },
+        {
+          "claim": "REST API与鉴权",
+          "url": "https://docs.zammad.org/en/latest/api/intro.html"
+        },
+        {
+          "claim": "定时作业条件、数量与运行配置",
+          "url": "https://admin-docs.zammad.org/en/latest/manage/scheduler.html"
+        },
+        {
+          "claim": "Webhook触发与最多4次重试",
+          "url": "https://admin-docs.zammad.org/en/latest/manage/webhook.html"
+        },
+        {
+          "claim": "Telegram消息ID生成",
+          "url": "https://github.com/zammad/zammad/blob/97f8e9d7a1d123fadf9cd19620ea54266be44ac0/lib/telegram_helper.rb#L182"
+        },
+        {
+          "claim": "Telegram更新查重",
+          "url": "https://github.com/zammad/zammad/blob/97f8e9d7a1d123fadf9cd19620ea54266be44ac0/lib/telegram_helper.rb#L713"
+        }
+      ]
+    },
+    {
+      "id": "freescout",
+      "repo": "freescout-help-desk/freescout",
+      "category": "邮箱共享收件箱与模块化客服系统",
+      "stars": 4671,
+      "archived": false,
+      "pushed_at": "2026-11-17T12:14:55Z",
+      "default_branch": "dist",
+      "head_sha": "7769d477ef1e45275d3c0ee173648fce35719945",
+      "latest_release": {
+        "tag": "1.8.251",
+        "published_at": "2026-11-14T06:58:29Z",
+        "url": "https://github.com/freescout-help-desk/freescout/releases/tag/1.8.251"
+      },
+      "license": {
+        "label": "核心AGPL-3.0；API、工作流、Telegram、WooCommerce等官方模块多为付费分发且官方同样标AGPL-3.0，不能误称闭源EE",
+        "source_urls": [
+          "https://github.com/freescout-help-desk/freescout/blob/dist/LICENSE",
+          "https://freescout.net/modules/",
+          "https://freescout.net/module/api-webhooks/",
+          "https://freescout.net/module/woocommerce/"
+        ]
+      },
+      "maturity": "持续版本发布、邮箱线程/重复兼容处理、Laravel后台调度与队列监控、共享收件箱协作和模块生态。",
+      "evidence": [
+        {
+          "claim": "仓库元数据",
+          "url": "https://api.github.com/repos/freescout-help-desk/freescout"
+        },
+        {
+          "claim": "默认分支HEAD",
+          "url": "https://api.github.com/repos/freescout-help-desk/freescout/branches/dist"
+        },
+        {
+          "claim": "最新发布",
+          "url": "https://github.com/freescout-help-desk/freescout/releases/tag/1.8.251"
+        },
+        {
+          "claim": "核心功能与技术栈",
+          "url": "https://github.com/freescout-help-desk/freescout/blob/dist/README.md"
+        },
+        {
+          "claim": "模块分发与AGPL说明",
+          "url": "https://freescout.net/modules/"
+        },
+        {
+          "claim": "Telegram会话模块",
+          "url": "https://freescout.net/module/telegram-integration/"
+        },
+        {
+          "claim": "Telegram通知模块",
+          "url": "https://freescout.net/module/telegram/"
+        },
+        {
+          "claim": "WhatsApp Business与提供商边界",
+          "url": "https://freescout.net/module/whatsapp/"
+        },
+        {
+          "claim": "WooCommerce订单侧栏",
+          "url": "https://freescout.net/module/woocommerce/"
+        },
+        {
+          "claim": "API/Webhook签名、事件与重试",
+          "url": "https://freescout.net/module/api-webhooks/"
+        },
+        {
+          "claim": "后台调度与互斥",
+          "url": "https://github.com/freescout-help-desk/freescout/blob/7769d477ef1e45275d3c0ee173648fce35719945/app/Console/Kernel.php#L31"
+        },
+        {
+          "claim": "邮件重复处理、Message-ID及已读副作用",
+          "url": "https://github.com/freescout-help-desk/freescout/blob/7769d477ef1e45275d3c0ee173648fce35719945/app/Console/Commands/FetchEmails.php#L589"
+        }
+      ]
+    },
+    {
+      "id": "COM-01",
+      "repo": "GuDong2003/xianyu-auto-reply-fix",
+      "category": "重点候选：闲鱼个人账号消息参考",
+      "stars": 2947,
+      "archived": false,
+      "pushed_at": "2026-11-12T07:39:14Z",
+      "default_branch": "main",
+      "head_sha": "edbd2927dcd95bb903b64276f32f45fa14b2bf04",
+      "latest_release": {
+        "tag": "v2.0.14",
+        "published_at": "2026-11-12T07:39:14Z",
+        "url": "https://github.com/GuDong2003/xianyu-auto-reply-fix/releases/tag/v2.0.14"
+      },
+      "license": {
+        "label": "AGPL-3.0（已读取LICENSE原文标题，非正式许可审查）",
+        "source_urls": [
+          "https://github.com/GuDong2003/xianyu-auto-reply-fix/blob/edbd2927dcd95bb903b64276f32f45fa14b2bf04/LICENSE",
+          "https://github.com/GuDong2003/xianyu-auto-reply-fix/blob/edbd2927dcd95bb903b64276f32f45fa14b2bf04/README.md"
+        ]
+      },
+      "maturity": "代码、测试目录、版本发布和近期维护均有公开证据；本次未运行、未验证真实账号，仅作为优先研究对象。",
+      "evidence": [
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/GuDong2003/xianyu-auto-reply-fix/blob/edbd2927dcd95bb903b64276f32f45fa14b2bf04/config.py"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/GuDong2003/xianyu-auto-reply-fix/blob/edbd2927dcd95bb903b64276f32f45fa14b2bf04/XianyuAutoAsync.py"
+        },
+        {
+          "claim": "HEAD修复会话补页，并发布v2.0.14。",
+          "url": "https://github.com/GuDong2003/xianyu-auto-reply-fix/releases/tag/v2.0.14"
+        },
+        {
+          "claim": "存在消息发送安全、会话分页、休眠感知重连等测试文件；本轮未执行。",
+          "url": "https://github.com/GuDong2003/xianyu-auto-reply-fix/tree/edbd2927dcd95bb903b64276f32f45fa14b2bf04/tests"
+        }
+      ]
+    },
+    {
+      "id": "COM-02",
+      "repo": "vecyang1/opencli-plugin-taobao",
+      "category": "实验候选：淘宝个人买家聊天读取",
+      "stars": 1,
+      "archived": false,
+      "pushed_at": "2026-11-14T20:10:00Z",
+      "default_branch": "main",
+      "head_sha": "a7a24050b97061d8024df0b9d5f32cd99531f319",
+      "latest_release": {
+        "tag": "v1.3.3",
+        "published_at": "2026-11-14T20:10:02Z",
+        "url": "https://github.com/vecyang1/opencli-plugin-taobao/releases/tag/v1.3.3"
+      },
+      "license": {
+        "label": "README/package标注AGPL-3.0-or-later；LICENSE标题为AGPL v3；GitHub元数据NOASSERTION，复用前需完整核对。",
+        "source_urls": [
+          "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/LICENSE",
+          "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/package.json",
+          "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/README.md"
+        ]
+      },
+      "maturity": "实际存在浏览器内IM SDK会话/历史消息读取代码和测试文件；仅1星，依赖私有页面结构，成熟度证据有限。",
+      "evidence": [
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/clis/taobao/sessions.js"
+        },
+        {
+          "claim": "chat命令调用页面内IM服务，按卖家或CID读取历史，包含登录跳转检查。",
+          "url": "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/clis/taobao/chat.js"
+        },
+        {
+          "claim": "包版本1.3.3及许可标识可查，README声明Browser Bridge路线。",
+          "url": "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/package.json"
+        },
+        {
+          "claim": "存在适配器脚本语法测试；未在本次执行。",
+          "url": "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/tests/adapter_scripts.test.js"
+        }
+      ]
+    },
+    {
+      "id": "COM-03",
+      "repo": "zhinianboke/pdd-auto-reply",
+      "category": "商家参考：拼多多客服通道",
+      "stars": 154,
+      "archived": false,
+      "pushed_at": "2026-06-11T09:26:33Z",
+      "default_branch": "main",
+      "head_sha": "61dac37fb6c329ca397c8bb03d274421254b1498",
+      "latest_release": null,
+      "license": {
+        "label": "AGPL-3.0（LICENSE原文已读取标题）",
+        "source_urls": [
+          "https://github.com/zhinianboke/pdd-auto-reply/blob/61dac37fb6c329ca397c8bb03d274421254b1498/LICENSE"
+        ]
+      },
+      "maturity": "有商家长连接、Cookie登录、会话历史拉取及测试代码；本次未运行，最后推送2026-06-11，暂无正式GitHub Release。",
+      "evidence": [
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/zhinianboke/pdd-auto-reply/blob/61dac37fb6c329ca397c8bb03d274421254b1498/websocket/channel_pdd/pdd_channel.py"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/zhinianboke/pdd-auto-reply/blob/61dac37fb6c329ca397c8bb03d274421254b1498/websocket/channel_pdd/pdd_login.py"
+        },
+        {
+          "claim": "get_chat_history调用mms商家后台plateau/chat/list，游标分页并按(shop, customer, msg_id)去重。",
+          "url": "https://github.com/zhinianboke/pdd-auto-reply/blob/61dac37fb6c329ca397c8bb03d274421254b1498/websocket/channel_pdd/api/get_chat_history.py"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/zhinianboke/pdd-auto-reply/tree/61dac37fb6c329ca397c8bb03d274421254b1498/websocket/tests"
+        }
+      ]
+    },
+    {
+      "id": "COM-04",
+      "repo": "yelinyuan798-commits/UniversalECommerceBot",
+      "category": "低成熟度框架参考：淘宝/京东等商家浏览器",
+      "stars": 55,
+      "archived": false,
+      "pushed_at": "2026-11-04T06:09:15Z",
+      "default_branch": "main",
+      "head_sha": "efa0cfc896bd889c75af34d2a2c35460cad48019",
+      "latest_release": null,
+      "license": {
+        "label": "未知：GitHub元数据license为null，已检查HEAD文件树未发现LICENSE/COPYING；不能按默认开源许可复制复用。",
+        "source_urls": [
+          "https://github.com/yelinyuan798-commits/UniversalECommerceBot/blob/efa0cfc896bd889c75af34d2a2c35460cad48019/README.md"
+        ]
+      },
+      "maturity": "有通用商家浏览器适配代码；京东类仅继承通用框架，仍需逐店校准。作者称实店测试，研究者未独立复现；不是现成个人买家连接器。",
+      "evidence": [
+        {
+          "claim": "京东类仅继承BrowserPlatform并指定jingdong。",
+          "url": "https://github.com/yelinyuan798-commits/UniversalECommerceBot/blob/efa0cfc896bd889c75af34d2a2c35460cad48019/platforms/jd/bot.py"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/yelinyuan798-commits/UniversalECommerceBot/blob/efa0cfc896bd889c75af34d2a2c35460cad48019/platforms/browser.py"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/yelinyuan798-commits/UniversalECommerceBot/blob/efa0cfc896bd889c75af34d2a2c35460cad48019/docs/PLATFORM_SETUP.md"
+        },
+        {
+          "claim": "HEAD文件树中未发现LICENSE/COPYING；该缺失仅是本次检索结果。",
+          "url": "https://github.com/yelinyuan798-commits/UniversalECommerceBot/tree/efa0cfc896bd889c75af34d2a2c35460cad48019"
+        }
+      ]
+    },
+    {
+      "id": "COM-S01",
+      "repo": "zhinianboke/xianyu-auto-reply",
+      "category": "补充上游：闲鱼完整自动化系统",
+      "stars": 8296,
+      "archived": false,
+      "pushed_at": "2026-11-17T14:25:49Z",
+      "default_branch": "main",
+      "head_sha": "b2da458a3735b58a23cd29232a24ccd8aa44df11",
+      "latest_release": null,
+      "license": {
+        "label": "AGPL-3.0（LICENSE原文已读取标题）",
+        "source_urls": [
+          "https://github.com/zhinianboke/xianyu-auto-reply/blob/b2da458a3735b58a23cd29232a24ccd8aa44df11/LICENSE"
+        ]
+      },
+      "maturity": "8千星级活跃完整应用，代码面广；适合作为上游研究，不能据星数推断独立连接器质量。",
+      "evidence": [
+        {
+          "claim": "README描述完整应用范围，含消息、订单、发货和商品发布。",
+          "url": "https://github.com/zhinianboke/xianyu-auto-reply/blob/b2da458a3735b58a23cd29232a24ccd8aa44df11/README.md"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/zhinianboke/xianyu-auto-reply/blob/b2da458a3735b58a23cd29232a24ccd8aa44df11/websocket/app/services/xianyu/connection_manager.py"
+        }
+      ]
+    },
+    {
+      "id": "COM-S02",
+      "repo": "mf-yang/pdd-customer-service-sdk",
+      "category": "排除生产复用：许可附加限制",
+      "stars": 55,
+      "archived": false,
+      "pushed_at": "2025-11-06T13:06:45Z",
+      "default_branch": "main",
+      "head_sha": "92ba11d6baee45c4f8586e90751e2b5c8537c28f",
+      "latest_release": null,
+      "license": {
+        "label": "LICENSE标题MIT但正文附加仅学习研究，明确禁止商用及生产用途；GitHub标NOASSERTION。",
+        "source_urls": [
+          "https://github.com/mf-yang/pdd-customer-service-sdk/blob/92ba11d6baee45c4f8586e90751e2b5c8537c28f/LICENSE",
+          "https://github.com/mf-yang/pdd-customer-service-sdk/blob/92ba11d6baee45c4f8586e90751e2b5c8537c28f/README.md"
+        ]
+      },
+      "maturity": "存在小型Playwright商家客服SDK，但长期未推送，未做运行测试；许可不是标准MIT。",
+      "evidence": [
+        {
+          "claim": "LICENSE明确附加FOR EDUCATIONAL AND RESEARCH PURPOSES ONLY及禁止商用/生产。",
+          "url": "https://github.com/mf-yang/pdd-customer-service-sdk/blob/92ba11d6baee45c4f8586e90751e2b5c8537c28f/LICENSE"
+        },
+        {
+          "claim": "候选实现范围的公开源码，仅供评估",
+          "url": "https://github.com/mf-yang/pdd-customer-service-sdk/blob/92ba11d6baee45c4f8586e90751e2b5c8537c28f/README.md"
+        }
+      ]
+    },
+    {
+      "id": "COM-S03",
+      "repo": "cs-lazy-tools/ChatGPT-On-CS",
+      "category": "补充竞品：多平台客服工作台/SaaS",
+      "stars": 4617,
+      "archived": false,
+      "pushed_at": "2026-10-10T04:17:31Z",
+      "default_branch": "main",
+      "head_sha": "2af901b00f42ce871ea07b3ab1f9919c2b2f33a2",
+      "latest_release": {
+        "tag": "v1.4.5",
+        "published_at": "2024-09-07T14:37:02Z",
+        "url": "https://github.com/cs-lazy-tools/ChatGPT-On-CS/releases/tag/v1.4.5"
+      },
+      "license": {
+        "label": "AGPL-3.0（已读取LICENSE标题；各外部服务/驱动许可未核验）",
+        "source_urls": [
+          "https://github.com/cs-lazy-tools/ChatGPT-On-CS/blob/2af901b00f42ce871ea07b3ab1f9919c2b2f33a2/LICENSE"
+        ]
+      },
+      "maturity": "4千星级公开Electron应用与SaaS产品说明；本次未验证各平台底层连接驱动是否完整公开，不能当作已有京东连接器证据。",
+      "evidence": [
+        {
+          "claim": "README声明多平台商家SaaS与聚合聊天。",
+          "url": "https://github.com/cs-lazy-tools/ChatGPT-On-CS/blob/2af901b00f42ce871ea07b3ab1f9919c2b2f33a2/README.md"
+        },
+        {
+          "claim": "公开控制器通过API获取平台和业务信息，不足以证明各平台协议实现。",
+          "url": "https://github.com/cs-lazy-tools/ChatGPT-On-CS/blob/2af901b00f42ce871ea07b3ab1f9919c2b2f33a2/src/renderer/common/services/platform/controller.ts"
+        }
+      ]
+    }
+  ],
+  "platform_findings": [
+    {
+      "platform": "闲鱼",
+      "role": "个人账号（主要是卖家接待场景）",
+      "conclusion": "非官方个人账号消息项目，以卖家场景为主；不代表已取得正式授权。",
+      "evidence": [
+        {
+          "claim": "公开资料所示候选范围，未做真实账号验证",
+          "url": "https://github.com/GuDong2003/xianyu-auto-reply-fix/blob/edbd2927dcd95bb903b64276f32f45fa14b2bf04/config.py"
+        }
+      ]
+    },
+    {
+      "platform": "淘宝/旺旺",
+      "role": "个人买家",
+      "conclusion": "仅发现实验级买家会话或历史读取；持续接收未验证。",
+      "evidence": [
+        {
+          "claim": "插件通过淘宝IM页面内部SDK读取卖家会话与消息。",
+          "url": "https://github.com/vecyang1/opencli-plugin-taobao/blob/a7a24050b97061d8024df0b9d5f32cd99531f319/clis/taobao/chat.js"
+        }
+      ]
+    },
+    {
+      "platform": "淘宝/千牛",
+      "role": "商家/ISV授权应用",
+      "conclusion": "商家或服务商能力须按当前平台准入和授权验证；旧旺旺接口不能作为当前依据。",
+      "evidence": [
+        {
+          "claim": "官方2021公告列出旧历史/会话接口下线，并说明聊天消息服务替代及当时权限条件；不是2026当前准入承诺。",
+          "url": "https://open.alitrip.com/support/announcementDetail.htm?id=25584&source=search"
+        },
+        {
+          "claim": "官方taobao.message.chatrobot.async页面列机器人下发及授权参数。",
+          "url": "https://developer.alibaba.com/docs/api.htm?apiId=48631"
+        }
+      ]
+    },
+    {
+      "platform": "京东/咚咚",
+      "role": "个人买家",
+      "conclusion": "未找到充分证据支持通用个人买家连接器。",
+      "evidence": [
+        {
+          "claim": "COM-04京东类只是通用商家浏览器适配器。",
+          "url": "https://github.com/yelinyuan798-commits/UniversalECommerceBot/blob/efa0cfc896bd889c75af34d2a2c35460cad48019/platforms/jd/bot.py"
+        }
+      ]
+    },
+    {
+      "platform": "京东/京麦/咚咚",
+      "role": "商家/插件/小程序",
+      "conclusion": "官方插件能力受店铺、启动方式和当前会话约束；不等同于个人账号后台读权限。",
+      "evidence": [
+        {
+          "claim": "京麦JSSDK的sendDongdongMsg仅限咚咚启动的插件页面，目标为Native当前聊天用户。",
+          "url": "https://jmw.jd.com/docs/jssdk/jssdk-mobile/api.html"
+        },
+        {
+          "claim": "官方API目录列小程序接入咚咚与客服消息场景，范围是小程序商家。",
+          "url": "https://jos.jd.com/apilistnewdetail?apiGroupId=145&apiId=18304&apiName=null"
+        },
+        {
+          "claim": "COM-04需按真实商家页面校准和独立验收。",
+          "url": "https://github.com/yelinyuan798-commits/UniversalECommerceBot/blob/efa0cfc896bd889c75af34d2a2c35460cad48019/docs/PLATFORM_SETUP.md"
+        }
+      ]
+    },
+    {
+      "platform": "拼多多",
+      "role": "个人买家",
+      "conclusion": "未找到充分证据支持通用个人买家连接器。",
+      "evidence": [
+        {
+          "claim": "公开资料所示候选范围，未做真实账号验证",
+          "url": "https://github.com/zhinianboke/pdd-auto-reply/blob/61dac37fb6c329ca397c8bb03d274421254b1498/websocket/channel_pdd/api/get_chat_history.py"
+        }
+      ]
+    },
+    {
+      "platform": "拼多多",
+      "role": "商家客服",
+      "conclusion": "有第三方商家客服项目；正式 API 权限及真实账号均未验证。",
+      "evidence": [
+        {
+          "claim": "公开资料所示候选范围，未做真实账号验证",
+          "url": "https://github.com/zhinianboke/pdd-auto-reply/blob/61dac37fb6c329ca397c8bb03d274421254b1498/websocket/channel_pdd/pdd_channel.py"
+        },
+        {
+          "claim": "COM-S02许可证正文禁止商业及生产用途。",
+          "url": "https://github.com/mf-yang/pdd-customer-service-sdk/blob/92ba11d6baee45c4f8586e90751e2b5c8537c28f/LICENSE"
+        }
+      ]
+    },
+    {
+      "platform": "跨平台",
+      "role": "订单通知与聊天正文分类",
+      "conclusion": "订单通知、订单查询和聊天同步分开验收。",
+      "evidence": [
+        {
+          "claim": "PDD SDK明确分别列消息、回调与订单操作。",
+          "url": "https://github.com/mf-yang/pdd-customer-service-sdk/blob/92ba11d6baee45c4f8586e90751e2b5c8537c28f/README.md"
+        },
+        {
+          "claim": "官方京东订单接口有商家范围授权与订单功能；这些不是聊天接收接口。",
+          "url": "https://jos.jd.com/apilistnewdetail?apiGroupId=55&apiId=14263&apiName=null"
+        }
+      ]
+    }
+  ]
+}

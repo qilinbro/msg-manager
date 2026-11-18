@@ -7,11 +7,12 @@
 
 ## 先看哪些
 
-- **减少手工导入：** 优先[自动同步专题](自动同步/README.md)，QQ历史看QCE HTTP读取，Telegram本人账号看gotd；该专题的当前维护状态优先于旧搜索页面。
+- **消息管理和购物平台：** 见[成熟工具与购物平台调研](消息管理与购物平台/README.md)，含账号类型、许可证、源码证据和落地建议（2026-11-18）。
+- **减少手工导入：** [自动同步专题](自动同步/README.md)保留早期评估；当前 QQ 使用 [Milky 1.3](../docs/qq-milky-setup.md)，Telegram 个人账号使用 Telethon 只读同步。真实账号验收以项目记录为准。
 - **整体 AI 消息处理：** [LangBot](项目卡片/langbot.md)，再对照 [AstrBot](项目卡片/astrbot.md) 的平台与限频抽象。
 - **联系人与关系档案：** [Monica](项目卡片/monica.md) 的信息模型；[Bonds](项目卡片/bonds.md) 的 Go + React 结构很贴近，但 BSL 许可限制必须单独确认。
 - **joey 的前端 / UI 阅读：** [Chatwoot](项目卡片/chatwoot.md) 的消息与联系人侧栏、[Twenty](项目卡片/twenty.md) 的记录与组件、Bonds 的联系人详情。
-- **angjustinl的连接器：** QQ优先QCE/现有OneBot，Telegram个人账号看gotd；[go-telegram/bot](项目卡片/go-telegram-bot.md)只作Bot通道及游标落库顺序参考。
+- **angjustinl 的连接器：** 对照 [Milky 接入](../docs/qq-milky-setup.md)与 [Telegram 个人账号专题](自动同步/telegram-personal.md)了解当前方向；[go-telegram/bot](项目卡片/go-telegram-bot.md)可参考 Bot 通道和游标落库顺序。
 - **长期记忆：** [Mem0](项目卡片/mem0.md)；事实时间与关系冲突的后续方案看 [Graphiti](项目卡片/graphiti.md)。
 - **常驻运行：** [OpenClaw](项目卡片/openclaw.md)、[Letta Code](项目卡片/letta-code.md)；任务恢复与重试结构补看 [Temporal](项目卡片/temporal.md)。
 
