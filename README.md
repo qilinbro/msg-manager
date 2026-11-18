@@ -24,7 +24,9 @@
 
 自动发送始终关闭。QQ Milky 可在明确授权后开启后台接收，微信可对明确选定的会话开启本地库周期读取；QQ 可靠历史水位、Telegram 在线授权、通用任务/发件箱恢复、Windows服务安装和真实消息发送仍未实现。电脑及后台需要保持运行；邮箱仍按需同步，不表示各平台都已持续在线。QQ 个人号统一使用 [Milky 接入说明](docs/qq-milky-setup.md)，邮箱见[接入说明](docs/email-setup.md)；凭据仅在后台配置。旧 OneBot 环境变量与核验入口已退役，迁移说明见[历史入口](docs/qq-onebot-setup.md)。
 
-推荐先按[统一消息中心使用说明](docs/unified-inbox.md)运行 `scripts/start-inbox.ps1`，自动准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录。源码不含预置消息或真人聊天数据。
+QQ、飞书、微信和 Telegram 的准备条件、登录/授权入口、首次验证与恢复步骤统一见[平台登录与部署指南](<docs/platform-login-deployment.md>)。先确认实际运行版本与数据根；Telegram 个人号实现另在功能分支，不代表当前实例已有登录入口。
+
+全新安装可按[统一消息中心使用说明](docs/unified-inbox.md)使用[启动器](<scripts/start-inbox.ps1>)准备当前 Windows 用户保护的数据库密钥，再启动前端、连接服务和导入记录；已有实例不要重复启动，代码根与原数据根分离时先按上述部署指南核对。源码不含预置消息或真人聊天数据。
 
 ## 本地启动
 
