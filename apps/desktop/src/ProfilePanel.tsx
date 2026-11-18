@@ -176,12 +176,14 @@ export default function ProfilePanel({
   token,
   conversationId,
   displayName,
+  standalone = false,
   onAuthFailure,
   onChanged,
 }: {
   token: string;
   conversationId: string;
   displayName: string;
+  standalone?: boolean;
   onAuthFailure: () => void;
   onChanged: () => void;
 }) {
@@ -590,13 +592,18 @@ export default function ProfilePanel({
     <section
       className="profile-panel"
       id={`personal-profile-${conversationId}`}
-      aria-labelledby={`profile-title-${conversationId}`}
+      aria-label={standalone ? '档案内容' : undefined}
+      aria-labelledby={
+        standalone ? undefined : `profile-title-${conversationId}`
+      }
     >
       <div className="profile-panel-heading">
         <div>
-          <h3 id={`profile-title-${conversationId}`}>
-            {displayName}的个人档案
-          </h3>
+          {!standalone ? (
+            <h3 id={`profile-title-${conversationId}`}>
+              {displayName}的个人档案
+            </h3>
+          ) : null}
           <p>专属文档保存在本地加密库，聊天整理与公开资料分开核对。</p>
         </div>
         <div className="profile-inline-actions">

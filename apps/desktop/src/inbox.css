@@ -1297,12 +1297,43 @@
   margin-top: 8px;
 }
 .inbox-sources > summary,
+.inbox-profile-filters > summary,
 .wechat-read-options > summary {
   width: fit-content;
   padding: 12px 0;
   color: var(--secondary);
   font-size: 0.8125rem;
   cursor: pointer;
+}
+.inbox-profile-filters {
+  margin-top: 8px;
+}
+.inbox-profile-filter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.inbox-profile-filter-fields .inbox-category-filter {
+  flex: 0 1 160px;
+  margin: 0;
+}
+.inbox-profile-layout {
+  grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+}
+.inbox-profile-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 22px 22px;
+  overflow-wrap: anywhere;
+}
+.inbox-profile-content .profile-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.inbox-profile-layout .inbox-detail-header {
+  overflow-wrap: anywhere;
 }
 .inbox-sources > .email-panel + .email-panel {
   margin-top: 12px;
@@ -1351,5 +1382,22 @@
 @media (max-width: 600px) {
   .inbox-keyword-field {
     flex-basis: 100%;
+  }
+  .inbox-profile-filter-fields .inbox-category-filter {
+    flex: 1 1 120px;
+  }
+  .inbox-profile-content {
+    padding: 12px 14px 16px;
+  }
+}
+@media (max-width: 1050px) {
+  .inbox-profile-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .inbox-profile-layout.has-selection .inbox-detail {
+    border-left: 0;
+  }
+  .is-profile-open .inbox-discovery {
+    display: none;
   }
 }

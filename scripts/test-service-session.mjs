@@ -483,6 +483,9 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
 {
   const h = browserHarness({ mode: 'app' });
   await h.flush();
+  const initialNavigation = find(h, (node) => node.type === 'nav');
+  assert.deepEqual(nodes(initialNavigation).filter((node) => node.type === 'button').map((node) => node.props['aria-label']).slice(0, 2), ['个人档案', '消息'], 'personal profiles must be the first primary navigation entry');
+  assert.equal(find(h, (node) => node.type === 'InboxStub').props.profilesOnly, true, 'the default page opens profiles without message-history behavior');
   const settingsControl = find(h, (node) => node.type === 'button' && node.props['aria-label'] === '设置');
   assert.ok(nodes(settingsControl).some((node) => node.type === 'svg' && node.props['data-icon'] === 'settings' && node.props['aria-hidden'] === 'true' && node.props.focusable === 'false'), 'App navigation must render the shipped decorative SVG');
   settingsControl.props.onClick();
@@ -494,7 +497,7 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   navigation('消息'); await h.flush();
   const drafts = find(h, (node) => node.type === 'InboxStub').props.aiDrafts;
   drafts.set('synthetic-chat', { draft: 'synthetic navigation draft' });
-  for (const page of ['联系人', '待审批', '概览', '设置', '消息']) { navigation(page); await h.flush(); }
+  for (const page of ['个人档案', '待审批', '概览', '设置', '消息']) { navigation(page); await h.flush(); }
   const inbox = find(h, (node) => node.type === 'InboxStub');
   assert.equal(inbox.props.token, TOKEN_A);
   assert.equal(inbox.props.aiDrafts, drafts, 'navigation must retain the authenticated AI buffer');

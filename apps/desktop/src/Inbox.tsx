@@ -1095,6 +1095,46 @@ export default function Inbox({
     setNotice(null);
   };
   const discoveryID = profilesOnly ? 'contacts' : 'inbox';
+  const refreshLabel = profilesOnly
+    ? '刷新个人档案'
+    : backgroundPending
+      ? '查看最新消息'
+      : '刷新消息中心';
+  const changeCategory = (value: string) => {
+    setCategory((value || undefined) as ProfileCategory | undefined);
+    if (!backgroundView.current.aiOpen && !backgroundView.current.profileOpen)
+      setSelected(null);
+    setNotice(null);
+  };
+  const categoryFilter = (
+    <label className="inbox-category-filter">
+      关系分类
+      <select
+        value={category ?? ''}
+        onChange={(event) => changeCategory(event.target.value)}
+      >
+        <option value="">全部分类</option>
+        {PROFILE_CATEGORIES.map((item) => (
+          <option key={item} value={item}>
+            {CATEGORY_NAMES[item]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  const returnLabel = profilesOnly ? '返回联系人列表' : '返回会话列表';
+  const profileContent =
+    selected && profileOpen ? (
+      <ProfilePanel
+        key={`${token}:${selected.id}`}
+        token={token}
+        conversationId={selected.id}
+        displayName={selected.title || selected.peer_id}
+        standalone={profilesOnly}
+        onAuthFailure={onAuthFailure}
+        onChanged={() => void refreshBackground(true)}
+      />
+    ) : null;
   const searchLabel = searchCurrent
     ? '搜索当前会话'
     : profilesOnly
@@ -1127,37 +1167,41 @@ export default function Inbox({
       ].join('\n'),
     });
   return (
-    <div className="inbox-root">
+    <div
+      className={`inbox-root${profilesOnly && selected ? ' is-profile-open' : ''}`}
+    >
       <div className="inbox-title-row">
         <div>
           <h1 className="icon-label">
             <Icon name={profilesOnly ? 'contacts' : 'messages'} size={22} />
-            {profilesOnly ? '联系人' : '消息'}
+            {profilesOnly ? '个人档案' : '消息'}
           </h1>
         </div>
         <div className="inbox-header-actions">
           <button
             className="inbox-icon-button"
-            aria-label={backgroundPending ? '查看最新消息' : '刷新消息中心'}
-            title={backgroundPending ? '查看最新消息' : '刷新消息中心'}
+            aria-label={refreshLabel}
+            title={refreshLabel}
             onClick={refresh}
             disabled={!token || infoState === 'loading'}
           >
             <Icon name="refresh" />
           </button>
-          <button
-            className="button button-primary"
-            onClick={() => setImportOpen((value) => !value)}
-            disabled={!enabled}
-          >
-            <Icon name="import" />
-            导入消息
-          </button>
+          {!profilesOnly ? (
+            <button
+              className="button button-primary"
+              onClick={() => setImportOpen((value) => !value)}
+              disabled={!enabled}
+            >
+              <Icon name="import" />
+              导入消息
+            </button>
+          ) : null}
         </div>
       </div>
       <section
         className="inbox-discovery"
-        aria-label={profilesOnly ? '联系人查找' : '消息查找'}
+        aria-label={profilesOnly ? '查找档案' : '消息查找'}
       >
         <form
           className="inbox-keyword-form"
@@ -1243,6 +1287,49 @@ export default function Inbox({
             </p>
           ) : null}
         </form>
+        {profilesOnly && enabled ? (
+          <details className="inbox-profile-filters">
+            <summary>
+              {platform || category || view !== 'all'
+                ? '筛选（已设置）'
+                : '筛选'}
+            </summary>
+            <div className="inbox-profile-filter-fields">
+              <label className="inbox-category-filter">
+                平台来源
+                <select
+                  value={platform ?? ''}
+                  onChange={(event) =>
+                    selectPlatform(
+                      (event.target.value || undefined) as Platform | undefined,
+                    )
+                  }
+                >
+                  <option value="">全部平台</option>
+                  {PLATFORMS.map((item) => (
+                    <option key={item} value={item}>
+                      {PLATFORM_NAMES[item]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {categoryFilter}
+              <label className="inbox-category-filter">
+                会话状态
+                <select
+                  value={view}
+                  onChange={(event) => selectView(event.target.value as View)}
+                >
+                  {VIEWS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </details>
+        ) : null}
         {token && !profilesOnly ? (
           <details className="inbox-sources">
             <summary>
@@ -1308,8 +1395,7 @@ export default function Inbox({
       ) : null}
       {!token ? (
         <section className="inbox-start">
-          <h2>先连接你的消息工作台</h2>
-          <p>连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。</p>
+          <h2>连接本地服务后查看{profilesOnly ? '个人档案' : '消息'}</h2>
           <button className="button button-secondary" onClick={onSettings}>
             前往连接设置
             <Icon name="arrow" size={16} />
@@ -1317,13 +1403,12 @@ export default function Inbox({
         </section>
       ) : infoState === 'error' ? (
         <section className="inbox-start">
-          <h2>消息中心暂时无法读取</h2>
+          <h2>{profilesOnly ? '个人档案' : '消息中心'}暂时无法读取</h2>
           <p role="alert">{infoError}</p>
         </section>
       ) : !info ? (
         <section className="inbox-start" aria-busy="true">
-          <h2>正在读取消息中心…</h2>
-          <p>正在检查平台来源与本地存储状态。</p>
+          <h2>正在读取{profilesOnly ? '个人档案' : '消息中心'}…</h2>
         </section>
       ) : !info.storage_enabled ? (
         <section className="inbox-start">
@@ -1335,111 +1420,102 @@ export default function Inbox({
           </button>
         </section>
       ) : (
-        <div className={`inbox-layout ${selected ? 'has-selection' : ''}`}>
-          <aside className="inbox-filters" aria-label="会话筛选">
-            <h2>收件箱</h2>
-            <div className="inbox-view-filters">
-              {VIEWS.map((item) => (
-                <button
-                  key={item.value}
-                  className={view === item.value ? 'active' : ''}
-                  aria-pressed={view === item.value}
-                  onClick={() => selectView(item.value)}
-                >
-                  <Icon name={item.icon} size={16} />
-                  <span>{item.name}</span>
-                </button>
-              ))}
-            </div>
-            <h3>平台来源</h3>
-            <button
-              className={`inbox-platform-filter ${platform === undefined ? 'active' : ''}`}
-              onClick={() => selectPlatform(undefined)}
-              aria-pressed={platform === undefined}
-            >
-              <span>全部平台</span>
-              <span className="inbox-count">
-                {info.platforms.reduce(
-                  (sum, item) => sum + item.message_count,
-                  0,
-                )}
-              </span>
-            </button>
-            {PLATFORMS.map((item) => {
-              const status = info.platforms.find(
-                (source) => source.id === item,
-              );
-              return (
-                <button
-                  key={item}
-                  className={`inbox-platform-filter ${platform === item ? 'active' : ''}`}
-                  onClick={() => selectPlatform(item)}
-                  aria-pressed={platform === item}
-                >
-                  <PlatformMark platform={item} />
-                  <span>{PLATFORM_NAMES[item]}</span>
-                  <span className="inbox-count">
-                    {status?.message_count ?? 0}
-                  </span>
-                </button>
-              );
-            })}
-            <label className="inbox-category-filter">
-              关系分类
-              <select
-                value={category ?? ''}
-                onChange={(event) => {
-                  setCategory(
-                    (event.target.value || undefined) as
-                      ProfileCategory | undefined,
-                  );
-                  if (
-                    !backgroundView.current.aiOpen &&
-                    !backgroundView.current.profileOpen
-                  )
-                    setSelected(null);
-                  setNotice(null);
-                }}
-              >
-                <option value="">全部分类</option>
-                {PROFILE_CATEGORIES.map((item) => (
-                  <option key={item} value={item}>
-                    {CATEGORY_NAMES[item]}
-                  </option>
+        <div
+          className={`inbox-layout${profilesOnly ? ' inbox-profile-layout' : ''}${selected ? ' has-selection' : ''}`}
+        >
+          {profilesOnly ? null : (
+            <aside className="inbox-filters" aria-label="会话筛选">
+              <h2>收件箱</h2>
+              <div className="inbox-view-filters">
+                {VIEWS.map((item) => (
+                  <button
+                    key={item.value}
+                    className={view === item.value ? 'active' : ''}
+                    aria-pressed={view === item.value}
+                    onClick={() => selectView(item.value)}
+                  >
+                    <Icon name={item.icon} size={16} />
+                    <span>{item.name}</span>
+                  </button>
                 ))}
-              </select>
-            </label>
-            <div className="inbox-live-states">
-              {info.platforms.map((item) => (
-                <span key={item.id}>
-                  {PLATFORM_NAMES[item.id]}
-                  <span>
-                    {item.live_status === 'probe_only'
-                      ? '仅账号核验'
-                      : item.live_status === 'unsupported'
-                        ? '暂不支持实时接入'
-                        : item.live_status === 'configured'
-                          ? item.id === 'weixin'
-                            ? '已配置·可后台读取'
-                            : '已配置·手动同步'
-                          : '实时未连接'}
-                  </span>
+              </div>
+              <h3>平台来源</h3>
+              <button
+                className={`inbox-platform-filter ${platform === undefined ? 'active' : ''}`}
+                onClick={() => selectPlatform(undefined)}
+                aria-pressed={platform === undefined}
+              >
+                <span>全部平台</span>
+                <span className="inbox-count">
+                  {info.platforms.reduce(
+                    (sum, item) => sum + item.message_count,
+                    0,
+                  )}
                 </span>
-              ))}
-            </div>
-          </aside>
-          <section className="inbox-conversations" aria-label="会话列表">
+              </button>
+              {PLATFORMS.map((item) => {
+                const status = info.platforms.find(
+                  (source) => source.id === item,
+                );
+                return (
+                  <button
+                    key={item}
+                    className={`inbox-platform-filter ${platform === item ? 'active' : ''}`}
+                    onClick={() => selectPlatform(item)}
+                    aria-pressed={platform === item}
+                  >
+                    <PlatformMark platform={item} />
+                    <span>{PLATFORM_NAMES[item]}</span>
+                    <span className="inbox-count">
+                      {status?.message_count ?? 0}
+                    </span>
+                  </button>
+                );
+              })}
+              {categoryFilter}
+              <div className="inbox-live-states">
+                {info.platforms.map((item) => (
+                  <span key={item.id}>
+                    {PLATFORM_NAMES[item.id]}
+                    <span>
+                      {item.live_status === 'probe_only'
+                        ? '仅账号核验'
+                        : item.live_status === 'unsupported'
+                          ? '暂不支持实时接入'
+                          : item.live_status === 'configured'
+                            ? item.id === 'weixin'
+                              ? '已配置·可后台读取'
+                              : '已配置·手动同步'
+                            : '实时未连接'}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </aside>
+          )}
+          <section
+            className="inbox-conversations"
+            aria-label={profilesOnly ? '联系人列表' : '会话列表'}
+          >
             <div className="inbox-list-header">
               <div className="inbox-list-summary">
                 <strong>
-                  {platform ? PLATFORM_NAMES[platform] : '全部平台'} ·{' '}
-                  {VIEWS.find((item) => item.value === view)?.name}
+                  {profilesOnly ? (
+                    '联系人'
+                  ) : (
+                    <>
+                      {platform ? PLATFORM_NAMES[platform] : '全部平台'} ·{' '}
+                      {VIEWS.find((item) => item.value === view)?.name}
+                    </>
+                  )}
                 </strong>
                 <span>
                   {listState === 'ready'
-                    ? platform === 'email'
-                      ? `${conversations.length} 封邮件`
-                      : `${conversations.length} ${profilesOnly ? '位联系人' : '个会话'}`
+                    ? profilesOnly
+                      ? `${conversations.length} 条记录`
+                      : platform === 'email'
+                        ? `${conversations.length} 封邮件`
+                        : `${conversations.length} 个会话`
                     : '正在读取'}
                 </span>
               </div>
@@ -1460,14 +1536,18 @@ export default function Inbox({
                 <div className="inbox-list-empty">
                   <h3>
                     {query
-                      ? '没有找到相关会话'
+                      ? profilesOnly
+                        ? '没有找到相关档案'
+                        : '没有找到相关会话'
                       : view === 'unread'
                         ? '暂时没有未读会话'
                         : view === 'archived'
                           ? '还没有归档的会话'
                           : view === 'pinned'
                             ? '还没有置顶的会话'
-                            : '暂无会话记录'}
+                            : profilesOnly
+                              ? '暂无联系人记录'
+                              : '暂无会话记录'}
                   </h3>
                   {view !== 'all' || platform || category ? (
                     <button
@@ -1593,7 +1673,10 @@ export default function Inbox({
               ) : null}
             </div>
           </section>
-          <section className="inbox-detail" aria-label="会话详情">
+          <section
+            className="inbox-detail"
+            aria-label={profilesOnly ? '档案详情' : '会话详情'}
+          >
             {selected ? (
               <>
                 <header
@@ -1607,8 +1690,8 @@ export default function Inbox({
                       restoreListFocus.current = true;
                       setSelected(null);
                     }}
-                    aria-label="返回会话列表"
-                    title="返回会话列表"
+                    aria-label={returnLabel}
+                    title={returnLabel}
                   >
                     <Icon name="back" />
                   </button>
@@ -1619,193 +1702,197 @@ export default function Inbox({
                       {PLATFORM_NAMES[selected.platform]} ·{' '}
                       {selected.platform === 'email'
                         ? selected.account_name || '邮箱账号'
-                        : selected.account_id}{' '}
-                      ·{' '}
-                      {selected.platform === 'email'
-                        ? '本地邮件记录'
-                        : '已入库消息'}
+                        : selected.account_id}
+                      {profilesOnly
+                        ? ''
+                        : selected.platform === 'email'
+                          ? ' · 本地邮件记录'
+                          : ' · 已入库消息'}
                     </p>
                   </div>
                 </header>
-                <div
-                  className="inbox-conversation-actions"
-                  aria-label="管理会话"
-                  aria-busy={actionBusy}
-                >
-                  <button
-                    onClick={() => change({ read: selected.unread_count > 0 })}
-                    disabled={actionBusy}
-                  >
-                    <Icon
-                      name={selected.unread_count > 0 ? 'mail-read' : 'mail'}
-                    />
-                    {selected.unread_count > 0 ? '标为已读' : '标为未读'}
-                  </button>
-                  <button
-                    onClick={() => change({ pinned: !selected.pinned })}
-                    disabled={actionBusy}
-                  >
-                    <Icon name={selected.pinned ? 'unpin' : 'pin'} />
-                    {selected.pinned ? '取消置顶' : '置顶'}
-                  </button>
-                  <button
-                    onClick={() => change({ archived: !selected.archived })}
-                    disabled={actionBusy}
-                  >
-                    <Icon name={selected.archived ? 'unarchive' : 'archive'} />
-                    {selected.archived ? '移回收件箱' : '归档'}
-                  </button>
-                  {!profilesOnly ? (
-                    <button
-                      onClick={() => setAiOpen((value) => !value)}
-                      aria-expanded={aiOpen}
-                      aria-controls={`ai-management-${selected.id}`}
+                {profilesOnly ? (
+                  <div className="inbox-profile-content" key={selected.id}>
+                    {profileContent}
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className="inbox-conversation-actions"
+                      aria-label="管理会话"
+                      aria-busy={actionBusy}
                     >
-                      <Icon name="settings" />
-                      AI 管理
-                    </button>
-                  ) : null}
-                  {!profilesOnly ? (
-                    <button
-                      onClick={() => setProfileOpen((value) => !value)}
-                      aria-label="个人档案"
-                      aria-expanded={profileOpen}
-                      aria-controls={`personal-profile-${selected.id}`}
-                    >
-                      <Icon name="user" />
-                      档案
-                    </button>
-                  ) : null}
-                </div>
-                <div
-                  className="inbox-history"
-                  ref={messageViewport}
-                  aria-busy={messageState === 'loading'}
-                >
-                  {profileOpen ? (
-                    <ProfilePanel
-                      key={`${token}:${selected.id}`}
-                      token={token}
-                      conversationId={selected.id}
-                      displayName={selected.title || selected.peer_id}
-                      onAuthFailure={onAuthFailure}
-                      onChanged={() => void refreshBackground(true)}
-                    />
-                  ) : null}
-                  {profilesOnly ? null : messageState === 'loading' ? (
-                    <p className="inbox-history-note" role="status">
-                      正在读取消息…
-                    </p>
-                  ) : messageState === 'error' ? (
-                    <div className="inbox-history-note">
-                      <p role="alert">{messageError}</p>
+                      <button
+                        onClick={() =>
+                          change({ read: selected.unread_count > 0 })
+                        }
+                        disabled={actionBusy}
+                      >
+                        <Icon
+                          name={
+                            selected.unread_count > 0 ? 'mail-read' : 'mail'
+                          }
+                        />
+                        {selected.unread_count > 0 ? '标为已读' : '标为未读'}
+                      </button>
+                      <button
+                        onClick={() => change({ pinned: !selected.pinned })}
+                        disabled={actionBusy}
+                      >
+                        <Icon name={selected.pinned ? 'unpin' : 'pin'} />
+                        {selected.pinned ? '取消置顶' : '置顶'}
+                      </button>
+                      <button
+                        onClick={() => change({ archived: !selected.archived })}
+                        disabled={actionBusy}
+                      >
+                        <Icon
+                          name={selected.archived ? 'unarchive' : 'archive'}
+                        />
+                        {selected.archived ? '移回收件箱' : '归档'}
+                      </button>
+                      <button
+                        onClick={() => setAiOpen((value) => !value)}
+                        aria-expanded={aiOpen}
+                        aria-controls={`ai-management-${selected.id}`}
+                      >
+                        <Icon name="settings" />
+                        AI 管理
+                      </button>
+                      <button
+                        onClick={() => setProfileOpen((value) => !value)}
+                        aria-label="个人档案"
+                        aria-expanded={profileOpen}
+                        aria-controls={`personal-profile-${selected.id}`}
+                      >
+                        <Icon name="user" />
+                        档案
+                      </button>
                     </div>
-                  ) : (
-                    <>
-                      {messageQuery && !searchCurrent ? (
+                    <div
+                      className="inbox-history"
+                      ref={messageViewport}
+                      aria-busy={messageState === 'loading'}
+                    >
+                      {profileContent}
+                      {messageState === 'loading' ? (
                         <p className="inbox-history-note" role="status">
-                          正文包含「{messageQuery}」
+                          正在读取消息…
                         </p>
-                      ) : null}
-                      {messageCursor ? (
-                        <button
-                          className="inbox-load-more"
-                          disabled={historyMore}
-                          onClick={olderMessages}
-                        >
-                          {historyMore ? '正在读取更早消息…' : '加载更早消息'}
-                        </button>
+                      ) : messageState === 'error' ? (
+                        <div className="inbox-history-note">
+                          <p role="alert">{messageError}</p>
+                        </div>
                       ) : (
-                        <div className="inbox-history-note" role="status">
-                          <p>
-                            {messages.length
-                              ? messageQuery
-                                ? '已显示最早的正文匹配记录'
-                                : '已显示当前保存的最早记录'
-                              : messageQuery
-                                ? '当前会话没有匹配的正文。'
-                                : '这个会话还没有消息'}
-                          </p>
-                        </div>
-                      )}
-                      {messages.map((item) => (
-                        <article
-                          className={`inbox-message is-${item.direction}`}
-                          key={item.id}
-                        >
-                          <div className="inbox-message-caption">
-                            <span>
-                              {item.direction === 'outgoing'
-                                ? '我 · 历史记录'
-                                : selected.platform === 'email'
-                                  ? item.email?.from_name ||
-                                    item.email?.from_address ||
-                                    '邮件记录'
-                                  : selected.title || selected.peer_id}
-                            </span>
-                            <time dateTime={item.occurred_at}>
-                              {dateText(item.occurred_at, true)}
-                            </time>
-                          </div>
-                          {item.email ? (
-                            <dl className="email-message-metadata">
-                              <div>
-                                <dt>主题</dt>
-                                <dd>{item.email.subject || '无主题'}</dd>
-                              </div>
-                              <div>
-                                <dt>发件人</dt>
-                                <dd>
-                                  {item.email.from_name
-                                    ? `${item.email.from_name} · `
-                                    : ''}
-                                  {item.email.from_address || '未提供'}
-                                </dd>
-                              </div>
-                              {item.email.to.length > 0 ? (
-                                <div>
-                                  <dt>收件人</dt>
-                                  <dd>{item.email.to.join('、')}</dd>
-                                </div>
-                              ) : null}
-                            </dl>
+                        <>
+                          {messageQuery && !searchCurrent ? (
+                            <p className="inbox-history-note" role="status">
+                              正文包含「{messageQuery}」
+                            </p>
                           ) : null}
-                          <p>
-                            <KeywordMatch
-                              text={item.body}
-                              keyword={messageQuery}
-                            />
-                          </p>
-                        </article>
-                      ))}
-                      {messageError ? (
-                        <p className="inbox-inline-error" role="alert">
-                          {messageError}
-                        </p>
-                      ) : null}
-                      {aiOpen ? (
-                        <div id={`ai-management-${selected.id}`}>
-                          <AIPanel
-                            key={`${token}:${selected.id}`}
-                            token={token}
-                            conversationId={selected.id}
-                            draftCache={aiDrafts}
-                            messages={messages}
-                            onAuthFailure={onAuthFailure}
-                          />
-                        </div>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-                <footer className="inbox-detail-footer">
-                  <Icon name="lock" />
-                  <span>
-                    {selected.platform === 'email'
-                      ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
-                      : '本地已入库消息；来源以记录为准，当前不提供消息发送。'}
-                  </span>
-                </footer>
+                          {messageCursor ? (
+                            <button
+                              className="inbox-load-more"
+                              disabled={historyMore}
+                              onClick={olderMessages}
+                            >
+                              {historyMore
+                                ? '正在读取更早消息…'
+                                : '加载更早消息'}
+                            </button>
+                          ) : (
+                            <div className="inbox-history-note" role="status">
+                              <p>
+                                {messages.length
+                                  ? messageQuery
+                                    ? '已显示最早的正文匹配记录'
+                                    : '已显示当前保存的最早记录'
+                                  : messageQuery
+                                    ? '当前会话没有匹配的正文。'
+                                    : '这个会话还没有消息'}
+                              </p>
+                            </div>
+                          )}
+                          {messages.map((item) => (
+                            <article
+                              className={`inbox-message is-${item.direction}`}
+                              key={item.id}
+                            >
+                              <div className="inbox-message-caption">
+                                <span>
+                                  {item.direction === 'outgoing'
+                                    ? '我 · 历史记录'
+                                    : selected.platform === 'email'
+                                      ? item.email?.from_name ||
+                                        item.email?.from_address ||
+                                        '邮件记录'
+                                      : selected.title || selected.peer_id}
+                                </span>
+                                <time dateTime={item.occurred_at}>
+                                  {dateText(item.occurred_at, true)}
+                                </time>
+                              </div>
+                              {item.email ? (
+                                <dl className="email-message-metadata">
+                                  <div>
+                                    <dt>主题</dt>
+                                    <dd>{item.email.subject || '无主题'}</dd>
+                                  </div>
+                                  <div>
+                                    <dt>发件人</dt>
+                                    <dd>
+                                      {item.email.from_name
+                                        ? `${item.email.from_name} · `
+                                        : ''}
+                                      {item.email.from_address || '未提供'}
+                                    </dd>
+                                  </div>
+                                  {item.email.to.length > 0 ? (
+                                    <div>
+                                      <dt>收件人</dt>
+                                      <dd>{item.email.to.join('、')}</dd>
+                                    </div>
+                                  ) : null}
+                                </dl>
+                              ) : null}
+                              <p>
+                                <KeywordMatch
+                                  text={item.body}
+                                  keyword={messageQuery}
+                                />
+                              </p>
+                            </article>
+                          ))}
+                          {messageError ? (
+                            <p className="inbox-inline-error" role="alert">
+                              {messageError}
+                            </p>
+                          ) : null}
+                          {aiOpen ? (
+                            <div id={`ai-management-${selected.id}`}>
+                              <AIPanel
+                                key={`${token}:${selected.id}`}
+                                token={token}
+                                conversationId={selected.id}
+                                draftCache={aiDrafts}
+                                messages={messages}
+                                onAuthFailure={onAuthFailure}
+                              />
+                            </div>
+                          ) : null}
+                        </>
+                      )}
+                    </div>
+                    <footer className="inbox-detail-footer">
+                      <Icon name="lock" />
+                      <span>
+                        {selected.platform === 'email'
+                          ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
+                          : '本地已入库消息；来源以记录为准，当前不提供消息发送。'}
+                      </span>
+                    </footer>
+                  </>
+                )}
               </>
             ) : (
               <div className="inbox-detail-empty">

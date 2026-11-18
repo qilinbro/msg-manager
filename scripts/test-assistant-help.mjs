@@ -300,6 +300,9 @@ async function submitRound(panel) {
   const app = browserHarness({ mode: "app" });
   app.evaluate("assistant-help.ts", HELP_EXPORTS);
   await app.flush();
+  assert.equal(appFind(app, (node) => node.type === "InboxStub").props.profilesOnly, true, "the application opens personal profiles by default");
+  const primaryNavigation = appFind(app, (node) => node.type === "nav");
+  assert.deepEqual(appNodes(primaryNavigation).filter((node) => node.type === "button").map((node) => node.props["aria-label"]).slice(0, 2), ["个人档案", "消息"]);
   appFind(
     app,
     (node) => node.type === "button" && node.props["aria-label"] === "消息",
@@ -390,7 +393,7 @@ async function submitRound(panel) {
   await app.flush();
   appFind(
     app,
-    (node) => node.type === "button" && node.props["aria-label"] === "联系人",
+    (node) => node.type === "button" && node.props["aria-label"] === "个人档案",
   ).props.onClick();
   await app.flush();
   assert.equal(

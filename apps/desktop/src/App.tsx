@@ -24,9 +24,9 @@ const NAVIGATION: {
   label: string;
   icon: IconName;
 }[] = [
-  { page: 'overview', label: '概览', icon: 'overview' },
+  { page: 'contacts', label: '个人档案', icon: 'contacts' },
   { page: 'messages', label: '消息', icon: 'messages' },
-  { page: 'contacts', label: '联系人', icon: 'contacts' },
+  { page: 'overview', label: '概览', icon: 'overview' },
   { page: 'approvals', label: '待审批', icon: 'approvals' },
   { page: 'assistant', label: 'Agent 助手', icon: 'assistant' },
   { page: 'feishu', label: '飞书早晚报', icon: 'calendar' },
@@ -34,7 +34,7 @@ const NAVIGATION: {
 const PAGE_TITLES: Record<Page, string> = {
   overview: '概览',
   messages: '消息',
-  contacts: '联系人',
+  contacts: '个人档案',
   approvals: '待审批',
   feishu: '飞书早晚报',
   settings: '设置',
@@ -156,11 +156,11 @@ function ConnectorCard({
 function Overview({
   session,
   onSettings,
-  onMessages,
+  onProfiles,
 }: {
   session: Session;
   onSettings: () => void;
-  onMessages: () => void;
+  onProfiles: () => void;
 }) {
   const system = session.system;
   const connectors = system?.connectors ?? PLANNED_CONNECTORS;
@@ -176,11 +176,11 @@ function Overview({
           <button
             type="button"
             className="button button-primary"
-            onClick={system?.storage.configured ? onMessages : onSettings}
+            onClick={system?.storage.configured ? onProfiles : onSettings}
           >
-            <Icon name={system?.storage.configured ? 'messages' : 'plug'} />
+            <Icon name={system?.storage.configured ? 'contacts' : 'plug'} />
             {system?.storage.configured
-              ? '打开消息'
+              ? '打开个人档案'
               : system
                 ? '查看配置'
                 : '连接本地服务'}
@@ -631,7 +631,7 @@ function Settings({
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>('overview');
+  const [page, setPage] = useState<Page>('contacts');
   const [aiDrafts] = useState(() => new Map<string, AIDraftBuffer>());
   const [assistantWorkspaces] = useState(
     () => new Map<string, AssistantWorkspace>(),
@@ -806,7 +806,7 @@ export default function App() {
             <Overview
               session={session}
               onSettings={onSettings}
-              onMessages={() => setPage('messages')}
+              onProfiles={() => setPage('contacts')}
             />
           ) : page === 'settings' ? (
             <Settings
