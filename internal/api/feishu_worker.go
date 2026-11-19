@@ -26,11 +26,21 @@ type feishuRuntime struct {
 	started    bool
 	now        func() time.Time
 	sender     feishu.Sender
+	transport  string
 }
 
-func newFeishuRuntime() *feishuRuntime {
+func newFeishuRuntime(sender feishu.Sender, transport string) *feishuRuntime {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &feishuRuntime{ctx: ctx, cancel: cancel, operations: map[string]context.CancelFunc{}, now: time.Now, sender: feishu.NewClient()}
+	return &feishuRuntime{ctx: ctx, cancel: cancel, operations: map[string]context.CancelFunc{}, now: time.Now, sender: sender, transport: transport}
+}
+func (f *feishuRuntime) available() bool {
+	if f == nil || f.sender == nil {
+		return false
+	}
+	if runtime, ok := f.sender.(interface{ Available() bool }); ok {
+		return runtime.Available()
+	}
+	return true
 }
 func (f *feishuRuntime) begin(id string, timeout time.Duration) (context.Context, func(), error) {
 	f.mu.Lock()
@@ -445,6 +455,11 @@ func (h *handler) startFeishuSend(ctx context.Context, id, hash string, b store.
 	credentials := feishu.Credentials{AppID: config.AppID, AppSecret: config.AppSecret}
 	if err = feishu.ValidateInput(credentials, input); err != nil {
 		return nil, false, err
+	}
+	// An absent runtime is a preflight failure, not a consumed one-shot claim.
+	// Receipt replay above stays read-only even if the runtime is now unavailable.
+	if !h.feishu.available() {
+		return nil, false, &feishu.Error{Code: feishu.CodeAuthUnavailable}
 	}
 	jobCtx, finish, err := h.feishu.begin("send:"+id, 45*time.Second)
 	if err != nil {

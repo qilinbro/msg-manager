@@ -1,0 +1,930 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-19",
+  "time_zone": "Asia/Shanghai",
+  "generated_at": "2026-11-19T18:53:28.358119+08:00",
+  "features": [
+    "FEAT-E04",
+    "FEAT-T22"
+  ],
+  "changes": [
+    "CHG-E04-002",
+    "CHG-T22-002"
+  ],
+  "branch": "feat/mcp-service",
+  "baseline_sha": "b9420cbab45104280d49ab463a58a8bd3c44a5bd",
+  "candidate": "candidate-r5",
+  "state": "engineering_checks_passed_pending_designated_review_and_acceptance",
+  "candidate_file_count": 58,
+  "final_evidence_additions": 4,
+  "candidate_manifest_sha256": "b36002de76c3e74cdfa3bf0f42e403f979707e5ebc8115f518a1557d6addc587",
+  "published_test_output_sha256": "44432df9a83bc83c200239a2415f93cc04a24cb7ef30e2363a36c0457ac2c1f0",
+  "functional_files_match_tested_candidate": true,
+  "post_test_documentation_only_changes": [
+    {
+      "path": "docs/acceptance/T22-all-features-test-plan.md",
+      "final_lf_sha256": "f9e45a4d61050a332605adc293a2c9b3b7acf5a550830d1f75c598a3292d1771"
+    },
+    {
+      "path": "docs/acceptance/E04-nonebot-validation.md",
+      "final_lf_sha256": "15b180d642ff7432b4938871d09ab1e202a3d050e69d2c538446d60d7a04013d"
+    },
+    {
+      "path": "feat.md",
+      "final_lf_sha256": "36efddc64dfc6e71e3684713dd47a43d17e6c583e6bbd69edcd93ad8f19e5fe6"
+    },
+    {
+      "path": "任务规划.md",
+      "final_lf_sha256": "48c674783ddcf856734751fdc30f6c64a53b960ddce9c07059e054feef279d98"
+    },
+    {
+      "path": "技术文档.md",
+      "final_lf_sha256": "13ea67b4cdde9f3f6a263def654075e17220ca4a6507c2a152e75604a111c737"
+    }
+  ],
+  "counts": {
+    "python_unittest_total": 39,
+    "python_bridge": 12,
+    "python_telegram": 15,
+    "python_feishu": 12,
+    "frontend_scripts": 18,
+    "telegram_frontend_groups_passed": 20,
+    "telegram_frontend_groups_total": 20,
+    "telegram_frontend_rejection_assertions": 259,
+    "race_packages": 8,
+    "race_count": 1,
+    "formal_ft_passed": 0,
+    "formal_ft_total": 70,
+    "formal_business_dataset_cases_executed_this_round": 0
+  },
+  "commands": [
+    "./scripts/check.ps1 -IncludeNoneBot -NoneBotVenvDirectory <prepared-isolated-venv>",
+    "go test -race -count=1 -p 2 -tags sqlite_fts5 ./internal/connector/nonebotbridge ./internal/connector/telegrambot ./internal/connector/feishu ./internal/store ./internal/api ./internal/config ./internal/connector/qqmilky ./tests/integration"
+  ],
+  "runs": [
+    {
+      "source": "candidate-r1-full-check.json",
+      "record": {
+        "run": "candidate-r1-full-check",
+        "candidate": "candidate-r1",
+        "started_at": "2026-11-19T17:29:43.7108115+08:00",
+        "finished_at": "2026-11-19T17:30:35.3036617+08:00",
+        "duration_seconds": 51.5912439,
+        "passed": false,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false
+      }
+    },
+    {
+      "source": "candidate-r1-race.json",
+      "record": {
+        "candidate": "candidate-r1",
+        "started_at": "2026-11-19T17:29:59.9296094+08:00",
+        "finished_at": "2026-11-19T17:30:42.9370974+08:00",
+        "duration_seconds": 43.0014917,
+        "exit_code": 1,
+        "synthetic_only": true,
+        "deployed": false
+      }
+    },
+    {
+      "source": "candidate-r2-full-check.json",
+      "record": {
+        "run": "candidate-r2-full-check",
+        "candidate": "candidate-r2",
+        "started_at": "2026-11-19T18:00:38.9061984+08:00",
+        "finished_at": "2026-11-19T18:02:02.3041428+08:00",
+        "duration_seconds": 83.3951833,
+        "passed": false,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false
+      }
+    },
+    {
+      "source": "candidate-r3-full-check.json",
+      "record": {
+        "run": "candidate-r3-full-check",
+        "candidate": "candidate-r3",
+        "started_at": "2026-11-19T18:06:22.4257529+08:00",
+        "finished_at": "2026-11-19T18:07:52.4058335+08:00",
+        "duration_seconds": 89.9778975,
+        "passed": true,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false
+      }
+    },
+    {
+      "source": "candidate-r3-race.json",
+      "record": {
+        "run": "candidate-r3-race",
+        "candidate": "candidate-r3",
+        "started_at": "2026-11-19T18:06:22.4323702+08:00",
+        "finished_at": "2026-11-19T18:07:47.6639240+08:00",
+        "duration_seconds": 85.2273985,
+        "passed": true,
+        "native_exit_code": 0,
+        "race": true,
+        "count": 1,
+        "packages": 8,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0
+      }
+    },
+    {
+      "source": "candidate-r3-race-captured.json",
+      "record": {
+        "run": "candidate-r3-race-captured",
+        "candidate": "candidate-r3",
+        "started_at": "2026-11-19T18:10:59.4451238+08:00",
+        "finished_at": "2026-11-19T18:10:59.4896025+08:00",
+        "duration_seconds": 0.041864,
+        "passed": false,
+        "native_exit_code": -1,
+        "race": true,
+        "count": 1,
+        "packages": 8,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0
+      }
+    },
+    {
+      "source": "candidate-r3-full-check-captured.json",
+      "record": {
+        "run": "candidate-r3-full-check-captured",
+        "candidate": "candidate-r3",
+        "started_at": "2026-11-19T18:10:59.4356619+08:00",
+        "finished_at": "2026-11-19T18:11:44.8809375+08:00",
+        "duration_seconds": 45.4421086,
+        "passed": true,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false
+      }
+    },
+    {
+      "source": "candidate-r3-race-captured-v2.json",
+      "record": {
+        "run": "candidate-r3-race-captured-v2",
+        "candidate": "candidate-r3",
+        "started_at": "2026-11-19T18:11:47.7166241+08:00",
+        "finished_at": "2026-11-19T18:13:03.3584612+08:00",
+        "duration_seconds": 75.6383016,
+        "passed": true,
+        "native_exit_code": 0,
+        "race": true,
+        "count": 1,
+        "packages": 8,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0
+      }
+    },
+    {
+      "source": "candidate-r4-full-captured.json",
+      "record": {
+        "run": "candidate-r4-full-captured",
+        "candidate": "candidate-r4",
+        "baseline": "b9420cbab45104280d49ab463a58a8bd3c44a5bd",
+        "started_at": "2026-11-19T18:38:02.3746566+08:00",
+        "finished_at": "2026-11-19T18:38:03.0153618+08:00",
+        "duration_seconds": 0.6332454,
+        "passed": false,
+        "native_exit_code": -1,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false
+      }
+    },
+    {
+      "source": "candidate-r4-race-captured.json",
+      "record": {
+        "run": "candidate-r4-race-captured",
+        "candidate": "candidate-r4",
+        "baseline": "b9420cbab45104280d49ab463a58a8bd3c44a5bd",
+        "started_at": "2026-11-19T18:38:02.4075719+08:00",
+        "finished_at": "2026-11-19T18:39:26.2747995+08:00",
+        "duration_seconds": 83.8617942,
+        "passed": true,
+        "native_exit_code": 0,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false,
+        "race": true,
+        "count": 1,
+        "packages": 8
+      }
+    },
+    {
+      "source": "candidate-r5-full-captured.json",
+      "record": {
+        "run": "candidate-r5-full-captured",
+        "candidate": "candidate-r5",
+        "baseline": "b9420cbab45104280d49ab463a58a8bd3c44a5bd",
+        "started_at": "2026-11-19T18:42:44.8555950+08:00",
+        "finished_at": "2026-11-19T18:44:18.0046287+08:00",
+        "duration_seconds": 93.1449462,
+        "passed": true,
+        "native_exit_code": 0,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false
+      }
+    },
+    {
+      "source": "candidate-r5-race-captured.json",
+      "record": {
+        "run": "candidate-r5-race-captured",
+        "candidate": "candidate-r5",
+        "baseline": "b9420cbab45104280d49ab463a58a8bd3c44a5bd",
+        "started_at": "2026-11-19T18:42:44.8556594+08:00",
+        "finished_at": "2026-11-19T18:44:11.1828441+08:00",
+        "duration_seconds": 86.3237937,
+        "passed": true,
+        "native_exit_code": 0,
+        "synthetic_only": true,
+        "deployed": false,
+        "actual_platform_calls": 0,
+        "default_credential_file_accessed": false,
+        "race": true,
+        "count": 1,
+        "packages": 8
+      }
+    }
+  ],
+  "unstructured_run": {
+    "name": "candidate-r2-race",
+    "overall_exit_code": 1,
+    "native_packages_reported_passed": 8,
+    "result_json_produced": false,
+    "failure": "PowerShell wrapper used true instead of $true after native tests; not a passed gate."
+  },
+  "interpretation": [
+    "candidate-r1 failed stale assertions/fixtures/migration replay and normal race subprocess timeout; fixed and retested, not rewritten as success.",
+    "candidate-r2 full gate failed formatting after earlier stages passed; type check/build were not run in that attempt.",
+    "candidate-r3 first full and race gates passed; repeat on the identical immutable candidate collected native stdout.",
+    "The first optional race capture failed on relative output-path resolution before tests started (native_exit_code=-1).",
+    "Go tests in the captured full-gate repeat are cached; the captured race is -count=1 and not cached.",
+    "PowerShell transcripts may omit native output. Missing native output was not reconstructed or fabricated.",
+    "Bootstrap expected-failure child fixtures print PowerShell-not-found TerminatingError before the 9-child success summary.",
+    "Initial Telegram frontend 16/20 failures and pnpm shared-dependency incident are preserved in the UI evidence section.",
+    "SQLCipher C, experimental TypeScript and Vite chunk warnings are retained, not claims of warning-free validation.",
+    "Earlier interpretation entries describe retained r1-r3 history, including the cached r3 stdout repeat. They do not substitute for final r5 validation on the new combined baseline.",
+    "R4 full failed at formatting before functional execution because of CRLF baseline export; its eight race packages passed. R5 was freshly LF-exported from b9420cb and independently passed both gates with native exit codes 0."
+  ],
+  "dependency_independent_verification": {
+    "passed": true,
+    "pins": 34,
+    "record_hashed_files": 2410,
+    "scope": "Local report comparison and installed RECORD verification; no wheels redownloaded, no installation, no SDK imported",
+    "distributions": [
+      {
+        "name": "annotated-types",
+        "version": "0.8.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 8,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "annotated_types-0.8.0.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "anyio",
+        "version": "4.16.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 54,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "anyio-4.16.0.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "certifi",
+        "version": "2026.10.23",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 13,
+        "license_metadata": "MPL-2.0",
+        "bundled_license_files": [
+          "certifi-2026.10.23.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "cffi",
+        "version": "2.1.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 33,
+        "license_metadata": "MIT-0",
+        "bundled_license_files": [
+          "cffi-2.1.1.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "colorama",
+        "version": "0.4.6",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 18,
+        "license_metadata": "",
+        "bundled_license_files": [
+          "colorama-0.4.6.dist-info/licenses/LICENSE.txt"
+        ]
+      },
+      {
+        "name": "cryptography",
+        "version": "50.0.2",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 121,
+        "license_metadata": "Apache-2.0 OR BSD-3-Clause",
+        "bundled_license_files": [
+          "cryptography-50.0.2.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "exceptiongroup",
+        "version": "1.3.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 12,
+        "license_metadata": "",
+        "bundled_license_files": [
+          "exceptiongroup-1.3.1.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "h11",
+        "version": "0.16.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 18,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "h11-0.16.0.dist-info/licenses/LICENSE.txt"
+        ]
+      },
+      {
+        "name": "h2",
+        "version": "4.4.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 19,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "h2-4.4.1.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "hpack",
+        "version": "4.2.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 15,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "hpack-4.2.0.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "httpcore",
+        "version": "1.0.9",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 37,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "httpcore-1.0.9.dist-info/licenses/LICENSE.md"
+        ]
+      },
+      {
+        "name": "httpcore2",
+        "version": "2.16.2",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 38,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "httpcore2-2.16.2.dist-info/licenses/LICENSE.md"
+        ]
+      },
+      {
+        "name": "httpx",
+        "version": "0.28.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 31,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "httpx-0.28.1.dist-info/licenses/LICENSE.md"
+        ]
+      },
+      {
+        "name": "httpx2",
+        "version": "2.16.2",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 39,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "httpx2-2.16.2.dist-info/licenses/LICENSE.md"
+        ]
+      },
+      {
+        "name": "hyperframe",
+        "version": "6.1.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 11,
+        "license_metadata": "The MIT License (MIT)\n\nCopyright (c) 2014 Cory Benfield\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n",
+        "bundled_license_files": [
+          "hyperframe-6.1.0.dist-info/LICENSE"
+        ]
+      },
+      {
+        "name": "idna",
+        "version": "3.20",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 18,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "idna-3.20.dist-info/licenses/LICENSE.md"
+        ]
+      },
+      {
+        "name": "larkify",
+        "version": "0.2.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 1550,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "larkify-0.2.0.dist-info/licenses/LICENSE",
+          "larkify-0.2.0.dist-info/licenses/NOTICE"
+        ]
+      },
+      {
+        "name": "loguru",
+        "version": "0.8.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 26,
+        "license_metadata": "",
+        "bundled_license_files": [
+          "loguru-0.8.0.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "multidict",
+        "version": "7.2.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 16,
+        "license_metadata": "Apache-2.0",
+        "bundled_license_files": [
+          "multidict-7.2.1.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "nonebot-adapter-feishu",
+        "version": "3.1.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 15,
+        "license_metadata": "MIT",
+        "bundled_license_files": []
+      },
+      {
+        "name": "nonebot-adapter-telegram",
+        "version": "0.1.0b21",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 16,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "nonebot_adapter_telegram-0.1.0b21.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "nonebot2",
+        "version": "2.5.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 55,
+        "license_metadata": "MIT",
+        "bundled_license_files": []
+      },
+      {
+        "name": "propcache",
+        "version": "0.5.4",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 14,
+        "license_metadata": "Apache-2.0",
+        "bundled_license_files": [
+          "propcache-0.5.4.dist-info/licenses/LICENSE",
+          "propcache-0.5.4.dist-info/licenses/NOTICE"
+        ]
+      },
+      {
+        "name": "pycparser",
+        "version": "3.12",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 14,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "pycparser-3.12.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "pydantic",
+        "version": "2.14.3",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 113,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "pydantic-2.14.3.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "pydantic-core",
+        "version": "2.50.4",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 12,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "pydantic_core-2.50.4.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "pygtrie",
+        "version": "2.6.2",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 7,
+        "license_metadata": "Apache-2.0",
+        "bundled_license_files": [
+          "pygtrie-2.6.2.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "python-dotenv",
+        "version": "1.2.4",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 17,
+        "license_metadata": "BSD-3-Clause",
+        "bundled_license_files": [
+          "python_dotenv-1.2.4.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "truststore",
+        "version": "0.10.5",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 12,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "truststore-0.10.5.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.16.0",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 6,
+        "license_metadata": "PSF-2.0",
+        "bundled_license_files": [
+          "typing_extensions-4.16.0.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "typing-inspection",
+        "version": "0.4.5",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 10,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "typing_inspection-0.4.5.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "win32-setctime",
+        "version": "1.2.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 9,
+        "license_metadata": "MIT license",
+        "bundled_license_files": [
+          "win32_setctime-1.2.1.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "wsproto",
+        "version": "1.3.2",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 15,
+        "license_metadata": "MIT",
+        "bundled_license_files": [
+          "wsproto-1.3.2.dist-info/licenses/LICENSE"
+        ]
+      },
+      {
+        "name": "yarl",
+        "version": "1.25.1",
+        "wheel_hash_matches_report": true,
+        "record_hashed_files": 18,
+        "license_metadata": "Apache-2.0",
+        "bundled_license_files": [
+          "yarl-1.25.1.dist-info/licenses/LICENSE",
+          "yarl-1.25.1.dist-info/licenses/NOTICE"
+        ]
+      }
+    ]
+  },
+  "review": {
+    "bugbot_executions": 1,
+    "security_review_executions": 1,
+    "reviewed_candidate": "pre_idle_cursor_fix",
+    "bugbot_confirmed_issue": "Telegram idle update_id reset / stale cursor P1",
+    "security_new_confirmed_vulnerabilities": 0,
+    "post_fix_independent_review_performed": false,
+    "designated_human_review": "pending",
+    "kirinbao_acceptance": "pending"
+  },
+  "boundaries": {
+    "synthetic_only": true,
+    "actual_platform_calls": 0,
+    "real_model_calls": 0,
+    "production_database_accessed": false,
+    "default_credential_file_accessed": false,
+    "real_messages_sent": 0,
+    "real_schedules_enabled": 0,
+    "deployed": false,
+    "existing_service_restarted": false,
+    "whole_effort_network_free": false,
+    "shared_frontend_dependencies_unchanged": false,
+    "pnpm_incident": "A frontend child unexpectedly downloaded/migrated 30 packages and created an unrelated untracked local lock. Preserved, excluded, not rolled back or reinstalled.",
+    "runtime_is_os_sandbox": false,
+    "telegram_recovery": "Only still-pending updates within the platform retention window; no zero-gap or cross-platform exactly-once guarantee.",
+    "migration_15": "Unreleased; fresh 14-to-15 and same-structure replay tested only. No production migration or same-version old-candidate upgrade."
+  },
+  "raw_source_index": [
+    {
+      "name": "candidate-r1-full-check.log",
+      "raw_bytes": 1536,
+      "raw_sha256": "bddfbab6f3d36ec56cd124c69520df5c89c85ea52f2b1390e446b8301ddf7eed",
+      "published_section_sha256": "172b3df22a5af21b37ce95454b02508869322e17e7e253374b3d11c5f75dfaf2",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r1-race.log",
+      "raw_bytes": 5467,
+      "raw_sha256": "22d5e4596fccd5945ef4c8e24c2c02aededeccebe1f4ed52b25decb23c2f9ec5",
+      "published_section_sha256": "f058960ffd3870fc1d087ececa3dbaecef4a90b6c9fdf16e305c6a2966ff273a",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r2-full-check.log",
+      "raw_bytes": 2414,
+      "raw_sha256": "19d272647a8f4e1a739abc44a21e8e7c8c7f33f246fe03c437b7dee7bfd80ca8",
+      "published_section_sha256": "6191e1aa35f19835cc01e2bd349e6cef17a617dcea9a97967711e828167d9b68",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r2-race.log",
+      "raw_bytes": 2950,
+      "raw_sha256": "531a239e4fa8308ae766770a1d05a323bfebdf1e67d14a03cba8f5bc8f956094",
+      "published_section_sha256": "b54c3f12f82a0853516b668561b1b27db7684cba3ed93fc3d75e4a37e7d59cbc",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "telegram-ui-verification-evidence.txt",
+      "raw_bytes": 18759,
+      "raw_sha256": "ebd2b82b1e2822048f67a371e352e60831a3d93846cf4f013eeb73ecd9214fe1",
+      "published_section_sha256": "d3026e6c680b5a2dcc47e6fc2b7ff96351eeed088ef6d536ff4b5393f0ff2ff0",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r3-full-check.log",
+      "raw_bytes": 2357,
+      "raw_sha256": "41c63f00d44f5206cf1a1db453fc8fd57e93cfd68d6ae006d18ad88acc53056a",
+      "published_section_sha256": "d4cfc749a545a9c0057af7bba2a1a9f67a4a3e4998be462940ce6dba985d7a0e",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r3-race.log",
+      "raw_bytes": 1442,
+      "raw_sha256": "1cfc97c1b510002d56741e81ddbf32c95b95a678e67382c81ceb71d13c6ad92b",
+      "published_section_sha256": "45d4a0b9949d84e90da9fb1cc912c291371fee6e411985e59ba4f30820fbf8ae",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r3-race-captured.log",
+      "raw_bytes": 2062,
+      "raw_sha256": "6ff6cbf0ab009f5405e032ca8a6b23672e7990eec990c3c97d9cfc8e4bc75546",
+      "published_section_sha256": "befe6f2e0356c4d98a3252ba769d176960b7d409e15b3e215fe0f1ca0c070024",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r3-full-check-captured.stdout.log",
+      "raw_bytes": 18840,
+      "raw_sha256": "16cd4f64e39f83464cf82a90fb62ea7fad5de4c84e31d985c22bfacebc38c7aa",
+      "published_section_sha256": "3122f537f0a252d485f927f99e5f79b3780a0341fa51386d9c90ae3c41ad21f2",
+      "native_stdout_capture": true
+    },
+    {
+      "name": "candidate-r3-race-captured-v2.stdout.log",
+      "raw_bytes": 1000,
+      "raw_sha256": "60984a37ff8009be09853d7da52f7f0ec153eebc435308fff63efbb723d2bbf4",
+      "published_section_sha256": "8c85e0eb5ec707bcd3580a4c503472327114f4a6b8e87591d3b08d1754d5aa2e",
+      "native_stdout_capture": true
+    },
+    {
+      "name": "candidate-r1-full-check.json",
+      "raw_bytes": 364,
+      "raw_sha256": "d6fbcde88719c0d96136913a695ebd20cfe6f95014740691bc0248fdb31e8703"
+    },
+    {
+      "name": "candidate-r1-race.json",
+      "raw_bytes": 249,
+      "raw_sha256": "834f6d5a0a77298f93cce820e7d392d68e37e84d89fc48d29d7e816d87fadb22"
+    },
+    {
+      "name": "candidate-r2-full-check.json",
+      "raw_bytes": 364,
+      "raw_sha256": "8f3d61f63d8654871da2fb8836d63060a0d65840dd2d22ee999e351705441758"
+    },
+    {
+      "name": "candidate-r3-full-check.json",
+      "raw_bytes": 363,
+      "raw_sha256": "19cc8dabc40a694296dc79d6a1c0718bc701a4a0e84be1f7993d9bb24519ea64"
+    },
+    {
+      "name": "candidate-r3-race.json",
+      "raw_bytes": 387,
+      "raw_sha256": "0f411d32aef7de2d331889fa1b679b30c5894ac75d5b589d6675d5d0cfedb9a8"
+    },
+    {
+      "name": "candidate-r3-race-captured.json",
+      "raw_bytes": 396,
+      "raw_sha256": "8122b041ccd064af08c8e0d80b109530a0ee38e7c95b0ea0ac5c88982757ac7e"
+    },
+    {
+      "name": "candidate-r3-full-check-captured.json",
+      "raw_bytes": 372,
+      "raw_sha256": "72aea4e676973d295ad6d6fa2ec986dc8f84d291e0645c37615f0dd3054d319c"
+    },
+    {
+      "name": "candidate-r3-race-captured-v2.json",
+      "raw_bytes": 399,
+      "raw_sha256": "69f87a16dfbb65ca44c8b60c93dd01b3a8e060fd2eb500c97ae7692e5b72e8c7"
+    },
+    {
+      "name": "dependency-independent-verification.json",
+      "raw_bytes": 10970,
+      "raw_sha256": "095c043b33f02ff65fc62b937f99883ca4dc9510e7bb0dc9de2eaa0d2ea09115"
+    },
+    {
+      "name": "candidate-r4-full-captured.log",
+      "raw_bytes": 1714,
+      "raw_sha256": "390293f705bd3cdc035b5e65aa4956d04125ffbf74eb849d9f51b2673bf6448b",
+      "published_section_sha256": "00e263edb56f2b08cce8a235142fb94ff059c065f9337a6408a7534872bc2015",
+      "native_stdout_capture": false
+    },
+    {
+      "name": "candidate-r4-race-captured.stdout.log",
+      "raw_bytes": 543,
+      "raw_sha256": "5a9b9d5b42e1e76f5b186c2ca3dcdb89eac46c6ff7fd43e45565c56bd7608abb",
+      "published_section_sha256": "cf93b836013b305f98d762805d146cf880bd907a10abd2f1a679bfd7503b6904",
+      "native_stdout_capture": true
+    },
+    {
+      "name": "candidate-r5-full-captured.stdout.log",
+      "raw_bytes": 18391,
+      "raw_sha256": "6637e9a9989a97407a754052a602fe38dd7eb7acb766167e773942adbdf0ad28",
+      "published_section_sha256": "af0fd7a321ac35dfa9d3522a019666ae19adbf2431258e9446f5a63788073579",
+      "native_stdout_capture": true
+    },
+    {
+      "name": "candidate-r5-race-captured.stdout.log",
+      "raw_bytes": 543,
+      "raw_sha256": "d865ef7392e290127834f47674fe1b7e293e0d62b71bddd29b4bb8cffc2db8be",
+      "published_section_sha256": "6c891e7589b1235ff086811db785d6c8fbca93a21ea3195944f835509342313d",
+      "native_stdout_capture": true
+    },
+    {
+      "name": "candidate-r4-race-captured.log",
+      "raw_bytes": 2205,
+      "raw_sha256": "0bda73e4861fa5184f172d6df5a936c5358ac117c3fe7abd522a265c7ccee2b0"
+    },
+    {
+      "name": "candidate-r5-full-captured.log",
+      "raw_bytes": 28535,
+      "raw_sha256": "1aed6b5e7e9b7f2d21db75ad21151e675b12a654e6565c420e400ce341a21103"
+    },
+    {
+      "name": "candidate-r5-race-captured.log",
+      "raw_bytes": 2205,
+      "raw_sha256": "cb906fca21c1bcdb8a11c866e142ff6b78026e8329754092be34caa2bb482e45"
+    },
+    {
+      "name": "candidate-r4-full-captured.json",
+      "raw_bytes": 452,
+      "raw_sha256": "972dd0ea0e82edc9fa702cc4d21ea47bca5f553773ee715947fd8a3751517185"
+    },
+    {
+      "name": "candidate-r4-race-captured.json",
+      "raw_bytes": 501,
+      "raw_sha256": "a4babf3c62f541ee8f340d19cc41eed3006ef8579d88194e194fa076b6b8f950"
+    },
+    {
+      "name": "candidate-r5-full-captured.json",
+      "raw_bytes": 451,
+      "raw_sha256": "6027a5c1cdcf9d185254f630b21a2a6cf773ad16a6844fadfc39819b4713007c"
+    },
+    {
+      "name": "candidate-r5-race-captured.json",
+      "raw_bytes": 501,
+      "raw_sha256": "eba7b42a4f64a67b96db3c6a5cb0ac9affaf5d9b277cdba0dd4f68168b2d0492"
+    },
+    {
+      "name": "candidate-r4-manifest.json",
+      "raw_bytes": 15883,
+      "raw_sha256": "9851624481d60cf066ed8658e31e15e44ad6a907219f16593e5f5c00504d2a5f"
+    },
+    {
+      "name": "candidate-r4-baseline.tar",
+      "raw_bytes": 15687680,
+      "raw_sha256": "39ef32d39a114c19947201b6bc13d218554d9b45a74ba256050540629e0ef1f3"
+    },
+    {
+      "name": "candidate-r5-baseline.tar",
+      "raw_bytes": 15564800,
+      "raw_sha256": "7a9de6836a8a2cfdd7c8b415cc3f5aeeb70cf892895f25fec9b3308e20cca47f"
+    },
+    {
+      "name": "publication-r3-validation-results.json",
+      "raw_bytes": 25730,
+      "raw_sha256": "ef1028c699c1fad1a40e9bcb146585f28493441f2738bad1f6df039b276930d7"
+    },
+    {
+      "name": "publication-r3-test-output.txt",
+      "raw_bytes": 49641,
+      "raw_sha256": "806ce3b62f03c87da83cba816d8e8ad45e88843c276c972721d59431bed8abcd"
+    }
+  ],
+  "raw_candidate_manifest_sha256": "b36002de76c3e74cdfa3bf0f42e403f979707e5ebc8115f518a1557d6addc587",
+  "manifest_publication": "The r5 manifest is byte-identical to the frozen LF original; historical r3 publication and raw hashes are retained.",
+  "integration_notes": [
+    "Initial LF-only pre-stage guard found CRLF in the existing contract script and raw manifest copy; the targeted editor preserved CRLF. Normalize the published manifest explicitly and use Git input normalization, then verify every staged blob against the tested LF candidate. No functional source edits.",
+    "The first pre-stage scope guard rejected concurrent T06 changes in three root documents before staging. Those changes were independently committed as b9420cb; preserve the commit and its additions, never reconstruct the older documents over it.",
+    "R4 full failed at Go formatting because Git archive emitted CRLF baseline Go. R4 race passed; retain both. R5 was independently LF-exported from b9420cb and passed both full and eight uncached race gates without functional source edits.",
+    "R3 publication backups and every historical section/hash are retained. Only the stdout-capture description in the combined log header was generalized when appending r4/r5 captures.",
+    "The evidence append validation initially expected an R4 full stdout file, but the pre-functional formatting throw had never created it. Validation stopped before publishing any bytes. Preserve the failed transcript and result; missing stdout is not fabricated."
+  ],
+  "historical_candidates": [
+    {
+      "baseline_sha": "ab0675da701db39136bfae0c10fd376567de0d6e",
+      "candidate": "candidate-r3",
+      "candidate_file_count": 58,
+      "final_evidence_additions": 3,
+      "candidate_manifest_sha256": "4691c718ca888185f16f6b6d3b73dd7d3a9f004111986724485d4692f4a595f6",
+      "raw_candidate_manifest_sha256": "1e2cfd10560d19a0f64f1f79feb94c9752801a82d1be15c88cd265a510328be9",
+      "published_test_output_sha256": "806ce3b62f03c87da83cba816d8e8ad45e88843c276c972721d59431bed8abcd",
+      "post_test_documentation_only_changes": [
+        {
+          "path": "docs/acceptance/T22-all-features-test-plan.md",
+          "final_lf_sha256": "56c116f6dd604571d335bc66014dcc8e96e08c789ca8a3a515f8d783fb6e80d0"
+        },
+        {
+          "path": "docs/acceptance/E04-nonebot-validation.md",
+          "final_lf_sha256": "29eca1bd38b91e87c64e6317af065fb522eeb3c2c7387880a78ce8922817379c"
+        },
+        {
+          "path": "feat.md",
+          "final_lf_sha256": "622da541513f4a9456c00012e3e72091968135bb454f3a3fdd4e426b2b2a4644"
+        },
+        {
+          "path": "任务规划.md",
+          "final_lf_sha256": "4da2b8718e23a4856de9235a9da40bb4056c567b50bb56cb48fc94898561c1b8"
+        },
+        {
+          "path": "技术文档.md",
+          "final_lf_sha256": "a7c21c6b535f0d5b653441391579e7ceb6471abbf79fc31efe7fb46514c9243f"
+        }
+      ],
+      "publication_results_sha256": "ef1028c699c1fad1a40e9bcb146585f28493441f2738bad1f6df039b276930d7",
+      "local_results_backup": "publication-r3-validation-results.json",
+      "local_output_backup": "publication-r3-test-output.txt"
+    }
+  ],
+  "baseline_revalidation": {
+    "previous_baseline_sha": "ab0675da701db39136bfae0c10fd376567de0d6e",
+    "preserved_parent_sha": "b9420cbab45104280d49ab463a58a8bd3c44a5bd",
+    "reason": "Concurrent T06 work was independently committed. Preserve it as parent, including its root-document additions; rerun the combined tree.",
+    "nonebot_functional_files_unchanged_from_r3": 53,
+    "r4_full_check_failure_stage": "Git archive CRLF conversion; Go formatting gate before functional tests",
+    "r4_full_native_stdout_file_created": false,
+    "r4_source_change_made_to_fix_export": false,
+    "r4_go_race_passed": true,
+    "r4_manifest_sha256": "9851624481d60cf066ed8658e31e15e44ad6a907219f16593e5f5c00504d2a5f",
+    "r5_archive_configuration": [
+      "core.autocrlf=input",
+      "core.eol=lf"
+    ],
+    "r5_baseline_archive_sha256": "7a9de6836a8a2cfdd7c8b415cc3f5aeeb70cf892895f25fec9b3308e20cca47f",
+    "r5_baseline_go_files_lf_asserted_before_overlay": true,
+    "final_full_record": "candidate-r5-full-captured.json",
+    "final_race_record": "candidate-r5-race-captured.json",
+    "r3_and_r5_whole_baseline_trees_identical": false
+  }
+}

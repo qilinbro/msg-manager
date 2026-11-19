@@ -7,7 +7,7 @@ import (
 	"github.com/qilinbro/msg-manager/migrations"
 )
 
-const currentSchemaVersion = 14
+const currentSchemaVersion = 15
 
 func migrate(db *sql.DB) error {
 	tx, err := db.Begin()
@@ -201,6 +201,18 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(14,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
+			return ErrUnavailable
+		}
+	}
+	if version < 15 {
+		raw, err := migrations.Files.ReadFile("0015_telegram_bot.sql")
+		if err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(string(raw)); err != nil {
+			return ErrUnavailable
+		}
+		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(15,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}
 	}

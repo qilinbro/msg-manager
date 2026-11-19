@@ -16,6 +16,8 @@ import (
 
 	"github.com/qilinbro/msg-manager/internal/config"
 	"github.com/qilinbro/msg-manager/internal/connector"
+	"github.com/qilinbro/msg-manager/internal/connector/feishu"
+	"github.com/qilinbro/msg-manager/internal/connector/nonebotbridge"
 	"github.com/qilinbro/msg-manager/internal/publicinfo"
 	"github.com/qilinbro/msg-manager/internal/store"
 )
@@ -25,6 +27,7 @@ type handler struct {
 	port        string
 	sequence    atomic.Uint64
 	milky       *milkyConnection
+	telegram    *telegramConnection
 	inbox       *store.Store
 	email       *emailConnection
 	ai          *aiConnection
@@ -46,6 +49,19 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 		return nil, err
 	}
 	_, port, _ := net.SplitHostPort(cfg.Addr)
+	bridge, err := nonebotbridge.New(cfg.NoneBot)
+	if err != nil {
+		return nil, fmt.Errorf("NoneBot runtime could not be configured; check the operator-owned local executable and worker")
+	}
+	telegram, err := newTelegramConnection(cfg.TelegramBot, bridge)
+	if err != nil {
+		return nil, fmt.Errorf("Telegram bot configuration is invalid; check the expected identity and private-chat allowlist")
+	}
+	// Explicitly named compatibility only: a NoneBot failure never selects Go.
+	var feishuSender feishu.Sender = feishu.NewNoneBotClient(bridge)
+	if cfg.EffectiveFeishuTransport() == "legacy-go" {
+		feishuSender = feishu.NewClient()
+	}
 	milky, err := newMilkyConnection(cfg.QQMilky)
 	if err != nil {
 		return nil, err
@@ -69,7 +85,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat, assistant: newAssistantState(), feishu: newFeishuRuntime()}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, listenAddr: cfg.Addr, milky: milky, telegram: telegram, inbox: inbox, email: email, ai: ai, wechat: wechat, assistant: newAssistantState(), feishu: newFeishuRuntime(feishuSender, cfg.EffectiveFeishuTransport())}
 	if err := h.restoreLocalDevices(); err != nil {
 		_ = h.Close()
 		return nil, fmt.Errorf("encrypted device authorizations could not be restored")
@@ -100,6 +116,11 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 }
 
 func (h *handler) Close() error {
+	// Revoke receive candidates immediately, before another component's join can
+	// block shutdown. closeTelegramBot below still joins the active IPC operation.
+	if h.telegram != nil {
+		h.telegram.rootCancel()
+	}
 	h.feishu.close()
 	h.closeAssistant()
 	h.closeLocalDevices()
@@ -108,6 +129,7 @@ func (h *handler) Close() error {
 	}
 	h.closeWechatMonitor()
 	h.closeMilkyMonitor()
+	h.closeTelegramBot()
 	if h.inbox != nil {
 		return h.inbox.Close()
 	}
@@ -141,7 +163,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// below still require an exact trusted Origin and grant possession.
 	if apiPath && r.Method == http.MethodOptions && origin != "" {
 		requestedMethod := r.Header.Get("Access-Control-Request-Method")
-		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !feishuMutation(requestedMethod, r.URL.Path) && !assistantMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
+		if (requestedMethod != http.MethodGet && !deviceAuthMutation(requestedMethod, r.URL.Path) && !inboxMutation(requestedMethod, r.URL.Path) && !aiMutation(requestedMethod, r.URL.Path) && !profileMutation(requestedMethod, r.URL.Path) && !profileLinksMutation(requestedMethod, r.URL.Path) && !digestMutation(requestedMethod, r.URL.Path) && !feishuMutation(requestedMethod, r.URL.Path) && !telegramBotMutation(requestedMethod, r.URL.Path) && !assistantMutation(requestedMethod, r.URL.Path) && !(requestedMethod == http.MethodPatch && r.URL.Path == modelConfigPath)) || !validPreflightHeaders(r) {
 			writeError(w, http.StatusForbidden, "PREFLIGHT_DENIED", "该界面请求的方法或请求头不被允许。", traceID)
 			return
 		}
@@ -182,6 +204,16 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if feishuPath(r.URL.Path) {
 			h.serveFeishu(w, r, traceID)
+			return
+		}
+		if telegramBotPath(r.URL.Path) {
+			// This receive-only connector is manually operated, not an Assistant
+			// tool. Models cannot manufacture the per-batch human consent.
+			if r.Context().Value(assistantDispatchKey{}) != nil {
+				writeError(w, http.StatusForbidden, "TELEGRAM_BOT_HUMAN_REQUIRED", "Telegram 机器人仅接受人工操作，不开放模型工具调用。", traceID)
+				return
+			}
+			h.serveTelegramBot(w, r, traceID)
 			return
 		}
 		if digestRead(r.URL.Path) || digestMutation(r.Method, r.URL.Path) {

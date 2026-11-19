@@ -21,6 +21,8 @@ var errFeishuBusy = errors.New("feishu model gate busy")
 var errFeishuModelChanged = errors.New("feishu model binding changed")
 
 type feishuStatus struct {
+	Transport                  string                `json:"transport"`
+	RuntimeConfigured          bool                  `json:"runtime_configured"`
 	Configured                 bool                  `json:"configured"`
 	KeyConfigured              bool                  `json:"key_configured"`
 	AppID                      string                `json:"app_id"`
@@ -174,6 +176,8 @@ func (h *handler) exposeFeishuStatus(ctx context.Context) (feishuStatus, error) 
 	if err != nil {
 		return out, err
 	}
+	out.Transport = h.feishu.transport
+	out.RuntimeConfigured = h.feishu.available()
 	out.Configured = c.Configured()
 	out.KeyConfigured = c.AppSecret != ""
 	out.AppID = c.AppID

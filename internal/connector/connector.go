@@ -29,7 +29,7 @@ func Planned() []Descriptor {
 	return []Descriptor{
 		{ID: "qq-milky", DisplayName: "QQ 个人号（Milky）", Platform: "qq", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "自有 Milky 1.3 适配器：账号与版本核验、好友私聊历史同步、显式开启的后台接收。发送保持关闭。"},
 		{ID: "weixin-clawbot", DisplayName: "微信 Clawbot", Platform: "weixin", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划验证微信 Clawbot 授权能力；不代表接管个人微信全部现有好友或聊天。"},
-		{ID: "telegram-bot", DisplayName: "Telegram 机器人", Platform: "telegram", Status: "not_configured", ImplementationStatus: "planned", Description: "尚未接入。计划通过 Bot API 处理机器人实际可见的授权会话，不读取个人账号全部私聊。"},
+		{ID: "telegram-bot", DisplayName: "Telegram 机器人", Platform: "telegram", Status: "not_configured", ImplementationStatus: "manual_receive_ready", Description: "使用 NoneBot Telegram Bot API 适配器，经核验与每次人工同意后手动收取授权名单内机器人可见的私聊纯文本；不后台轮询、不导入历史、不移除 webhook、不发送，也不读取个人账号全部私聊。"},
 		{ID: "email-imap", DisplayName: "邮箱（IMAP只读）", Platform: "email", Status: "not_configured", ImplementationStatus: "manual_sync_ready", Description: "支持本机配置邮箱后手动收取最近邮件；未启用后台自动收件或发信。"},
 		{ID: "wechat-db", DisplayName: "微信（本地数据库只读）", Platform: "weixin", Status: "not_configured", ImplementationStatus: "manual_read_ready", Description: "配置自己的本机微信4.x数据库后手动读取，或明确选定私聊开启后台定时读取；后台需保持运行，不代表完整历史同步。"},
 	}

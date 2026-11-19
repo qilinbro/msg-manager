@@ -1,4 +1,10 @@
-param([switch]$SkipFrontend, [switch]$IncludeDesktop, [switch]$IncludeWechatInit)
+param(
+    [switch]$SkipFrontend,
+    [switch]$IncludeDesktop,
+    [switch]$IncludeWechatInit,
+    [switch]$IncludeNoneBot,
+    [string]$NoneBotVenvDirectory
+)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $goCommand = Get-Command go -ErrorAction SilentlyContinue
@@ -29,6 +35,16 @@ try {
         & (Join-Path $PSScriptRoot 'test-powershell-bootstrap.ps1')
         & (Join-Path $PSScriptRoot 'test-inbox-launcher.ps1')
     }
+    # The default regression suite does not create/install a Python runtime.
+    # Opt-in checks use only an operator-selected, already prepared environment.
+    if ($IncludeNoneBot) {
+        if (-not $NoneBotVenvDirectory) { $NoneBotVenvDirectory = Join-Path $projectRoot '.tools/nonebot-bridge-venv' }
+        & (Join-Path $PSScriptRoot 'prepare-nonebot-bridge.ps1') -CheckOnly -VenvDirectory $NoneBotVenvDirectory
+        if ($LASTEXITCODE -ne 0) { throw 'NoneBot pinned runtime checks failed.' }
+        $noneBotPython = Join-Path $NoneBotVenvDirectory 'Scripts/python.exe'
+        & $noneBotPython -I -u -B -m unittest discover -s integrations/nonebot_bridge -p 'test_*.py' -v
+        if ($LASTEXITCODE -ne 0) { throw 'NoneBot isolated synthetic adapter tests failed.' }
+    }
     if ($IncludeWechatInit) {
         & (Join-Path $PSScriptRoot 'prepare-wechat-init.ps1') -CheckOnly
         $initPython = Join-Path $projectRoot '.tools/wechat-init-venv/Scripts/python.exe'
@@ -52,6 +68,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Static icon provenance, license and rendering checks failed.' }
         node scripts/test-help-details.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Default-closed help disclosure checks failed.' }
+        node scripts/test-telegram-bot-client.mjs
+        if ($LASTEXITCODE -ne 0) { throw 'Telegram Bot manual-receive client regression checks failed.' }
         node scripts/test-milky-client.mjs
         if ($LASTEXITCODE -ne 0) { throw 'QQ Milky client regression checks failed.' }
         node scripts/test-profiles.mjs

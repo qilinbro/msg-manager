@@ -118,7 +118,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   const environment = {
     ...(authBrowser?.globals ?? {}),
     ...hooks, jsx, Icon, HelpDetails, Fragment: 'fragment',
-    MilkyPanel: 'MilkyPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub', AssistantPanel: 'AssistantPanelStub',
+    MilkyPanel: 'MilkyPanelStub', TelegramBotPanel: 'TelegramBotPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub', AssistantPanel: 'AssistantPanelStub',
     module: { exports: {} },
     window: fakeWindow, document: fakeDocument,
     URL, AbortController, DOMException, Date, Map,

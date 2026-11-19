@@ -38,7 +38,7 @@ const Icon = loadIcon(jsx);
 const HelpDetails = loadHelpDetails(jsx);
 runInNewContext(transformedApp.code + '\nmodule.exports={Settings,PLANNED_CONNECTORS};', {
   module: appModule, jsx, Icon, HelpDetails, Fragment: 'fragment',
-  MilkyPanel, AIModelPanel: () => null, DigestPanel: () => null,
+  MilkyPanel, TelegramBotPanel: () => null, AIModelPanel: () => null, DigestPanel: () => null,
   SERVICE: { url: 'http://127.0.0.1:17890', error: null },
 });
 assert.deepEqual(

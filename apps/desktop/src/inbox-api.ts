@@ -17,7 +17,12 @@ export interface InboxInfo {
   platforms: {
     id: Platform;
     name: string;
-    live_status: 'not_connected' | 'probe_only' | 'unsupported' | 'configured';
+    live_status:
+      | 'not_connected'
+      | 'probe_only'
+      | 'unsupported'
+      | 'configured'
+      | 'manual_receive_only';
     message_count: number;
   }[];
   import_limit: number;
@@ -49,7 +54,7 @@ export interface InboxMessage {
   body: string;
   occurred_at: string;
   read: boolean;
-  source?: 'import' | 'imap' | 'wechatdb';
+  source?: 'import' | 'imap' | 'wechatdb' | 'telegram_bot';
   email?: EmailHeaders;
 }
 export interface EmailHeaders {
@@ -249,7 +254,8 @@ function message(value: unknown): value is InboxMessage {
     (value.source === undefined ||
       value.source === 'import' ||
       value.source === 'imap' ||
-      value.source === 'wechatdb') &&
+      value.source === 'wechatdb' ||
+      value.source === 'telegram_bot') &&
     (value.email === undefined || validEmail(value.email))
   );
 }
@@ -294,9 +300,14 @@ export async function getInboxInfo(
         isRecord(item) &&
         isPlatform(item.id) &&
         isString(item.name) &&
-        ['not_connected', 'probe_only', 'unsupported', 'configured'].includes(
-          String(item.live_status),
-        ) &&
+        isString(item.live_status) &&
+        [
+          'not_connected',
+          'probe_only',
+          'unsupported',
+          'configured',
+          'manual_receive_only',
+        ].includes(item.live_status) &&
         isCount(item.message_count),
     )
   )

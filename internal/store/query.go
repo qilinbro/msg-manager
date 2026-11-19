@@ -217,7 +217,7 @@ func (s *Store) SearchMessages(conversationID, q, cursor string, limit int) (Mes
 	if err != nil {
 		return MessagePage{}, ErrUnavailable
 	}
-	query := `SELECT id,conversation_id,external_id,direction,body,occurred_at,is_read,seq,coalesce(connector_source,source),email_json FROM messages WHERE workspace_id=? AND conversation_id=?`
+	query := `SELECT id,conversation_id,external_id,direction,body,occurred_at,is_read,seq,CASE WHEN EXISTS (SELECT 1 FROM telegram_bot_messages tb WHERE tb.message_id=messages.id AND tb.workspace_id=messages.workspace_id) THEN 'telegram_bot' ELSE coalesce(connector_source,source) END,email_json FROM messages WHERE workspace_id=? AND conversation_id=?`
 	args := []any{workspaceID, conversationID}
 	fp := fingerprint("messages", workspaceID, conversationID)
 	if q != "" {

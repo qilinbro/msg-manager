@@ -56,6 +56,11 @@ func normalizeImport(req ImportRequest) (ImportRequest, error) {
 	if !validPlatform(req.Platform) || !validLabel(req.AccountID, true) || !validLabel(req.AccountName, false) || len(req.Messages) < 1 || len(req.Messages) > 1000 {
 		return ImportRequest{}, ErrInvalidInput
 	}
+	// Only the verified Bot ingestion transaction may occupy this namespace.
+	// A generic/offline import must never masquerade as live Bot provenance.
+	if req.Platform == "telegram" && strings.HasPrefix(req.AccountID, "bot:") {
+		return ImportRequest{}, ErrInvalidInput
+	}
 	result := req
 	result.Messages = append([]ImportMessage(nil), req.Messages...)
 	if result.AccountName == "" {
@@ -63,6 +68,9 @@ func normalizeImport(req ImportRequest) (ImportRequest, error) {
 	}
 	for i := range result.Messages {
 		m := &result.Messages[i]
+		if req.Platform == "telegram" && strings.HasPrefix(m.ExternalID, "telegrambot:") {
+			return ImportRequest{}, ErrInvalidInput
+		}
 		if m.ConversationKind == "" {
 			m.ConversationKind = "private"
 		}

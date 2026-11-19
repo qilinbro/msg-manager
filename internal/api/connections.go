@@ -21,5 +21,6 @@ func (h *handler) connections() []connector.Descriptor {
 		}
 	}
 	h.applyMilky(items)
+	h.applyTelegramBot(items)
 	return items
 }

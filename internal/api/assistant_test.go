@@ -250,7 +250,7 @@ func TestAssistantStrictInputAndCatalogRejectsTransportInjection(t *testing.T) {
 			t.Fatal("trusted catalog accepted injection/coercion", raw)
 		}
 	}
-	for _, name := range []string{"update_model_config", "register_device", "create_device_session", "events", "approve_action", "send_message"} {
+	for _, name := range []string{"update_model_config", "register_device", "create_device_session", "events", "approve_action", "send_message", "get_telegram_bot_status", "verify_telegram_bot", "sync_telegram_bot"} {
 		if assistantOperationByID(name) != nil {
 			t.Fatal("manual/unimplemented/credential capability exposed to model", name)
 		}
@@ -259,8 +259,14 @@ func TestAssistantStrictInputAndCatalogRejectsTransportInjection(t *testing.T) {
 		if operation.Method != "GET" && operation.schema != nil && operation.Availability != "confirmation_required" {
 			t.Fatal("effectful operation lacks confirmation", operation.ID)
 		}
-		if strings.HasPrefix(operation.ID, "verify_") && operation.Availability != "confirmation_required" {
-			t.Fatal("effectful GET verify bypasses confirmation", operation.ID)
+		if operation.ID == "verify_telegram_bot" {
+			// Human-only is stricter than confirmation: even a confirmed model
+			// request must have no schema or executable operation lookup.
+			if operation.Availability != "human_only" || operation.schema != nil || assistantOperationByID(operation.ID) != nil {
+				t.Fatal("Telegram verification escaped the human-only boundary", operation.ID)
+			}
+		} else if strings.HasPrefix(operation.ID, "verify_") && operation.Availability != "confirmation_required" {
+			t.Fatal("effectful verify bypasses confirmation", operation.ID)
 		}
 	}
 }
@@ -320,7 +326,7 @@ func TestAssistantCatalogExactlyCoversExistingOpenAPIWithoutRecursiveTools(t *te
 			delete(catalog, key)
 		}
 	}
-	if len(catalog) != 0 || count != 73 || controls != 5 {
+	if len(catalog) != 0 || count != 76 || controls != 5 {
 		t.Fatalf("inventory drift: business=%d assistant=%d unexpected=%v", count, controls, catalog)
 	}
 	definitions := map[string]bool{}
@@ -342,7 +348,7 @@ func TestAssistantCatalogExactlyCoversExistingOpenAPIWithoutRecursiveTools(t *te
 			}
 		}
 	}
-	if human != 7 || unavailable != 13 || len(definitions) != 53 {
+	if human != 10 || unavailable != 13 || len(definitions) != 53 {
 		t.Fatal("credential/unimplemented/executable inventory drift", human, unavailable, len(definitions))
 	}
 	if definitions["verify_qq_onebot"] || assistantOperationByID("verify_qq_onebot") != nil {

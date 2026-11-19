@@ -3,7 +3,7 @@
   "info": {
     "title": "Social Intelligence OS — local business and Assistant API",
     "version": "0.1.0",
-    "description": "本机 Bearer/可撤销设备授权 API：加密消息管理、只读平台同步与监控、人工同意的 AI/档案/摘要，以及原生工具调用 Assistant。Assistant 覆盖已实现业务 API 并复用原处理器，所有变更逐项确认；认证生命周期、模型与飞书凭据配置仍仅人工。共享持久化额度、模型标识与版本绑定、暂停会话数据隔离始终生效。通用任务/审批/会话发送/SSE等占位不可执行；新增默认关闭的飞书本人私聊早晚报，固定上海08:00/20:00，独立同意后才可外发冻结摘要，不开放任意收件人或文本。JSON 语法是有效 YAML 1.2，实际业务请求始终鉴权。"
+    "description": "本机 Bearer/可撤销设备授权 API：加密消息管理、只读平台同步与监控、人工同意的 AI/档案/摘要，以及原生工具调用 Assistant。Assistant 覆盖已实现业务 API 并复用原处理器，所有变更逐项确认；认证生命周期、模型与飞书凭据配置仍仅人工。共享持久化额度、模型标识与版本绑定、暂停会话数据隔离始终生效。通用任务/审批/会话发送/SSE等占位不可执行；新增默认关闭的飞书本人私聊早晚报，固定上海08:00/20:00，独立同意后才可外发冻结摘要，不开放任意收件人或文本。JSON 语法是有效 YAML 1.2，实际业务请求始终鉴权。 Telegram Bot API现支持真实NoneBot适配器的人工核验与逐次同意的授权私聊文本单页接收；不支持个人账号历史/后台轮询/发送/自动AI，已有webhook拒绝且不删除。飞书默认NoneBot，legacy-go仅显式兼容选择。"
   },
   "servers": [
     {
@@ -1379,6 +1379,279 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/TelegramImport"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-bot/status": {
+      "get": {
+        "operationId": "getTelegramBotStatus",
+        "summary": "读取Telegram机器人手动接收状态",
+        "description": "仅人工读取本机状态，不启动Python或请求平台；不返回任何凭据、机器人/聊天ID或正文。configured不证明已核验，核验也不代表持续在线。 鉴权沿用本机Bearer/设备会话与工作区边界；Agent工具不可执行。除可选匹配的workspace_id外拒绝所有query参数。",
+        "x-implementation-status": "implemented",
+        "x-assistant-availability": "human_only",
+        "responses": {
+          "200": {
+            "description": "成功；不代表后台接收或个人账号完整历史。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramBotStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "TELEGRAM_BOT_INVALID_REQUEST：严格字段、JSON、query或本次同意无效。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "本机令牌/设备会话缺失、失效或已撤销。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin、工作区或人工操作边界被拒绝。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-bot/verify": {
+      "post": {
+        "operationId": "verifyTelegramBotIdentity",
+        "summary": "人工核验机器人身份与webhook",
+        "description": "固定服务端配置的getMe/getWebhookInfo，要求is_bot及expected bot ID吻合且无webhook；只核验不收取消息，不删除webhook、不自动重试。重新核验会撤销在途旧页面资格，即使返回BUSY。 鉴权沿用本机Bearer/设备会话与工作区边界；Agent工具不可执行。除可选匹配的workspace_id外拒绝所有query参数。",
+        "x-implementation-status": "implemented",
+        "x-assistant-availability": "human_only",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramBotVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功；不代表后台接收或个人账号完整历史。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramBotStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "TELEGRAM_BOT_INVALID_REQUEST：严格字段、JSON、query或本次同意无效。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "本机令牌/设备会话缺失、失效或已撤销。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin、工作区或人工操作边界被拒绝。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "TELEGRAM_BOT_CANCELED：本次操作中断；未确认页面不提交。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "BUSY、未核验、cursor CAS或同一稳定消息ID内容冲突；本次不提交，需人工核实。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "授权JSON超过1024字节。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "平台限流；可能附安全有界Retry-After，客户端不自动重试。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "运行时/凭据/存储未配置或不可用，或身份/webhook/协议/权限失败；不回显平台原文或秘密。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/telegram-bot/sync": {
+      "post": {
+        "operationId": "receiveTelegramBotPage",
+        "summary": "本人本次同意后手动接收授权私聊文本单页",
+        "description": "仅接受新鲜人工consent_receive=true且此前手动核验成功。再次getMe/getWebhookInfo后getUpdates单页（timeout=0），仅读取固定最多20名授权私聊的纯文本。未知/不支持/未授权事件最小化分类；单事务提交后推进cursor，CAS/冲突/取消/落库失败不推进。不循环、不取个人账号历史、不删除webhook、不发送、不自动AI、不自动重试。 鉴权沿用本机Bearer/设备会话与工作区边界；Agent工具不可执行。除可选匹配的workspace_id外拒绝所有query参数。",
+        "x-implementation-status": "implemented",
+        "x-assistant-availability": "human_only",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelegramBotSyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功；不代表后台接收或个人账号完整历史。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TelegramBotSyncResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "TELEGRAM_BOT_INVALID_REQUEST：严格字段、JSON、query或本次同意无效。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "本机令牌/设备会话缺失、失效或已撤销。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Host、Origin、工作区或人工操作边界被拒绝。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "408": {
+            "description": "TELEGRAM_BOT_CANCELED：本次操作中断；未确认页面不提交。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "BUSY、未核验、cursor CAS或同一稳定消息ID内容冲突；本次不提交，需人工核实。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "授权JSON超过1024字节。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "平台限流；可能附安全有界Retry-After，客户端不自动重试。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "运行时/凭据/存储未配置或不可用，或身份/webhook/协议/权限失败；不回显平台原文或秘密。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }
@@ -6491,7 +6764,17 @@
               "logged_out",
               "protocol_error",
               "version_mismatch",
-              "invalid_config"
+              "invalid_config",
+              "runtime_not_configured",
+              "verifying",
+              "receiving",
+              "closed",
+              "canceled",
+              "rate_limited",
+              "webhook_present",
+              "permission_denied",
+              "platform_rejected",
+              "unavailable"
             ]
           },
           "implementation_status": {
@@ -6499,7 +6782,9 @@
             "enum": [
               "planned",
               "probe_ready",
-              "manual_sync_ready"
+              "manual_sync_ready",
+              "manual_read_ready",
+              "manual_receive_ready"
             ]
           },
           "capabilities": {
@@ -6681,7 +6966,8 @@
                     "not_connected",
                     "probe_only",
                     "unsupported",
-                    "configured"
+                    "configured",
+                    "manual_receive_only"
                   ]
                 },
                 "message_count": {
@@ -6734,7 +7020,8 @@
               "import",
               "imap",
               "mixed",
-              "wechatdb"
+              "wechatdb",
+              "telegram_bot"
             ]
           },
           "message_count": {
@@ -6877,7 +7164,8 @@
             "enum": [
               "import",
               "imap",
-              "wechatdb"
+              "wechatdb",
+              "telegram_bot"
             ]
           },
           "email": {
@@ -7257,6 +7545,193 @@
             "const": false
           }
         }
+      },
+      "TelegramBotStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "connection_id",
+          "runtime_configured",
+          "configured",
+          "identity_verified",
+          "allowed_private_chat_count",
+          "state",
+          "checked_at",
+          "last_sync_at",
+          "manual_receive_only",
+          "background_receiving",
+          "sending_enabled",
+          "history_import",
+          "last_result"
+        ],
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "const": "telegram-bot"
+          },
+          "runtime_configured": {
+            "type": "boolean",
+            "description": "仅表示已选择本地运行时路径；不证明依赖、平台连接或凭据可用。"
+          },
+          "configured": {
+            "type": "boolean",
+            "description": "服务端机器人配置完整；不等于已联网核验或持续在线。"
+          },
+          "identity_verified": {
+            "type": "boolean"
+          },
+          "allowed_private_chat_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "not_configured",
+              "configured",
+              "runtime_not_configured",
+              "identity_verified",
+              "verifying",
+              "receiving",
+              "closed",
+              "canceled",
+              "invalid_config",
+              "unreachable",
+              "auth_failed",
+              "rate_limited",
+              "protocol_error",
+              "identity_mismatch",
+              "webhook_present",
+              "permission_denied",
+              "platform_rejected",
+              "unavailable"
+            ]
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "最近成功身份/webhook核验的RFC3339 UTC时间，未核验为空。"
+          },
+          "last_sync_at": {
+            "type": "string",
+            "description": "最近单页原子提交成功时间，未接收为空。"
+          },
+          "manual_receive_only": {
+            "type": "boolean",
+            "const": true
+          },
+          "background_receiving": {
+            "type": "boolean",
+            "const": false
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          },
+          "history_import": {
+            "type": "boolean",
+            "const": false
+          },
+          "last_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TelegramBotSyncResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "description": "仅读内存状态，无平台/worker I/O，不回显token、机器人ID、聊天ID、正文、解释器或脚本路径；不是个人账号或持续在线状态。"
+      },
+      "TelegramBotVerifyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 0,
+        "properties": {},
+        "description": "严格空JSON对象，最多1024字节、UTF-8；拒绝重复/错大小写/未知字段、null及尾随值。"
+      },
+      "TelegramBotSyncRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "consent_receive"
+        ],
+        "properties": {
+          "consent_receive": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "description": "每次人工接收都须重新同意，仅允许此精确字段；最多1024字节。不能提供token、身份、收件名单、cursor、limit、动作或脚本路径。"
+      },
+      "TelegramBotSyncResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "events",
+          "imported",
+          "duplicates",
+          "unsupported",
+          "not_authorized",
+          "conversations",
+          "next_offset",
+          "partial",
+          "source_kind",
+          "ai_queued"
+        ],
+        "properties": {
+          "events": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "imported": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "duplicates": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "unsupported": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "not_authorized": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "conversations": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "next_offset": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]{0,18})$",
+            "maxLength": 19,
+            "description": "已提交的确认水位规范十进制字符串，范围0..9223372036854775807；不由调用者提供，不转为不精确的浮点数。读取空页不推进。"
+          },
+          "partial": {
+            "type": "boolean",
+            "description": "含未授权/不支持事件时为true；分类计数互斥，不代表历史已读完。"
+          },
+          "source_kind": {
+            "type": "string",
+            "const": "telegram_bot"
+          },
+          "ai_queued": {
+            "type": "integer",
+            "const": 0
+          }
+        },
+        "description": "真实NoneBot Bot API单页结果：最多100事件。events=imported+duplicates+unsupported+not_authorized。只有消息、最小事件去重、provenance和CAS游标同一事务成功后才确认；不创建AI任务。未授权/非私聊/不支持事件不保存正文。"
       },
       "EmailStatus": {
         "type": "object",
@@ -10365,6 +10840,8 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
+          "transport",
+          "runtime_configured",
           "configured",
           "key_configured",
           "app_id",
@@ -10381,6 +10858,18 @@
           "slots"
         ],
         "properties": {
+          "transport": {
+            "type": "string",
+            "enum": [
+              "nonebot",
+              "legacy-go"
+            ],
+            "description": "默认nonebot；legacy-go仅可由操作员显式选择，不是失败回退。"
+          },
+          "runtime_configured": {
+            "type": "boolean",
+            "description": "本地发送运行时可用性预检，不证明凭据/权限/接收者归属。缺失时发送在持久claim之前失败；既有回执仍可读取。"
+          },
           "configured": {
             "type": "boolean"
           },
@@ -10467,7 +10956,7 @@
             "items": false
           }
         },
-        "description": "仅读本机加密配置与账本，不请求平台。仅返回AppID、密钥是否已配置、掩码本人接收者和非凭据绑定ID，不回显app_secret、完整open_id、access_token。保存与configured不证明平台可用或接收者确属本人：recipient_ownership_verified固定false；本人必须在专用表单自行声明并核对同应用open_id。"
+        "description": "仅读本机加密配置与账本，不请求平台。仅返回AppID、密钥是否已配置、掩码本人接收者和非凭据绑定ID，不回显app_secret、完整open_id、access_token。保存与configured不证明平台可用或接收者确属本人：recipient_ownership_verified固定false；本人必须在专用表单自行声明并核对同应用open_id。 发送默认使用受限NoneBot子进程，不继承代理、不重定向、不重试；运行时缺失不会自动回退旧HTTP实现。"
       },
       "FeishuConfigSave": {
         "type": "object",

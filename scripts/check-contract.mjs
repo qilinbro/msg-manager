@@ -68,6 +68,8 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/imports/messages',
   'post /api/v1/imports/telegram',
   'post /api/v1/connections/email-imap/sync',
+  'post /api/v1/connections/telegram-bot/verify',
+  'post /api/v1/connections/telegram-bot/sync',
   'post /api/v1/connections/wechat-db/read',
   'post /api/v1/connections/wechat-db/monitor',
   'post /api/v1/connections/qq-milky/sync',
@@ -151,6 +153,48 @@ assert.equal(spec.components.schemas.MilkySyncRequest.properties.limit.maximum, 
 assert.equal(spec.components.schemas.MilkyMonitorRequest.properties.peer_ids.maxItems, 20);
 assert.ok(spec.paths['/api/v1/connections/qq-milky/verify'].get.responses['200']);
 const schemas = spec.components.schemas;
+for (const [suffix, method, schema] of [
+  ['status', 'get', 'TelegramBotStatus'],
+  ['verify', 'post', 'TelegramBotStatus'],
+  ['sync', 'post', 'TelegramBotSyncResult'],
+]) {
+  const operation = spec.paths[`/api/v1/connections/telegram-bot/${suffix}`]?.[method];
+  assert.equal(operation?.['x-implementation-status'], 'implemented');
+  assert.equal(operation['x-assistant-availability'], 'human_only', 'Bot operations must not become executable model tools');
+  assert.equal(operation.responses['200'].content['application/json'].schema.$ref, `#/components/schemas/${schema}`);
+  for (const code of ['400', '401', '403']) assert.ok(operation.responses[code]);
+  if (method === 'post') for (const code of ['408', '409', '413', '429', '503']) assert.ok(operation.responses[code]);
+}
+assert.equal(schemas.TelegramBotVerifyRequest.additionalProperties, false);
+assert.deepEqual(schemas.TelegramBotVerifyRequest.properties, {});
+assert.equal(schemas.TelegramBotSyncRequest.additionalProperties, false);
+assert.deepEqual(schemas.TelegramBotSyncRequest.required, ['consent_receive']);
+assert.deepEqual(Object.keys(schemas.TelegramBotSyncRequest.properties), ['consent_receive']);
+assert.equal(schemas.TelegramBotSyncRequest.properties.consent_receive.const, true);
+assert.equal(schemas.TelegramBotStatus.additionalProperties, false);
+assert.equal(schemas.TelegramBotStatus.properties.manual_receive_only.const, true);
+for (const flag of ['background_receiving', 'sending_enabled', 'history_import']) assert.equal(schemas.TelegramBotStatus.properties[flag].const, false);
+for (const secret of ['token', 'bot_id', 'chat_id', 'body', 'python_executable', 'worker_script']) assert.ok(!schemas.TelegramBotStatus.properties[secret]);
+assert.equal(schemas.TelegramBotStatus.properties.allowed_private_chat_count.maximum, 20);
+assert.equal(schemas.TelegramBotSyncResult.additionalProperties, false);
+assert.equal(schemas.TelegramBotSyncResult.properties.events.maximum, 100);
+assert.equal(schemas.TelegramBotSyncResult.properties.ai_queued.const, 0);
+assert.equal(schemas.TelegramBotSyncResult.properties.source_kind.const, 'telegram_bot');
+assert.equal(schemas.TelegramBotSyncResult.properties.next_offset.type, 'string');
+assert.equal(schemas.TelegramBotSyncResult.properties.next_offset.pattern, '^(0|[1-9][0-9]{0,18})$');
+assert.equal(schemas.TelegramBotSyncResult.properties.next_offset.maxLength, 19);
+assert.match(schemas.TelegramBotSyncResult.properties.next_offset.description, /9223372036854775807/);
+assert.deepEqual(Object.keys(schemas.TelegramBotStatus.properties).sort(), schemas.TelegramBotStatus.required.toSorted());
+assert.equal(schemas.TelegramBotStatus.required.length, 13);
+assert.deepEqual(Object.keys(schemas.TelegramBotSyncResult.properties).sort(), schemas.TelegramBotSyncResult.required.toSorted());
+assert.equal(schemas.TelegramBotSyncResult.required.length, 10);
+for (const name of ['InboxConnection', 'InboxMessage']) assert.ok(schemas[name].properties.source.enum.includes('telegram_bot'));
+assert.ok(schemas.InboxStatus.properties.platforms.items.properties.live_status.enum.includes('manual_receive_only'));
+assert.ok(schemas.Connector.properties.implementation_status.enum.includes('manual_receive_ready'));
+for (const suffix of ['send', 'history', 'monitor', 'delete-webhook']) assert.ok(!spec.paths[`/api/v1/connections/telegram-bot/${suffix}`]);
+assert.deepEqual(schemas.FeishuStatus.properties.transport.enum, ['nonebot', 'legacy-go']);
+assert.equal(schemas.FeishuStatus.properties.runtime_configured.type, 'boolean');
+for (const field of ['transport', 'runtime_configured']) assert.ok(schemas.FeishuStatus.required.includes(field));
 const presetsEndpoint = spec.paths['/api/v1/ai/model-presets'];
 assert.deepEqual(Object.keys(presetsEndpoint), ['get'], 'Model references must never expose a credential/configuration mutation');
 assert.equal(presetsEndpoint.get.operationId, 'getModelPresets');
@@ -300,4 +344,4 @@ for (const field of ['app_secret', 'access_token', 'recipient_open_id']) {
   for (const name of ['FeishuStatus', 'FeishuReport', 'FeishuDelivery']) assert.ok(!schemas[name].properties[field]);
 }
 assert.ok(!schemas.FeishuDelivery.properties.text, 'Receipts remain content-free for manual verification after binding revocation');
-console.log('API contracts, bounded Assistant, local digest compatibility and 10 bound no-retry Feishu methods verified.');
+console.log('API contracts, bounded Assistant, manual receive-only Telegram Bot and 10 bound no-retry Feishu methods verified.');

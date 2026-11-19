@@ -219,7 +219,7 @@ func (s *Store) importBatchContext(ctx context.Context, req ImportRequest, sourc
 func (s *Store) Connections() ([]Connection, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	rows, err := s.db.Query(`SELECT c.id,c.platform,c.account_id,c.display_name,coalesce(c.connector_source,c.source),count(m.seq) FROM connections c LEFT JOIN conversations v ON v.connection_id=c.id LEFT JOIN messages m ON m.conversation_id=v.id AND m.workspace_id=c.workspace_id WHERE c.workspace_id=? GROUP BY c.id ORDER BY c.platform,c.account_id,c.id`, workspaceID)
+	rows, err := s.db.Query(`SELECT c.id,c.platform,c.account_id,c.display_name,CASE WHEN EXISTS (SELECT 1 FROM telegram_bot_messages tb WHERE tb.connection_id=c.id AND tb.workspace_id=c.workspace_id) THEN 'telegram_bot' ELSE coalesce(c.connector_source,c.source) END,count(m.seq) FROM connections c LEFT JOIN conversations v ON v.connection_id=c.id LEFT JOIN messages m ON m.conversation_id=v.id AND m.workspace_id=c.workspace_id WHERE c.workspace_id=? GROUP BY c.id ORDER BY c.platform,c.account_id,c.id`, workspaceID)
 	if err != nil {
 		return nil, ErrUnavailable
 	}

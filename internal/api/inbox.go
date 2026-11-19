@@ -84,6 +84,12 @@ func (h *handler) serveInbox(w http.ResponseWriter, r *http.Request, traceID str
 			platforms[4].LiveStatus = "configured"
 			sourceMode = "mixed"
 		}
+		for _, item := range h.connections() {
+			if item.ID == "telegram-bot" && item.Capabilities.ReceiveText {
+				platforms[2].LiveStatus = "manual_receive_only"
+				sourceMode = "mixed"
+			}
+		}
 		if h.inbox != nil {
 			connections, err := h.inbox.Connections()
 			if err != nil {

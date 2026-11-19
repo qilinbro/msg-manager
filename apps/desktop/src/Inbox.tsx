@@ -1454,15 +1454,17 @@ export default function Inbox({
                 <span key={item.id}>
                   {PLATFORM_NAMES[item.id]}
                   <span>
-                    {item.live_status === 'probe_only'
-                      ? '仅账号核验'
-                      : item.live_status === 'unsupported'
-                        ? '暂不支持实时接入'
-                        : item.live_status === 'configured'
-                          ? item.id === 'weixin'
-                            ? '已配置·可后台读取'
-                            : '已配置·手动同步'
-                          : '实时未连接'}
+                    {item.live_status === 'manual_receive_only'
+                      ? '仅手动收件'
+                      : item.live_status === 'probe_only'
+                        ? '仅账号核验'
+                        : item.live_status === 'unsupported'
+                          ? '暂不支持实时接入'
+                          : item.live_status === 'configured'
+                            ? item.id === 'weixin'
+                              ? '已配置·可后台读取'
+                              : '已配置·手动同步'
+                            : '实时未连接'}
                   </span>
                 </span>
               ))}
@@ -1783,6 +1785,9 @@ export default function Inbox({
                                     '邮件记录'
                                   : selected.title || selected.peer_id}
                             </span>
+                            {item.source === 'telegram_bot' ? (
+                              <span>Telegram Bot · 手动收件</span>
+                            ) : null}
                             <time dateTime={item.occurred_at}>
                               {dateText(item.occurred_at, true)}
                             </time>

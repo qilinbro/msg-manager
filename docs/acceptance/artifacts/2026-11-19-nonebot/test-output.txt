@@ -1,0 +1,772 @@
+NoneBot E04/T22 synthetic evidence; 2026-11-19 Asia/Shanghai.
+Raw originals are preserved locally, never overwritten.
+Transcript headers/local paths/ANSI/trailing whitespace are sanitized; source SHA256 is indexed.
+Transcripts do NOT reliably contain native stdout. All *.stdout.log sections below are native captures.
+Earlier failed runs remain failed; negative bootstrap fixtures intentionally print TerminatingError.
+No real platform/model/account calls, production migration, deployment or restart.
+
+===== candidate-r1-full-check.log =====
+STARTED_AT=2026-11-19T17:29:43.7108115+08:00
+CANDIDATE=candidate-r1
+SAFETY=synthetic_only;product_env_cleared;default_credential_path_forbidden;no_deployment
+
+PS>TerminatingError(): "Go tests failed."
+{"run":"candidate-r1-full-check","candidate":"candidate-r1","started_at":"2026-11-19T17:29:43.7108115+08:00","finished_at":"2026-11-19T17:30:35.3036617+08:00","duration_seconds":51.5912439,"passed":false,"synthetic_only":true,"deployed":false,"actual_platform_calls":0,"default_credential_file_accessed":false}
+**********************
+PowerShell 记录结束
+结束时间: 20261119173035
+**********************
+
+===== candidate-r1-race.log =====
+--- FAIL: TestBridgeSubprocessIsolationAndSuccess (1.01s)
+    bridge_test.go:132: isolated call failed: NoneBot bridge: canceled
+--- FAIL: TestBridgeErrorEnvelopeIsStructuredAndRedacted (1.01s)
+    bridge_test.go:156: lost fixed structured error
+--- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay (22.27s)
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/duplicate (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/nested-duplicate (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/case (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/missing-ok (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/missing-result (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/null-result (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/error-on-success (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/array-result (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/unknown-result (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/trailing (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/wrong-version (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/wrong-bool (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/missing-error-field (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/null-error-field (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/case-error-field (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/unknown-kind (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/bad-state (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/bad-retry (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/bad-code (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/bad-unicode (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/invalid-utf8 (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+    --- FAIL: TestBridgeRejectsMalformedAndOversizeRepliesWithoutReplay/deep (1.01s)
+        bridge_test.go:177: malformed reply not safely bounded: kind=canceled, starts=1
+FAIL
+FAIL	github.com/qilinbro/msg-manager/internal/connector/nonebotbridge	27.453s
+ok  	github.com/qilinbro/msg-manager/internal/connector/telegrambot	2.090s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	4.217s
+--- FAIL: TestLocalDevicesV11MigrationPreservesDataHistoryAndSyntheticOldFixtures (1.12s)
+    local_devices_test.go:300: idempotent schema migration for synthetic old fixture encrypted storage is unavailable
+--- FAIL: TestProfileInputJSONBudgetAndMigrationPreserveExistingGraph (0.52s)
+    profile_test.go:389: encrypted storage is unavailable
+FAIL
+FAIL	github.com/qilinbro/msg-manager/internal/store	34.167s
+--- FAIL: TestAssistantStrictInputAndCatalogRejectsTransportInjection (0.13s)
+    assistant_test.go:263: effectful GET verify bypasses confirmation verify_telegram_bot
+--- FAIL: TestAssistantCatalogExactlyCoversExistingOpenAPIWithoutRecursiveTools (0.02s)
+    assistant_test.go:324: inventory drift: business=76 assistant=5 unexpected=map[]
+FAIL
+FAIL	github.com/qilinbro/msg-manager/internal/api	32.296s
+ok  	github.com/qilinbro/msg-manager/internal/config	1.610s
+FAIL
+
+===== candidate-r2-full-check.log =====
+STARTED_AT=2026-11-19T18:00:38.9061984+08:00
+CANDIDATE=candidate-r2
+SAFETY=synthetic_only;product_env_cleared;default_credential_path_forbidden;no_deployment
+
+
+
+PS>TerminatingError(): "PowerShell 7.2+ x64 was not found. Install PowerShell 7, then run this command again. No software or execution policy was changed."
+PS>TerminatingError(): "PowerShell 7.2+ x64 was not found. Install PowerShell 7, then run this command again. No software or execution policy was changed."
+PowerShell bootstrap synthetic tests passed: 9 child cases plus selector and argument checks.
+Inbox launcher synthetic tests passed: 53 isolated launches; DACL-only setup, stable service credentials, explicit clipboard/rotation, DPAPI loading and fail-closed startup. No real account data or service was accessed.
+NoneBot bridge check passed (CPython 3.12 x64; 34 exact pinned distributions; pip check).
+Read-only validation completed; no venv was created and no packages were installed or changed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PS>TerminatingError(): "Frontend formatting check failed."
+{"run":"candidate-r2-full-check","candidate":"candidate-r2","started_at":"2026-11-19T18:00:38.9061984+08:00","finished_at":"2026-11-19T18:02:02.3041428+08:00","duration_seconds":83.3951833,"passed":false,"synthetic_only":true,"deployed":false,"actual_platform_calls":0,"default_credential_file_accessed":false}
+**********************
+PowerShell 记录结束
+结束时间: 20261119180202
+**********************
+
+===== candidate-r2-race.log =====
+STARTED_AT=2026-11-19T18:00:38.8990724+08:00
+CANDIDATE=candidate-r2; SYNTHETIC_ONLY=true; GO_TEST_RACE_COUNT=1; PACKAGES=8
+
+PS>TerminatingError(): "术语 'true' 不会被识别为 cmdlet、函数、脚本文件或可执行程序的名称。
+请检查名称的拼写或验证路径是否正确(如果包含路径)，然后重试。"
+true: 术语 'true' 不会被识别为 cmdlet、函数、脚本文件或可执行程序的名称。
+请检查名称的拼写或验证路径是否正确(如果包含路径)，然后重试。
+PS>$global:?
+False
+**********************
+PowerShell 记录结束
+结束时间: 20261119180204
+**********************
+
+===== telegram-ui-verification-evidence.txt =====
+Telegram UI verification evidence — 2026-11-19 (Asia/Shanghai)
+Owner: delegated agent telegram-ui-verification, handoff to lead
+Change IDs: CHG-T22-002 / CHG-E04-002
+Scope: synthetic/offline client test implementation and narrow Telegram transport/Inbox fixes; NOT formal review/acceptance.
+
+IMPORTANT UNEXPECTED SIDE EFFECT
+The synthetic tests themselves use intercepted fetch, fake timeout/React hooks, no real DOM/platform/account/model/service IO. However, the validation command `pnpm -C apps/desktop check` unexpectedly triggered dependency downloads/installation/migration before running tsc. Therefore this overall work cannot be described as fully network-free or dependencies-unchanged. No install was explicitly requested/run, but the pnpm side effect occurred and must be retained in final evidence. After lead's freeze instruction there were no further pnpm/install/migration/cleanup/dependency/dist/service changes.
+
+READ-ONLY DEPENDENCY INSPECTION AFTER THE SIDE EFFECT
+- apps/desktop/node_modules remains a Junction targeting <WORKSPACE>\apps\desktop\node_modules.
+- tracked apps/desktop/package.json diff only contains the predecessor's test:telegram-bot script entry; no dependency version changes.
+- No tracked lockfile changes reported by git.
+- New untracked apps/desktop/pnpm-lock.yaml: 31334 bytes; CreationTime and LastWriteTime 2026-11-19 17:23:05 +08:00. It was inspected and left untouched. No dependency rollback/cleanup was attempted.
+- tsc printed success (exit 0) after the unintended install; this is NOT a clean isolated-candidate TypeScript/build result. Root will perform remaining isolated validation.
+
+INITIAL TELEGRAM COMMAND (exit 1, expected red regression baseline)
+. ./.runtime/nonebot-20261119-r1/safe-test-env.ps1; & '<USER_HOME>\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe' scripts/test-telegram-bot-client.mjs
+
+INITIAL OUTPUT
+PASS transport: GET status only, verify {}, sync explicit one-shot consent
+PASS transport: missing/false/truthy consent is rejected before fetch
+PASS transport: status/verify/sync cancellation and deadlines are deterministic, no retry
+PASS transport: aborted late response/body cannot be accepted
+PASS DTO: strict status keys, enums, flags, nulls, identity and timestamps
+PASS DTO: canonical decimal offset preserves 0..MaxInt64 exactly
+PASS panel: mount is one status read, honest manual-only copy and stable associations
+PASS panel: verify never receives; sync consumes consent before IO and blocks stale double-click
+PASS panel: every failed/uncertain sync resets consent and stale identity, no retries
+PASS panel: refreshing/reverifying also revokes previous one-use consent
+PASS panel: unavailable states never allow receive or manufacture a verification
+PASS panel: token switch aborts pending status/verify/sync; late success or auth failure is ignored
+PASS panel: unmount aborts any operation; late success/failure never writes state
+PASS panel: current service 401 clears auth; platform auth failure does not; strict replay only reads status
+PASS Inbox transport: exact bot source and manual-only status accepted; unknown/null rejected
+PASS App integration: token-keyed Settings panel, Inbox mounts and reloads after leaving Settings
+Telegram Bot synthetic checks: 16/20 groups passed; 143 rejection assertions; no real DOM/network/platform IO.
+[stderr]
+FAIL transport: safe Chinese errors, known scope/auth codes, unknown code normalization
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'RAW-PRIVATE-DETAIL https://api.telegram.org/botSECRET/chat?id=PRIVATE'
+- 'TELEGRAM_BOT_ERROR'
+
+    at Object.<anonymous> (file:///<REPO>/scripts/test-telegram-bot-client.mjs:176:12)
+    at expectedException (node:assert:578:17)
+    at expectsError (node:assert:703:21)
+    at strict.rejects (node:assert:769:3)
+    at async expectCode (file:///<REPO>/scripts/test-telegram-bot-client.mjs:174:3)
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:283:5
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:675:9
+FAIL DTO: result exact fields, <=100 events, disjoint counts, partial and no AI
+AssertionError [ERR_ASSERTION]: Missing expected rejection.
+    at async expectCode (file:///<REPO>/scripts/test-telegram-bot-client.mjs:174:3)
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:355:5
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:675:9
+FAIL DTO: malformed, non-200 success and oversized response bodies fail closed
+AssertionError [ERR_ASSERTION]: Missing expected rejection.
+    at async expectCode (file:///<REPO>/scripts/test-telegram-bot-client.mjs:174:3)
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:391:3
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:675:9
+FAIL Inbox render: manual-only is not realtime-disconnected and exact provenance only
+AssertionError [ERR_ASSERTION]: The input did not match the regular expression /仅手动收件/. Input:
+
+'消息导入消息会话列表当前会话Agent 帮我消息来源收件箱全部会话未读置顶已归档平台来源全部平台1QQQ0微微信0TTelegram1闪闪聊0邮邮箱0关系分类全部分类未分类Telegram实时未连接全部平台 · 全部会话1 个会话合T合成 Telegram 私聊11/19 20:00合成正文未分类Telegram · synthetic-accountT合成 Telegram 私聊Telegram · synthetic-account · 已入库消息标为未读置顶归档AI 管理档案已显示当前保存的最早记录合成 Telegram 私聊Telegram Bot · 手动收件2026/11/19 20:00合成正文，不含真实消息本地消息说明本地已入库消息；来源以记录为准，当前不提供消息发送。'
+
+    at file:///<REPO>/scripts/test-telegram-bot-client.mjs:629:12
+    at async file:///<REPO>/scripts/test-telegram-bot-client.mjs:675:9
+[exit code: 1]
+
+FINAL TELEGRAM COMMAND (exit 0)
+Same command as initial run, after the narrow fixes and strict live_status type regression.
+Tool job: pwsh-e25b4c60a20b447c (collected; completed exit 0)
+
+FINAL TELEGRAM OUTPUT
+PASS transport: GET status only, verify {}, sync explicit one-shot consent
+PASS transport: missing/false/truthy consent is rejected before fetch
+PASS transport: status/verify/sync cancellation and deadlines are deterministic, no retry
+PASS transport: aborted late response/body cannot be accepted
+PASS transport: safe Chinese errors, known scope/auth codes, unknown code normalization
+PASS DTO: strict status keys, enums, flags, nulls, identity and timestamps
+PASS DTO: result exact fields, <=100 events, disjoint counts, partial and no AI
+PASS DTO: canonical decimal offset preserves 0..MaxInt64 exactly
+PASS DTO: malformed, non-200 success and oversized response bodies fail closed
+PASS panel: mount is one status read, honest manual-only copy and stable associations
+PASS panel: verify never receives; sync consumes consent before IO and blocks stale double-click
+PASS panel: every failed/uncertain sync resets consent and stale identity, no retries
+PASS panel: refreshing/reverifying also revokes previous one-use consent
+PASS panel: unavailable states never allow receive or manufacture a verification
+PASS panel: token switch aborts pending status/verify/sync; late success or auth failure is ignored
+PASS panel: unmount aborts any operation; late success/failure never writes state
+PASS panel: current service 401 clears auth; platform auth failure does not; strict replay only reads status
+PASS Inbox transport: exact bot source and manual-only status accepted; unknown/null rejected
+PASS Inbox render: manual-only is not realtime-disconnected and exact provenance only
+PASS App integration: token-keyed Settings panel, Inbox mounts and reloads after leaving Settings
+Telegram Bot synthetic checks: 20/20 groups passed; 259 rejection assertions; no real DOM/network/platform IO.
+
+AFFECTED SUITES + CHECK EXACT COMMAND
+. ./.runtime/nonebot-20261119-r1/safe-test-env.ps1; $node = '<USER_HOME>\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe'; $pnpm = '<USER_HOME>\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\pnpm\bin\pnpm.mjs'; foreach ($script in @('scripts/test-milky-client.mjs','scripts/test-service-session.mjs','scripts/test-inbox-import.mjs','scripts/test-feishu-client.mjs')) { Write-Output "RUN $script"; & $node $script; if ($LASTEXITCODE -ne 0) { throw "$script failed with exit $LASTEXITCODE" } }; Write-Output 'RUN pnpm -C apps/desktop check'; & $node $pnpm -C apps/desktop check; if ($LASTEXITCODE -ne 0) { throw "TypeScript failed with exit $LASTEXITCODE" }
+Tool job: pwsh-d8f6b758d7fe47af (collected; completed exit 0)
+
+AFFECTED SUITES/CHECK RAW OUTPUT (including unexpected pnpm activity)
+RUN scripts/test-milky-client.mjs
+Milky client checks passed: single QQ catalog/settings integration, one state-aware monitor action, visible guarded stop during in-flight requests, pending clear without re-verification, persisted peers, safe payloads, and component compilation. Synthetic data only.
+RUN scripts/test-service-session.mjs
+Service session synthetic checks passed (13 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, canceled initial/replacement restore suppression and manual retry, active revalidation cancellation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.
+RUN scripts/test-inbox-import.mjs
+[stderr]
+(node:51660) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[still running after 1000ms; moved to background job pwsh-d8f6b758d7fe47af]
+Inbox import regression checks passed: mail metadata and read flags are preserved.
+RUN scripts/test-feishu-client.mjs
+Feishu synthetic client/panel checks passed: ten API methods, DTO/calendar/binding validation, write-only credentials, independent consent, fixed 12-hour windows, 202/unknown/no replay, GET-only recovery, withdrawn stale content, exact local auth mapping and lifecycle cleanup. No real credentials, model, platform, backend or enabled schedule.
+RUN pnpm -C apps/desktop check
+[WARN] The store at <USER_HOME>\AppData\Local\pnpm\store\v11 is not used because packages cannot be hard linked from it into this project. Using the store at D:\.pnpm-store\v11 instead. Set storeDir to choose the store.
+[WARN] Moving @types/node that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving @tauri-apps/cli that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving @types/react that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving prettier that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving typescript that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving @tauri-apps/api that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving vite that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving @types/react-dom that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving @vitejs/plugin-react that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving react that was installed by a different package manager to "node_modules/.ignored"
+[WARN] Moving react-dom that was installed by a different package manager to "node_modules/.ignored"
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Update available! 11.28.5 → 12.21.0.
+Changelog: https://pnpm.io/v/12.21.0
+To update, run: Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression
+Progress: resolved 3, reused 0, downloaded 2, added 0
+Progress: resolved 7, reused 0, downloaded 4, added 0
+Progress: resolved 8, reused 0, downloaded 7, added 0
+Progress: resolved 11, reused 0, downloaded 7, added 0
+Progress: resolved 23, reused 0, downloaded 13, added 0
+Progress: resolved 51, reused 0, downloaded 18, added 0
+Progress: resolved 51, reused 0, downloaded 19, added 0
+Progress: resolved 52, reused 0, downloaded 19, added 0
+Progress: resolved 73, reused 0, downloaded 22, added 0
+Progress: resolved 85, reused 0, downloaded 25, added 0
+Packages: +30
+++++++++++++++++++++++++++++++
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: D:\.pnpm-store\v11
+  Virtual store is at:             ../../../../../apps/desktop/node_modules/.pnpm
+Progress: resolved 91, reused 0, downloaded 30, added 27
+Progress: resolved 91, reused 0, downloaded 33, added 27
+Progress: resolved 91, reused 0, downloaded 34, added 28
+Progress: resolved 91, reused 0, downloaded 35, added 28
+Progress: resolved 91, reused 0, downloaded 35, added 29
+Progress: resolved 91, reused 0, downloaded 36, added 29
+Progress: resolved 91, reused 0, downloaded 36, added 30, done
+
+dependencies:
++ @tauri-apps/api 2.12.4 (2.12.5 is available)
++ react 19.3.1
++ react-dom 19.3.1
+
+devDependencies:
++ @tauri-apps/cli 2.12.4
++ @types/node 26.6.6
++ @types/react 19.3.0
++ @types/react-dom 19.3.0
++ @vitejs/plugin-react 6.3.0
++ prettier 3.10.1
++ typescript 7.0.2
++ vite 8.3.8
+
+Done in 21.3s using pnpm v11.28.5
+[stderr]
+(node:50700) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+$ tsc --noEmit
+[status: completed, exit code: 0]
+
+FINAL SOURCE DIFF REVIEW
+- Read all 318 lines of final telegram-bot-api.ts and 233 lines of TelegramBotPanel.tsx.
+- Reviewed tracked App/Inbox/inbox-api/package and existing-test stub diffs.
+- `git diff --check -- apps/desktop/package.json apps/desktop/src/App.tsx apps/desktop/src/Inbox.tsx apps/desktop/src/inbox-api.ts scripts/test-milky-client.mjs scripts/test-service-session.mjs` exit 0 (Git emitted existing LF/CRLF warnings).
+- New Telegram files were already untracked predecessor code; this delegation changed API plus Inbox status/strict type and created the new test script. App static import/panel props, Panel implementation, package script and existing-suite stubs were preserved.
+- No onSynced callback, event, navigation, package dependency, platform call, background polling, browser batch, build/dist overwrite, commit, push, deployment or service restart was intentionally added/executed. The unintended pnpm dependency changes above remain an explicit exception to the dependency/network claim.
+
+SYNTHETIC COVERAGE AND LIMITATIONS
+- Real shipped Telegram client, device-auth business-token passthrough, strict DTO validators, Panel TSX and Inbox validators/render are evaluated in VM with synthetic responses.
+- Exact GET status (no body), verify {}, sync consent_receive true; safe error mapping, unknown code normalization, deterministic cancellation/deadlines/late responses, 16KiB streamed body bound/cancel; strict exact 13-key status and 10-key result, <=100 events, classification sum, conversations upper bound, partial consistency, canonical string offset 0..MaxInt64 without Number conversion.
+- Panel status-only mount, explicit verify/receive, consent consumption on both success and failure/timeout, synchronous double-click protection, token switch/unmount abort and ignored late status/verify/sync success/auth/error, StrictEffects read-only replay, no auto retry or AI IO.
+- Inbox exact telegram_bot provenance vs import/imap/wechatdb/missing source, rejects unknown/null source/status and array-coerced live status; renders manual_receive_only as 仅手动收件.
+- App-specific new test evaluates actual Settings token-key props plus fresh real Inbox instances to show data reload; it does NOT independently run the entire App navigation with real React. The affected service-session test separately covers actual App navigation with stubs.
+- No real DOM/browser/layout/focus/a11y-tree, native Tauri, real React scheduler, live backend/platform/network acceptance, actual credentials/account/message, model invocation or personnel approval. All formal non-author reviews/script review and kirinbao acceptance remain pending.
+
+MODERN WEB GUIDANCE DISCLOSURE
+Own retrieved guide file: <USER_HOME>\AppData\Local\Temp\mwg-guide-44532-1795079770968.md
+CLI/package: modern-web-guidance 1.0.1, guide skill version 2026_11_10-47b4c80e; own retrieve js,security.
+- js line194 exact quote: “**DO** combine user-initiated cancellation (`AbortController`) with a deadline using `AbortSignal.any([controller.signal, AbortSignal.timeout(ms)])`. The composite signal aborts as soon as the first input signal aborts and propagates that signal's `reason`.” I retained this composition and tested caller cancellation, fake timeout, stale body/response, token switch and unmount without real timers.
+- js line232 exact quote: “**DO NOT** expose raw internal `cause` chains directly to untrusted client responses if the underlying error contains sensitive database queries, file paths, or credentials; log the full `error.cause` chain server-side and sanitize client-facing payloads.” I normalized unknown upstream codes and kept fixed Chinese messages; synthetic raw URL/secret/message/cause markers never reach exposed errors.
+- security line449 exact quote: “Before attempting to deploy global security policies, focus on code-level hygiene and immediate fixes that do not risk breaking the application.” I confined edits to bounded JSON, strict DTO/count/live-status validation and truthful existing React text; no global policy/dependency addition was intended.
+- security line457 exact quote: “**DO**: Prefer `textContent` or `innerText` over `innerHTML` when setting text content.” I retained React text rendering and added no HTML sink.
+- React rule rerender-move-effect-to-event: “If a side effect is triggered by a specific user action (submit, click, drag), run it in that event handler.” Verify/sync remain explicit event actions, never mount effects.
+
+===== candidate-r3-full-check.log =====
+STARTED_AT=2026-11-19T18:06:22.4257529+08:00
+CANDIDATE=candidate-r3
+SAFETY=synthetic_only;product_env_cleared;default_credential_path_forbidden;no_deployment
+
+
+
+PS>TerminatingError(): "PowerShell 7.2+ x64 was not found. Install PowerShell 7, then run this command again. No software or execution policy was changed."
+PS>TerminatingError(): "PowerShell 7.2+ x64 was not found. Install PowerShell 7, then run this command again. No software or execution policy was changed."
+PowerShell bootstrap synthetic tests passed: 9 child cases plus selector and argument checks.
+Inbox launcher synthetic tests passed: 53 isolated launches; DACL-only setup, stable service credentials, explicit clipboard/rotation, DPAPI loading and fail-closed startup. No real account data or service was accessed.
+NoneBot bridge check passed (CPython 3.12 x64; 34 exact pinned distributions; pip check).
+Read-only validation completed; no venv was created and no packages were installed or changed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{"run":"candidate-r3-full-check","candidate":"candidate-r3","started_at":"2026-11-19T18:06:22.4257529+08:00","finished_at":"2026-11-19T18:07:52.4058335+08:00","duration_seconds":89.9778975,"passed":true,"synthetic_only":true,"deployed":false,"actual_platform_calls":0,"default_credential_file_accessed":false}
+**********************
+PowerShell 记录结束
+结束时间: 20261119180752
+**********************
+
+===== candidate-r3-race.log =====
+STARTED_AT=2026-11-19T18:06:22.4323702+08:00
+CANDIDATE=candidate-r3; SYNTHETIC_ONLY=true; GO_TEST_RACE_COUNT=1; PACKAGES=8
+
+{"run":"candidate-r3-race","candidate":"candidate-r3","started_at":"2026-11-19T18:06:22.4323702+08:00","finished_at":"2026-11-19T18:07:47.6639240+08:00","duration_seconds":85.2273985,"passed":true,"native_exit_code":0,"race":true,"count":1,"packages":8,"synthetic_only":true,"deployed":false,"actual_platform_calls":0}
+**********************
+PowerShell 记录结束
+结束时间: 20261119180747
+**********************
+
+===== candidate-r3-race-captured.log =====
+PS>TerminatingError(): "管道已停止。"
+PS>TerminatingError(): "管道已停止。"
+>> TerminatingError(out-file): "Could not find a part of the path '<REPO>\.runtime\nonebot-20261119-r1\candidate-r3\.runtime\nonebot-20261119-r1\candidate-r3-race-captured.stdout.log'."
+>> TerminatingError(out-file): "Could not find a part of the path '<REPO>\.runtime\nonebot-20261119-r1\candidate-r3\.runtime\nonebot-20261119-r1\candidate-r3-race-captured.stdout.log'."
+out-file: Could not find a part of the path '<REPO>\.runtime\nonebot-20261119-r1\candidate-r3\.runtime\nonebot-20261119-r1\candidate-r3-race-captured.stdout.log'.
+PS>$global:?
+False
+**********************
+PowerShell 记录结束
+结束时间: 20261119181059
+**********************
+
+===== candidate-r3-full-check-captured.stdout.log =====
+STARTED_AT=2026-11-19T18:10:59.4356619+08:00
+CANDIDATE=candidate-r3
+SAFETY=synthetic_only;product_env_cleared;default_credential_path_forbidden;no_deployment
+ok  	github.com/qilinbro/msg-manager/cmd/sociald	(cached)
+ok  	github.com/qilinbro/msg-manager/cmd/sociald-mcp	(cached)
+ok  	github.com/qilinbro/msg-manager/cmd/wechat-init-check	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/agent	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/api	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/config	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/adapter	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/mailbox	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/nonebotbridge	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/telegrambot	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/connector/wechatdb	(cached)
+?   	github.com/qilinbro/msg-manager/internal/domain	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/importer	(cached)
+?   	github.com/qilinbro/msg-manager/internal/ingestion	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/localcredentials	(cached)
+?   	github.com/qilinbro/msg-manager/internal/localcredentials/credentialstest	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/mcp	(cached)
+?   	github.com/qilinbro/msg-manager/internal/memory	[no test files]
+?   	github.com/qilinbro/msg-manager/internal/outbox	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/policy	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/publicinfo	(cached)
+ok  	github.com/qilinbro/msg-manager/internal/store	(cached)
+?   	github.com/qilinbro/msg-manager/migrations	[no test files]
+ok  	github.com/qilinbro/msg-manager/tests/integration	(cached)
+API contracts, bounded Assistant, manual receive-only Telegram Bot and 10 bound no-retry Feishu methods verified.
+Inbox launcher synthetic tests passed: 53 isolated launches; DACL-only setup, stable service credentials, explicit clipboard/rotation, DPAPI loading and fail-closed startup. No real account data or service was accessed.
+test_fixed_module_receives_one_operation (test_bridge.DispatchTests.test_fixed_module_receives_one_operation) ... ok
+test_import_failure_is_proven_before_send_and_sanitized (test_bridge.DispatchTests.test_import_failure_is_proven_before_send_and_sanitized) ... ok
+test_only_exact_fixed_actions_and_shape_can_import (test_bridge.DispatchTests.test_only_exact_fixed_actions_and_shape_can_import) ... ok
+test_structured_platform_error_is_not_retried_or_reinterpreted (test_bridge.DispatchTests.test_structured_platform_error_is_not_retried_or_reinterpreted) ... ok
+test_unexpected_post_dispatch_send_failure_is_unknown (test_bridge.DispatchTests.test_unexpected_post_dispatch_send_failure_is_unknown) ... ok
+test_actual_isolated_entrypoint_rejects_bad_input_without_network (test_bridge.EntrypointTests.test_actual_isolated_entrypoint_rejects_bad_input_without_network) ... ok
+test_main_caps_response_and_never_emits_private_value (test_bridge.EntrypointTests.test_main_caps_response_and_never_emits_private_value) ... ok
+test_main_rejects_unencodable_result_conservatively (test_bridge.EntrypointTests.test_main_rejects_unencodable_result_conservatively) ... ok
+test_ambiguous_non_utf8_nonfinite_and_deep_json_are_rejected (test_bridge.StrictJSONTests.test_ambiguous_non_utf8_nonfinite_and_deep_json_are_rejected) ... ok
+test_error_metadata_is_fixed_and_does_not_retain_raw_exception (test_bridge.StrictJSONTests.test_error_metadata_is_fixed_and_does_not_retain_raw_exception) ... ok
+test_size_and_type_bounds (test_bridge.StrictJSONTests.test_size_and_type_bounds) ... ok
+test_utf8_pairs_and_literal_escaped_backslash_are_preserved (test_bridge.StrictJSONTests.test_utf8_pairs_and_literal_escaped_backslash_are_preserved) ... ok
+test_cancel_during_token_or_message_has_no_late_replay (test_feishu.FeishuPackageTests.test_cancel_during_token_or_message_has_no_late_replay) ... ok
+test_definite_message_rejections_are_fixed_and_never_retried (test_feishu.FeishuPackageTests.test_definite_message_rejections_are_fixed_and_never_retried) ... ok
+test_gate_blocks_unexpected_hosts_actions_mutation_and_replay (test_feishu.FeishuPackageTests.test_gate_blocks_unexpected_hosts_actions_mutation_and_replay) ... ok
+test_input_validation_precedes_any_transport_creation (test_feishu.FeishuPackageTests.test_input_validation_precedes_any_transport_creation) ... ok
+test_invalid_response_content_type_encoding_and_stream_bounds (test_feishu.FeishuPackageTests.test_invalid_response_content_type_encoding_and_stream_bounds) ... ok
+test_message_unknown_matrix_never_becomes_success_or_retries (test_feishu.FeishuPackageTests.test_message_unknown_matrix_never_becomes_success_or_retries) ... ok
+test_network_errors_are_redacted_and_phase_aware (test_feishu.FeishuPackageTests.test_network_errors_are_redacted_and_phase_aware) ... ok
+test_policy_21001_and_other_token_errors_never_send_or_fallback (test_feishu.FeishuPackageTests.test_policy_21001_and_other_token_errors_never_send_or_fallback) ... ok
+test_production_transport_disables_proxy_retry_http2_and_keepalive (test_feishu.FeishuPackageTests.test_production_transport_disables_proxy_retry_http2_and_keepalive) ... ok
+test_real_bot_adapter_and_sdk_api_with_exact_frozen_uuid (test_feishu.FeishuPackageTests.test_real_bot_adapter_and_sdk_api_with_exact_frozen_uuid) ... ok
+test_token_redirect_5xx_elapsed_and_reflected_token_have_no_send (test_feishu.FeishuPackageTests.test_token_redirect_5xx_elapsed_and_reflected_token_have_no_send) ... ok
+test_token_schema_scope_size_and_receipt_are_strict (test_feishu.FeishuPackageTests.test_token_schema_scope_size_and_receipt_are_strict) ... ok
+test_auth_rate_limit_network_and_cancellation_never_retry (test_telegram.TelegramTests.test_auth_rate_limit_network_and_cancellation_never_retry) ... ok
+test_driver_itself_blocks_arbitrary_api_url_method_and_parameters (test_telegram.TelegramTests.test_driver_itself_blocks_arbitrary_api_url_method_and_parameters) ... ok
+test_empty_page_does_not_advance_including_maximum_cursor (test_telegram.TelegramTests.test_empty_page_does_not_advance_including_maximum_cursor) ... ok
+test_every_known_nonmessage_type_is_minimal (test_telegram.TelegramTests.test_every_known_nonmessage_type_is_minimal) ... ok
+test_identity_and_webhook_fail_closed_before_getupdates (test_telegram.TelegramTests.test_identity_and_webhook_fail_closed_before_getupdates) ... ok
+test_idle_epoch_zero_reseek_accepts_low_and_reused_ids_without_retry (test_telegram.TelegramTests.test_idle_epoch_zero_reseek_accepts_low_and_reused_ids_without_retry) ... ok
+test_large_ids_remain_exact_decimal_strings (test_telegram.TelegramTests.test_large_ids_remain_exact_decimal_strings) ... ok
+test_malformed_pages_fail_without_acknowledging_any_part (test_telegram.TelegramTests.test_malformed_pages_fail_without_acknowledging_any_part) ... ok
+test_malformed_private_text_is_only_an_unsupported_reason (test_telegram.TelegramTests.test_malformed_private_text_is_only_an_unsupported_reason) ... ok
+test_poll_is_one_page_preserves_mentions_and_original_whitespace (test_telegram.TelegramTests.test_poll_is_one_page_preserves_mentions_and_original_whitespace) ... ok
+test_probe_uses_actual_adapter_bot_without_lifecycle_or_settings (test_telegram.TelegramTests.test_probe_uses_actual_adapter_bot_without_lifecycle_or_settings) ... ok
+test_repeated_manual_calls_never_keep_a_candidate_offset_in_memory (test_telegram.TelegramTests.test_repeated_manual_calls_never_keep_a_candidate_offset_in_memory) ... ok
+test_strict_input_and_unknown_actions_make_no_network_call (test_telegram.TelegramTests.test_strict_input_and_unknown_actions_make_no_network_call) ... ok
+test_strict_response_json_and_byte_bounds (test_telegram.TelegramTests.test_strict_response_json_and_byte_bounds) ... ok
+test_unsupported_payloads_are_reduced_to_reason_before_nonebot_models (test_telegram.TelegramTests.test_unsupported_payloads_are_reduced_to_reason_before_nonebot_models) ... ok
+
+----------------------------------------------------------------------
+Ran 39 tests in 2.561s
+
+OK
+Profile link client/component checks passed: scoped transport, explicit identity confirmation, reversible association, preserved source permissions, and unmount guards. Synthetic data only.
+(node:40688) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Import analysis synthetic checks passed: explicit model-bound scope, default-off consent, one atomic request, visible queue result, no stale retry, model-change reconfirmation, actual Inbox/ImportPanel delayed-POST close guards, visible cancel uncertainty, late-result isolation and no mutation replay. Browser/Tauri acceptance remains pending.
+(node:37428) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+AI model checks passed: authenticated GET/PATCH, strict write-only secret/CAS, independent read-only presets, manual model IDs, no auto-save/probe, target isolation, consent reset, error/retry, stale/abort/unmount and real Lucide rendering. Synthetic data only.
+(node:52824) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Model preset API checks passed: six static references, strict schema/provenance, authenticated GET-only transport, no credential serialization, failure/cancellation/timeout safety, and legacy config GET/PATCH. Synthetic data only.
+(node:47040) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+UI icon checks passed: 49 pinned upstream SVGs, 50 real rendered aliases, 29 control icons, exact geometry/hash, full ISC+Feather MIT notices, offline copies and safe decorative SVG semantics. No network IO.
+Help disclosure regressions passed: shipped native details/summary, closed independent defaults, intact content, React escaping, 10 outside-description source guards with escaped SSR mirrors, no persistence/global hiding, 11 shared-helper modules and existing closed Assistant disclosures. Offline rendering/source checks only; not browser AX acceptance.
+PASS transport: GET status only, verify {}, sync explicit one-shot consent
+PASS transport: missing/false/truthy consent is rejected before fetch
+PASS transport: status/verify/sync cancellation and deadlines are deterministic, no retry
+PASS transport: aborted late response/body cannot be accepted
+PASS transport: safe Chinese errors, known scope/auth codes, unknown code normalization
+PASS DTO: strict status keys, enums, flags, nulls, identity and timestamps
+PASS DTO: result exact fields, <=100 events, disjoint counts, partial and no AI
+PASS DTO: canonical decimal offset preserves 0..MaxInt64 exactly
+PASS DTO: malformed, non-200 success and oversized response bodies fail closed
+PASS panel: mount is one status read, honest manual-only copy and stable associations
+PASS panel: verify never receives; sync consumes consent before IO and blocks stale double-click
+PASS panel: every failed/uncertain sync resets consent and stale identity, no retries
+PASS panel: refreshing/reverifying also revokes previous one-use consent
+PASS panel: unavailable states never allow receive or manufacture a verification
+PASS panel: token switch aborts pending status/verify/sync; late success or auth failure is ignored
+PASS panel: unmount aborts any operation; late success/failure never writes state
+PASS panel: current service 401 clears auth; platform auth failure does not; strict replay only reads status
+PASS Inbox transport: exact bot source and manual-only status accepted; unknown/null rejected
+PASS Inbox render: manual-only is not realtime-disconnected and exact provenance only
+PASS App integration: token-keyed Settings panel, Inbox mounts and reloads after leaving Settings
+Telegram Bot synthetic checks: 20/20 groups passed; 259 rejection assertions; no real DOM/network/platform IO.
+Milky client checks passed: single QQ catalog/settings integration, one state-aware monitor action, visible guarded stop during in-flight requests, pending clear without re-verification, persisted peers, safe payloads, and component compilation. Synthetic data only.
+(node:15028) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Profile client/component synthetic checks passed: scoped authenticated APIs, explicit consent, candidate confirmation, safe sources, unknown results, categories, dirty preservation, paused manual edits and background-job lifecycle.
+(node:43512) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Service session synthetic checks passed (13 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, canceled initial/replacement restore suppression and manual retry, active revalidation cancellation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.
+Device auth synthetic checks passed (32 groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, canceled candidate/durable restore suppression with manual retry, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.
+Assistant and digest synthetic client/component checks passed: real authorized transport, revision-zero environment binding, request allowlists, nonterminal 202, immutable per-action consent, actual tool audit, no mutation replay, local-stop/unknown recovery, isolated assistant expiry, memory-only navigation state, digest CAS and separate daily/immediate consent. No real service, model, account, browser or Tauri was used.
+Assistant-help synthetic checks passed (9 groups): allowlisted visible context, stable business shell, explicit fill/append without overwrite or truncation, exact Chinese/emoji UTF-8 boundaries and NUL rejection, current-draft submit guards, no automatic submit/consent, unresolved/expired protection, GET-only recovery, fresh immutable-action acknowledgments, close-during-flight preservation and manual configuration. Native dialog, layout, scroll, real models/accounts and Tauri remain separate acceptance checks.
+Chat discovery synthetic regressions passed: conversation type selects, one search field with independent scopes, query URLs, bounded snippets, literal highlights, 256-byte/NUL guards, pagination, empty states, safe UI-only help, explicit source actions, and stale response cancellation. Synthetic data only.
+Feishu synthetic client/panel checks passed: ten API methods, DTO/calendar/binding validation, write-only credentials, independent consent, fixed 12-hour windows, 202/unknown/no replay, GET-only recovery, withdrawn stale content, exact local auth mapping and lifecycle cleanup. No real credentials, model, platform, backend or enabled schedule.
+Feishu synthetic Assistant checks passed: independent unchecked sending consent for enable/send, model-only preview, explicit disable risks, immutable full report preview and existing confirmation body, reread/version/remount consent reset, conservative aliases, no unknown replay, and model-independent rejection. No real model, account, platform, backend or enabled schedule.
+WeChat monitor client/component, inbox soft-refresh and disclosure checks passed: authenticated transport, old service compatibility, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, reading/editor preservation, folded successful counts, visible limited history and persistent stop warnings after uncertainty clears (WeChat and email). Synthetic data only.
+(node:588) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Inbox import regression checks passed: mail metadata and read flags are preserved.
+(node:50544) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> @social-intelligence/desktop@0.1.0 format:check
+> prettier --check src index.html package.json tsconfig.json vite.config.ts .prettierrc.json
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> @social-intelligence/desktop@0.1.0 check
+> tsc --noEmit
+
+
+> @social-intelligence/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 55 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.58 kB │ gzip:   0.37 kB
+dist/assets/index-ByOR5dor.css   58.98 kB │ gzip:  10.42 kB
+dist/assets/index-C5eEy-Uw.js   536.41 kB │ gzip: 156.57 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 149ms
+{"run":"candidate-r3-full-check-captured","candidate":"candidate-r3","started_at":"2026-11-19T18:10:59.4356619+08:00","finished_at":"2026-11-19T18:11:44.8809375+08:00","duration_seconds":45.4421086,"passed":true,"synthetic_only":true,"deployed":false,"actual_platform_calls":0,"default_credential_file_accessed":false}
+
+===== candidate-r3-race-captured-v2.stdout.log =====
+STARTED_AT=2026-11-19T18:11:47.7166241+08:00
+CANDIDATE=candidate-r3; SYNTHETIC_ONLY=true; GO_TEST_RACE_COUNT=1; PACKAGES=8
+ok  	github.com/qilinbro/msg-manager/internal/connector/nonebotbridge	29.035s
+ok  	github.com/qilinbro/msg-manager/internal/connector/telegrambot	2.000s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	3.952s
+ok  	github.com/qilinbro/msg-manager/internal/store	33.231s
+ok  	github.com/qilinbro/msg-manager/internal/api	29.008s
+ok  	github.com/qilinbro/msg-manager/internal/config	2.246s
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	6.855s
+ok  	github.com/qilinbro/msg-manager/tests/integration	10.524s
+{"run":"candidate-r3-race-captured-v2","candidate":"candidate-r3","started_at":"2026-11-19T18:11:47.7166241+08:00","finished_at":"2026-11-19T18:13:03.3584612+08:00","duration_seconds":75.6383016,"passed":true,"native_exit_code":0,"race":true,"count":1,"packages":8,"synthetic_only":true,"deployed":false,"actual_platform_calls":0}
+
+===== candidate-r4-full-captured.log =====
+STARTED_AT=2026-11-19T18:38:02.3746566+08:00
+CANDIDATE=candidate-r4; MODE=full; BASELINE=b9420cbab45104280d49ab463a58a8bd3c44a5bd
+SAFETY=synthetic_only;product_env_cleared;default_credential_path_forbidden;no_deployment
+PS>TerminatingError(): "Go files need formatting. Run gofmt and review the changes."
+{"run":"candidate-r4-full-captured","candidate":"candidate-r4","baseline":"b9420cbab45104280d49ab463a58a8bd3c44a5bd","started_at":"2026-11-19T18:38:02.3746566+08:00","finished_at":"2026-11-19T18:38:03.0153618+08:00","duration_seconds":0.6332454,"passed":false,"native_exit_code":-1,"synthetic_only":true,"deployed":false,"actual_platform_calls":0,"default_credential_file_accessed":false}
+**********************
+PowerShell 记录结束
+结束时间: 20261119183803
+**********************
+
+===== candidate-r4-race-captured.stdout.log =====
+ok  	github.com/qilinbro/msg-manager/internal/connector/nonebotbridge	28.962s
+ok  	github.com/qilinbro/msg-manager/internal/connector/telegrambot	1.754s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	3.932s
+ok  	github.com/qilinbro/msg-manager/internal/store	30.422s
+ok  	github.com/qilinbro/msg-manager/internal/api	27.638s
+ok  	github.com/qilinbro/msg-manager/internal/config	2.323s
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	7.092s
+ok  	github.com/qilinbro/msg-manager/tests/integration	10.551s
+
+===== candidate-r5-full-captured.stdout.log =====
+ok  	github.com/qilinbro/msg-manager/cmd/sociald	2.095s
+ok  	github.com/qilinbro/msg-manager/cmd/sociald-mcp	4.051s
+ok  	github.com/qilinbro/msg-manager/cmd/wechat-init-check	0.414s
+ok  	github.com/qilinbro/msg-manager/internal/agent	2.731s
+ok  	github.com/qilinbro/msg-manager/internal/api	31.743s
+ok  	github.com/qilinbro/msg-manager/internal/config	0.604s
+ok  	github.com/qilinbro/msg-manager/internal/connector	0.766s
+ok  	github.com/qilinbro/msg-manager/internal/connector/adapter	1.846s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	2.014s
+ok  	github.com/qilinbro/msg-manager/internal/connector/mailbox	1.639s
+ok  	github.com/qilinbro/msg-manager/internal/connector/nonebotbridge	4.065s
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	5.892s
+ok  	github.com/qilinbro/msg-manager/internal/connector/telegrambot	0.956s
+ok  	github.com/qilinbro/msg-manager/internal/connector/wechatdb	37.645s
+?   	github.com/qilinbro/msg-manager/internal/domain	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/importer	0.954s
+?   	github.com/qilinbro/msg-manager/internal/ingestion	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/localcredentials	9.088s
+?   	github.com/qilinbro/msg-manager/internal/localcredentials/credentialstest	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/mcp	0.446s
+?   	github.com/qilinbro/msg-manager/internal/memory	[no test files]
+?   	github.com/qilinbro/msg-manager/internal/outbox	[no test files]
+ok  	github.com/qilinbro/msg-manager/internal/policy	0.775s
+ok  	github.com/qilinbro/msg-manager/internal/publicinfo	2.042s
+ok  	github.com/qilinbro/msg-manager/internal/store	34.131s
+?   	github.com/qilinbro/msg-manager/internal/wechatid	[no test files]
+?   	github.com/qilinbro/msg-manager/migrations	[no test files]
+ok  	github.com/qilinbro/msg-manager/tests/integration	8.951s
+API contracts, bounded Assistant, manual receive-only Telegram Bot and 10 bound no-retry Feishu methods verified.
+Inbox launcher synthetic tests passed: 53 isolated launches; DACL-only setup, stable service credentials, explicit clipboard/rotation, DPAPI loading and fail-closed startup. No real account data or service was accessed.
+test_fixed_module_receives_one_operation (test_bridge.DispatchTests.test_fixed_module_receives_one_operation) ... ok
+test_import_failure_is_proven_before_send_and_sanitized (test_bridge.DispatchTests.test_import_failure_is_proven_before_send_and_sanitized) ... ok
+test_only_exact_fixed_actions_and_shape_can_import (test_bridge.DispatchTests.test_only_exact_fixed_actions_and_shape_can_import) ... ok
+test_structured_platform_error_is_not_retried_or_reinterpreted (test_bridge.DispatchTests.test_structured_platform_error_is_not_retried_or_reinterpreted) ... ok
+test_unexpected_post_dispatch_send_failure_is_unknown (test_bridge.DispatchTests.test_unexpected_post_dispatch_send_failure_is_unknown) ... ok
+test_actual_isolated_entrypoint_rejects_bad_input_without_network (test_bridge.EntrypointTests.test_actual_isolated_entrypoint_rejects_bad_input_without_network) ... ok
+test_main_caps_response_and_never_emits_private_value (test_bridge.EntrypointTests.test_main_caps_response_and_never_emits_private_value) ... ok
+test_main_rejects_unencodable_result_conservatively (test_bridge.EntrypointTests.test_main_rejects_unencodable_result_conservatively) ... ok
+test_ambiguous_non_utf8_nonfinite_and_deep_json_are_rejected (test_bridge.StrictJSONTests.test_ambiguous_non_utf8_nonfinite_and_deep_json_are_rejected) ... ok
+test_error_metadata_is_fixed_and_does_not_retain_raw_exception (test_bridge.StrictJSONTests.test_error_metadata_is_fixed_and_does_not_retain_raw_exception) ... ok
+test_size_and_type_bounds (test_bridge.StrictJSONTests.test_size_and_type_bounds) ... ok
+test_utf8_pairs_and_literal_escaped_backslash_are_preserved (test_bridge.StrictJSONTests.test_utf8_pairs_and_literal_escaped_backslash_are_preserved) ... ok
+test_cancel_during_token_or_message_has_no_late_replay (test_feishu.FeishuPackageTests.test_cancel_during_token_or_message_has_no_late_replay) ... ok
+test_definite_message_rejections_are_fixed_and_never_retried (test_feishu.FeishuPackageTests.test_definite_message_rejections_are_fixed_and_never_retried) ... ok
+test_gate_blocks_unexpected_hosts_actions_mutation_and_replay (test_feishu.FeishuPackageTests.test_gate_blocks_unexpected_hosts_actions_mutation_and_replay) ... ok
+test_input_validation_precedes_any_transport_creation (test_feishu.FeishuPackageTests.test_input_validation_precedes_any_transport_creation) ... ok
+test_invalid_response_content_type_encoding_and_stream_bounds (test_feishu.FeishuPackageTests.test_invalid_response_content_type_encoding_and_stream_bounds) ... ok
+test_message_unknown_matrix_never_becomes_success_or_retries (test_feishu.FeishuPackageTests.test_message_unknown_matrix_never_becomes_success_or_retries) ... ok
+test_network_errors_are_redacted_and_phase_aware (test_feishu.FeishuPackageTests.test_network_errors_are_redacted_and_phase_aware) ... ok
+test_policy_21001_and_other_token_errors_never_send_or_fallback (test_feishu.FeishuPackageTests.test_policy_21001_and_other_token_errors_never_send_or_fallback) ... ok
+test_production_transport_disables_proxy_retry_http2_and_keepalive (test_feishu.FeishuPackageTests.test_production_transport_disables_proxy_retry_http2_and_keepalive) ... ok
+test_real_bot_adapter_and_sdk_api_with_exact_frozen_uuid (test_feishu.FeishuPackageTests.test_real_bot_adapter_and_sdk_api_with_exact_frozen_uuid) ... ok
+test_token_redirect_5xx_elapsed_and_reflected_token_have_no_send (test_feishu.FeishuPackageTests.test_token_redirect_5xx_elapsed_and_reflected_token_have_no_send) ... ok
+test_token_schema_scope_size_and_receipt_are_strict (test_feishu.FeishuPackageTests.test_token_schema_scope_size_and_receipt_are_strict) ... ok
+test_auth_rate_limit_network_and_cancellation_never_retry (test_telegram.TelegramTests.test_auth_rate_limit_network_and_cancellation_never_retry) ... ok
+test_driver_itself_blocks_arbitrary_api_url_method_and_parameters (test_telegram.TelegramTests.test_driver_itself_blocks_arbitrary_api_url_method_and_parameters) ... ok
+test_empty_page_does_not_advance_including_maximum_cursor (test_telegram.TelegramTests.test_empty_page_does_not_advance_including_maximum_cursor) ... ok
+test_every_known_nonmessage_type_is_minimal (test_telegram.TelegramTests.test_every_known_nonmessage_type_is_minimal) ... ok
+test_identity_and_webhook_fail_closed_before_getupdates (test_telegram.TelegramTests.test_identity_and_webhook_fail_closed_before_getupdates) ... ok
+test_idle_epoch_zero_reseek_accepts_low_and_reused_ids_without_retry (test_telegram.TelegramTests.test_idle_epoch_zero_reseek_accepts_low_and_reused_ids_without_retry) ... ok
+test_large_ids_remain_exact_decimal_strings (test_telegram.TelegramTests.test_large_ids_remain_exact_decimal_strings) ... ok
+test_malformed_pages_fail_without_acknowledging_any_part (test_telegram.TelegramTests.test_malformed_pages_fail_without_acknowledging_any_part) ... ok
+test_malformed_private_text_is_only_an_unsupported_reason (test_telegram.TelegramTests.test_malformed_private_text_is_only_an_unsupported_reason) ... ok
+test_poll_is_one_page_preserves_mentions_and_original_whitespace (test_telegram.TelegramTests.test_poll_is_one_page_preserves_mentions_and_original_whitespace) ... ok
+test_probe_uses_actual_adapter_bot_without_lifecycle_or_settings (test_telegram.TelegramTests.test_probe_uses_actual_adapter_bot_without_lifecycle_or_settings) ... ok
+test_repeated_manual_calls_never_keep_a_candidate_offset_in_memory (test_telegram.TelegramTests.test_repeated_manual_calls_never_keep_a_candidate_offset_in_memory) ... ok
+test_strict_input_and_unknown_actions_make_no_network_call (test_telegram.TelegramTests.test_strict_input_and_unknown_actions_make_no_network_call) ... ok
+test_strict_response_json_and_byte_bounds (test_telegram.TelegramTests.test_strict_response_json_and_byte_bounds) ... ok
+test_unsupported_payloads_are_reduced_to_reason_before_nonebot_models (test_telegram.TelegramTests.test_unsupported_payloads_are_reduced_to_reason_before_nonebot_models) ... ok
+
+----------------------------------------------------------------------
+Ran 39 tests in 2.077s
+
+OK
+Profile link client/component checks passed: scoped transport, explicit identity confirmation, reversible association, preserved source permissions, and unmount guards. Synthetic data only.
+(node:9116) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Import analysis synthetic checks passed: explicit model-bound scope, default-off consent, one atomic request, visible queue result, no stale retry, model-change reconfirmation, actual Inbox/ImportPanel delayed-POST close guards, visible cancel uncertainty, late-result isolation and no mutation replay. Browser/Tauri acceptance remains pending.
+(node:52608) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+AI model checks passed: authenticated GET/PATCH, strict write-only secret/CAS, independent read-only presets, manual model IDs, no auto-save/probe, target isolation, consent reset, error/retry, stale/abort/unmount and real Lucide rendering. Synthetic data only.
+(node:46548) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Model preset API checks passed: six static references, strict schema/provenance, authenticated GET-only transport, no credential serialization, failure/cancellation/timeout safety, and legacy config GET/PATCH. Synthetic data only.
+(node:8520) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+UI icon checks passed: 49 pinned upstream SVGs, 50 real rendered aliases, 29 control icons, exact geometry/hash, full ISC+Feather MIT notices, offline copies and safe decorative SVG semantics. No network IO.
+Help disclosure regressions passed: shipped native details/summary, closed independent defaults, intact content, React escaping, 10 outside-description source guards with escaped SSR mirrors, no persistence/global hiding, 11 shared-helper modules and existing closed Assistant disclosures. Offline rendering/source checks only; not browser AX acceptance.
+PASS transport: GET status only, verify {}, sync explicit one-shot consent
+PASS transport: missing/false/truthy consent is rejected before fetch
+PASS transport: status/verify/sync cancellation and deadlines are deterministic, no retry
+PASS transport: aborted late response/body cannot be accepted
+PASS transport: safe Chinese errors, known scope/auth codes, unknown code normalization
+PASS DTO: strict status keys, enums, flags, nulls, identity and timestamps
+PASS DTO: result exact fields, <=100 events, disjoint counts, partial and no AI
+PASS DTO: canonical decimal offset preserves 0..MaxInt64 exactly
+PASS DTO: malformed, non-200 success and oversized response bodies fail closed
+PASS panel: mount is one status read, honest manual-only copy and stable associations
+PASS panel: verify never receives; sync consumes consent before IO and blocks stale double-click
+PASS panel: every failed/uncertain sync resets consent and stale identity, no retries
+PASS panel: refreshing/reverifying also revokes previous one-use consent
+PASS panel: unavailable states never allow receive or manufacture a verification
+PASS panel: token switch aborts pending status/verify/sync; late success or auth failure is ignored
+PASS panel: unmount aborts any operation; late success/failure never writes state
+PASS panel: current service 401 clears auth; platform auth failure does not; strict replay only reads status
+PASS Inbox transport: exact bot source and manual-only status accepted; unknown/null rejected
+PASS Inbox render: manual-only is not realtime-disconnected and exact provenance only
+PASS App integration: token-keyed Settings panel, Inbox mounts and reloads after leaving Settings
+Telegram Bot synthetic checks: 20/20 groups passed; 259 rejection assertions; no real DOM/network/platform IO.
+Milky client checks passed: single QQ catalog/settings integration, one state-aware monitor action, visible guarded stop during in-flight requests, pending clear without re-verification, persisted peers, safe payloads, and component compilation. Synthetic data only.
+(node:3456) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Profile client/component synthetic checks passed: scoped authenticated APIs, explicit consent, candidate confirmation, safe sources, unknown results, categories, dirty preservation, paused manual edits and background-job lifecycle.
+(node:51488) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Service session synthetic checks passed (13 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, canceled initial/replacement restore suppression and manual retry, active revalidation cancellation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.
+Device auth synthetic checks passed (32 groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, canceled candidate/durable restore suppression with manual retry, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.
+Assistant and digest synthetic client/component checks passed: real authorized transport, revision-zero environment binding, request allowlists, nonterminal 202, immutable per-action consent, actual tool audit, no mutation replay, local-stop/unknown recovery, isolated assistant expiry, memory-only navigation state, digest CAS and separate daily/immediate consent. No real service, model, account, browser or Tauri was used.
+Assistant-help synthetic checks passed (9 groups): allowlisted visible context, stable business shell, explicit fill/append without overwrite or truncation, exact Chinese/emoji UTF-8 boundaries and NUL rejection, current-draft submit guards, no automatic submit/consent, unresolved/expired protection, GET-only recovery, fresh immutable-action acknowledgments, close-during-flight preservation and manual configuration. Native dialog, layout, scroll, real models/accounts and Tauri remain separate acceptance checks.
+Chat discovery synthetic regressions passed: conversation type selects, one search field with independent scopes, query URLs, bounded snippets, literal highlights, 256-byte/NUL guards, pagination, empty states, safe UI-only help, explicit source actions, and stale response cancellation. Synthetic data only.
+Feishu synthetic client/panel checks passed: ten API methods, DTO/calendar/binding validation, write-only credentials, independent consent, fixed 12-hour windows, 202/unknown/no replay, GET-only recovery, withdrawn stale content, exact local auth mapping and lifecycle cleanup. No real credentials, model, platform, backend or enabled schedule.
+Feishu synthetic Assistant checks passed: independent unchecked sending consent for enable/send, model-only preview, explicit disable risks, immutable full report preview and existing confirmation body, reread/version/remount consent reset, conservative aliases, no unknown replay, and model-independent rejection. No real model, account, platform, backend or enabled schedule.
+WeChat monitor client/component, inbox soft-refresh and disclosure checks passed: authenticated transport, old service compatibility, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, reading/editor preservation, folded successful counts, visible limited history and persistent stop warnings after uncertainty clears (WeChat and email). Synthetic data only.
+(node:38112) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Inbox import regression checks passed: mail metadata and read flags are preserved.
+(node:52996) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> @social-intelligence/desktop@0.1.0 format:check
+> prettier --check src index.html package.json tsconfig.json vite.config.ts .prettierrc.json
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> @social-intelligence/desktop@0.1.0 check
+> tsc --noEmit
+
+
+> @social-intelligence/desktop@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 55 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.58 kB │ gzip:   0.37 kB
+dist/assets/index-ByOR5dor.css   58.98 kB │ gzip:  10.42 kB
+dist/assets/index-C5eEy-Uw.js   536.41 kB │ gzip: 156.57 kB
+
+[plugin builtin:vite-reporter]
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 151ms
+
+===== candidate-r5-race-captured.stdout.log =====
+ok  	github.com/qilinbro/msg-manager/internal/connector/nonebotbridge	29.168s
+ok  	github.com/qilinbro/msg-manager/internal/connector/telegrambot	1.994s
+ok  	github.com/qilinbro/msg-manager/internal/connector/feishu	4.249s
+ok  	github.com/qilinbro/msg-manager/internal/store	33.990s
+ok  	github.com/qilinbro/msg-manager/internal/api	28.971s
+ok  	github.com/qilinbro/msg-manager/internal/config	2.076s
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	6.618s
+ok  	github.com/qilinbro/msg-manager/tests/integration	10.262s

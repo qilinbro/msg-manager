@@ -121,6 +121,14 @@ func makeAssistantOperations() []assistantOperation {
 	verifyMilky.Effect, verifyMilky.Availability = "external_read", "confirmation_required"
 	add("sync_qq_milky", "POST", "/api/v1/connections/qq-milky/sync", "从已配置Milky同步指定QQ私聊的1至30条消息并写入本机库；必须逐次确认。", assistantObject(map[string]*assistantSchema{"peer_id": peer, "limit": assistantInteger(1, 30)}, "peer_id")).Effect = "external_read"
 	add("set_qq_milky_monitor", "POST", "/api/v1/connections/qq-milky/monitor", "逐次确认开启/关闭最多20个QQ私聊的后台接收；只读文本，不发送，不能代替平台配置。", assistantObject(map[string]*assistantSchema{"enabled": assistantBoolean(), "peer_ids": assistantArray(peer, 0, 20)}, "enabled", "peer_ids")).Effect = "external_read"
+	for _, entry := range []struct{ id, method, path string }{
+		{"get_telegram_bot_status", "GET", "/api/v1/connections/telegram-bot/status"},
+		{"verify_telegram_bot", "POST", "/api/v1/connections/telegram-bot/verify"},
+		{"sync_telegram_bot", "POST", "/api/v1/connections/telegram-bot/sync"},
+	} {
+		operation := add(entry.id, entry.method, entry.path, "Telegram 机器人仅限人工界面；手动核验及每批接收均不开放模型工具，不能代替逐次本人同意。", nil)
+		operation.Effect, operation.Availability = "external_read", "human_only"
+	}
 	add("get_model_presets", "GET", modelPresetsPath, "读取静态Chat Completions配置参考与固定来源；不联网、不证明模型或tools可用、不返回或修改凭据。", empty())
 	add("get_model_config", "GET", modelConfigPath, "只读当前模型地址/名称/版本与密钥是否配置，不返回密钥；模型不能修改凭据或目的地。", empty())
 	manualConfig := add("update_model_config", "PATCH", modelConfigPath, "仅人工设置界面可更新模型目的地、密钥或额度；模型无执行工具。", nil)

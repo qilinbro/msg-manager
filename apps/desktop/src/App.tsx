@@ -6,6 +6,7 @@ import { getCollection, SERVICE, ServiceError } from './api';
 import type { Connector, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
+import { TelegramBotPanel } from './TelegramBotPanel';
 import { AIModelPanel } from './AIModelPanel';
 import { DigestPanel } from './DigestPanel';
 import { AssistantPanel } from './AssistantPanel';
@@ -73,8 +74,9 @@ const PLANNED_CONNECTORS: Connector[] = [
     platform: 'telegram',
     display_name: 'Telegram Bot',
     status: 'not_configured',
-    implementation_status: 'planned',
-    description: '等待平台连接能力接入',
+    implementation_status: 'manual_receive_ready',
+    description:
+      '仅逐次手动接收授权名单内、Bot 可见的私聊纯文本；不是个人账号接管或实时在线，后台接收、发送与历史导入均关闭。',
     capabilities: {
       receive_text: false,
       send_text: false,
@@ -586,6 +588,11 @@ function Settings({
         key={`milky-${activeToken}`}
         token={activeToken}
         onSystemUpdate={onSystemUpdate}
+        onAuthFailure={onAuthFailure}
+      />
+      <TelegramBotPanel
+        key={`telegram-bot:${activeToken}`}
+        token={activeToken}
         onAuthFailure={onAuthFailure}
       />
       <AIModelPanel

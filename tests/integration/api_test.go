@@ -113,6 +113,10 @@ func assertPlannedConnectors(t *testing.T, items []connector.Descriptor) {
 		if item.ID == "wechat-db" {
 			expectedImplementation = "manual_read_ready"
 		}
+		if item.ID == "telegram-bot" {
+			// One manually approved page is not background receive, send or history capability.
+			expectedImplementation = "manual_receive_ready"
+		}
 		if item.Status != "not_configured" || item.ImplementationStatus != expectedImplementation || item.Capabilities.ReceiveText || item.Capabilities.SendText || item.Capabilities.HistoryImport || item.Description == "" || item.DisplayName == "" {
 			t.Fatalf("connector falsely claims implemented capabilities: %+v", item)
 		}
