@@ -189,12 +189,12 @@ func TestReadMatchingFiltersTextWithinBoundedSourceWindow(t *testing.T) {
 }
 
 func TestGroupChatIdentityAndSenderNormalization(t *testing.T) {
-	for _, id := range []string{"@@room_123", "@@group-member_9"} {
+	for _, id := range []string{"@@room_123", "@@group-member_9", "12345678901@chatroom"} {
 		if !groupID(id) || !chatID(id) || chatKind(id) != "group" {
 			t.Fatalf("valid group identity rejected: %q", id)
 		}
 	}
-	for _, id := range []string{"@room_123", "@@", "@@bad.id", "wxid_peer"} {
+	for _, id := range []string{"@room_123", "@@", "@@bad.id", "wxid_peer", "room@chatroom", "123@chatroom.extra"} {
 		if groupID(id) {
 			t.Fatalf("invalid group identity accepted: %q", id)
 		}
@@ -211,6 +211,30 @@ func TestGroupChatIdentityAndSenderNormalization(t *testing.T) {
 	}
 	if _, err := r.normalize(rawMessage{localID: 3, timestamp: 1700000002, kind: 1, sender: "room@chatroom", content: []byte("未知发送者")}, "@@room_123"); !errors.Is(err, ErrUnsupportedSchema) {
 		t.Fatalf("unknown group sender accepted: %v", err)
+	}
+}
+
+func TestNumericRoomSessionUsesRecentActivityAndReadsOnlyThatGroup(t *testing.T) {
+	const room = "12345678901@chatroom"
+	f := newFixture(t, 1)
+	sessionDB := fixtureDB(t, filepath.Join(f.c.Directory, "session", "session.db"), 1)
+	mustExec(t, sessionDB, "INSERT INTO SessionTable VALUES (?,?)", room, 1700000010)
+	mustExec(t, sessionDB, "INSERT INTO SessionTable VALUES (?,?)", "1@chatroom", 1699999990)
+	_ = sessionDB.Close()
+	table := fmt.Sprintf("Msg_%x", md5.Sum([]byte(room)))
+	mustExec(t, f.writes[0], `CREATE TABLE "`+table+`"(local_id INTEGER PRIMARY KEY,server_id INTEGER,local_type INTEGER,real_sender_id INTEGER,create_time INTEGER,message_content)`)
+	mustExec(t, f.writes[0], `INSERT INTO "`+table+`" VALUES (1,9001,1,3,1700000010,'合成群聊消息')`)
+	f.add(0, 2, 1, 2, 1700000000, "不属于此群的私聊", nil)
+	f.close()
+
+	r := f.reader()
+	sessions, err := r.Sessions(t.Context())
+	if err != nil || len(sessions) != 3 || sessions[0].PeerID != room || sessions[0].Kind != "group" || sessions[1].PeerID != fixturePeer {
+		t.Fatalf("recent group session mismatch: %+v, %v", sessions, err)
+	}
+	batch, err := r.Read(t.Context(), room)
+	if err != nil || batch.PeerID != room || batch.Kind != "group" || len(batch.Messages) != 1 || batch.Messages[0].Body != "合成群聊消息" {
+		t.Fatalf("read group failed: %+v, %v", batch, err)
 	}
 }
 

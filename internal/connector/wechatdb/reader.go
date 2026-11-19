@@ -50,7 +50,7 @@ const (
 
 var (
 	usernamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]{1,127}$`)
-	groupPattern    = regexp.MustCompile(`^@@[A-Za-z0-9_-]{2,126}$`)
+	groupPattern    = regexp.MustCompile(`^(?:@@[A-Za-z0-9_-]{2,126}|[0-9]{1,32}@chatroom)$`)
 	shardPattern    = regexp.MustCompile(`^message_([0-9]{1,5})\.db$`)
 	suffixPattern   = regexp.MustCompile(`^[A-Za-z0-9]{4}$`)
 )
@@ -386,10 +386,15 @@ func (r *Reader) sessions(ctx context.Context) ([]Session, error) {
 		return nil, err
 	}
 	defer closeDB(db, tx)
-	if _, err := columns(ctx, tx, "SessionTable", "username"); err != nil {
+	cols, err := columns(ctx, tx, "SessionTable", "username")
+	if err != nil {
 		return nil, err
 	}
-	rows, err := tx.QueryContext(ctx, "SELECT CASE WHEN length(CAST(username AS BLOB)) <= 128 THEN username ELSE NULL END FROM SessionTable LIMIT ?", maxSessions+1)
+	order := "username COLLATE BINARY"
+	if cols["sort_timestamp"] {
+		order = "CASE WHEN typeof(sort_timestamp)='integer' THEN sort_timestamp ELSE 0 END DESC," + order
+	}
+	rows, err := tx.QueryContext(ctx, "SELECT CASE WHEN length(CAST(username AS BLOB)) <= 128 THEN username ELSE NULL END FROM SessionTable ORDER BY "+order+" LIMIT ?", maxSessions+1)
 	if err != nil {
 		return nil, ErrUnsupportedSchema
 	}
@@ -412,7 +417,6 @@ func (r *Reader) sessions(ctx context.Context) ([]Session, error) {
 	if rows.Err() != nil {
 		return nil, ErrUnavailable
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].PeerID < result[j].PeerID })
 	return result, nil
 }
 
