@@ -25,7 +25,8 @@ func NewClient(cfg Config) (*Client, error) {
 	return &Client{base: base, milkyVersion: cfg.MilkyVersion, historyLimit: cfg.HistoryLimit}, nil
 }
 
-func (c *Client) SelfID() string { return c.base.SelfID() }
+func (c *Client) SelfID() string            { return c.base.SelfID() }
+func (c *Client) ConfiguredVersion() string { return c.milkyVersion }
 
 // Probe verifies the logged-in account and the protocol version. It is a
 // one-shot check, not a statement of continuous availability or permission

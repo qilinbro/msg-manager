@@ -52,11 +52,14 @@ func LoadFromEnv() (Config, error) {
 			AccessToken:    os.Getenv("QQ_ONEBOT_ACCESS_TOKEN"),
 			ExpectedSelfID: os.Getenv("QQ_ONEBOT_ACCOUNT_ID"),
 		},
-		QQMilky: qqmilky.Config{Endpoint: adapter.Endpoint{
-			URL:            os.Getenv("QQ_MILKY_URL"),
-			AccessToken:    os.Getenv("QQ_MILKY_ACCESS_TOKEN"),
-			ExpectedSelfID: os.Getenv("QQ_MILKY_ACCOUNT_ID"),
-		}},
+		QQMilky: qqmilky.Config{
+			Endpoint: adapter.Endpoint{
+				URL:            os.Getenv("QQ_MILKY_URL"),
+				AccessToken:    os.Getenv("QQ_MILKY_ACCESS_TOKEN"),
+				ExpectedSelfID: os.Getenv("QQ_MILKY_ACCOUNT_ID"),
+			},
+			MilkyVersion: os.Getenv("QQ_MILKY_VERSION"),
+		},
 		Email:        mailbox.Config{Host: os.Getenv("EMAIL_IMAP_HOST"), Username: os.Getenv("EMAIL_IMAP_USERNAME"), Password: os.Getenv("EMAIL_IMAP_PASSWORD"), Folder: os.Getenv("EMAIL_IMAP_FOLDER")},
 		AI:           agent.Config{BaseURL: os.Getenv("AI_BASE_URL"), APIKey: os.Getenv("AI_API_KEY"), Model: os.Getenv("AI_MODEL")},
 		WechatDB:     wechatdb.Config{Directory: os.Getenv("WECHAT_DB_DIR"), AccountID: os.Getenv("WECHAT_DB_ACCOUNT_ID"), Key: os.Getenv("WECHAT_DB_KEY")},

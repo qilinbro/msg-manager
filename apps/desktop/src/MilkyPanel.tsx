@@ -162,7 +162,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
         </div>
       </div>
       <p className="qq-intro">
-        连接你自己部署的 Milky 1.3 协议端，核验本人 QQ
+        连接你自己部署的 Milky 1.2 或 1.3 协议端，核验本人 QQ
         账号，按联系人同步好友私聊历史，并可显式开启后台接收。
         协议端是独立进程（Lagrange.Milky，GPL-3.0），本产品不分发其程序、不代替你登录。自动发送始终关闭。
       </p>
@@ -186,6 +186,12 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
               <code>QQ_MILKY_ACCOUNT_ID</code>
             </dt>
             <dd>预期登录的本人 QQ 号</dd>
+          </div>
+          <div>
+            <dt>
+              <code>QQ_MILKY_VERSION</code>
+            </dt>
+            <dd>填写协议端的 Milky 版本，支持 1.2 和 1.3，默认 1.3</dd>
           </div>
         </dl>
         <p>工作台不收集 QQ 密码、协议端令牌或地址，令牌不进入 URL。</p>
@@ -211,7 +217,7 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           </div>
           <div>
             <dt>协议版本</dt>
-            <dd>{status?.milky_version || '锁定 1.3'}</dd>
+            <dd>{status?.milky_version || '配置 1.2 或 1.3'}</dd>
           </div>
           <div>
             <dt>最近核验</dt>

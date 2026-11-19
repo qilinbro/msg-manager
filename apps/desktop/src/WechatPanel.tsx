@@ -417,7 +417,9 @@ export default function WechatPanel({
           </svg>
           <div>
             <h2 id="wechat-panel-title">读取本机微信消息</h2>
-            <p>按需保存私聊或群聊，可按正文关键词筛选，也可以交给后台定时读取。</p>
+            <p>
+              按需保存私聊或群聊，可按正文关键词筛选，也可以交给后台定时读取。
+            </p>
           </div>
         </div>
         <div className="email-panel-actions">

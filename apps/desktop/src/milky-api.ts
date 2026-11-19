@@ -61,7 +61,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   MILKY_AUTH_FAILED: '协议端鉴权失败，请检查后台配置的访问令牌。',
   MILKY_IDENTITY_MISMATCH: '协议端登录的 QQ 与预期账号不一致。',
   MILKY_LOGGED_OUT: '协议端账号当前未登录或不在线。',
-  MILKY_VERSION_MISMATCH: '协议端 Milky 版本不是本产品锁定的 1.3。',
+  MILKY_VERSION_MISMATCH:
+    '协议端 Milky 版本与后台配置不一致；仅支持显式配置 1.2 或 1.3。',
   MILKY_INVALID_CONFIG: '请求参数或协议端配置不合法。',
   MILKY_PROTOCOL_ERROR: '协议端返回的数据与 Milky 契约不匹配。',
   MILKY_BUSY: '已有 QQ Milky 操作正在进行，请稍后重试。',
