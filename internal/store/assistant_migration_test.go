@@ -10,6 +10,67 @@ import (
 	"github.com/qilinbro/msg-manager/migrations"
 )
 
+func TestOpeningV14RepairsAssistantSchemaAfterMilkyV13Collision(t *testing.T) {
+	ctx := context.Background()
+	path := filepath.Join(t.TempDir(), "milky-v13-feishu-v14.db")
+	legacy := localDevicesLegacyV11(t, path)
+	for _, name := range []string{"0012_local_devices.sql", "0014_feishu.sql"} {
+		raw, err := migrations.Files.ReadFile(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err = legacy.db.Exec(string(raw)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := legacy.db.Exec(`
+		CREATE TABLE qq_milky_connection_config (workspace_id TEXT PRIMARY KEY, revision INTEGER NOT NULL);
+		INSERT INTO qq_milky_connection_config VALUES('local-default',7);
+		INSERT INTO schema_migrations VALUES(12,'2026-01-01T00:00:00Z'),(13,'2026-01-01T00:00:00Z'),(14,'2026-01-01T00:00:00Z');
+		UPDATE digest_schedules SET enabled=1,local_time='09:30',revision=7;
+	`); err != nil {
+		t.Fatal(err)
+	}
+	feishu, err := legacy.SaveFeishuConfig(ctx, FeishuConfig{AppID: "cli_synthetic_app", AppSecret: "synthetic-feishu-secret", RecipientOpenID: "ou_synthetic_self"}, 1, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := legacy.Close(); err != nil {
+		t.Fatal(err)
+	}
+	s, err := Open(path, testKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	var milkyRevision int
+	if err := s.db.QueryRow(`SELECT revision FROM qq_milky_connection_config`).Scan(&milkyRevision); err != nil || milkyRevision != 7 {
+		t.Fatal("repair changed the existing Milky settings", err)
+	}
+	if _, err := s.ReserveAssistantCallContext(ctx, "2026-11-19", 5); err != nil {
+		t.Fatal("assistant quota reservation failed after upgrade", err)
+	}
+	if count, err := s.CountAICallsContext(ctx, "2026-11-19"); err != nil || count != 1 {
+		t.Fatal("shared quota did not include the repaired ledger", count, err)
+	}
+	if _, err := s.SaveModelConfig(ctx, ModelConfig{BaseURL: "https://example.com", Model: "synthetic", APIKey: "synthetic-key", DailyLimit: 5}, 0); err != nil {
+		t.Fatal("model configuration could not be saved after upgrade", err)
+	}
+	if got, err := s.LoadFeishuConfig(ctx); err != nil || got != feishu {
+		t.Fatal("repair changed the existing Feishu configuration", err)
+	}
+	schedule, err := s.LoadDigestSchedule(ctx)
+	if err != nil || schedule.Enabled || schedule.LocalTime != "09:30" || schedule.Revision != 8 {
+		t.Fatal("legacy schedule was not disabled exactly once", schedule, err)
+	}
+	if err := migrate(s.db); err != nil {
+		t.Fatal("repeated upgrade failed", err)
+	}
+	if got, err := s.LoadDigestSchedule(ctx); err != nil || !reflect.DeepEqual(got, schedule) {
+		t.Fatal("repeated upgrade changed the schedule", err)
+	}
+}
+
 func TestAssistantV12MigrationIsAtomicPreservesDataAndRequiresDigestReconsent(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "actual-v12.db")
 	legacy := localDevicesLegacyV11(t, path)

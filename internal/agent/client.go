@@ -17,10 +17,11 @@ import (
 const operationTimeout = 25 * time.Second
 
 type Client struct {
-	cfg         validatedConfig
-	lookupIP    func(context.Context, string) ([]net.IPAddr, error)
-	dialContext func(context.Context, string, string) (net.Conn, error)
-	roots       *x509.CertPool
+	cfg                    validatedConfig
+	lookupIP               func(context.Context, string) ([]net.IPAddr, error)
+	lookupDeepSeekPublicIP func(context.Context) ([]net.IPAddr, error)
+	dialContext            func(context.Context, string, string) (net.Conn, error)
+	roots                  *x509.CertPool
 }
 
 func (*Client) String() string   { return "model client (redacted)" }
@@ -35,7 +36,7 @@ func NewClient(cfg Config) (*Client, error) {
 	}
 	return &Client{cfg: validated, lookupIP: func(ctx context.Context, host string) ([]net.IPAddr, error) {
 		return net.DefaultResolver.LookupIPAddr(ctx, host)
-	}, dialContext: (&net.Dialer{Timeout: 8 * time.Second}).DialContext}, nil
+	}, lookupDeepSeekPublicIP: resolveDeepSeekPublicIP, dialContext: (&net.Dialer{Timeout: 8 * time.Second}).DialContext}, nil
 }
 
 type chatMessage struct {

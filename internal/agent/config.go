@@ -135,8 +135,10 @@ func publicIP(ip netip.Addr) bool {
 	return true
 }
 
+var fakeIPRange = netip.MustParsePrefix("198.18.0.0/15")
+
 var deniedIPv4 = []netip.Prefix{
-	netip.MustParsePrefix("0.0.0.0/8"), netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("100.64.0.0/10"), netip.MustParsePrefix("127.0.0.0/8"), netip.MustParsePrefix("169.254.0.0/16"), netip.MustParsePrefix("172.16.0.0/12"), netip.MustParsePrefix("192.0.0.0/24"), netip.MustParsePrefix("192.0.2.0/24"), netip.MustParsePrefix("192.88.99.0/24"), netip.MustParsePrefix("192.168.0.0/16"), netip.MustParsePrefix("198.18.0.0/15"), netip.MustParsePrefix("198.51.100.0/24"), netip.MustParsePrefix("203.0.113.0/24"), netip.MustParsePrefix("224.0.0.0/4"), netip.MustParsePrefix("240.0.0.0/4"),
+	netip.MustParsePrefix("0.0.0.0/8"), netip.MustParsePrefix("10.0.0.0/8"), netip.MustParsePrefix("100.64.0.0/10"), netip.MustParsePrefix("127.0.0.0/8"), netip.MustParsePrefix("169.254.0.0/16"), netip.MustParsePrefix("172.16.0.0/12"), netip.MustParsePrefix("192.0.0.0/24"), netip.MustParsePrefix("192.0.2.0/24"), netip.MustParsePrefix("192.88.99.0/24"), netip.MustParsePrefix("192.168.0.0/16"), fakeIPRange, netip.MustParsePrefix("198.51.100.0/24"), netip.MustParsePrefix("203.0.113.0/24"), netip.MustParsePrefix("224.0.0.0/4"), netip.MustParsePrefix("240.0.0.0/4"),
 }
 
 func (c *Client) destination(ctx context.Context) (string, error) {
@@ -156,9 +158,27 @@ func (c *Client) destination(ctx context.Context) (string, error) {
 	if len(addresses) < 1 || len(addresses) > 32 {
 		return "", failure(Unavailable)
 	}
+	needsPublicResolution := false
 	for _, address := range addresses {
 		ip, ok := netip.AddrFromSlice(address.IP)
+		if ok && address.Zone == "" && fakeIPRange.Contains(ip.Unmap()) && c.cfg.host == "api.deepseek.com" && c.cfg.port == "443" {
+			needsPublicResolution = true
+			continue
+		}
 		if !ok || address.Zone != "" || !publicIP(ip) {
+			return "", failure(InvalidConfig)
+		}
+	}
+	if !needsPublicResolution {
+		return net.JoinHostPort(addresses[0].IP.String(), c.cfg.port), nil
+	}
+	addresses, err := c.lookupDeepSeekPublicIP(ctx)
+	if err != nil || len(addresses) < 1 || len(addresses) > 32 {
+		return "", failure(Unavailable)
+	}
+	for _, address := range addresses {
+		ip, ok := netip.AddrFromSlice(address.IP)
+		if !ok || address.Zone != "" || !ip.Unmap().Is4() || !publicIP(ip) {
 			return "", failure(InvalidConfig)
 		}
 	}

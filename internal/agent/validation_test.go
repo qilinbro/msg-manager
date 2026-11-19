@@ -99,3 +99,49 @@ func TestInputAndOutputEnforceEvidenceAndConservativeRiskSchema(t *testing.T) {
 		t.Fatal("valid empty arrays rejected")
 	}
 }
+
+func TestDeepSeekFakeIPUsesOnlyPublicDNSAnswers(t *testing.T) {
+	fake := net.IPAddr{IP: net.ParseIP("198.18.2.45")}
+	private := net.IPAddr{IP: net.ParseIP("10.0.0.1")}
+	public := net.IPAddr{IP: net.ParseIP("8.8.4.4")}
+	for _, scenario := range []struct {
+		name, baseURL string
+		system        []net.IPAddr
+		resolved      []net.IPAddr
+		wantLookup    bool
+		wantError     Kind
+	}{
+		{"official fake IP", "https://api.deepseek.com", []net.IPAddr{fake}, []net.IPAddr{public}, true, ""},
+		{"official public answer", "https://api.deepseek.com/v1", []net.IPAddr{public}, nil, false, ""},
+		{"custom endpoint", "https://example.com", []net.IPAddr{fake}, nil, false, InvalidConfig},
+		{"alternate port", "https://api.deepseek.com:8443", []net.IPAddr{fake}, nil, false, InvalidConfig},
+		{"private system answer", "https://api.deepseek.com", []net.IPAddr{fake, private}, nil, false, InvalidConfig},
+		{"private public DNS answer", "https://api.deepseek.com", []net.IPAddr{fake}, []net.IPAddr{public, private}, true, InvalidConfig},
+		{"reserved public DNS answer", "https://api.deepseek.com", []net.IPAddr{fake}, []net.IPAddr{fake}, true, InvalidConfig},
+		{"missing public DNS answer", "https://api.deepseek.com", []net.IPAddr{fake}, nil, true, Unavailable},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			client, err := NewClient(Config{BaseURL: scenario.baseURL, Model: "synthetic", APIKey: "synthetic-key"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			client.lookupIP = func(context.Context, string) ([]net.IPAddr, error) { return scenario.system, nil }
+			lookup := false
+			client.lookupDeepSeekPublicIP = func(context.Context) ([]net.IPAddr, error) {
+				lookup = true
+				return scenario.resolved, nil
+			}
+			address, err := client.destination(t.Context())
+			if lookup != scenario.wantLookup {
+				t.Fatal("unexpected public DNS lookup", lookup)
+			}
+			if scenario.wantError != "" {
+				kindIs(t, err, scenario.wantError)
+				return
+			}
+			if err != nil || address != "8.8.4.4:443" {
+				t.Fatal("unexpected pinned destination", address, err)
+			}
+		})
+	}
+}

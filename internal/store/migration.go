@@ -175,17 +175,19 @@ func migrate(db *sql.DB) error {
 			return ErrUnavailable
 		}
 	}
+	// Some installations recorded v13 for Milky settings before this branch
+	// added the assistant. Ensure its schema even when v13 is already recorded.
+	assistantSchema, err := migrations.Files.ReadFile("0013_assistant_quota.sql")
+	if err != nil {
+		return ErrUnavailable
+	}
+	if _, err = tx.Exec(string(assistantSchema)); err != nil {
+		return ErrUnavailable
+	}
+	if err := migrateDigestConsent(tx); err != nil {
+		return err
+	}
 	if version < 13 {
-		raw, err := migrations.Files.ReadFile("0013_assistant_quota.sql")
-		if err != nil {
-			return ErrUnavailable
-		}
-		if _, err = tx.Exec(string(raw)); err != nil {
-			return ErrUnavailable
-		}
-		if err := migrateDigestConsent(tx); err != nil {
-			return ErrUnavailable
-		}
 		if _, err = tx.Exec(`INSERT INTO schema_migrations(version,applied_at) VALUES(13,?)`, time.Now().UTC().Format(time.RFC3339Nano)); err != nil {
 			return ErrUnavailable
 		}

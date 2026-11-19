@@ -248,7 +248,8 @@ func (c *Client) ChatTools(ctx context.Context, input ToolInput) (ToolResult, er
 	if len(raw) > MaxToolResponseBytes || toolJSONContainsSecret(raw, c.cfg.key) {
 		return ToolResult{}, failure(InvalidOutput)
 	}
-	result, err := decodeToolResult(raw, input.Tools)
+	allowToolIndex := c.cfg.host == "api.deepseek.com" && c.cfg.port == "443"
+	result, err := decodeToolResult(raw, input.Tools, allowToolIndex)
 	if err != nil {
 		return ToolResult{}, err
 	}
@@ -309,7 +310,7 @@ func toolValueContainsSecret(value any, secret string, depth int) bool {
 
 // Parse exact-case protocol fields rather than relying on encoding/json's
 // case-insensitive struct matching. Envelope metadata is intentionally ignored.
-func decodeToolResult(raw []byte, definitions []ToolDefinition) (ToolResult, error) {
+func decodeToolResult(raw []byte, definitions []ToolDefinition, allowToolIndex bool) (ToolResult, error) {
 	var envelope map[string]json.RawMessage
 	if decodeJSON(raw, &envelope, false) != nil {
 		return ToolResult{}, failure(InvalidOutput)
@@ -349,7 +350,15 @@ func decodeToolResult(raw []byte, definitions []ToolDefinition) (ToolResult, err
 			return ToolResult{}, failure(InvalidOutput)
 		}
 		for _, fields := range calls {
-			if len(fields) != 3 || fields["id"] == nil || fields["type"] == nil || fields["function"] == nil {
+			fieldCount := 3
+			if index, exists := fields["index"]; exists {
+				// DeepSeek includes this ordinal even in non-streaming replies.
+				if !allowToolIndex || string(index) != "0" {
+					return ToolResult{}, failure(InvalidOutput)
+				}
+				fieldCount++
+			}
+			if len(fields) != fieldCount || fields["id"] == nil || fields["type"] == nil || fields["function"] == nil {
 				return ToolResult{}, failure(InvalidOutput)
 			}
 			var function map[string]json.RawMessage

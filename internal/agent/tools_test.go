@@ -20,6 +20,22 @@ func assistantToolCompletion() string {
 	return `{"choices":[{"message":{"role":"assistant","content":null,"tool_calls":[{"id":"call_1","type":"function","function":{"name":"get_system_status","arguments":"{}"}}]},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":31,"completion_tokens":9}}`
 }
 
+func TestDeepSeekSingleToolOrdinalIsValidatedAndDiscarded(t *testing.T) {
+	definitions := assistantToolInput().Tools
+	indexed := strings.Replace(assistantToolCompletion(), `"id":"call_1"`, `"index":0,"id":"call_1"`, 1)
+	result, err := decodeToolResult([]byte(indexed), definitions, true)
+	if err != nil || len(result.Message.ToolCalls) != 1 || result.Message.ToolCalls[0].ID != "call_1" {
+		t.Fatal("expected one validated call without echoed metadata", err)
+	}
+	_, err = decodeToolResult([]byte(indexed), definitions, false)
+	kindIs(t, err, InvalidOutput)
+	for _, badField := range []string{`"index":1`, `"index":"0"`, `"index":null`, `"index":0,"extra":true`} {
+		bad := strings.Replace(indexed, `"index":0`, badField, 1)
+		_, err = decodeToolResult([]byte(bad), definitions, true)
+		kindIs(t, err, InvalidOutput)
+	}
+}
+
 func TestAssistantChatToolsUsesRealProviderProtocolAcrossTurns(t *testing.T) {
 	var calls atomic.Int32
 	client, _ := localClient(t, func(w http.ResponseWriter, r *http.Request) {
