@@ -115,7 +115,7 @@ func newMilkyConnection(cfg qqmilky.Config) (*milkyConnection, error) {
 	c.status.Configured = true
 	c.status.State = "configured"
 	c.status.AccountID = client.SelfID()
-	c.status.MilkyVersion = qqmilky.DefaultMilkyVersion
+	c.status.MilkyVersion = client.ConfiguredVersion()
 	return c, nil
 }
 

@@ -72,13 +72,41 @@ func TestProbeVerifiesAccountAndVersion(t *testing.T) {
 	}
 }
 
+func TestProbeAcceptsConfiguredVersion12(t *testing.T) {
+	server := httptest.NewServer(milkyHandler(t, impl("1.2")))
+	defer server.Close()
+	client, err := NewClient(Config{
+		Endpoint:     adapter.Endpoint{URL: server.URL, AccessToken: "synthetic-token", ExpectedSelfID: testSelfID, Timeout: 3 * time.Second},
+		MilkyVersion: MilkyVersion12,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	verification, err := client.Probe(context.Background())
+	if err != nil || verification.MilkyVersion != MilkyVersion12 || client.ConfiguredVersion() != MilkyVersion12 {
+		t.Fatalf("1.2 verification failed: %+v %v", verification, err)
+	}
+}
+
 func TestProbeRejectsVersionMismatch(t *testing.T) {
 	server := httptest.NewServer(milkyHandler(t, impl("1.2")))
 	defer server.Close()
 	_, err := newTestClient(t, server.URL).Probe(context.Background())
 	var failure *adapter.Error
 	if !errors.As(err, &failure) || failure.Kind != adapter.VersionMismatch {
-		t.Fatalf("expected version mismatch, got %v", err)
+		t.Fatalf("expected 1.3 client to reject 1.2 provider, got %v", err)
+	}
+}
+
+func TestConfigRejectsUnsupportedMilkyVersion(t *testing.T) {
+	for _, version := range []string{"1.1", "1.4", "2.0"} {
+		_, err := NewClient(Config{
+			Endpoint:     adapter.Endpoint{URL: "http://127.0.0.1:3000", AccessToken: "synthetic-token", ExpectedSelfID: testSelfID},
+			MilkyVersion: version,
+		})
+		if err == nil {
+			t.Fatalf("version %s must be rejected", version)
+		}
 	}
 }
 
@@ -98,14 +126,10 @@ func TestProbeRejectsWrongAccount(t *testing.T) {
 	}
 }
 
-func TestConfigRejectsUnsupportedVersionAndLimit(t *testing.T) {
-	for _, cfg := range []Config{
-		{MilkyVersion: "1.2", Endpoint: adapter.Endpoint{URL: "http://127.0.0.1:3000", AccessToken: "x", ExpectedSelfID: testSelfID}},
-		{HistoryLimit: 100, Endpoint: adapter.Endpoint{URL: "http://127.0.0.1:3000", AccessToken: "x", ExpectedSelfID: testSelfID}},
-	} {
-		if _, err := NewClient(cfg); err == nil {
-			t.Fatal("expected invalid configuration rejection")
-		}
+func TestConfigRejectsInvalidLimit(t *testing.T) {
+	cfg := Config{HistoryLimit: 100, Endpoint: adapter.Endpoint{URL: "http://127.0.0.1:3000", AccessToken: "synthetic-token", ExpectedSelfID: testSelfID}}
+	if _, err := NewClient(cfg); err == nil {
+		t.Fatal("expected invalid limit rejection")
 	}
 }
 

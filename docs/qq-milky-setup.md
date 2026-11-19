@@ -12,7 +12,7 @@
 
 ## 准备
 
-1. 自行部署 `Lagrange.Milky`（`LagrangeDev/Lagrange.Core` 的 Milky 实现），确认其实现 `milky_version = 1.3`。版本不匹配时本产品明确拒绝连接。
+1. 自行部署 `Lagrange.Milky`（`LagrangeDev/Lagrange.Core` 的 Milky 实现），通过 `get_impl_info` 确认其 `milky_version`。本产品显式支持 **1.2 或 1.3**：在后台配置对应的 `QQ_MILKY_VERSION`，必须与协议端实际版本精确一致，不匹配时明确拒绝，不做隐式降级。Milky 官方只保证旧应用端连接新协议端，因此 1.3 配置不会接受 1.2 协议端。两版在我们使用账号核验、好友列表、历史与私聊文本字段上无变更，未知消息段按兼容策略跳过。
 2. 在协议端完成本人 QQ 登录。需要自行评估账号风控：第三方协议端可能需要签名服务，新注册账号可能被拒绝登录；本产品不绕过验证码或平台限制。
 3. 协议端只监听本机回环地址，配置强随机 `AccessToken`，不要暴露到公网。本产品只允许 `http://127.0.0.1:<端口>` / `http://localhost:<端口>`，不解析 DNS、不跟随重定向与代理、令牌只放 `Authorization` 头。
 4. 本产品只接受 `POST /api/{action}` 与正向 `GET /event`（WebSocket），不接受 WebHook 入站推送。
@@ -33,6 +33,8 @@ $env:QQ_MILKY_ACCESS_TOKEN = Read-Host -AsSecureString 'Milky AccessToken' | For
   try { [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr) } finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
 }
 $env:QQ_MILKY_ACCOUNT_ID = '<本人 QQ 号>'
+# 必填其一：协议端实际 Milky 版本，1.2 或 1.3；留空默认 1.3，必须精确匹配
+$env:QQ_MILKY_VERSION = '1.3'   # 若 get_impl_info 返回 1.2，请改为 '1.2'
 # 可选：单次历史拉取 1..30，默认 20
 $env:QQ_MILKY_HISTORY_LIMIT = '20'
 .\scripts\start-inbox.ps1   # 或 .\scripts\dev-backend.ps1
@@ -70,7 +72,7 @@ $env:QQ_MILKY_HISTORY_LIMIT = '20'
 
 ## 真实接入验收清单（须由产品负责人在本机完成）
 
-1. 固定 `Lagrange.Milky` 版本与提交标识，记录实现名称、版本与 `milky_version`。
+1. 固定 `Lagrange.Milky` 版本与提交标识，记录实现名称、版本与 `milky_version`。已核验的候选：上游 CI run `44009187859`（`Build Lagrange.Milky image`，master 提交 `e1bd4baa16fa86ef000154e3eecb7816a29b63a7`，2026-11-17 成功，amd64+arm64），镜像 `ghcr.io/lagrangedev/lagrange.milky:master`、`sha256:71e9e526fcb376636b2f4b4e3383f569baf0b7843c6e96126fcfa561555085ba`，启动横幅版本 `e1bd4baa1`。`master` 标签会移动，固定时请用上述 digest 或提交 SHA；该 CI 结论只证明镜像构建成功，不代表登录或收发已验证。
 2. 用本人授权 QQ 完成协议端登录，确认账号风控与签名服务授权边界。
 3. 执行真实账号核验，确认 `account_id` 与预期一致、错误账号被拒绝。
 4. 对一名授权联系人同步真实历史并在消息中心逐条对账；重复同步不新增。
@@ -79,3 +81,11 @@ $env:QQ_MILKY_HISTORY_LIMIT = '20'
 7. 由 joey 审查后端、angjustinl 审查前端，kirinbao 组织验收并登记证据后，才更新任务状态与实际完成日期。
 
 合成测试与工程检查不能替代上述真实授权与独立验收。
+
+## 2026-11-19 版本适配（CHG-T02-005）
+
+本产品现支持显式配置 Milky `1.2` 或 `1.3`（`QQ_MILKY_VERSION`，留空默认 `1.3`），并与协议端 `get_impl_info.milky_version` 精确匹配；不做隐式降级，1.3 配置不会接受 1.2 协议端。改动包括连接器配置/核验、API 状态、OpenAPI 枚举、前端文案和相应测试，全仓工程检查通过。真实签名授权阻塞（CHG-T02-004）仍未解除，版本适配不等于协议端已跑通或账号已验收。
+
+## 2026-11-19 验收尝试记录（CHG-T02-004）
+
+在本机 Docker 28.4.0 上完成了上述镜像的匿名拉取与版本核验（见清单第 1 步），但**未进入核验/同步/后台接收步骤**：环境变量 `QQ_MILKY_*` 与 `SOCIALD_*` 均未配置，也无本人 QQ 登录与签名授权。合成配置启动（host 与 bridge 两种网络）均在 `HttpSigner.GetSecSign` 收到签名服务 `401 Unauthorized`，登录在 HTTP API 监听前失败，容器退出 139，`127.0.0.1:3000` 连接被拒。该 401 属于第三方签名授权边界，未尝试绕过；临时容器与配置已清理。下一步须由产品负责人本人完成 QQ 登录与签名授权、配置真实环境变量后重跑清单。此项不制造进度：T02/T06 状态、实际完成日期与完成统计不变。

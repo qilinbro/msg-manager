@@ -83,7 +83,7 @@ assert.equal(spec.components.schemas.MilkyStatus.properties.sending_enabled.cons
 assert.equal(spec.components.schemas.MilkyStatus.properties.read_only.const, true);
 assert.equal(spec.components.schemas.MilkyVerification.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.MilkyVerification.properties.receiving_enabled.const, false);
-assert.equal(spec.components.schemas.MilkyVerification.properties.milky_version.const, '1.3');
+assert.deepEqual(spec.components.schemas.MilkyVerification.properties.milky_version.enum, ['1.2', '1.3']);
 assert.equal(spec.components.schemas.MilkySyncResult.properties.sending_enabled.const, false);
 assert.equal(spec.components.schemas.MilkySyncResult.properties.source_kind.const, 'protocol_sync');
 assert.equal(spec.components.schemas.MilkyMonitor.properties.read_only.const, true);

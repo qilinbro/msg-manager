@@ -28,7 +28,7 @@
 | feat | 任务 / 模块 | 负责人 | 审查岗位 | 状态 | 计划开始 | 计划完成 | 实际完成 | 最新变更 / 验收证据 |
 |---|---|---|---|---|---|---|---|---|
 | FEAT-T01 | T01 项目管理 | kirinbao（产品 / 交付） | angjustinl（技术审阅）、joey（前端与 UI 审阅） | 进行中 | 2026-11-13 | 2026-11-13 | — | CHG-T01-004；公开协作标识隐私修订 |
-| FEAT-T02 | T02 QQ 个人号适配 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-13 | 2026-11-16 | — | CHG-T02-003；qq-milky 全链路实现/工程检查通过，待指定审查与真实账号验收 |
+| FEAT-T02 | T02 QQ 个人号适配 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-13 | 2026-11-16 | — | CHG-T02-005；支持显式 1.2/1.3，验收仍因签名服务 401 阻塞 |
 | FEAT-T03 | T03 存储与加密 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 待审查 | 2026-11-13 | 2026-11-16 | — | CHG-T03-001；原型检查通过，待joey审查 |
 | FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-004；全部已实现功能整合main |
 | FEAT-T05 | T05 数据模型 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-17 | 2026-11-18 | — | CHG-T05-004；联系人档案/作业加密迁移子项检查通过，待指定审查/真实验收 |
@@ -66,6 +66,22 @@
 | FEAT-E05 | E05 阶段复盘 | kirinbao（阶段验收 / 交付） | angjustinl（后端复核）、joey（前端复核） | 未开始 | 2026-12-23 | 2026-12-24 | — | — |
 
 ## 5. 真实变更日志
+
+### CHG-T02-005｜支持 Milky 1.2 与 1.3 显式版本适配
+
+- 日期：2026-11-19；关联 FEAT-T02，影响 FEAT-T06；不新增任务编号。
+- 官方兼容方向为「旧应用端连新协议端」，1.3 应用端连 1.2 协议端不在保证范围；因此采用显式配置而非隐式降级。本产品实际使用的 `get_login_info`、`get_impl_info`、`get_friend_list`、`get_history_messages`、`send_private_message` 与 `IncomingMessage` 本体在 1.2→1.3 无字段变更，未知消息段仍按兼容策略跳过。
+- 改动：`qqmilky.Config`/`Probe` 支持 `1.2`、`1.3` 并精确匹配；新增 `QQ_MILKY_VERSION` 环境变量（留空默认 1.3）；API 状态取消硬编码版本；契约 `MilkyVerification.milky_version` 改为 `enum ['1.2','1.3']`；前端错误文案、面板说明与 `.env.example` 同步。
+- 测试：新增 1.2 核验成功、1.3 客户端拒绝 1.2 协议端、非法版本拒绝；全仓 `go test -tags sqlite_fts5 ./...`、`go vet`、gofmt、契约校验、四组前端回归、前端格式/类型/构建全部通过。
+- 仍未完成：真实协议端、本人 QQ 登录与签名授权仍缺，CHG-T02-004 的 401 阻塞未解除；joey/angjustinl 正式审查与 kirinbao 验收未进行。实际完成日期 —，MVP 0/27、扩展 0/5 不变。
+
+### CHG-T02-004｜真实协议端验收尝试受阻于签名服务授权
+
+- 日期：2026-11-19；关联 FEAT-T02，影响 FEAT-T06；不新增任务编号，完成统计不变。
+- 用户提供上游 CI run `44009187859`（`LagrangeDev/Lagrange.Core` master，`Build Lagrange.Milky image` 成功，提交 `e1bd4baa16fa86ef000154e3eecb7816a29b63a7`）。本机 Docker 28.4.0 可用；匿名拉取 `ghcr.io/lagrangedev/lagrange.milky:master` 成功，digest `sha256:71e9e526fcb376636b2f4b4e3383f569baf0b7843c6e96126fcfa561555085ba`；容器启动横幅显示 `e1bd4baa1`，与 CI 提交一致。
+- 未配置 `QQ_MILKY_URL/ACCESS_TOKEN/ACCOUNT_ID` 与 `SOCIALD_*`；无真实 QQ 账号授权。用合成 Uin 与本机令牌分别在 host 网络与 bridge 端口映射下启动，日志均为 `HttpSigner.GetSecSign` 收到签名服务 `401 Unauthorized`，登录于 HTTP API 监听前失败，容器退出 139（清理阶段另有 `HttpListenerException`）。`curl` 探测 `127.0.0.1:3000/api/get_impl_info` 连接被拒。
+- **结果：核验 → 同步 → 后台接收清单均未执行**，没有产生任何真实账号收发证据。签名服务 401 属于第三方授权边界，未尝试绕过或伪造签名。临时容器与合成配置已删除，工作区无残留。
+- 下一步：由 kirinbao 在本机完成本人 QQ 登录与签名授权，配置真实 `QQ_MILKY_*` 与 `SOCIALD_*` 后重跑验收清单。joey 后端审查、angjustinl 前端审查、kirinbao 验收仍未完成；实际完成日期 —，MVP 0/27、扩展 0/5 不变。
 
 ### CHG-T02-003｜完整实施 qq-milky 接入
 
