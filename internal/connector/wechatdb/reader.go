@@ -26,6 +26,8 @@ import (
 	"unicode/utf8"
 
 	sqlcipher "github.com/mutecomm/go-sqlcipher/v4"
+
+	"github.com/qilinbro/msg-manager/internal/wechatid"
 )
 
 var (
@@ -50,7 +52,6 @@ const (
 
 var (
 	usernamePattern = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9_-]{1,127}$`)
-	groupPattern    = regexp.MustCompile(`^(?:@@[A-Za-z0-9_-]{2,126}|[0-9]{1,32}@chatroom)$`)
 	shardPattern    = regexp.MustCompile(`^message_([0-9]{1,5})\.db$`)
 	suffixPattern   = regexp.MustCompile(`^[A-Za-z0-9]{4}$`)
 )
@@ -125,7 +126,7 @@ func privateID(id string) bool {
 	return true
 }
 
-func groupID(id string) bool { return groupPattern.MatchString(id) }
+func groupID(id string) bool { return wechatid.IsGroup(id) }
 
 func chatID(id string) bool { return privateID(id) || groupID(id) }
 

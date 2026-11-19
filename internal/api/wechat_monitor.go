@@ -110,7 +110,7 @@ func (h *handler) configureWechatMonitor(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	if r.URL.RawQuery != "" || input.Enabled == nil || input.PeerIDs == nil || input.IntervalSeconds == nil {
-		writeError(w, 400, "INVALID_INPUT", "请明确指定后台读取开关、私聊列表和10至300秒的间隔。", traceID)
+		writeError(w, 400, "INVALID_INPUT", "请明确指定后台读取开关、会话列表和10至300秒的间隔。", traceID)
 		return
 	}
 	c := h.wechat
@@ -124,7 +124,7 @@ func (h *handler) configureWechatMonitor(w http.ResponseWriter, r *http.Request,
 		return
 	}
 	if err := store.ValidateWechatMonitorSettings(c.accountID, settings); err != nil {
-		writeError(w, 400, "INVALID_INPUT", "请选择最多20个不同的私聊，并设置10至300秒的读取间隔。", traceID)
+		writeError(w, 400, "INVALID_INPUT", "请选择最多20个不同的会话，并设置10至300秒的读取间隔。", traceID)
 		return
 	}
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
@@ -145,7 +145,7 @@ func (h *handler) configureWechatMonitor(w http.ResponseWriter, r *http.Request,
 	if settings.Enabled {
 		if err := h.validateWechatMonitorPeers(ctx, settings.PeerIDs); err != nil {
 			if errors.Is(err, store.ErrInvalidInput) {
-				writeError(w, 400, "INVALID_INPUT", "后台读取只能选择当前本机账号中可读取的私聊。", traceID)
+				writeError(w, 400, "INVALID_INPUT", "后台读取只能选择当前本机账号中可读取的会话。", traceID)
 			} else {
 				h.failWechat(w, err, traceID)
 			}

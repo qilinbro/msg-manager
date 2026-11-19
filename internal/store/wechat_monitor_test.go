@@ -26,7 +26,7 @@ func TestWechatMonitorDefaultsPersistenceAndAccountIsolation(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(settings, wantDefault) {
 		t.Fatal("new account was not disabled with explicit empty peers", settings, err)
 	}
-	want := WechatMonitorSettings{Enabled: true, PeerIDs: []string{"wxid_friend_a", "wxid_friend_b"}, IntervalSeconds: 10}
+	want := WechatMonitorSettings{Enabled: true, PeerIDs: []string{"wxid_friend_a", "@@room_123", "12345678901@chatroom"}, IntervalSeconds: 10}
 	if err := s.SaveWechatMonitor(ctx, "wxid_first", want); err != nil {
 		t.Fatal(err)
 	}
@@ -91,7 +91,7 @@ func TestWechatMonitorInvalidUpdatesPreserveExistingSelection(t *testing.T) {
 			t.Fatal("invalid update changed existing selection", i, got, err)
 		}
 	}
-	for _, account := range []string{"", "../other", "filehelper", "gh_synthetic", "wxid_self\n"} {
+	for _, account := range []string{"", "../other", "filehelper", "gh_synthetic", "wxid_self\n", "@@room_123", "12345678901@chatroom"} {
 		if _, err := s.LoadWechatMonitor(ctx, account); !errors.Is(err, ErrInvalidInput) {
 			t.Fatal("invalid account load accepted", err)
 		}

@@ -17,6 +17,7 @@ import (
 )
 
 const monitorRoute = "/api/v1/connections/wechat-db/monitor"
+const monitorTestGroup = "12345678901@chatroom"
 
 type monitorTestReader struct {
 	probes  atomic.Int32
@@ -31,7 +32,11 @@ func (f *monitorTestReader) Probe(context.Context) (wechatdb.Info, error) {
 }
 
 func (f *monitorTestReader) Sessions(context.Context) ([]wechatdb.Session, error) {
-	return []wechatdb.Session{{PeerID: "wxid_peer", Name: "合成甲"}, {PeerID: "wxid_second", Name: "合成乙"}}, nil
+	return []wechatdb.Session{
+		{PeerID: "wxid_peer", Name: "合成甲"},
+		{PeerID: "wxid_second", Name: "合成乙"},
+		{PeerID: monitorTestGroup, Name: "合成群", Kind: "group"},
+	}, nil
 }
 
 func (f *monitorTestReader) Read(ctx context.Context, peer string) (wechatdb.Batch, error) {
@@ -41,6 +46,9 @@ func (f *monitorTestReader) Read(ctx context.Context, peer string) (wechatdb.Bat
 	}
 	b := wechatBatch()
 	b.Info.AccountID, b.PeerID = f.account, peer
+	if peer == monitorTestGroup {
+		b.Kind = "group"
+	}
 	for i := range b.Messages {
 		b.Messages[i].ExternalID += "-" + peer
 	}
@@ -153,7 +161,7 @@ func TestWechatMonitorSurvivesRequestAndDeduplicates(t *testing.T) {
 	bindMonitorReader(h, f)
 	ticks, cycles := monitorTestClock(h.wechat)
 	ctx, cancel := context.WithCancel(context.Background())
-	r := httptest.NewRequest("POST", "http://127.0.0.1:17890"+monitorRoute, strings.NewReader(monitorInput(true, "wxid_peer"))).WithContext(ctx)
+	r := httptest.NewRequest("POST", "http://127.0.0.1:17890"+monitorRoute, strings.NewReader(monitorInput(true, monitorTestGroup))).WithContext(ctx)
 	r.Header.Set("Authorization", "Bearer "+emailTestToken)
 	r.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -176,7 +184,7 @@ func TestWechatMonitorSurvivesRequestAndDeduplicates(t *testing.T) {
 	if status.LastResult.Inserted != 0 || status.LastResult.Duplicates != 2 || f.reads.Load() != 2 {
 		t.Fatal("dedup cycle", status)
 	}
-	w = emailTestRequest(h, "POST", monitorRoute, monitorInput(false, "wxid_peer"), true)
+	w = emailTestRequest(h, "POST", monitorRoute, monitorInput(false, monitorTestGroup), true)
 	if w.Code != 200 {
 		t.Fatal("pause", w.Code, w.Body.String())
 	}

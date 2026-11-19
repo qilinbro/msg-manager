@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+
+	"github.com/qilinbro/msg-manager/internal/wechatid"
 )
 
 // WechatMonitorSettings is the operator's explicit per-account allowlist. It
@@ -20,17 +22,7 @@ func defaultWechatMonitorSettings() WechatMonitorSettings {
 	return WechatMonitorSettings{PeerIDs: []string{}, IntervalSeconds: 30}
 }
 
-// Match the connector's supported private account identifiers without coupling
-// encrypted message storage to a particular source database implementation.
-func validWechatMonitorID(id string) bool {
-	if len(id) >= 4 && len(id) <= 128 && strings.HasPrefix(id, "@@") {
-		for _, ch := range id[2:] {
-			if !(ch >= 'A' && ch <= 'Z' || ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9' || ch == '_' || ch == '-') {
-				return false
-			}
-		}
-		return true
-	}
+func validWechatMonitorAccountID(id string) bool {
 	if len(id) < 2 || len(id) > 128 || !(id[0] >= 'A' && id[0] <= 'Z' || id[0] >= 'a' && id[0] <= 'z') || strings.HasPrefix(id, "gh_") {
 		return false
 	}
@@ -47,14 +39,14 @@ func validWechatMonitorID(id string) bool {
 }
 
 func normalizeWechatMonitor(accountID string, settings WechatMonitorSettings) (WechatMonitorSettings, error) {
-	if !validWechatMonitorID(accountID) || settings.IntervalSeconds < 10 || settings.IntervalSeconds > 300 || len(settings.PeerIDs) > 20 || settings.Enabled && len(settings.PeerIDs) == 0 {
+	if !validWechatMonitorAccountID(accountID) || settings.IntervalSeconds < 10 || settings.IntervalSeconds > 300 || len(settings.PeerIDs) > 20 || settings.Enabled && len(settings.PeerIDs) == 0 {
 		return WechatMonitorSettings{}, ErrInvalidInput
 	}
 	result := settings
 	result.PeerIDs = make([]string, len(settings.PeerIDs))
 	seen := make(map[string]bool, len(settings.PeerIDs))
 	for i, peer := range settings.PeerIDs {
-		if !validWechatMonitorID(peer) || peer == accountID || seen[peer] {
+		if !(validWechatMonitorAccountID(peer) || wechatid.IsGroup(peer)) || peer == accountID || seen[peer] {
 			return WechatMonitorSettings{}, ErrInvalidInput
 		}
 		result.PeerIDs[i] = peer
@@ -80,7 +72,7 @@ func wechatMonitorDBError(ctx context.Context) error {
 // LoadWechatMonitor is metadata-only: it never opens a WeChat source database.
 // A missing record is disabled, with an empty allowlist and a 30-second period.
 func (s *Store) LoadWechatMonitor(ctx context.Context, accountID string) (WechatMonitorSettings, error) {
-	if !validWechatMonitorID(accountID) {
+	if !validWechatMonitorAccountID(accountID) {
 		return WechatMonitorSettings{}, ErrInvalidInput
 	}
 	if err := s.lockContext(ctx); err != nil {
