@@ -326,7 +326,10 @@ function ImportPanel({
         </div>
         <button
           className="inbox-icon-button"
-          onClick={onClose}
+          onClick={() => {
+            if (!pending.current) onClose();
+          }}
+          disabled={state === 'importing'}
           title="关闭导入"
           aria-label="关闭导入"
         >
@@ -1167,7 +1170,7 @@ export default function Inbox({
           </button>
           <button
             className="button button-primary"
-            onClick={() => setImportOpen((value) => !value)}
+            onClick={() => setImportOpen(true)}
             disabled={!enabled}
           >
             <Icon name="import" />

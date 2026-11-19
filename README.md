@@ -133,6 +133,7 @@ flowchart LR
 - [技术文档](技术文档.md)、[逐项任务](任务规划.md)、[feat 进度](feat.md)。
 - [参考项目](参考项目/README.md)：上游源码仅用于静态参考。
 - [本地交付与待办](docs/acceptance/T04-handoff.md)：源码包生成方式、GitHub 同步状态和剩余验收条件。
+- [全功能测试清单](<docs/acceptance/T22-all-features-test-plan.md>)：[测试前修复与工程验证](<docs/acceptance/T22-pretest-validation.md>)；按连接→消息/来源→联系人→Agent→飞书→设置逐项测试，区分合成回归、真实授权、占位/暂停项与未合并分支。
 
 ## 三人分工
 

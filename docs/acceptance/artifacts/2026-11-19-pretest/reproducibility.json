@@ -1,0 +1,154 @@
+{
+  "captured_at": "2026-11-19T15:20:25.0032764+08:00",
+  "baseline": "a693658820afa002cf064a22552fcc45c61db4d4",
+  "previous_baseline": "76ec21e69e771d703a7c2ea97b24d1f42e8f0db2",
+  "tools": {
+    "powershell": "7.7.0",
+    "go": "go version go1.27.4 windows/amd64",
+    "node": "v24.21.0",
+    "gcc": "14.2.0"
+  },
+  "os": "Microsoft Windows NT 10.0.26200.0",
+  "frontend_versions": {
+    "react": "19.3.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "tauri_api": "2.12.4"
+  },
+  "commands": [
+    "& ./scripts/check.ps1",
+    "go test -race -count=1 -tags sqlite_fts5 ./internal/connector/qqmilky ./internal/api ./tests/integration"
+  ],
+  "environment": {
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "-mod=readonly",
+    "CGO_ENABLED": "1",
+    "compiler": "GCC 14.2.0",
+    "product_configuration": "Explicit inherited service/QQ/IMAP/AI/WeChat/search variables cleared without printing values; default credential file redirected to a nonexistent synthetic candidate path.",
+    "shared_caches": [
+      "node_modules",
+      "Go modules",
+      "Go compiler cache"
+    ],
+    "live_service_replaced": false,
+    "real_platform_or_model_requests": false,
+    "desktop_and_wechat_init_switches": false
+  },
+  "newline_diagnostic": {
+    "sample": "cmd/sociald/main.go",
+    "initial_archive_core_autocrlf": true,
+    "rerun_archive_options": "-c core.autocrlf=false -c core.eol=lf archive --format=zip",
+    "first_run": {
+      "bytes": 2363,
+      "cr": 88,
+      "lf": 88,
+      "raw_sha256": "83e32de8f70f9f0ca689c58aa73c8e30073076579517872a72c38560f40905fe",
+      "lf_normalized_sha256": "d595e1879c8cd6890d8fc276fc667d45edb8e0f018892f2da2fba105248129e1"
+    },
+    "rerun": {
+      "bytes": 2275,
+      "cr": 0,
+      "lf": 88,
+      "raw_sha256": "d595e1879c8cd6890d8fc276fc667d45edb8e0f018892f2da2fba105248129e1",
+      "lf_normalized_sha256": "d595e1879c8cd6890d8fc276fc667d45edb8e0f018892f2da2fba105248129e1"
+    },
+    "lf_normalized_sample_match": true,
+    "first_run_unformatted_baseline_files": 179,
+    "changed_go_overlays_in_failure_list": 0,
+    "gate_input_comparisons": [
+      {
+        "path": "apps/desktop/package-lock.json",
+        "first_run_sha256": "0edc58f730c92a103d602faf1f6558c79fc32cadca84ea6650a869c51b40c010",
+        "rerun_sha256": "47db8e9a13e66f7ca782ea6eddb022e99ad72c4dfaf13b45270a57048709c967",
+        "first_run_git_blob": "bb80b7137db1bfaa9f30bba059004e185a48c9ff",
+        "rerun_git_blob": "bb80b7137db1bfaa9f30bba059004e185a48c9ff",
+        "canonical_match": true
+      },
+      {
+        "path": "apps/desktop/package.json",
+        "first_run_sha256": "e431a7283ea725ad45f4917e725b557d0aeb9dc1821f3a38183f4a97cc880fb4",
+        "rerun_sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479",
+        "first_run_git_blob": "3bd5aa4d6b0112663abd8ad5b7469f3836267aff",
+        "rerun_git_blob": "3bd5aa4d6b0112663abd8ad5b7469f3836267aff",
+        "canonical_match": true
+      },
+      {
+        "path": "go.mod",
+        "first_run_sha256": "7c10e90441fc3f72d2ef97d43ff3fd4d11d050fd4d3821b91bd15e022d746135",
+        "rerun_sha256": "56e866ad3691713712832ec72e1c57172026159857f916e2f4a15ab57d7e79be",
+        "first_run_git_blob": "735b6a130bd2aeeb28c262e02e25e9ff0e443ec3",
+        "rerun_git_blob": "735b6a130bd2aeeb28c262e02e25e9ff0e443ec3",
+        "canonical_match": true
+      },
+      {
+        "path": "go.sum",
+        "first_run_sha256": "4e613528b0e3d3095069333fa642cd47f5b7913cb56145cdc138906e95d65eab",
+        "rerun_sha256": "a275b18062a9d7a70292ddc74ec229af97334f16e70735d1987ef77cbbcc3356",
+        "first_run_git_blob": "c79f66bfb87e339bfff3ff7a360ae82b364e97df",
+        "rerun_git_blob": "c79f66bfb87e339bfff3ff7a360ae82b364e97df",
+        "canonical_match": true
+      },
+      {
+        "path": "scripts/check.ps1",
+        "first_run_sha256": "6895318ded8e936ff382aabdcd01f874dd29ccd59b60bdbb0ca1e4137d02ea1b",
+        "rerun_sha256": "0c0459163049bf5d363e20a32f4324b0de21ae635805e323c4c9c2765454eb1a",
+        "first_run_git_blob": "fb7642f7ef7759aa1eee52a9bed49bf755360fe5",
+        "rerun_git_blob": "fb7642f7ef7759aa1eee52a9bed49bf755360fe5",
+        "canonical_match": true
+      }
+    ]
+  },
+  "identical_source_test_overlays": 10,
+  "evidence_copies": [
+    {
+      "original": ".runtime/pretest-20261119/full-check.log",
+      "archived_as": "first-run-full-check.log",
+      "sha256": "4a6078d09f411884b141aacbfcd40236ed7f4340ea060643b8bc71d990ce33dd",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119/validation-result.json",
+      "archived_as": "first-run-result.json",
+      "sha256": "dd899c46ff620f767c8ad3dcd9d3b9e25530171efaa4ae44dffbc7acd96b6663",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119/freeze-manifest.json",
+      "archived_as": "first-run-freeze-manifest.json",
+      "sha256": "0c4fc3d14176d22d6e5a33c4a151146c8c48109d3a1366f5702958a8d746f7e0",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119/gofmt-diagnostic.txt",
+      "archived_as": "first-run-gofmt-diagnostic.txt",
+      "sha256": "72630bf7eb6a42de010a0b41d3da5cfabb3e91093e498017f50ec7b54dabd0e7",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119-r2/full-check.log",
+      "archived_as": "rerun-full-check.log",
+      "sha256": "a4dd202f044101c2b57a2ce5ffaf13d9297ae118b87782a13d5cc9d206c45983",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119-r2/milky-race.log",
+      "archived_as": "rerun-milky-race.log",
+      "sha256": "b724610be78e65a1f0788da792d0955e4ecf7f57ab4764a16ad1f58728975bba",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119-r2/validation-result.json",
+      "archived_as": "rerun-result.json",
+      "sha256": "eb768c26349878da0adb2027c29f301967f6618b78784815c87c908250dd98a1",
+      "unmodified_copy": true
+    },
+    {
+      "original": ".runtime/pretest-20261119-r2/freeze-manifest.json",
+      "archived_as": "rerun-freeze-manifest.json",
+      "sha256": "003aaaac0d33d35a6699c5836d5d6c727c1dea215c2cc25ff920e534649bb763",
+      "unmodified_copy": true
+    }
+  ]
+}

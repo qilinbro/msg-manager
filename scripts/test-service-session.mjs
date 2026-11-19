@@ -224,7 +224,7 @@ const connectionToken = (harness) => harness.requests.at(-1)?.options.headers.Au
 export { browserHarness, syntheticStorage, system, nodes, find, settings };
 
 // New device tests reuse this unchanged React lifecycle harness. Importing it
-// does not rerun the original eleven groups; its standalone command still does.
+// does not rerun this script's groups; its standalone command still does.
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
 // The fallback is exact-origin-bound page memory, never Web Storage. Startup
 // purges the legacy key without reading/importing any obsolete master token.
@@ -396,6 +396,96 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   h.unmount();
 }
 
+// Canceling an initial/replacement attempt is a user-intent boundary, not just
+// an aborted fetch. Focus, visibility and effect replay must wait for a manual
+// submit; late success/401 and old authenticated callbacks cannot revive it.
+{
+  for (const replacement of [false, true]) {
+    for (const lateStatus of [200, 401]) {
+      const h = browserHarness();
+      await h.flush();
+      let staleAuthFailure, staleSystemUpdate;
+      if (replacement) {
+        await connect(h, TOKEN_A);
+        staleAuthFailure = h.value.onAuthFailure;
+        staleSystemUpdate = h.value.onSystemUpdate;
+      }
+      h.setResponder(null);
+      const token = replacement ? TOKEN_B : TOKEN_A;
+      const canceled = await connect(h, token);
+      const canceledRequest = h.requests.at(-1);
+      h.value.cancel(); await h.flush();
+      assert.equal(canceledRequest.options.signal.aborted, true);
+      assert.equal(h.value.session.status, 'idle');
+      assert.equal(h.value.activeToken, '');
+      assert.equal(h.value.tokenDraft, token, 'cancel must retain the typed input for a deliberate retry');
+      assert.equal(h.sessions.loadServiceSession(SERVICE_URL).token, null);
+      const afterCancel = h.requests.length;
+      h.dispatch('focus'); h.dispatch('visibilitychange', 'hidden'); h.dispatch('visibilitychange');
+      h.strictReplayEffects(); await h.flush();
+      assert.equal(h.requests.length, afterCancel, 'cancel must suppress candidate restoration on focus/visibility/effect replay');
+      staleAuthFailure?.(); staleSystemUpdate?.(system('old-child-after-cancel')); await h.flush();
+      assert.equal(h.value.session.status, 'idle');
+      assert.equal(h.value.session.system, null);
+
+      // Settle success before retry, and 401 after a new same-token attempt has
+      // connected. Both ignore-abort schedules must leave the current epoch alone.
+      if (lateStatus === 200) {
+        canceledRequest.reply(200, system('canceled-late-success'));
+        await canceled.operation; await h.flush();
+        assert.equal(h.value.activeToken, '');
+        assert.equal(h.value.session.system, null);
+        h.dispatch('focus'); h.dispatch('visibilitychange'); await h.flush();
+        assert.equal(h.requests.length, afterCancel, 'a late result must not lift the user cancellation');
+      }
+      const retried = h.value.connect(submitEvent); await h.flush();
+      assert.equal(h.requests.length, afterCancel + 1, 'only explicit submit may restart the canceled candidate');
+      assert.equal(connectionToken(h), `Bearer ${token}`);
+      h.requests.at(-1).reply(200, system('manual-after-cancel'));
+      await retried; await h.flush();
+      if (lateStatus === 401) {
+        canceledRequest.reply(401, { error: { code: 'UNAUTHORIZED' } });
+        await canceled.operation; await h.flush();
+      }
+      staleAuthFailure?.(); staleSystemUpdate?.(system('old-child-after-retry')); await h.flush();
+      assert.equal(h.value.activeToken, token);
+      assert.equal(h.value.session.system.version, 'manual-after-cancel');
+      assert.equal(h.sessions.loadServiceSession(SERVICE_URL).token, token);
+      h.dispatch('focus'); h.dispatch('visibilitychange'); await h.flush();
+      assert.equal(h.requests.length, afterCancel + 2, 'a successful explicit retry restores normal deduplicated metadata checks');
+      h.requests.at(-1).reply(200, system('focus-after-manual-retry')); await h.flush();
+      h.unmount();
+      assert.equal(h.postUnmountStateWrites, 0);
+    }
+  }
+}
+
+// Canceling a background metadata check does not disconnect a verified session
+// or suppress its next normal focus refresh. Its late 401 cannot erase drafts.
+{
+  const h = browserHarness();
+  await h.flush(); await connect(h, TOKEN_A);
+  h.aiDrafts.set('synthetic-chat', { draft: 'retained across canceled revalidation' });
+  h.setResponder(null);
+  h.dispatch('focus'); await h.flush();
+  const canceled = h.requests.at(-1), before = h.requests.length;
+  h.value.cancel(); await h.flush();
+  assert.equal(canceled.options.signal.aborted, true);
+  assert.equal(h.value.activeToken, TOKEN_A);
+  assert.equal(h.value.session.status, 'connected');
+  assert.equal(h.value.session.system.version, 'synthetic');
+  assert.equal(h.aiDrafts.size, 1);
+  h.dispatch('focus'); h.dispatch('visibilitychange'); await h.flush();
+  assert.equal(h.requests.length, before + 1, 'canceling revalidation must not suppress an already active session');
+  h.requests.at(-1).reply(200, system('revalidated-after-cancel')); await h.flush();
+  canceled.reply(401, { error: { code: 'UNAUTHORIZED' } }); await h.flush();
+  assert.equal(h.value.activeToken, TOKEN_A);
+  assert.equal(h.value.session.system.version, 'revalidated-after-cancel');
+  assert.equal(h.sessions.loadServiceSession(SERVICE_URL).token, TOKEN_A);
+  assert.equal(h.aiDrafts.size, 1);
+  h.unmount();
+}
+
 // React StrictMode replays mount effects during development. An aborted first
 // restoration must not invalidate the successful replacement verification.
 {
@@ -508,5 +598,5 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   h.unmount();
 }
 
-console.log('Service session synthetic checks passed (11 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.');
+console.log('Service session synthetic checks passed (13 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, canceled initial/replacement restore suppression and manual retry, active revalidation cancellation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.');
 }

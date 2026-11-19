@@ -1,0 +1,128 @@
+{
+  "baseline": "a693658820afa002cf064a22552fcc45c61db4d4",
+  "checked_at": "2026-11-19T15:20:25.0005274+08:00",
+  "scope": "Ten changed source/test files and five unchanged gate/dependency inputs. Git clean-filter blob comparison accounts for CRLF normalization on staging.",
+  "all_match": true,
+  "files": [
+    {
+      "path": "internal/api/qq_milky.go",
+      "candidate_sha256": "fc92736feda0d1a91bb34044d0f699d64914183f2e712b9da7915bcc4eec38b6",
+      "working_tree_sha256": "fc92736feda0d1a91bb34044d0f699d64914183f2e712b9da7915bcc4eec38b6",
+      "candidate_git_blob": "eafe4096c6e889470ceb2fab0da83fe6f4a6e4e6",
+      "index_git_blob": "eafe4096c6e889470ceb2fab0da83fe6f4a6e4e6",
+      "match": true
+    },
+    {
+      "path": "internal/connector/qqmilky/client.go",
+      "candidate_sha256": "6c7cd96622b64fd9c66d1354c7577580fcca94491252ce794f22a2fda4bafcc3",
+      "working_tree_sha256": "6c7cd96622b64fd9c66d1354c7577580fcca94491252ce794f22a2fda4bafcc3",
+      "candidate_git_blob": "49a725617bd78af66544281faa5d300f5847e2a7",
+      "index_git_blob": "49a725617bd78af66544281faa5d300f5847e2a7",
+      "match": true
+    },
+    {
+      "path": "internal/connector/qqmilky/events.go",
+      "candidate_sha256": "77c51b473db58fd5c5930298449de54bf5c76e9b326e687df61f106ae215c35c",
+      "working_tree_sha256": "77c51b473db58fd5c5930298449de54bf5c76e9b326e687df61f106ae215c35c",
+      "candidate_git_blob": "5295284428149a924070dc6c4dedc71a494290d4",
+      "index_git_blob": "5295284428149a924070dc6c4dedc71a494290d4",
+      "match": true
+    },
+    {
+      "path": "internal/connector/qqmilky/history_boundary_test.go",
+      "candidate_sha256": "005382fb70db9497768b242a93b48c24c7a63b6b74edbe37522882ec4d5d5771",
+      "working_tree_sha256": "005382fb70db9497768b242a93b48c24c7a63b6b74edbe37522882ec4d5d5771",
+      "candidate_git_blob": "4a3c13d86cc67c72ca80d4cfdcaf2589f15f9e9f",
+      "index_git_blob": "4a3c13d86cc67c72ca80d4cfdcaf2589f15f9e9f",
+      "match": true
+    },
+    {
+      "path": "tests/integration/qq_milky_test.go",
+      "candidate_sha256": "9c1578fc60fe1a7b812b712aa61438dcbf4f80928063a876e00b0a61ac9ed1e8",
+      "working_tree_sha256": "9c1578fc60fe1a7b812b712aa61438dcbf4f80928063a876e00b0a61ac9ed1e8",
+      "candidate_git_blob": "0dc40a44eb2afe551e0ccfe6d508f3121dc82d71",
+      "index_git_blob": "0dc40a44eb2afe551e0ccfe6d508f3121dc82d71",
+      "match": true
+    },
+    {
+      "path": "apps/desktop/src/useServiceSession.ts",
+      "candidate_sha256": "eb5b2c1fd31edcd4a150a52afb031a346022760bfe2bcd9135ebcf4609aa4b11",
+      "working_tree_sha256": "eb5b2c1fd31edcd4a150a52afb031a346022760bfe2bcd9135ebcf4609aa4b11",
+      "candidate_git_blob": "1d84b07bb64f299c792b78f282ea36262f82bde7",
+      "index_git_blob": "1d84b07bb64f299c792b78f282ea36262f82bde7",
+      "match": true
+    },
+    {
+      "path": "apps/desktop/src/Inbox.tsx",
+      "candidate_sha256": "2757d3bc86ce62b35236c8ea368bcb9e7098e0ecb9a359f95fdcd1f4269df366",
+      "working_tree_sha256": "2757d3bc86ce62b35236c8ea368bcb9e7098e0ecb9a359f95fdcd1f4269df366",
+      "candidate_git_blob": "b5a8b088b1252a64c46315bacbbfaaa1e8264a81",
+      "index_git_blob": "b5a8b088b1252a64c46315bacbbfaaa1e8264a81",
+      "match": true
+    },
+    {
+      "path": "scripts/test-service-session.mjs",
+      "candidate_sha256": "b11ea44cb549d65733b86ff87d6e336636eb284e87010e21419139912d8e01ed",
+      "working_tree_sha256": "b11ea44cb549d65733b86ff87d6e336636eb284e87010e21419139912d8e01ed",
+      "candidate_git_blob": "3b51097f75046d6f918f81675d40bb8cdc1f06b6",
+      "index_git_blob": "3b51097f75046d6f918f81675d40bb8cdc1f06b6",
+      "match": true
+    },
+    {
+      "path": "scripts/test-device-auth.mjs",
+      "candidate_sha256": "ecc1f5b518e464972ab99f19c3f5807db78408a9559fc329e7426b9895501bd6",
+      "working_tree_sha256": "ecc1f5b518e464972ab99f19c3f5807db78408a9559fc329e7426b9895501bd6",
+      "candidate_git_blob": "2327ad4cdbe8d040b75863c76cb1c1ed8d2460f8",
+      "index_git_blob": "2327ad4cdbe8d040b75863c76cb1c1ed8d2460f8",
+      "match": true
+    },
+    {
+      "path": "scripts/test-import-analysis.mjs",
+      "candidate_sha256": "648a15b733c789d3fb0fcda9577336d4963c10bb947ff9655e8c6abf8ac04728",
+      "working_tree_sha256": "648a15b733c789d3fb0fcda9577336d4963c10bb947ff9655e8c6abf8ac04728",
+      "candidate_git_blob": "f8fda0325a9dbf85c3142831244a985f5984f371",
+      "index_git_blob": "f8fda0325a9dbf85c3142831244a985f5984f371",
+      "match": true
+    },
+    {
+      "path": "apps/desktop/package-lock.json",
+      "candidate_sha256": "47db8e9a13e66f7ca782ea6eddb022e99ad72c4dfaf13b45270a57048709c967",
+      "working_tree_sha256": "0edc58f730c92a103d602faf1f6558c79fc32cadca84ea6650a869c51b40c010",
+      "candidate_git_blob": "bb80b7137db1bfaa9f30bba059004e185a48c9ff",
+      "index_git_blob": "bb80b7137db1bfaa9f30bba059004e185a48c9ff",
+      "match": true
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "candidate_sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479",
+      "working_tree_sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479",
+      "candidate_git_blob": "3bd5aa4d6b0112663abd8ad5b7469f3836267aff",
+      "index_git_blob": "3bd5aa4d6b0112663abd8ad5b7469f3836267aff",
+      "match": true
+    },
+    {
+      "path": "go.mod",
+      "candidate_sha256": "56e866ad3691713712832ec72e1c57172026159857f916e2f4a15ab57d7e79be",
+      "working_tree_sha256": "56e866ad3691713712832ec72e1c57172026159857f916e2f4a15ab57d7e79be",
+      "candidate_git_blob": "735b6a130bd2aeeb28c262e02e25e9ff0e443ec3",
+      "index_git_blob": "735b6a130bd2aeeb28c262e02e25e9ff0e443ec3",
+      "match": true
+    },
+    {
+      "path": "go.sum",
+      "candidate_sha256": "a275b18062a9d7a70292ddc74ec229af97334f16e70735d1987ef77cbbcc3356",
+      "working_tree_sha256": "a275b18062a9d7a70292ddc74ec229af97334f16e70735d1987ef77cbbcc3356",
+      "candidate_git_blob": "c79f66bfb87e339bfff3ff7a360ae82b364e97df",
+      "index_git_blob": "c79f66bfb87e339bfff3ff7a360ae82b364e97df",
+      "match": true
+    },
+    {
+      "path": "scripts/check.ps1",
+      "candidate_sha256": "0c0459163049bf5d363e20a32f4324b0de21ae635805e323c4c9c2765454eb1a",
+      "working_tree_sha256": "0c0459163049bf5d363e20a32f4324b0de21ae635805e323c4c9c2765454eb1a",
+      "candidate_git_blob": "fb7642f7ef7759aa1eee52a9bed49bf755360fe5",
+      "index_git_blob": "fb7642f7ef7759aa1eee52a9bed49bf755360fe5",
+      "match": true
+    }
+  ]
+}

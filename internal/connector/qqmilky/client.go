@@ -3,6 +3,7 @@ package qqmilky
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/qilinbro/msg-manager/internal/connector/adapter"
 )
@@ -98,8 +99,10 @@ func (c *Client) Friends(ctx context.Context) ([]Friend, error) {
 	return friends, nil
 }
 
-// History performs one bounded page. The caller owns the cursor: only after a
-// successful transactional write may next_message_seq become the next cursor.
+// History freshly verifies the account/version before reading one bounded,
+// peer-scoped page. No part of a misrouted or mixed-peer page may be imported.
+// The caller owns the cursor: only after a successful transactional write may
+// next_message_seq become the next cursor.
 func (c *Client) History(ctx context.Context, scene, peerID string, startSeq *int64, limit int) ([]IncomingMessage, *int64, error) {
 	if c == nil {
 		return nil, nil, adapter.Failure(adapter.NotConfigured)
@@ -117,6 +120,9 @@ func (c *Client) History(ctx context.Context, scene, peerID string, startSeq *in
 		StartSeq *int64 `json:"start_message_seq,omitempty"`
 		Limit    int    `json:"limit"`
 	}{Scene: scene, PeerID: peer, StartSeq: startSeq, Limit: limit}
+	if _, err := c.Probe(ctx); err != nil {
+		return nil, nil, err
+	}
 	data, err := c.base.Call(ctx, "get_history_messages", request)
 	if err != nil {
 		return nil, nil, err
@@ -128,7 +134,14 @@ func (c *Client) History(ctx context.Context, scene, peerID string, startSeq *in
 	if err := adapter.DecodeJSON(data, &response); err != nil {
 		return nil, nil, adapter.Failure(adapter.ProtocolError)
 	}
+	if len(response.Messages) > limit {
+		return nil, nil, adapter.Failure(adapter.ProtocolError)
+	}
 	for _, message := range response.Messages {
+		messagePeer, ok := adapter.ExactID(message.PeerID)
+		if !ok || messagePeer != strconv.FormatInt(peer, 10) || message.Scene != scene {
+			return nil, nil, adapter.Failure(adapter.ProtocolError)
+		}
 		if _, ok := adapter.ExactID(message.MessageSeq); !ok {
 			return nil, nil, adapter.Failure(adapter.ProtocolError)
 		}

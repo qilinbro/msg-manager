@@ -1,0 +1,19 @@
+ok  	github.com/qilinbro/msg-manager/internal/connector/qqmilky	6.922s
+# github.com/mutecomm/go-sqlcipher/v4
+sqlite3.c: In function 'sqlite3_expanded_sql':
+sqlite3.c:89448:10: warning: function may return address of local variable [-Wreturn-local-addr]
+89448 |   return z;
+      |          ^
+sqlite3.c:89813:8: note: declared here
+89813 |   char zBase[100];         /* Initial working space */
+      |        ^~~~~
+sqlite3.c:89813:8: note: declared here
+sqlite3.c:89813:8: note: declared here
+sqlite3.c:89813:8: note: declared here
+sqlite3.c:89813:8: note: declared here
+sqlite3.c: In function 'sqlcipher_codec_ctx_migrate':
+sqlite3.c:24117:3: warning: 'memcpy' specified bound 18446744073709551615 exceeds maximum object size 9223372036854775807 [-Wstringop-overflow=]
+24117 |   memcpy(pass, ctx->read_ctx->pass, pass_sz);
+      |   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ok  	github.com/qilinbro/msg-manager/internal/api	21.219s
+ok  	github.com/qilinbro/msg-manager/tests/integration	10.367s

@@ -66,7 +66,7 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
   } | null>(null);
   const generation = useRef(0);
   const mounted = useRef(false);
-  const explicitlyCleared = useRef(false);
+  const autoRestoreSuppressed = useRef(false);
   const restoring = useRef<Promise<void> | null>(null);
   const clearing = useRef(false);
 
@@ -83,7 +83,7 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
       pending.current = null;
       active.current = '';
       candidate.current = '';
-      explicitlyCleared.current = true;
+      autoRestoreSuppressed.current = true;
       system.current = null;
       setAuthenticationEpoch(++authenticatedGeneration.current);
       aiDrafts.clear();
@@ -121,7 +121,7 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
         setStorageAvailable(clearServiceSession(SERVICE.url));
       }
       candidate.current = token;
-      explicitlyCleared.current = false;
+      autoRestoreSuppressed.current = false;
       if (previousToken !== token) {
         setAuthenticationEpoch(++authenticatedGeneration.current);
         active.current = '';
@@ -256,10 +256,11 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
   useEffect(() => {
     mounted.current = true;
     const restore = () => {
+      if (autoRestoreSuppressed.current) return;
       if (candidate.current) {
         void verify(candidate.current);
       } else if (
-        !explicitlyCleared.current &&
+        !autoRestoreSuppressed.current &&
         !restoring.current &&
         deviceAuthAvailable()
       ) {
@@ -270,7 +271,7 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
               !mounted.current ||
               generation.current !== epoch ||
               candidate.current ||
-              explicitlyCleared.current
+              autoRestoreSuppressed.current
             )
               return;
             if (device) {
@@ -357,7 +358,7 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
     pending.current = null;
     active.current = '';
     candidate.current = '';
-    explicitlyCleared.current = true;
+    autoRestoreSuppressed.current = true;
     system.current = null;
     setAuthenticationEpoch(++authenticatedGeneration.current);
     aiDrafts.clear();
@@ -404,6 +405,10 @@ export function useServiceSession(aiDrafts: Map<string, AIDraftBuffer>) {
   }, [aiDrafts]);
 
   const cancel = useCallback(() => {
+    // Stop initial/replacement attempts until an explicit submit. Keep their
+    // input/candidate for manual retry, but do not resume on focus or IDB restore.
+    // Canceling metadata revalidation must retain the verified active session.
+    if (!active.current) autoRestoreSuppressed.current = true;
     generation.current++;
     pending.current?.controller.abort();
     pending.current = null;

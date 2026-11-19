@@ -12,9 +12,10 @@ import (
 const reconnectDelay = 2 * time.Second
 const eventReadTimeout = 90 * time.Second
 
-// Run owns the forward /event stream. Milky events have no unique ID, no
-// cursor and no replay: every disconnect is reported so the API layer can
-// reconcile with get_history_messages and show an explicit gap.
+// Run freshly verifies every connection to the forward /event stream. Milky
+// events have no unique ID, cursor or replay: disconnects are reported so the
+// API layer can reconcile. Identity/version failures are terminal, not gaps
+// that may be reconciled or automatically retried under the old authorization.
 func (c *Client) Run(ctx context.Context, onEvent func(NormalizedMessage) error, onGap func(Gap)) {
 	if c == nil || ctx == nil {
 		return
@@ -23,21 +24,21 @@ func (c *Client) Run(ctx context.Context, onEvent func(NormalizedMessage) error,
 		if ctx.Err() != nil {
 			return
 		}
-		conn, err := c.base.DialEvent(ctx)
-		if err != nil {
-			reportGap(onGap, classify(err))
-			if !wait(ctx) {
-				return
+		_, err := c.Probe(ctx)
+		if err == nil {
+			var conn *websocket.Conn
+			conn, err = c.base.DialEvent(ctx)
+			if err == nil {
+				err = c.readLoop(ctx, conn, onEvent)
+				_ = conn.Close()
 			}
-			continue
 		}
-		err = c.readLoop(ctx, conn, onEvent)
-		_ = conn.Close()
 		if ctx.Err() != nil {
 			return
 		}
-		reportGap(onGap, classify(err))
-		if !wait(ctx) {
+		reason := classify(err)
+		reportGap(onGap, reason)
+		if reason == string(adapter.IdentityMismatch) || reason == string(adapter.VersionMismatch) || !wait(ctx) {
 			return
 		}
 	}

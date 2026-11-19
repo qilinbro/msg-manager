@@ -1,0 +1,15 @@
+{
+  "baseline": "76ec21e69e771d703a7c2ea97b24d1f42e8f0db2",
+  "started_at": "2026-11-19T15:04:23.3360325+08:00",
+  "tools": {
+    "powershell": "7.7.0",
+    "go": "go version go1.27.4 windows/amd64",
+    "node": "v24.21.0",
+    "gcc": "14.2.0"
+  },
+  "engineering": "failed",
+  "engineering_seconds": 0.382,
+  "race": "not_run",
+  "race_seconds": null,
+  "finished_at": "2026-11-19T15:04:23.8226508+08:00"
+}

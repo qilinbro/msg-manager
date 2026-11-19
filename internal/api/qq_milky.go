@@ -88,6 +88,9 @@ type milkyConnection struct {
 	status    MilkyStatus
 	persisted store.QQMilkyMonitorSettings
 
+	// Protected by mu: an in-flight probe cannot undo a newer revocation.
+	verificationEpoch uint64
+
 	monitorMu sync.Mutex
 	cancel    context.CancelFunc
 	done      chan struct{}
@@ -149,23 +152,32 @@ func (h *handler) restoreMilkyMonitor() error {
 }
 
 // startMilkyMonitorLocked starts only an already verified, persisted
-// authorization. The caller must hold monitorMu.
+// authorization. The caller must hold monitorMu. Publish the receive state
+// before launching the worker, so a fast fatal gap cannot be overwritten.
 func (h *handler) startMilkyMonitorLocked(settings store.QQMilkyMonitorSettings) {
 	c := h.milky
 	h.stopMilkyMonitorLocked()
 	c.persisted = store.QQMilkyMonitorSettings{Enabled: settings.Enabled, PeerIDs: append([]string{}, settings.PeerIDs...)}
-	state := "disabled"
+	var ctx context.Context
+	state, lastError := "disabled", ""
+	c.mu.Lock()
 	if settings.Enabled {
-		state = "running"
-		ctx, cancel := context.WithCancel(context.Background())
-		done := make(chan struct{})
-		c.cancel, c.done, c.peers = cancel, done, append([]string{}, settings.PeerIDs...)
+		state = "pending_verification"
+		if c.status.State == "identity_verified" && !c.closed {
+			state = "running"
+			ctx, c.cancel = context.WithCancel(context.Background())
+			c.done, c.peers = make(chan struct{}), append([]string{}, settings.PeerIDs...)
+		} else if milkyRequiresFreshVerification(c.status.State) {
+			lastError = c.status.State
+		}
+	}
+	done := c.done
+	c.status.Monitor = MilkyMonitor{Enabled: settings.Enabled, State: state, PeerIDs: append([]string{}, settings.PeerIDs...), ReadOnly: true, LastError: lastError}
+	c.status.ReceivingEnabled = state == "running"
+	c.mu.Unlock()
+	if ctx != nil {
 		go h.runMilkyMonitor(ctx, append([]string{}, settings.PeerIDs...), done)
 	}
-	c.mu.Lock()
-	c.status.Monitor = MilkyMonitor{Enabled: settings.Enabled, State: state, PeerIDs: append([]string{}, settings.PeerIDs...), ReadOnly: true}
-	c.status.ReceivingEnabled = settings.Enabled
-	c.mu.Unlock()
 }
 
 func (h *handler) applyMilky(items []connector.Descriptor) {
@@ -213,54 +225,62 @@ func (h *handler) verifyMilky(w http.ResponseWriter, r *http.Request, traceID st
 		writeError(w, http.StatusServiceUnavailable, "MILKY_BUSY", "QQ Milky 操作正在进行，请稍后重试。", traceID)
 		return
 	}
+	c.mu.RLock()
+	epoch := c.verificationEpoch
+	c.mu.RUnlock()
 	ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
 	defer cancel()
 	verification, err := c.client.Probe(ctx)
-	state := "identity_verified"
+	c.monitorMu.Lock()
+	defer c.monitorMu.Unlock()
 	if err != nil {
-		state = milkyFailureState(err)
-	}
-	now := time.Now().UTC().Format(time.RFC3339)
-	c.mu.Lock()
-	c.status.State = state
-	if err == nil {
-		c.status.CheckedAt = now
-		c.status.Nickname = verification.Nickname
-		c.status.MilkyVersion = verification.MilkyVersion
-	}
-	c.mu.Unlock()
-	if err != nil {
-		// A failed re-verification revokes the in-memory receive session. The
-		// encrypted allowlist remains saved, but it can only resume after a
-		// later successful identity/version probe.
-		c.monitorMu.Lock()
+		state := milkyFailureState(err)
+		h.invalidateMilkyVerification(state)
 		h.stopMilkyMonitorLocked()
-		monitorState := "disabled"
-		if c.persisted.Enabled {
-			monitorState = "pending_verification"
-		}
-		c.mu.Lock()
-		c.status.Monitor.State = monitorState
-		c.status.Monitor.Enabled = c.persisted.Enabled
-		c.status.Monitor.PeerIDs = append([]string{}, c.persisted.PeerIDs...)
-		c.status.ReceivingEnabled = false
-		c.mu.Unlock()
-		c.monitorMu.Unlock()
 		writeError(w, http.StatusServiceUnavailable, "MILKY_"+strings.ToUpper(state), milkyFailureMessage(state), traceID)
 		return
 	}
-	// A saved authorization is resumed only after this fresh identity/version
-	// probe succeeds; constructing a handler never starts provider I/O.
-	c.monitorMu.Lock()
-	if c.persisted.Enabled && c.cancel == nil && !c.closed && h.inbox != nil {
+	// A terminal worker keeps its join handle until an external controller
+	// reaps it. Never ask the worker to join itself from its gap callback.
+	c.mu.RLock()
+	restart := c.cancel == nil || c.status.Monitor.State == "pending_verification"
+	c.mu.RUnlock()
+	if c.done != nil {
+		select {
+		case <-c.done:
+			restart = true
+		default:
+		}
+	}
+	if restart {
+		h.stopMilkyMonitorLocked()
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+	c.mu.Lock()
+	if c.verificationEpoch != epoch {
+		// A fatal event detected during this probe is newer evidence. Only a
+		// subsequent explicit fresh verification may restore authorization.
+		state := c.status.State
+		c.mu.Unlock()
+		h.stopMilkyMonitorLocked()
+		writeError(w, http.StatusServiceUnavailable, "MILKY_"+strings.ToUpper(state), milkyFailureMessage(state), traceID)
+		return
+	}
+	c.status.State = "identity_verified"
+	c.status.CheckedAt = now
+	c.status.Nickname = verification.Nickname
+	c.status.MilkyVersion = verification.MilkyVersion
+	c.mu.Unlock()
+	// Constructing a handler or a successful manual history read never resumes
+	// the saved receive authorization; this explicit fresh probe does.
+	if restart && c.persisted.Enabled && !c.closed && h.inbox != nil {
 		h.startMilkyMonitorLocked(c.persisted)
 	}
-	c.monitorMu.Unlock()
 	c.mu.RLock()
 	receiving := c.status.ReceivingEnabled
 	c.mu.RUnlock()
 	writeJSON(w, http.StatusOK, MilkyVerification{
-		ConnectionID: "qq-milky", State: state, AccountID: verification.AccountID,
+		ConnectionID: "qq-milky", State: "identity_verified", AccountID: verification.AccountID,
 		Nickname: verification.Nickname, ImplName: verification.ImplName,
 		ImplVersion: verification.ImplVersion, MilkyVersion: verification.MilkyVersion,
 		CheckedAt: now, ReceivingEnabled: receiving, SendingEnabled: false,
@@ -308,7 +328,11 @@ func (h *handler) syncMilky(w http.ResponseWriter, r *http.Request, traceID stri
 	defer cancel()
 	messages, next, err := c.client.History(ctx, "friend", *request.PeerID, nil, limit)
 	if err != nil {
-		writeError(w, http.StatusServiceUnavailable, "MILKY_"+strings.ToUpper(milkyFailureState(err)), milkyFailureMessage(milkyFailureState(err)), traceID)
+		state := milkyFailureState(err)
+		if milkyRequiresFreshVerification(state) {
+			h.invalidateMilkyVerification(state)
+		}
+		writeError(w, http.StatusServiceUnavailable, "MILKY_"+strings.ToUpper(state), milkyFailureMessage(state), traceID)
 		return
 	}
 	normalized, skipped := h.normalizeMilkyBatch(messages)
@@ -378,13 +402,6 @@ func (h *handler) configureMilkyMonitor(w http.ResponseWriter, r *http.Request, 
 		writeError(w, http.StatusBadRequest, "INVALID_INPUT", "开启后台接收须选择 1 到 20 个明确授权的私聊 QQ 号。", traceID)
 		return
 	}
-	c.mu.RLock()
-	verified := c.status.State == "identity_verified"
-	c.mu.RUnlock()
-	if *request.Enabled && !verified {
-		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_VERIFIED", "请先在设置页完成账号与协议版本核验。", traceID)
-		return
-	}
 	c.monitorMu.Lock()
 	defer c.monitorMu.Unlock()
 	if c.closed {
@@ -393,9 +410,17 @@ func (h *handler) configureMilkyMonitor(w http.ResponseWriter, r *http.Request, 
 	}
 	settings := store.QQMilkyMonitorSettings{Enabled: *request.Enabled, PeerIDs: peers}
 	old := c.persisted
-	// Join the old worker before changing durable authorization. If persistence
-	// fails, restore the previous worker and leave the old authorization intact.
+	// Join before checking verification or changing durable authorization: an
+	// old worker's fatal gap must not race a stale enable decision. If saving
+	// fails, restore the old authorization only while it is still verified.
 	h.stopMilkyMonitorLocked()
+	c.mu.RLock()
+	verified := c.status.State == "identity_verified"
+	c.mu.RUnlock()
+	if *request.Enabled && !verified {
+		writeError(w, http.StatusServiceUnavailable, "MILKY_NOT_VERIFIED", "请先在设置页完成账号与协议版本核验。", traceID)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
 	defer cancel()
 	if err := h.inbox.SaveQQMilkyMonitor(ctx, c.client.SelfID(), settings); err != nil {
@@ -422,15 +447,42 @@ func (h *handler) configureMilkyMonitor(w http.ResponseWriter, r *http.Request, 
 	h.milkyStatus(w)
 }
 
-func (h *handler) stopMilkyMonitorLocked() {
+func milkyRequiresFreshVerification(state string) bool {
+	return state == string(adapter.IdentityMismatch) || state == string(adapter.VersionMismatch)
+}
+
+// invalidateMilkyVerification may run inside the worker. It cancels without
+// joining or taking monitorMu, which an external stop-and-join may already hold.
+// The persisted allowlist is retained, but only explicit fresh verification can
+// restore the receive session. All cancel writes hold both monitorMu and mu.
+func (h *handler) invalidateMilkyVerification(state string) {
 	c := h.milky
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.verificationEpoch++
+	c.status.State = state
+	c.status.ReceivingEnabled = false
+	if c.status.Monitor.Enabled {
+		c.status.Monitor.State = "pending_verification"
+		c.status.Monitor.LastError = state
+	}
 	if c.cancel != nil {
 		c.cancel()
-		if c.done != nil {
-			<-c.done
+	}
+}
+
+func (h *handler) stopMilkyMonitorLocked() {
+	c := h.milky
+	c.mu.Lock()
+	cancel, done := c.cancel, c.done
+	c.cancel, c.done, c.peers = nil, nil, nil
+	c.mu.Unlock()
+	if cancel != nil {
+		cancel()
+		if done != nil {
+			<-done
 		}
 	}
-	c.cancel, c.done, c.peers = nil, nil, nil
 }
 
 func (h *handler) closeMilkyMonitor() {
@@ -449,6 +501,9 @@ func (h *handler) runMilkyMonitor(ctx context.Context, peers []string, done chan
 	}
 	c.client.Run(ctx,
 		func(message qqmilky.NormalizedMessage) error {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if _, ok := allowed[message.PeerID]; !ok {
 				// The protocol stream is account-scoped but not allowlist-scoped;
 				// never persist an event for an unselected private chat.
@@ -468,12 +523,27 @@ func (h *handler) runMilkyMonitor(ctx context.Context, peers []string, done chan
 		},
 		func(gap qqmilky.Gap) {
 			h.recordMilkyGap(gap.Reason)
-			// Milky has no replay: bounded reconciliation after reconnect.
+			if milkyRequiresFreshVerification(gap.Reason) {
+				h.invalidateMilkyVerification(gap.Reason)
+				return
+			}
+			// Milky has no replay. Only ordinary transport gaps may trigger
+			// bounded history reads, each with its own fresh account/version
+			// check and whole-page peer validation in the connector.
 			reconcile, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()
 			for _, peer := range peers {
+				if reconcile.Err() != nil {
+					return
+				}
 				messages, _, err := c.client.History(reconcile, "friend", peer, nil, qqmilky.DefaultHistoryLimit)
 				if err != nil {
+					state := milkyFailureState(err)
+					h.recordMilkyGap("reconcile:" + state)
+					if milkyRequiresFreshVerification(state) {
+						h.invalidateMilkyVerification(state)
+						return
+					}
 					continue
 				}
 				items, _ := h.normalizeMilkyBatch(messages)

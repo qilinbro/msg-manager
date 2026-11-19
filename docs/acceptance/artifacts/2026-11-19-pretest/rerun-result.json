@@ -1,0 +1,17 @@
+{
+  "baseline": "a693658820afa002cf064a22552fcc45c61db4d4",
+  "rerun_of": "../pretest-20261119/validation-result.json",
+  "rerun_reason": "Canonical LF archive after initial CRLF setup failure; concurrent a693658 is now baseline; ten source/test overlays remain byte-identical.",
+  "started_at": "2026-11-19T15:11:02.5883817+08:00",
+  "tools": {
+    "powershell": "7.7.0",
+    "go": "go version go1.27.4 windows/amd64",
+    "node": "v24.21.0",
+    "gcc": "14.2.0"
+  },
+  "engineering": "passed",
+  "engineering_seconds": 148.196,
+  "race": "passed",
+  "race_seconds": 76.919,
+  "finished_at": "2026-11-19T15:14:47.8387468+08:00"
+}

@@ -1,0 +1,73 @@
+{
+  "baseline": "a693658820afa002cf064a22552fcc45c61db4d4",
+  "frozen_at": "2026-11-19T15:09:25.8418826+08:00",
+  "archive_options": "-c core.autocrlf=false -c core.eol=lf archive --format=zip",
+  "baseline_archive_sha256": "ad4427833fe01df3d12d2d14f266e66efe40100cab553d59a05887b81266f302",
+  "scope": "Tracked a693658 baseline plus exactly ten source/test overlays. The concurrent numeric-WeChat-session commit is baseline only, not authored or accepted by this preparation round.",
+  "rerun_reason": "Initial 76ec21e archive inherited core.autocrlf=true; gofmt rejected CRLF in unchanged baseline files. Canonical archive recreated after concurrent a693658 commit; ten overlays retain identical SHA256. No formatter or source changes applied.",
+  "previous_baseline": "76ec21e69e771d703a7c2ea97b24d1f42e8f0db2",
+  "overlays": [
+    {
+      "path": "internal/api/qq_milky.go",
+      "sha256": "fc92736feda0d1a91bb34044d0f699d64914183f2e712b9da7915bcc4eec38b6"
+    },
+    {
+      "path": "internal/connector/qqmilky/client.go",
+      "sha256": "6c7cd96622b64fd9c66d1354c7577580fcca94491252ce794f22a2fda4bafcc3"
+    },
+    {
+      "path": "internal/connector/qqmilky/events.go",
+      "sha256": "77c51b473db58fd5c5930298449de54bf5c76e9b326e687df61f106ae215c35c"
+    },
+    {
+      "path": "internal/connector/qqmilky/history_boundary_test.go",
+      "sha256": "005382fb70db9497768b242a93b48c24c7a63b6b74edbe37522882ec4d5d5771"
+    },
+    {
+      "path": "tests/integration/qq_milky_test.go",
+      "sha256": "9c1578fc60fe1a7b812b712aa61438dcbf4f80928063a876e00b0a61ac9ed1e8"
+    },
+    {
+      "path": "apps/desktop/src/useServiceSession.ts",
+      "sha256": "eb5b2c1fd31edcd4a150a52afb031a346022760bfe2bcd9135ebcf4609aa4b11"
+    },
+    {
+      "path": "apps/desktop/src/Inbox.tsx",
+      "sha256": "2757d3bc86ce62b35236c8ea368bcb9e7098e0ecb9a359f95fdcd1f4269df366"
+    },
+    {
+      "path": "scripts/test-service-session.mjs",
+      "sha256": "b11ea44cb549d65733b86ff87d6e336636eb284e87010e21419139912d8e01ed"
+    },
+    {
+      "path": "scripts/test-device-auth.mjs",
+      "sha256": "ecc1f5b518e464972ab99f19c3f5807db78408a9559fc329e7426b9895501bd6"
+    },
+    {
+      "path": "scripts/test-import-analysis.mjs",
+      "sha256": "648a15b733c789d3fb0fcda9577336d4963c10bb947ff9655e8c6abf8ac04728"
+    }
+  ],
+  "gate_inputs": [
+    {
+      "path": "apps/desktop/package-lock.json",
+      "sha256": "47db8e9a13e66f7ca782ea6eddb022e99ad72c4dfaf13b45270a57048709c967"
+    },
+    {
+      "path": "apps/desktop/package.json",
+      "sha256": "aa9415038ee05eae7c0e2b3158c51dc98c85dad0ec55d616ebed7b1bafd11479"
+    },
+    {
+      "path": "go.mod",
+      "sha256": "56e866ad3691713712832ec72e1c57172026159857f916e2f4a15ab57d7e79be"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "a275b18062a9d7a70292ddc74ec229af97334f16e70735d1987ef77cbbcc3356"
+    },
+    {
+      "path": "scripts/check.ps1",
+      "sha256": "0c0459163049bf5d363e20a32f4324b0de21ae635805e323c4c9c2765454eb1a"
+    }
+  ]
+}

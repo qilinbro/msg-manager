@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -119,6 +120,357 @@ func milkyRequest(h http.Handler, method, path, body string, headers map[string]
 	recorder := httptest.NewRecorder()
 	h.ServeHTTP(recorder, req)
 	return recorder
+}
+
+const milkyBoundaryPath = "/api/v1/connections/qq-milky"
+
+type milkyBoundaryFixture struct {
+	mu               sync.Mutex
+	account, version string
+	history          string
+	calls            map[string]int
+	streams          chan *websocket.Conn
+	implEntered      chan struct{}
+	implRelease      <-chan struct{}
+}
+
+func newMilkyBoundaryProvider(t *testing.T, history string) (*milkyBoundaryFixture, *httptest.Server) {
+	t.Helper()
+	fixture := &milkyBoundaryFixture{
+		account: milkyAccount, version: "1.3", history: history,
+		calls: make(map[string]int), streams: make(chan *websocket.Conn, 8),
+	}
+	upgrader := websocket.Upgrader{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+milkyToken {
+			http.Error(w, "denied", http.StatusUnauthorized)
+			return
+		}
+		fixture.mu.Lock()
+		fixture.calls[r.URL.Path]++
+		account, version, page := fixture.account, fixture.version, fixture.history
+		var entered chan struct{}
+		var release <-chan struct{}
+		if r.URL.Path == "/api/get_impl_info" {
+			entered, release = fixture.implEntered, fixture.implRelease
+			fixture.implEntered, fixture.implRelease = nil, nil
+		}
+		fixture.mu.Unlock()
+		if entered != nil {
+			close(entered)
+			select {
+			case <-release:
+			case <-r.Context().Done():
+				return
+			}
+		}
+		switch r.URL.Path {
+		case "/api/get_login_info":
+			_, _ = fmt.Fprintf(w, `{"status":"ok","retcode":0,"data":{"uin":%s,"nickname":"self"}}`, account)
+		case "/api/get_impl_info":
+			_, _ = fmt.Fprintf(w, `{"status":"ok","retcode":0,"data":{"impl_name":"synthetic","milky_version":%q}}`, version)
+		case "/api/get_history_messages":
+			_, _ = fmt.Fprintf(w, `{"status":"ok","retcode":0,"data":%s}`, page)
+		case "/event":
+			conn, err := upgrader.Upgrade(w, r, nil)
+			if err != nil {
+				return
+			}
+			defer conn.Close()
+			select {
+			case fixture.streams <- conn:
+			default:
+				return
+			}
+			for {
+				if _, _, err := conn.ReadMessage(); err != nil {
+					return
+				}
+			}
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	t.Cleanup(server.Close)
+	return fixture, server
+}
+
+func (f *milkyBoundaryFixture) setIdentity(account, version string) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.account, f.version = account, version
+}
+
+func (f *milkyBoundaryFixture) count(path string) int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.calls[path]
+}
+
+func (f *milkyBoundaryFixture) nextStream(t *testing.T) *websocket.Conn {
+	t.Helper()
+	select {
+	case conn := <-f.streams:
+		return conn
+	case <-time.After(3 * time.Second):
+		t.Fatal("verified monitor did not establish a stream")
+		return nil
+	}
+}
+
+func (f *milkyBoundaryFixture) blockNextImpl(t *testing.T) (<-chan struct{}, func()) {
+	t.Helper()
+	entered, release := make(chan struct{}), make(chan struct{})
+	f.mu.Lock()
+	f.implEntered, f.implRelease = entered, release
+	f.mu.Unlock()
+	var once sync.Once
+	unblock := func() { once.Do(func() { close(release) }) }
+	t.Cleanup(unblock)
+	return entered, unblock
+}
+
+func milkyBoundaryMessage(scene, peer string, seq int) string {
+	return fmt.Sprintf(`{"message_scene":%q,"peer_id":%s,"message_seq":%d,"sender_id":987654321,"time":1730000000,"segments":[{"type":"text","data":{"text":"界内历史"}}]}`, scene, peer, seq)
+}
+
+func milkyBoundaryRequest(t *testing.T, h http.Handler, method, suffix, body string, want int) *httptest.ResponseRecorder {
+	t.Helper()
+	response := milkyRequest(h, method, milkyBoundaryPath+suffix, body, nil)
+	if response.Code != want {
+		t.Fatalf("%s %s: got %d want %d: %s", method, suffix, response.Code, want, response.Body.String())
+	}
+	return response
+}
+
+func waitMilkyBoundaryStatus(t *testing.T, h http.Handler, accept func(api.MilkyStatus) bool) api.MilkyStatus {
+	t.Helper()
+	deadline := time.NewTimer(3 * time.Second)
+	defer deadline.Stop()
+	tick := time.NewTicker(10 * time.Millisecond)
+	defer tick.Stop()
+	for {
+		response := milkyBoundaryRequest(t, h, http.MethodGet, "/status", "", http.StatusOK)
+		var status api.MilkyStatus
+		if err := json.Unmarshal(response.Body.Bytes(), &status); err != nil {
+			t.Fatal(err)
+		}
+		if accept(status) {
+			return status
+		}
+		select {
+		case <-tick.C:
+		case <-deadline.C:
+			t.Fatalf("monitor did not reach expected state: %s", response.Body.String())
+		}
+	}
+}
+
+func assertMilkyBoundaryInboxEmpty(t *testing.T, h http.Handler) {
+	t.Helper()
+	response := milkyRequest(h, http.MethodGet, "/api/v1/conversations", "", nil)
+	var page struct {
+		Items []json.RawMessage `json:"items"`
+	}
+	if response.Code != http.StatusOK {
+		t.Fatalf("conversations: %d %s", response.Code, response.Body.String())
+	}
+	if err := json.Unmarshal(response.Body.Bytes(), &page); err != nil {
+		t.Fatal(err)
+	}
+	if len(page.Items) != 0 {
+		t.Fatalf("rejected page/event was partially imported: %s", response.Body.String())
+	}
+}
+
+func TestMilkySyncFreshVerificationAndAtomicPeerScope(t *testing.T) {
+	good := milkyBoundaryMessage("friend", "987654321", 1)
+	wrong := milkyBoundaryMessage("friend", "111111111", 2)
+	for _, scenario := range []struct {
+		name, account, version, messages, failure string
+		priorVerification                         bool
+	}{
+		{"never verified matching account", milkyAccount, "1.3", good, "", false},
+		{"never verified wrong account", "999", "1.3", good, "IDENTITY_MISMATCH", false},
+		{"account switched after verification", "999", "1.3", good, "IDENTITY_MISMATCH", true},
+		{"version switched after verification", milkyAccount, "1.2", good, "VERSION_MISMATCH", true},
+		{"unknown version", milkyAccount, "", good, "VERSION_MISMATCH", false},
+		{"wrong peer", milkyAccount, "1.3", wrong, "PROTOCOL_ERROR", false},
+		{"allowed then wrong peer", milkyAccount, "1.3", good + "," + wrong, "PROTOCOL_ERROR", true},
+		{"wrong then allowed peer", milkyAccount, "1.3", wrong + "," + good, "PROTOCOL_ERROR", false},
+		{"wrong scene", milkyAccount, "1.3", milkyBoundaryMessage("group", "987654321", 3), "PROTOCOL_ERROR", false},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			fixture, provider := newMilkyBoundaryProvider(t, `{"messages":[`+scenario.messages+`],"next_message_seq":41}`)
+			h := milkyHandlerWithStore(t, provider.URL)
+			if scenario.priorVerification {
+				milkyBoundaryRequest(t, h, http.MethodGet, "/verify", "", http.StatusOK)
+			}
+			fixture.setIdentity(scenario.account, scenario.version)
+			beforeLogin, beforeImpl := fixture.count("/api/get_login_info"), fixture.count("/api/get_impl_info")
+			wantCode := http.StatusOK
+			if scenario.failure != "" {
+				wantCode = http.StatusServiceUnavailable
+			}
+			response := milkyBoundaryRequest(t, h, http.MethodPost, "/sync", `{"peer_id":"987654321"}`, wantCode)
+			if fixture.count("/api/get_login_info") != beforeLogin+1 {
+				t.Fatal("manual sync did not freshly verify the account")
+			}
+			wantImpl, wantHistory := 1, 1
+			if scenario.account != milkyAccount {
+				wantImpl, wantHistory = 0, 0
+			} else if scenario.version != "1.3" {
+				wantHistory = 0
+			}
+			if fixture.count("/api/get_impl_info") != beforeImpl+wantImpl || fixture.count("/api/get_history_messages") != wantHistory {
+				t.Fatal("history was requested before fresh account/version verification")
+			}
+			if scenario.failure != "" {
+				if !strings.Contains(response.Body.String(), "MILKY_"+scenario.failure) {
+					t.Fatalf("unexpected failure: %s", response.Body.String())
+				}
+				assertMilkyBoundaryInboxEmpty(t, h)
+			} else {
+				var result api.MilkySyncResult
+				if err := json.Unmarshal(response.Body.Bytes(), &result); err != nil || result.Inserted != 1 {
+					t.Fatalf("freshly verified manual import failed: %+v %v", result, err)
+				}
+				// A successful history probe is not explicit monitor authorization.
+				milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":true,"peer_ids":["987654321"]}`, http.StatusServiceUnavailable)
+			}
+		})
+	}
+}
+
+func TestMilkyFatalFailureRevokesMonitorAndRequiresExplicitFreshRecovery(t *testing.T) {
+	for _, mode := range []string{"event identity", "initial identity", "initial version", "history identity", "history version", "manual identity", "manual version"} {
+		t.Run(mode, func(t *testing.T) {
+			fixture, provider := newMilkyBoundaryProvider(t, `{"messages":[`+milkyBoundaryMessage("friend", "987654321", 1)+`]}`)
+			h := milkyHandlerWithStore(t, provider.URL)
+			milkyBoundaryRequest(t, h, http.MethodGet, "/verify", "", http.StatusOK)
+			badAccount, badVersion, failure := "999", "1.3", "identity_mismatch"
+			if strings.HasSuffix(mode, "version") {
+				badAccount, badVersion, failure = milkyAccount, "1.2", "version_mismatch"
+			}
+			if strings.HasPrefix(mode, "initial") {
+				fixture.setIdentity(badAccount, badVersion)
+			}
+			milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":true,"peer_ids":["987654321"]}`, http.StatusOK)
+			if !strings.HasPrefix(mode, "initial") {
+				conn := fixture.nextStream(t)
+				if mode == "event identity" {
+					if err := conn.WriteMessage(websocket.TextMessage, []byte(`{"event_type":"message_receive","self_id":999,"data":{}}`)); err != nil {
+						t.Fatal(err)
+					}
+				} else {
+					fixture.setIdentity(badAccount, badVersion)
+					if strings.HasPrefix(mode, "manual") {
+						milkyBoundaryRequest(t, h, http.MethodPost, "/sync", `{"peer_id":"987654321"}`, http.StatusServiceUnavailable)
+					} else {
+						_ = conn.Close() // Ordinary gap, but its fresh history probe must fail.
+					}
+				}
+			}
+			status := waitMilkyBoundaryStatus(t, h, func(status api.MilkyStatus) bool {
+				return status.State == failure && !status.ReceivingEnabled && status.Monitor.State == "pending_verification"
+			})
+			if !status.Monitor.Enabled || status.Monitor.LastError != failure || status.SendingEnabled {
+				t.Fatalf("fatal failure lost authorization or failed to revoke reception: %+v", status)
+			}
+			if fixture.count("/api/get_history_messages") != 0 {
+				t.Fatal("fatal identity/version failure triggered history")
+			}
+			assertMilkyBoundaryInboxEmpty(t, h)
+			streams := fixture.count("/event")
+			fixture.setIdentity(milkyAccount, "1.3")
+			// A manual read may verify for that request, but must not restart the
+			// saved monitor or clear the requirement for an explicit fresh verify.
+			milkyBoundaryRequest(t, h, http.MethodPost, "/sync", `{"peer_id":"987654321"}`, http.StatusOK)
+			waitMilkyBoundaryStatus(t, h, func(status api.MilkyStatus) bool {
+				return status.State == failure && !status.ReceivingEnabled && status.Monitor.State == "pending_verification"
+			})
+			if fixture.count("/event") != streams {
+				t.Fatal("manual sync silently resumed the receive worker")
+			}
+			// The old terminal worker still has a join handle. Recovery must not
+			// require a second verify or deadlock by joining itself.
+			milkyBoundaryRequest(t, h, http.MethodGet, "/verify", "", http.StatusOK)
+			conn := fixture.nextStream(t)
+			if err := conn.WriteMessage(websocket.TextMessage, []byte(`{"event_type":"message_receive","self_id":123456789,"data":{"message_scene":"friend","peer_id":987654321,"message_seq":77,"sender_id":987654321,"time":1730000001,"segments":[{"type":"text","data":{"text":"恢复接收"}}]}}`)); err != nil {
+				t.Fatal(err)
+			}
+			waitMilkyBoundaryStatus(t, h, func(status api.MilkyStatus) bool {
+				inbox := milkyRequest(h, http.MethodGet, "/api/v1/conversations", "", nil)
+				return status.State == "identity_verified" && status.ReceivingEnabled && strings.Contains(inbox.Body.String(), "恢复接收")
+			})
+			milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":false,"peer_ids":[]}`, http.StatusOK)
+		})
+	}
+}
+
+func TestMilkyMonitorRejectsEntireWrongPeerHistoryPage(t *testing.T) {
+	good, wrong := milkyBoundaryMessage("friend", "987654321", 1), milkyBoundaryMessage("friend", "111111111", 2)
+	for _, scenario := range []struct{ name, messages string }{
+		{"wrong peer", wrong}, {"mixed page", good + "," + wrong},
+	} {
+		t.Run(scenario.name, func(t *testing.T) {
+			fixture, provider := newMilkyBoundaryProvider(t, `{"messages":[`+scenario.messages+`]}`)
+			h := milkyHandlerWithStore(t, provider.URL)
+			milkyBoundaryRequest(t, h, http.MethodGet, "/verify", "", http.StatusOK)
+			milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":true,"peer_ids":["987654321"]}`, http.StatusOK)
+			_ = fixture.nextStream(t).Close()
+			waitMilkyBoundaryStatus(t, h, func(status api.MilkyStatus) bool {
+				for _, gap := range status.Gaps {
+					if gap.Reason == "reconcile:protocol_error" {
+						return true
+					}
+				}
+				return false
+			})
+			if fixture.count("/api/get_history_messages") == 0 {
+				t.Fatal("synthetic gap never exercised history reconciliation")
+			}
+			assertMilkyBoundaryInboxEmpty(t, h)
+			milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":false,"peer_ids":[]}`, http.StatusOK)
+		})
+	}
+}
+
+func TestMilkyInFlightVerificationCannotUndoNewerFatalGap(t *testing.T) {
+	fixture, provider := newMilkyBoundaryProvider(t, `{"messages":[]}`)
+	h := milkyHandlerWithStore(t, provider.URL)
+	milkyBoundaryRequest(t, h, http.MethodGet, "/verify", "", http.StatusOK)
+	milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":true,"peer_ids":["987654321"]}`, http.StatusOK)
+	conn := fixture.nextStream(t)
+	entered, unblock := fixture.blockNextImpl(t)
+	result := make(chan *httptest.ResponseRecorder, 1)
+	go func() {
+		result <- milkyRequest(h, http.MethodGet, milkyBoundaryPath+"/verify", "", nil)
+	}()
+	select {
+	case <-entered:
+	case <-time.After(3 * time.Second):
+		t.Fatal("explicit verification did not reach the synthetic barrier")
+	}
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(`{"event_type":"message_receive","self_id":999,"data":{}}`)); err != nil {
+		t.Fatal(err)
+	}
+	waitMilkyBoundaryStatus(t, h, func(status api.MilkyStatus) bool {
+		return status.State == "identity_mismatch" && !status.ReceivingEnabled
+	})
+	unblock()
+	select {
+	case response := <-result:
+		if response.Code != http.StatusServiceUnavailable || !strings.Contains(response.Body.String(), "MILKY_IDENTITY_MISMATCH") {
+			t.Fatalf("stale verification undid newer revocation: %d %s", response.Code, response.Body.String())
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("verification could not join the terminal worker")
+	}
+	assertMilkyBoundaryInboxEmpty(t, h)
+	milkyBoundaryRequest(t, h, http.MethodGet, "/verify", "", http.StatusOK)
+	_ = fixture.nextStream(t)
+	milkyBoundaryRequest(t, h, http.MethodPost, "/monitor", `{"enabled":false,"peer_ids":[]}`, http.StatusOK)
 }
 
 func TestMilkyRequiresLocalAuthAndKeepsSendingDisabled(t *testing.T) {

@@ -1,0 +1,32 @@
+{
+  "baseline": "a693658820afa002cf064a22552fcc45c61db4d4",
+  "built_in": "isolated candidate",
+  "deployed": false,
+  "files": [
+    {
+      "path": "apps/desktop/dist/index.html",
+      "bytes": 588,
+      "sha256": "d0f645188a41c0be5498074939c925426632eaca9cdc197a2085432514e1dc4d"
+    },
+    {
+      "path": "apps/desktop/dist/assets/index-D0m8uyon.js",
+      "bytes": 522756,
+      "sha256": "c0e6de3ac75a1616f2050fd050a784b90232dc948e2767fd1ed2a346f1aa496e"
+    },
+    {
+      "path": "apps/desktop/dist/assets/index-ByOR5dor.css",
+      "bytes": 58982,
+      "sha256": "3292c59154589784ea7c04140402ec16b0ec76f461e38a2c7ce64c5aa764fefd"
+    },
+    {
+      "path": "apps/desktop/dist/licenses/lucide-LICENSE.txt",
+      "bytes": 3208,
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    {
+      "path": "apps/desktop/dist/licenses/lucide-provenance.json",
+      "bytes": 14714,
+      "sha256": "f8a969445c77c61eec526a07c53cd89c4fd5a5c92a36880df4fff8766b40c7e5"
+    }
+  ]
+}

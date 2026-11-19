@@ -839,10 +839,85 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   current.unmount(); groups++;
 }
 
+// User cancel suppresses both durable descriptor restoration and candidate
+// validation, without forgetting the retained grant. Only manual submission may
+// resume; abandoned IDB/HTTP results and old auth epochs cannot reconnect it.
+{
+  for (const stage of ['descriptor restore', 'device validation', 'replacement']) {
+    const seed = setup(), handle = await pair(seed), id = handle.slice(7);
+    const descriptor = seed.idb.values.get(SERVICE);
+    seed.unmount();
+    const h = setup({ idb: seed.idb, server: seed.server, broadcasts: seed.broadcasts });
+    const gate = Promise.withResolvers();
+    let blocked = false, descriptorReads = 0, operation, staleFailure, staleUpdate;
+    if (stage === 'descriptor restore') h.idb.beforeGet = (key) => {
+      if (key === SERVICE) {
+        descriptorReads++;
+        if (!blocked) { blocked = true; return gate.promise; }
+      }
+    };
+    else {
+      if (stage === 'replacement') {
+        await until(h, () => h.value.session.status === 'connected');
+        staleFailure = h.value.onAuthFailure; staleUpdate = h.value.onSystemUpdate;
+        h.value.setTokenDraft(MASTER); await h.flush();
+      }
+      h.server.before = (r) => {
+        if (r.path === '/api/v1/system' && !blocked) { blocked = true; return gate.promise; }
+      };
+      if (stage === 'replacement') operation = h.value.connect({ preventDefault() {} });
+    }
+    await until(h, () => blocked);
+    h.value.cancel(); await h.flush();
+    assert.equal(h.value.activeToken, '');
+    assert.equal(h.value.session.status, 'idle');
+    assert.equal(h.value.tokenDraft, stage === 'replacement' ? MASTER : '');
+    const requestsAtCancel = h.server.requests.length, readsAtCancel = descriptorReads;
+    h.dispatch('focus'); h.dispatch('visibilitychange', 'hidden'); h.dispatch('visibilitychange');
+    h.strictReplayEffects(); await h.flush();
+    assert.equal(h.server.requests.length, requestsAtCancel, `${stage}: focus/visibility/replay cannot verify a canceled candidate`);
+    assert.equal(descriptorReads, readsAtCancel, 'cancel also suppresses new durable descriptor reads');
+    gate.resolve(stage === 'descriptor restore' ? undefined : json(200, system('canceled-device-late-success')));
+    await operation;
+    await h.auth.loadDeviceSession(SERVICE);
+    await until(h, () => h.timers.size === 0);
+    staleFailure?.(); staleUpdate?.(system('old-device-epoch')); await h.flush();
+    assert.equal(h.value.activeToken, '');
+    assert.equal(h.value.session.system, null);
+    assert.equal(h.sessions.loadServiceSession(SERVICE).token, null);
+    assert.equal(h.idb.values.get(SERVICE), descriptor, 'cancel is not forget: preserve the exact durable key');
+    assert.equal(h.server.grants.get(id).revoked, false);
+    h.dispatch('focus'); h.dispatch('visibilitychange'); await h.flush();
+    assert.equal(h.server.requests.length, requestsAtCancel, 'late restore/validation cannot lift cancellation');
+    const enrollments = h.server.count('auth/devices', 'POST');
+    if (stage === 'descriptor restore') {
+      h.value.setTokenDraft(MASTER); await h.flush();
+    }
+    await h.value.connect({ preventDefault() {} }); await h.flush();
+    assert.equal(h.value.session.status, 'connected', `${stage}: explicit submit must re-enable verification`);
+    assert.ok(h.value.activeToken.startsWith('device:'));
+    if (stage === 'device validation') {
+      assert.equal(h.value.activeToken, handle, 'manual retry must use the retained device candidate without entering the master');
+      assert.equal(h.server.count('auth/devices', 'POST'), enrollments, 'retrying a device restore must not re-enroll');
+    }
+    const currentHandle = h.value.activeToken;
+    staleFailure?.(); staleUpdate?.(system('old-device-epoch-after-retry')); await h.flush();
+    assert.equal(h.value.activeToken, currentHandle);
+    assert.notEqual(h.value.session.system.version, 'old-device-epoch-after-retry');
+    const readsBeforeFocus = h.server.count('system');
+    h.dispatch('focus'); h.dispatch('visibilitychange');
+    await until(h, () => h.server.count('system') === readsBeforeFocus + 1 && h.timers.size === 0);
+    assert.equal(h.value.activeToken, currentHandle);
+    h.unmount();
+    assert.equal(h.postUnmountStateWrites, 0);
+  }
+  groups++;
+}
+
 // Cancel/clear during the first possession proof or the post-commit reread
 // must not install a late session/key. Every known new ID gets rollback DELETE.
 {
-  for (const stage of ['cancel proof', 'clear proof', 'clear committed descriptor']) {
+  for (const stage of ['cancel proof', 'cancel committed descriptor', 'clear proof', 'clear committed descriptor']) {
     const h = setup(), gate = deferred();
     let blocked = false;
     if (stage.includes('proof')) h.server.before = (r) => {
@@ -857,6 +932,9 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
     const stop = stage.startsWith('cancel') ? h.value.cancel() : h.value.clear();
     await h.flush();
     assert.equal(h.value.activeToken, '');
+    const requestsAfterStop = h.server.requests.length;
+    h.dispatch('focus'); h.dispatch('visibilitychange'); await h.flush();
+    assert.equal(h.server.requests.length, requestsAfterStop, `${stage}: focus must not bypass a canceled/cleared pairing`);
     gate.resolve(undefined);
     await Promise.all([pairing, stop]);
     await until(h, () => h.idb.values.size === 0 && [...h.server.grants.values()].every((g) => g.revoked));
@@ -865,6 +943,16 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
     assert.equal(h.sessions.loadServiceSession(SERVICE).token, null);
     assert.equal(h.server.count('auth/devices', 'POST'), 1);
     assert.equal(h.storage.writes.length, 0);
+    const afterRollback = h.server.requests.length;
+    h.dispatch('focus'); h.dispatch('visibilitychange'); await h.flush();
+    assert.equal(h.server.requests.length, afterRollback, 'late pairing cleanup must not undo cancellation');
+    if (stage.startsWith('cancel')) {
+      assert.equal(h.value.tokenDraft, MASTER, 'canceling pairing retains manual retry input');
+      await h.value.connect({ preventDefault() {} }); await h.flush();
+      assert.equal(h.value.session.status, 'connected');
+      assert.ok(h.value.activeToken.startsWith('device:'));
+      assert.equal(h.server.count('auth/devices', 'POST'), 2, 'only explicit retry may enroll again');
+    }
     h.unmount();
   }
   groups++;
@@ -1340,4 +1428,4 @@ async function retainedError(response) { assert.notEqual(response.status, 401); 
   h.unmount(); groups++;
 }
 
-console.log(`Device auth synthetic checks passed (${groups} groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.`);
+console.log(`Device auth synthetic checks passed (${groups} groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, canceled candidate/durable restore suppression with manual retry, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.`);
