@@ -1,0 +1,176 @@
+{
+  "recorded_at": "2026-11-19T10:53:59.5253493+08:00",
+  "baseline_commit": "99703eb3f7267c1d97d840c1913a3cd3e6171792",
+  "delivery_branch": "feat/mcp-service",
+  "code_scope": "Modified UI/test/check files and the three new helper/test files, not a complete repository inventory.",
+  "passed_offline_regression_suites": 17,
+  "full_frontend_source_prettier": "passed",
+  "typescript_no_emit": "passed",
+  "production_build": "passed",
+  "powershell_check_entry_ast": "passed; full check.ps1 was not executed",
+  "first_attempt": "Stopped at WeChat test 16: its closed-visual-text model counted the new visually clipped description. Updated only that model and added explicit retained-mirror assertions; then reran all 17 suites.",
+  "post_fix_browser_launched": false,
+  "post_fix_native_keyboard_and_computed_ax": "not verified; pending acceptance",
+  "full_go_race_or_tauri_run": false,
+  "logs": [
+    {
+      "source": ".runtime/T08-helper-details-20261118/engineering-final-20261119-104331.log",
+      "archive": "engineering-first-attempt.txt",
+      "sha256": "327d3fe5cbb169a0f5bfa4403b0fce76a3ad5606eeb6162b5e621bf08a6917f0",
+      "unchanged": true
+    },
+    {
+      "source": ".runtime/T08-helper-details-20261118/engineering-final-20261119-104503.log",
+      "archive": "engineering-results.txt",
+      "sha256": "a06fb06a57445be44bc14eaebcd479fa49d8b140eb6490f76b17ba3d4ea24ba3",
+      "unchanged": true
+    }
+  ],
+  "changed_code_fingerprints": [
+    {
+      "path": "apps/desktop/src/AIModelPanel.tsx",
+      "bytes": 13394,
+      "sha256": "605baf2b3de0a2995fe5583cb5421ca7a0e4081ae1a77ecb74c5622ae281f86a"
+    },
+    {
+      "path": "apps/desktop/src/AIPanel.tsx",
+      "bytes": 25636,
+      "sha256": "eda316f432efbbc307a807c0eb196c164948cee12e87eef7378361d2361b3199"
+    },
+    {
+      "path": "apps/desktop/src/App.tsx",
+      "bytes": 32856,
+      "sha256": "52ca48d9ef5653bf07670780855c4f4289dd478f5a62a7fb793ccab4822b5938"
+    },
+    {
+      "path": "apps/desktop/src/AssistantPanel.tsx",
+      "bytes": 47241,
+      "sha256": "db0c0d4dc3f4d68fb5611f0276154648448fe646c1bcf7d2fa54e7bcae9aa30c"
+    },
+    {
+      "path": "apps/desktop/src/DigestPanel.tsx",
+      "bytes": 19704,
+      "sha256": "5bc760d04509dc6aefecd94d37bc9b9240f6188d4ce410de5d4e17ab55146689"
+    },
+    {
+      "path": "apps/desktop/src/EmailPanel.tsx",
+      "bytes": 11989,
+      "sha256": "b319c95bd0e87e3210f28248ed80e19cca0d1ecf7b3920c792eede7aff884a08"
+    },
+    {
+      "path": "apps/desktop/src/FeishuPanel.tsx",
+      "bytes": 58678,
+      "sha256": "c9e76466e994a0b23b9826a1a9d161a30dd144af8ac4991addcb9ffceccab2b5"
+    },
+    {
+      "path": "apps/desktop/src/HelpDetails.tsx",
+      "bytes": 1010,
+      "sha256": "a2652199fef37f8bdac45e21ce64bf492d25752648a1f82acad6096e0662931e"
+    },
+    {
+      "path": "apps/desktop/src/inbox.css",
+      "bytes": 26587,
+      "sha256": "92187003892c7bf4fd4d8dfcf505227b2b22de7a3044cd43713f499e8c0807e9"
+    },
+    {
+      "path": "apps/desktop/src/Inbox.tsx",
+      "bytes": 67195,
+      "sha256": "86968333f9e28ae3b58a527d63e04542b37477e138997b0ce28bf92c21847214"
+    },
+    {
+      "path": "apps/desktop/src/MilkyPanel.tsx",
+      "bytes": 11393,
+      "sha256": "2d7584180bbf5c76d6cc1c63ae3f6dde34521ad86238799037ab13a9e7434df2"
+    },
+    {
+      "path": "apps/desktop/src/ProfileLinksPanel.tsx",
+      "bytes": 8744,
+      "sha256": "cf376797e86472a686532408e3d84b0282438f4e96cbfd9a20ad93614bac6714"
+    },
+    {
+      "path": "apps/desktop/src/ProfilePanel.tsx",
+      "bytes": 37706,
+      "sha256": "c65c47cdbe80bf96f2cc7cf13b1dc565102621b85f9c73fa601b707b4ec25f3e"
+    },
+    {
+      "path": "apps/desktop/src/styles.css",
+      "bytes": 16708,
+      "sha256": "b878bd1b9254df3b2217ba3b35bd1bcce79129e18bf1b218afef13803b389251"
+    },
+    {
+      "path": "apps/desktop/src/WechatPanel.tsx",
+      "bytes": 33097,
+      "sha256": "af95d35011fe7a83f97a7d24e62bf64a9ea1fa808f67c13005e17416eae4c90a"
+    },
+    {
+      "path": "scripts/check.ps1",
+      "bytes": 5637,
+      "sha256": "0c0459163049bf5d363e20a32f4324b0de21ae635805e323c4c9c2765454eb1a"
+    },
+    {
+      "path": "scripts/feishu-test-harness.mjs",
+      "bytes": 18928,
+      "sha256": "94605c1be71ebc02c17d6cc626bfe50a713ca87ce54bfde03a53c8ffbb9aab8c"
+    },
+    {
+      "path": "scripts/frontend-help-test-loader.mjs",
+      "bytes": 1099,
+      "sha256": "c82ab8dfec040a921d51c0de40d63aeed289f62b9cd43017b08a057cb0215042"
+    },
+    {
+      "path": "scripts/test-ai-model-client.mjs",
+      "bytes": 18033,
+      "sha256": "6568670dd8629f04a2881d1b16d976026fc6ec5e231761a623446a61c96a78ae"
+    },
+    {
+      "path": "scripts/test-assistant-client.mjs",
+      "bytes": 42379,
+      "sha256": "ea8da3a0e509d5a7053cb8e2ad078cad7eaf5543d7f0ec56ee4c68dc62ec8f21"
+    },
+    {
+      "path": "scripts/test-chat-discovery.mjs",
+      "bytes": 57135,
+      "sha256": "96e61b8b63e26bbac92b7dc37e975d68225bf79fa079fc3bb282b3a5bb031ca3"
+    },
+    {
+      "path": "scripts/test-device-auth.mjs",
+      "bytes": 77727,
+      "sha256": "fda0181d6b43af28fa9a370957a1e3b1975d102babeadb23415c07e988aed2cb"
+    },
+    {
+      "path": "scripts/test-help-details.mjs",
+      "bytes": 7479,
+      "sha256": "7a72fa2348495479ca4d241892986e7ece8d880db6799aade66d9fffb0db1d82"
+    },
+    {
+      "path": "scripts/test-import-analysis.mjs",
+      "bytes": 10342,
+      "sha256": "2b4e1245aff57a3430b47f40c260f0b6df8a0135cd0460980f6695e804f43d3d"
+    },
+    {
+      "path": "scripts/test-milky-client.mjs",
+      "bytes": 10416,
+      "sha256": "2673e18e3987aebeccd9b8ee2c4b3d216c19a17033bd75b8178e3187a46d826e"
+    },
+    {
+      "path": "scripts/test-profile-links.mjs",
+      "bytes": 8550,
+      "sha256": "587c9820ac9670b048be5acb3f966b20144e20adfad873697778d906fa54f290"
+    },
+    {
+      "path": "scripts/test-profiles.mjs",
+      "bytes": 18080,
+      "sha256": "89b434692206f372cca978bbfcf653cf7872199b09961463ee9232d07cdeba4a"
+    },
+    {
+      "path": "scripts/test-service-session.mjs",
+      "bytes": 26569,
+      "sha256": "1043cf0fafb0fda99284d8aa05f28dab11410d5606b92fee8be4ebd5428d99d9"
+    },
+    {
+      "path": "scripts/test-wechat-monitor.mjs",
+      "bytes": 28417,
+      "sha256": "6d72eecf30d0b11cbd84e8f4dae6070e22502138941d48d2a4772e864c7ec233"
+    }
+  ]
+}

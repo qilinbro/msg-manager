@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -99,7 +100,7 @@ const helperJSX = (type, supplied, ...children) => {
   const props = { ...(supplied ?? {}), children };
   return typeof type === 'function' ? type(props) : { type, props };
 };
-const discoveryBindings = { Icon: loadIcon(helperJSX) };
+const discoveryBindings = { Icon: loadIcon(helperJSX), HelpDetails: loadHelpDetails(helperJSX) };
 for (const [file, names] of [
   ['ConversationKindSelect.tsx', ['ConversationKindSelect']],
   ['keyword-search.tsx', ['KeywordMatch', 'asciiFold', 'keywordError']],
@@ -256,4 +257,93 @@ assert.equal(historyReads, beforeEditing, 'background refresh must not replace m
 assert.ok(find(inbox, (node) => node.type === 'AIPanelStub'), 'AI editor must remain mounted');
 inbox.unmount();
 
-console.log('WeChat monitor client/component and inbox soft-refresh checks passed: authenticated transport, old service compatibility, uncertain-result handling, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, selected chat and reading/editor preservation. Synthetic data only.');
+// Inspect native disclosure boundaries in the actual compiled component tree.
+// This models closed placement plus the known visually clipped description class;
+// it does not replace browser CSS visibility or computed-AX acceptance tests.
+function defaultClosedText(tree) {
+  if (Array.isArray(tree)) return tree.map(defaultClosedText).join('');
+  if (!tree || typeof tree !== 'object') return String(tree ?? '');
+  if (String(tree.props.className ?? '').split(/\s+/).includes('help-accessible-description')) return '';
+  const children = tree.props.children.flat(Infinity);
+  return tree.type === 'details' && !tree.props.open
+    ? children.filter((node) => node?.type === 'summary').map(text).join('')
+    : children.map(defaultClosedText).join('');
+}
+const noAuthFailure = () => { throw Error('unexpected authentication failure'); };
+const noop = () => {};
+const cleanWechatStatus = { ...structuredClone(status), monitor: { ...structuredClone(monitor), peer_ids: [] } };
+const wechatAttention = [];
+let releaseSessions;
+const deferredSessions = new Promise((resolve) => { releaseSessions = resolve; });
+const waitingWechat = hookHarness('WechatPanel.tsx', 'WechatPanel', {
+  getWechatStatus: async () => structuredClone(cleanWechatStatus),
+  getWechatSessions: () => deferredSessions,
+}, { token: 'synthetic', storageEnabled: true, revision: 0, onSynced: noop, onBackgroundSynced: noop, onAuthFailure: noAuthFailure, onAssistantHelp: noop, onAttentionChange: (value) => wechatAttention.push(value) });
+await waitingWechat.flush();
+assert.equal(wechatAttention.at(-1), false);
+assert.ok(!defaultClosedText(waitingWechat.tree).includes('源库只读'), 'static source guidance starts folded');
+const readDescription = find(waitingWechat, (node) => node.props.id === 'wechat-read-help');
+assert.equal(readDescription.type, 'span');
+assert.equal(readDescription.props.className, 'help-accessible-description');
+assert.ok(text(readDescription).includes('源库只读'), 'folding must not delete the referenced plain-text description');
+assert.equal(find(waitingWechat, (node) => node.props.id === 'wechat-monitor-help').props.className, 'help-accessible-description');
+assert.ok(!nodes(waitingWechat.tree).some((node) => node.props.id === 'wechat-action-impact'), 'manual model impact is contextual, not permanently displayed');
+const pendingSessions = find(waitingWechat, (node) => node.type === 'button' && text(node) === '读取会话列表').props.onClick();
+await waitingWechat.flush();
+find(waitingWechat, (node) => node.type === 'button' && text(node).trim() === '停止等待').props.onClick();
+await waitingWechat.flush();
+const wechatStopWarning = '已停止等待，后台可能仍在读取。';
+assert.ok(defaultClosedText(waitingWechat.tree).includes(wechatStopWarning));
+assert.equal(wechatAttention.at(-1), true);
+find(waitingWechat, (node) => node.type === 'button' && node.props['aria-label'] === '更新状态').props.onClick();
+await waitingWechat.flush();
+assert.equal(find(waitingWechat, (node) => node.type === 'button' && text(node) === '读取会话列表').props.disabled, false, 'cached ready status has cleared transient uncertainty');
+assert.ok(defaultClosedText(waitingWechat.tree).includes(wechatStopWarning), 'stop warning must not become a success receipt after ready status');
+assert.equal(wechatAttention.at(-1), true, 'collapsed source summary must retain its check-needed signal');
+releaseSessions([]); await pendingSessions; await waitingWechat.flush();
+assert.ok(defaultClosedText(waitingWechat.tree).includes(wechatStopWarning), 'late session response must not overwrite the stop warning');
+waitingWechat.unmount();
+
+let emailStatus = { configured: true, state: 'synced', account: 'synthetic@example.invalid', folder: 'INBOX', last_synced_at: '2026-01-01T00:00:00Z', last_result: { inserted: 88, duplicates: 0, skipped: 12, limited: true }, sending_enabled: false };
+const emailAttention = [];
+let releaseSync;
+const deferredSync = new Promise((resolve) => { releaseSync = resolve; });
+const email = hookHarness('EmailPanel.tsx', 'EmailPanel', {
+  getEmailStatus: async () => structuredClone(emailStatus),
+  syncEmail: () => deferredSync,
+}, { token: 'synthetic', storageEnabled: true, revision: 0, onSynced: noop, onAuthFailure: noAuthFailure, onAttentionChange: (value) => emailAttention.push(value) });
+await email.flush();
+assert.ok(text(email.tree).includes('上次保存 88 封'), 'successful counts remain available on demand');
+assert.ok(!defaultClosedText(email.tree).includes('上次保存 88 封'), 'successful counts start folded');
+assert.ok(defaultClosedText(email.tree).includes('未完整收取历史'), 'actual limited-history warning must remain outside help');
+assert.equal(emailAttention.at(-1), true, 'source summary must flag limited history');
+emailStatus = { ...emailStatus, last_result: { ...emailStatus.last_result, skipped: 0, limited: false } };
+find(email, (node) => node.type === 'button' && text(node) === '更新状态').props.onClick();
+await email.flush();
+assert.equal(emailAttention.at(-1), false, 'complete successful sync must not request attention');
+assert.ok(!defaultClosedText(email.tree).includes('结果不完整'));
+emailStatus = { ...emailStatus, last_result: { ...emailStatus.last_result, skipped: 1 } };
+find(email, (node) => node.type === 'button' && text(node) === '更新状态').props.onClick();
+await email.flush();
+assert.ok(defaultClosedText(email.tree).includes('上次同步跳过 1 封邮件，结果不完整。'), 'skipped mail can mean missing supported content even without a limited window');
+assert.ok(!defaultClosedText(email.tree).includes('上次保存 88 封'), 'successful counts remain folded alongside the visible partial-result warning');
+assert.equal(emailAttention.at(-1), true, 'source summary must flag skipped mail independently of limited history');
+emailStatus = { ...emailStatus, state: 'ready', last_synced_at: null, last_result: null };
+find(email, (node) => node.type === 'button' && text(node) === '更新状态').props.onClick();
+await email.flush(); assert.equal(emailAttention.at(-1), false);
+const pendingSync = find(email, (node) => node.type === 'button' && text(node) === '同步邮箱').props.onClick();
+await email.flush();
+find(email, (node) => node.type === 'button' && text(node).trim() === '停止等待').props.onClick();
+await email.flush();
+const emailStopWarning = '已停止等待，后台可能仍在处理邮件。';
+assert.ok(defaultClosedText(email.tree).includes(emailStopWarning));
+find(email, (node) => node.type === 'button' && text(node) === '更新状态').props.onClick();
+await email.flush();
+assert.equal(find(email, (node) => node.type === 'button' && text(node) === '同步邮箱').props.disabled, false);
+assert.ok(defaultClosedText(email.tree).includes(emailStopWarning), 'email stop warning must remain visible after uncertainty clears');
+assert.equal(emailAttention.at(-1), true);
+releaseSync({ ...readResult, synced_at: readResult.read_at }); await pendingSync; await email.flush();
+assert.ok(defaultClosedText(email.tree).includes(emailStopWarning), 'late sync callback must not overwrite the stop warning');
+email.unmount();
+
+console.log('WeChat monitor client/component, inbox soft-refresh and disclosure checks passed: authenticated transport, old service compatibility, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, reading/editor preservation, folded successful counts, visible limited history and persistent stop warnings after uncertainty clears (WeChat and email). Synthetic data only.');

@@ -1,0 +1,1319 @@
+{
+  "analyzed_at": "2026-11-18T15:11:37.861Z",
+  "run": "run-ZKuJM8",
+  "analysis_only": true,
+  "browser_started_by_analysis": false,
+  "network_used_by_analysis": false,
+  "result": "failed; acceptance incomplete; no retry performed or authorized",
+  "frozen_build_marker": "2026-11-18T22:34:00+08:00",
+  "frozen_manifest_harness": [
+    {
+      "path": "synthetic-browser.mjs",
+      "sha256": "96e19760f1e574a9cec6b5e2d42bd74d5e14106b013c5de775c58d7a68eecf2a"
+    },
+    {
+      "path": "fixtures.mjs",
+      "sha256": "27d2deac8f519f4846be9d289d72e36ffd4928f88c547bfd3ec05e1f84affd2a"
+    }
+  ],
+  "evidence_version_scope": "The browser report and PNGs describe only the 22:34 frozen source/dist listed in the original manifest. Any later parent source or build correction has no additional browser evidence from this batch.",
+  "coverage": {
+    "requested_cases": 44,
+    "executed_cases": 2,
+    "passed_cases": 0,
+    "failed_cases": 2,
+    "interrupted_cases": 0,
+    "skipped_cases": 42
+  },
+  "passed_assertion_count": 119,
+  "finding_count": 50,
+  "by_viewport": [
+    {
+      "width": 1440,
+      "scenario": {
+        "case": "connect-synthetic-only-1440",
+        "status": "failed",
+        "assertions_before": 0,
+        "assertions_recorded": 55,
+        "findings_recorded": 25
+      },
+      "connection": {
+        "width": 1440,
+        "height": 1000,
+        "initial_remember_checked": true,
+        "native_unchecked": true,
+        "hard_asserted_unchecked": true,
+        "connected": true
+      },
+      "disclosures": [
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "连接与授权说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "接入说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "核验记录",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "同步说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "接收说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "模型配置说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "摘要说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-1440",
+          "scope": "pre-connection-guidance",
+          "label": "自动化权限说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        }
+      ],
+      "skipped": [
+        {
+          "case": "overview-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "settings-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "milky-get-busy-success-error-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "digest-running-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "digest-unknown-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "digest-failed-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-ready-and-dirty-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "wechat-stop-get-refresh-late-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-limited-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-skipped-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-monitor-error-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-error-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-unconfigured-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "inbox-ai-profile-import-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-ready-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-sent-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-running-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-failed-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-report-unknown-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-unknown-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "assistant-disclosures-1440",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-1440",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "scenario": {
+        "case": "connect-synthetic-only-390",
+        "status": "failed",
+        "assertions_before": 55,
+        "assertions_recorded": 55,
+        "findings_recorded": 25
+      },
+      "connection": {
+        "width": 390,
+        "height": 844,
+        "initial_remember_checked": true,
+        "native_unchecked": true,
+        "hard_asserted_unchecked": true,
+        "connected": true
+      },
+      "disclosures": [
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "连接与授权说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "接入说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "核验记录",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "同步说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "接收说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "模型配置说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "摘要说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        },
+        {
+          "case": "connect-synthetic-only-390",
+          "scope": "pre-connection-guidance",
+          "label": "自动化权限说明",
+          "default_closed": true,
+          "native_keyboard_tested": true,
+          "all_assertions_passed": false
+        }
+      ],
+      "skipped": [
+        {
+          "case": "overview-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "settings-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "milky-get-busy-success-error-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "digest-running-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "digest-unknown-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "digest-failed-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-ready-and-dirty-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "wechat-stop-get-refresh-late-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-limited-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-skipped-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-monitor-error-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-error-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "sources-unconfigured-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "inbox-ai-profile-import-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-ready-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-sent-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-running-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-failed-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-report-unknown-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "feishu-unknown-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        },
+        {
+          "case": "assistant-disclosures-390",
+          "status": "skipped",
+          "blocked_by": "connect-synthetic-only-390",
+          "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+        }
+      ]
+    }
+  ],
+  "verified_observations": {
+    "connection_reached_both_viewports": true,
+    "remember_initial_checked_and_natively_unchecked_both": true,
+    "default_closed": 16,
+    "recoverable_summary_and_DOM_text": 16,
+    "native_tab_reached_expected_summary": 16,
+    "closed_body_hidden": 16,
+    "no_details_nested_in_label": 2,
+    "checked_remember_visible_shared_computer_impact": 2,
+    "unchecked_removed_immediate_impact_and_updated_ARIA_reference": 2,
+    "independent_consent_checks_executed": 0,
+    "screenshot_geometry_checks": 2,
+    "screenshots": [
+      {
+        "case": "connect-synthetic-only-1440",
+        "name": "connection-1440.png",
+        "expected": {
+          "width": 1440,
+          "height": 1000,
+          "touch": false
+        },
+        "dom": {
+          "innerWidth": 1440,
+          "innerHeight": 1000,
+          "outerWidth": 1440,
+          "outerHeight": 1000,
+          "clientWidth": 1425,
+          "clientHeight": 1000,
+          "dpr": 1,
+          "root_count": 1,
+          "sidebar_count": 1,
+          "visual": {
+            "width": 1425,
+            "height": 1000,
+            "scale": 1,
+            "pageX": 0,
+            "pageY": 0
+          }
+        },
+        "cssLayoutViewport": {
+          "pageX": 0,
+          "pageY": 0,
+          "clientWidth": 1425,
+          "clientHeight": 1000
+        },
+        "cssVisualViewport": {
+          "offsetX": 0,
+          "offsetY": 0,
+          "pageX": 0,
+          "pageY": 0,
+          "clientWidth": 1425,
+          "clientHeight": 1000,
+          "scale": 1,
+          "zoom": 1
+        },
+        "cssContentSize": {
+          "x": 0,
+          "y": 0,
+          "width": 1425,
+          "height": 3127
+        }
+      },
+      {
+        "case": "connect-synthetic-only-390",
+        "name": "connection-390.png",
+        "expected": {
+          "width": 390,
+          "height": 844,
+          "touch": true
+        },
+        "dom": {
+          "innerWidth": 390,
+          "innerHeight": 844,
+          "outerWidth": 1440,
+          "outerHeight": 1000,
+          "clientWidth": 375,
+          "clientHeight": 844,
+          "dpr": 1,
+          "root_count": 1,
+          "sidebar_count": 1,
+          "visual": {
+            "width": 375,
+            "height": 844,
+            "scale": 1,
+            "pageX": 0,
+            "pageY": 213
+          }
+        },
+        "cssLayoutViewport": {
+          "pageX": 0,
+          "pageY": 213,
+          "clientWidth": 375,
+          "clientHeight": 844
+        },
+        "cssVisualViewport": {
+          "offsetX": 0,
+          "offsetY": 0,
+          "pageX": 0,
+          "pageY": 213,
+          "clientWidth": 375,
+          "clientHeight": 844,
+          "scale": 1,
+          "zoom": 1
+        },
+        "cssContentSize": {
+          "x": 0,
+          "y": 0,
+          "width": 375,
+          "height": 3760
+        }
+      }
+    ],
+    "final_integrity_checks": [
+      "final-integrity: No runtime exceptions or console errors",
+      "final-integrity: No unknown or non-GET business requests",
+      "final-integrity: No escaped browser targets or interception errors",
+      "final-integrity: Every observed application HTTP request was intercepted",
+      "final-integrity: No application request was forwarded",
+      "final-integrity: Observed frontend bytes match frozen dist",
+      "final-integrity: sources: frozen fingerprints unchanged",
+      "final-integrity: dist: frozen fingerprints unchanged",
+      "final-integrity: harness: frozen fingerprints unchanged"
+    ]
+  },
+  "keyboard_diagnosis": {
+    "affected_assertions": 48,
+    "classification": "Harness event-construction defect / invalid native Enter acceptance evidence; do not classify 48 assertions as 48 product defects and do not turn them into passes.",
+    "enter_keydown_count": 32,
+    "enter_keydown_missing_text_and_unmodifiedText": 32,
+    "explicit_char_event_count": 0,
+    "space_keydown_count": 32,
+    "space_keydowns_with_text": 32,
+    "shift_tab_count": 16,
+    "wrong_alt_tab_count": 0,
+    "evidence": [
+      {
+        "id": 57,
+        "t": 811,
+        "params": {
+          "type": "keyDown",
+          "key": "Enter",
+          "code": "Enter",
+          "windowsVirtualKeyCode": 13,
+          "nativeVirtualKeyCode": 13,
+          "modifiers": 0
+        }
+      },
+      {
+        "id": 70,
+        "t": 845,
+        "params": {
+          "type": "keyDown",
+          "key": "Enter",
+          "code": "Enter",
+          "windowsVirtualKeyCode": 13,
+          "nativeVirtualKeyCode": 13,
+          "modifiers": 0
+        }
+      }
+    ],
+    "source_observation": "Exact frozen harness key() emits text only for Space, not Enter. Native HelpDetails has no custom keyboard handler. Standard Puppeteer Enter mapping includes text=\"\\r\". The observed three-failure pattern per helper is consistent with Enter not generating character activation, then Space toggling the opposite expected state.",
+    "reference": "https://raw.githubusercontent.com/puppeteer/puppeteer/main/packages/puppeteer-core/src/common/USKeyboardLayout.ts",
+    "unsupported_claims": [
+      "Native Enter/Space acceptance passed",
+      "Expanded-state overflow passed",
+      "Enter caused closure",
+      "All 16 native disclosure sequences passed"
+    ],
+    "misleading_pass_labels_preserved": {
+      "expanded_labeled_overflow_checks": 16,
+      "enter_closes_hidden_tab_checks": 16,
+      "interpretation": "Raw assertions are preserved unchanged. Expansion failed earlier, so expanded-labeled overflow checks cannot establish expanded layout. A final closed-state/focus predicate passing cannot establish Enter caused the transition. Closed-state geometry and Tab observations remain limited evidence only."
+    }
+  },
+  "ax_diagnosis": {
+    "accessibility_scopes": [
+      {
+        "case": "connect-synthetic-only-1440",
+        "label": "connection-remember-checked",
+        "visible_controls": 33,
+        "computed_name_failures": [],
+        "description_failures": [
+          {
+            "visible": true,
+            "tag": "INPUT",
+            "id": "service-token",
+            "describedBy": "token-description",
+            "descriptionText": "未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。",
+            "missingDescriptionID": false,
+            "issue": "Missing referenced/computed description",
+            "computed_field_present": false,
+            "interpretation": "ax.description.value was undefined in the harness; JSON omitted the computed property. DOM ID exists and DOM reference text is nonempty. Raw AX nodes were not saved."
+          },
+          {
+            "visible": true,
+            "tag": "SELECT",
+            "id": "ai-model-preset",
+            "describedBy": "ai-model-preset-help",
+            "descriptionText": "预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。",
+            "missingDescriptionID": false,
+            "issue": "Missing referenced/computed description",
+            "computed_field_present": false,
+            "interpretation": "ax.description.value was undefined in the harness; JSON omitted the computed property. DOM ID exists and DOM reference text is nonempty. Raw AX nodes were not saved."
+          }
+        ]
+      },
+      {
+        "case": "connect-synthetic-only-390",
+        "label": "connection-remember-checked",
+        "visible_controls": 33,
+        "computed_name_failures": [],
+        "description_failures": [
+          {
+            "visible": true,
+            "tag": "INPUT",
+            "id": "service-token",
+            "describedBy": "token-description",
+            "descriptionText": "未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。",
+            "missingDescriptionID": false,
+            "issue": "Missing referenced/computed description",
+            "computed_field_present": false,
+            "interpretation": "ax.description.value was undefined in the harness; JSON omitted the computed property. DOM ID exists and DOM reference text is nonempty. Raw AX nodes were not saved."
+          },
+          {
+            "visible": true,
+            "tag": "SELECT",
+            "id": "ai-model-preset",
+            "describedBy": "ai-model-preset-help",
+            "descriptionText": "预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。",
+            "missingDescriptionID": false,
+            "issue": "Missing referenced/computed description",
+            "computed_field_present": false,
+            "interpretation": "ax.description.value was undefined in the harness; JSON omitted the computed property. DOM ID exists and DOM reference text is nonempty. Raw AX nodes were not saved."
+          }
+        ]
+      }
+    ],
+    "aggregated_AX_findings": 2,
+    "stage": "AX scopes were collected while remember was still checked, before native uncheck and before any disclosure activation.",
+    "first_AX_request_t_ms": 769,
+    "first_Enter_keydown_t_ms": 811,
+    "AX_preceded_keyboard": true,
+    "raw_AX_response_bodies_recorded": false,
+    "recorded_response_summaries": [
+      {
+        "id": 37,
+        "t": 782,
+        "result_keys": [
+          "nodes"
+        ]
+      },
+      {
+        "id": 333,
+        "t": 1693,
+        "result_keys": [
+          "nodes"
+        ]
+      }
+    ],
+    "independent_of_keyboard_defect": true,
+    "source_references_at_pre_correction_inspection": [
+      {
+        "file": "apps/desktop/src/App.tsx",
+        "lines": "472, 503–518",
+        "association": "service-token aria-describedby=token-description; paragraph is inside initially closed connection guidance."
+      },
+      {
+        "file": "apps/desktop/src/AIModelPanel.tsx",
+        "lines": "188–208",
+        "association": "ai-model-preset aria-describedby=ai-model-preset-help; paragraph is inside initially closed model guidance."
+      }
+    ],
+    "limits": [
+      "This is an observed computed-description association regression in the frozen browser run, not an absent DOM ID or empty DOM text, and not caused by missing Enter text.",
+      "Trace retains result_keys only for AX responses, so full AX names/description sources and exact node bodies cannot be reconstructed offline.",
+      "The checked remember control references visible remember-impact plus folded remember-description. The harness only requires a nonempty computed description, not inclusion of every referenced text segment; a pass does not prove complete preservation of both segments.",
+      "No second AX scope was captured after unchecking remember; that state is not verified."
+    ]
+  },
+  "safety": {
+    "synthetic_GETs": 14,
+    "OPTIONS": 14,
+    "GET_routes": [
+      {
+        "route": "/api/v1/system",
+        "count": 2
+      },
+      {
+        "route": "/api/v1/connections/qq-milky/status",
+        "count": 2
+      },
+      {
+        "route": "/api/v1/ai/model-config",
+        "count": 2
+      },
+      {
+        "route": "/api/v1/ai/model-presets",
+        "count": 2
+      },
+      {
+        "route": "/api/v1/digest/schedule",
+        "count": 2
+      },
+      {
+        "route": "/api/v1/digest/latest",
+        "count": 2
+      },
+      {
+        "route": "/api/v1/ai/status",
+        "count": 2
+      }
+    ],
+    "observed_HTTP_requests": 36,
+    "observed_non_HTTP_requests": 2,
+    "all_HTTP_ids_intercepted": true,
+    "frontend_responses": 8,
+    "frontend_match_frozen_dist": true,
+    "forward_commands": 0,
+    "business_write_requests": 0,
+    "real_platform_or_model_calls": 0,
+    "unexpected_requests": [],
+    "unexpected_targets": [],
+    "interception_errors": [],
+    "runtime_or_console_errors": [],
+    "final_integrity_checked": true,
+    "batch_end_fingerprints_unchanged": true,
+    "batch_end_fingerprint_checks": {
+      "sources": {
+        "checked": true,
+        "unchanged": true
+      },
+      "dist": {
+        "checked": true,
+        "unchanged": true
+      },
+      "harness": {
+        "checked": true,
+        "unchanged": true
+      }
+    },
+    "scope": "Only observed intercepted synthetic browser traffic is characterized. No real platform acceptance, remembered production credential, clipboard use or business write is claimed."
+  },
+  "not_executed_or_not_accepted": [
+    "Both combined connection/preflight scenarios failed their overall gate despite connected=true; all 42 dependent cases were correctly skipped, not 42 product failures.",
+    "All overview, settings follow-up, Milky busy/success/error, digest states, source states, WeChat stop/refresh/late GET, inbox AI/profile/import, Feishu states and assistant modal cases were not executed.",
+    "No email success/setup/limited/skipped/error acceptance, no WeChat dirty/limited/error/unknown/late-response acceptance, and no model/AI/profile/assistant/Feishu independent-consent acceptance.",
+    "GET-controlled stop/refresh/late-response gate records are empty.",
+    "No valid expanded-helper geometry evidence, no successful full native keyboard sequence, no AX pass for the two checked scopes or the unchecked remember state.",
+    "Connection screenshots are not success evidence for the skipped product views."
+  ],
+  "actual_passed_assertions_grouped": [
+    {
+      "label": "Checked remember-device keeps shared-computer impact visible",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "connection-remember-checked: no details nested in a label",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "Remember-device hard-asserted unchecked before connection",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "Unchecking removes immediate remember impact and its ARIA reference",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance: expected disclosure count",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/连接与授权说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/连接与授权说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/连接与授权说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/连接与授权说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/连接与授权说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/连接与授权说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接入说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接入说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接入说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接入说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接入说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接入说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/核验记录: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/核验记录: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/核验记录: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/核验记录: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/核验记录 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/核验记录: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/同步说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/同步说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/同步说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/同步说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/同步说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/同步说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接收说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接收说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接收说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接收说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接收说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/接收说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/模型配置说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/模型配置说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/模型配置说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/模型配置说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/模型配置说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/模型配置说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/摘要说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/摘要说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/摘要说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/摘要说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/摘要说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/摘要说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/自动化权限说明: default closed",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/自动化权限说明: summary and recoverable content exist",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/自动化权限说明: reachable through native Tab order",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/自动化权限说明: closed content hidden",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/自动化权限说明 expanded: no horizontal viewport overflow",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "pre-connection-guidance/自动化权限说明: Enter closes; hidden descendants excluded from Tab",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "Synthetic credential was not remembered",
+      "observed_passed_assertions": 2
+    },
+    {
+      "label": "connection-1440.png: single app root and expected layout viewport",
+      "observed_passed_assertions": 1
+    },
+    {
+      "label": "connection-390.png: single app root and expected layout viewport",
+      "observed_passed_assertions": 1
+    }
+  ],
+  "skipped_cases": [
+    {
+      "case": "overview-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "settings-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "milky-get-busy-success-error-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-running-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-unknown-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-failed-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-ready-and-dirty-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "wechat-stop-get-refresh-late-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-limited-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-skipped-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-monitor-error-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-error-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-unconfigured-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "inbox-ai-profile-import-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-ready-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-sent-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-running-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-failed-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-report-unknown-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-unknown-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "assistant-disclosures-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "overview-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "settings-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "milky-get-busy-success-error-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-running-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-unknown-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-failed-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-ready-and-dirty-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "wechat-stop-get-refresh-late-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-limited-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-skipped-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-monitor-error-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-error-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-unconfigured-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "inbox-ai-profile-import-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-ready-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-sent-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-running-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-failed-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-report-unknown-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-unknown-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "assistant-disclosures-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    }
+  ],
+  "original_evidence_hashes": [
+    {
+      "file": "report.json",
+      "bytes": 51768,
+      "sha256": "da10411e268da94a69789a0b4bd2fa99683a6010a2488f1d8f5800db023e0ed4"
+    },
+    {
+      "file": "summary.md",
+      "bytes": 14628,
+      "sha256": "e25511db2dbe30cdc734e29ad7704bf5f1a7673315ad537592ad3216cf4874c2"
+    },
+    {
+      "file": "manifest.json",
+      "bytes": 9554,
+      "sha256": "248fa67a3b88d17c8fd0054f6306085df9429830f0dcf1ca2551f23a98b3a1e1"
+    },
+    {
+      "file": "cdp-trace.jsonl",
+      "bytes": 467975,
+      "sha256": "1e23cdcf7e51c0f5808c12ceda28d5e6a047f749dff5384bf72cda44b37acb66"
+    },
+    {
+      "file": "connection-1440.png",
+      "bytes": 51497,
+      "sha256": "e70e473e6856c344474a03bf763486888875508da7f98185cdd98205b160c874"
+    },
+    {
+      "file": "connection-390.png",
+      "bytes": 27244,
+      "sha256": "4b60648c5d845928ebd1341199343f3b115bd782f94c9623d8f25dab9e2f22f5"
+    }
+  ],
+  "original_evidence_unchanged_during_analysis": true
+}

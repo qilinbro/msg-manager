@@ -1,0 +1,55 @@
+{
+  "analysis_performed_at": "2026-11-18T15:11:48.557413+00:00",
+  "run": "run-ZKuJM8",
+  "browser_started_by_analysis": false,
+  "network_used_by_analysis": false,
+  "method": "Exact RGB comparison at previously observed 758px horizontal and 426px vertical periods; ink-mask any channel <210 avoids blank-background false positives. Combined with direct read_image review of both original PNGs and report single-root/layout metrics. Not proof that no other visual defect exists or that expanded helpers passed.",
+  "screenshots": [
+    {
+      "file": "connection-1440.png",
+      "sha256": "e70e473e6856c344474a03bf763486888875508da7f98185cdd98205b160c874",
+      "bytes": 51497,
+      "width": 1440,
+      "height": 1000,
+      "matches_expected_viewport": true,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6312800586510264,
+          "ink_equal_fraction": 0.004247968055280224,
+          "ink_pixels_compared": 35311
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.662370547812621,
+          "ink_equal_fraction": 0.000219324966492019,
+          "ink_pixels_compared": 41035
+        }
+      ],
+      "prior_tile_period_repetition_detected": false,
+      "manual_original_image_review": "One app surface, no visually repeated sidebar/header/main; first-run tiling not visible. Only connection settings viewport captured, not expanded helper or skipped product cases."
+    },
+    {
+      "file": "connection-390.png",
+      "sha256": "4b60648c5d845928ebd1341199343f3b115bd782f94c9623d8f25dab9e2f22f5",
+      "bytes": 27244,
+      "width": 390,
+      "height": 844,
+      "matches_expected_viewport": true,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.6543123543123543,
+          "ink_equal_fraction": 0.0007668291614175385,
+          "ink_pixels_compared": 18257
+        }
+      ],
+      "prior_tile_period_repetition_detected": false,
+      "manual_original_image_review": "One app surface, no visually repeated sidebar/header/main; first-run tiling not visible. Only connection settings viewport captured, not expanded helper or skipped product cases."
+    }
+  ],
+  "prior_tile_period_repetition_detected": false
+}

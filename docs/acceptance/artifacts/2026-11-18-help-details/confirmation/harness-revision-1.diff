@@ -1,0 +1,304 @@
+diff --git a/.runtime/T08-helper-details-20261118/synthetic-browser.first-batch.mjs b/.runtime/T08-helper-details-20261118/synthetic-browser.mjs
+index 5828eb8..006975f 100644
+--- a/.runtime/T08-helper-details-20261118/synthetic-browser.first-batch.mjs
++++ b/.runtime/T08-helper-details-20261118/synthetic-browser.mjs
+@@ -33,10 +33,12 @@ const traceSafe = (value) => JSON.parse(j(value, (key, item) => /^(authorization
+ const visible = `(e)=>!!e&&e.checkVisibility({checkOpacity:true,checkVisibilityCSS:true})`;
+ const report = {
+   synthetic_only: true, server_started: false, logical_frontend: frontend,
+-  frontend_requests_fulfilled_from_frozen_dist: true,
+-  all_application_http_requests_intercepted: false, actual_platform_or_model_calls: 0,
++  frontend_requests_fulfilled_from_frozen_dist: null,
++  all_application_http_requests_intercepted: null, actual_platform_or_model_calls: 0,
+   business_write_requests: 0, remembered_credential: false,
+-  checks: [], failures: [], screenshots: [], api: [], staticRequests: [],
++  fingerprints_unchanged: null, integrity_checked: false,
++  checks: [], failures: [], screenshots: [], screenshot_metadata: [], api: [], staticRequests: [],
++  scenarios: [], skipped: [], connection_safety: [], fingerprint_checks: {},
+   networkRequests: [], unexpectedRequests: [], unexpectedTargets: [],
+   consoleErrors: [], interceptionErrors: [], accessibility: [], disclosures: [], controlled_gets: [],
+ };
+@@ -63,7 +65,7 @@ assert.ok(frozenDist.has('/index.html'), 'Approved final build must have an inde
+ const harnessFiles = ['synthetic-browser.mjs', 'fixtures.mjs'];
+ const harnessManifest = await Promise.all(harnessFiles.map(async (file) => ({ path: file, sha256: sha(await fs.readFile(path.join(ownDirectory, file))) })));
+ 
+-let child, ws, session, ownedTargetId, sequence = 0, closing = false, currentCase = 'initialization';
++let child, ws, session, ownedTargetId, expectedViewport, sequence = 0, closing = false, currentCase = 'initialization';
+ const pending = new Map();
+ const deadline = Date.now() + 300_000;
+ const heldGETs = new Map();
+@@ -82,12 +84,14 @@ async function evaluate(expression) {
+   if (result.exceptionDetails) throw Error(j(result.exceptionDetails));
+   return result.result?.value;
+ }
++// Predicates must cross CDP by value as booleans, never React-attached DOM objects.
++async function evaluatePredicate(expression) { return evaluate(`Boolean((${expression}))`); }
+ async function until(predicate, label, milliseconds = 10000) {
+   const end = Math.min(deadline, Date.now() + milliseconds);
+   while (Date.now() < end) {
+     assert.deepEqual(report.interceptionErrors, [], 'Fail-closed interception error');
+     assert.deepEqual(report.unexpectedTargets, [], 'Unexpected browser target');
+-    if (typeof predicate === 'function' ? await predicate() : await evaluate(predicate)) return;
++    if (typeof predicate === 'function' ? Boolean(await predicate()) : await evaluatePredicate(predicate)) return;
+     await delay(35);
+   }
+   throw Error(`Timed out: ${label}`);
+@@ -101,24 +105,41 @@ function record(condition, label, actual) {
+   else report.failures.push({ case: currentCase, label, ...(actual === undefined ? {} : { actual }) });
+   return condition;
+ }
+-async function check(expression, label) { return record(await evaluate(expression) === true, label); }
++async function check(expression, label) { return record(await evaluatePredicate(expression), label); }
+ async function screenshot(name) {
+   await settle();
+-  const result = await command('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
++  const layout = await command('Page.getLayoutMetrics');
++  const dom = await evaluate(`({innerWidth,innerHeight,outerWidth,outerHeight,clientWidth:document.documentElement.clientWidth,clientHeight:document.documentElement.clientHeight,dpr:devicePixelRatio,root_count:document.querySelectorAll('#root').length,sidebar_count:document.querySelectorAll('.sidebar').length,visual:visualViewport?{width:visualViewport.width,height:visualViewport.height,scale:visualViewport.scale,pageX:visualViewport.pageLeft,pageY:visualViewport.pageTop}:null})`);
++  const geometry = { case: currentCase, name, expected: expectedViewport, dom, cssLayoutViewport: layout.cssLayoutViewport, cssVisualViewport: layout.cssVisualViewport, cssContentSize: layout.cssContentSize };
++  report.screenshot_metadata.push(geometry);
++  // Client/visual dimensions exclude native scrollbars; inner dimensions include them.
++  record(dom.root_count === 1 && dom.sidebar_count === 1 && dom.innerWidth === expectedViewport.width && dom.innerHeight === expectedViewport.height && dom.dpr === 1 && Math.abs(layout.cssLayoutViewport.clientWidth - dom.clientWidth) <= 1 && Math.abs(layout.cssVisualViewport.clientWidth - dom.visual.width) <= 1 && Math.abs(layout.cssVisualViewport.clientHeight - dom.visual.height) <= 1 && dom.visual.scale === 1, `${name}: single app root and expected layout viewport`, geometry);
++  const result = await command('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
+   await fs.writeFile(path.join(artifacts, name), Buffer.from(result.data, 'base64'));
+   report.screenshots.push(name);
+ }
+ async function scenario(label, work) {
+   currentCase = label;
+-  try { await work(); }
+-  catch (error) {
+-    report.failures.push({ case: label, label: 'Scenario interrupted', error: error.stack || String(error) });
++  const before = report.failures.length;
++  const outcome = { case: label, status: 'running', assertions_before: report.checks.length };
++  try {
++    await work();
++    outcome.status = report.failures.length === before ? 'passed' : 'failed';
++    return outcome.status === 'passed';
++  } catch (error) {
++    outcome.status = 'interrupted';
++    const failure = { case: label, label: 'Scenario interrupted', error: error.stack || String(error) };
++    report.failures.push(failure);
+     try {
+-      report.failures.at(-1).body = await evaluate('document.body.innerText');
++      failure.body = await evaluate('document.body.innerText');
+       await screenshot(`failure-${label.replace(/[^a-z0-9-]/gi, '-')}.png`);
+     } catch {}
+     if (report.interceptionErrors.length || report.unexpectedTargets.length || Date.now() >= deadline) throw error;
++    return false;
+   } finally {
++    outcome.assertions_recorded = report.checks.length - outcome.assertions_before;
++    outcome.findings_recorded = report.failures.length - before;
++    report.scenarios.push(outcome);
+     for (const [pathname, gate] of heldGETs) {
+       gate.release();
+       report.controlled_gets.push({ case: label, pathname, paused: gate.paused, settled: gate.settled, expected_abort: !!gate.expectedAbort, browser_canceled: gate.abortedByBrowser, late_fulfillment_rejected: !!gate.fulfill_after_abort_rejected });
+@@ -126,6 +147,61 @@ async function scenario(label, work) {
+     heldGETs.clear();
+   }
+ }
++function dependentCases(width) {
++  return ['overview', 'settings', 'milky-get-busy-success-error',
++    ...['running', 'unknown', 'failed'].map(value => `digest-${value}`),
++    'sources-ready-and-dirty', 'wechat-stop-get-refresh-late',
++    ...['limited', 'skipped', 'monitor-error', 'error', 'unconfigured'].map(value => `sources-${value}`),
++    'inbox-ai-profile-import',
++    ...['ready', 'sent', 'running', 'failed', 'report-unknown', 'unknown'].map(value => `feishu-${value}`),
++    'assistant-disclosures'].map(label => `${label}-${width}`);
++}
++function skipDependents(width, blockedBy) {
++  for (const label of dependentCases(width)) report.skipped.push({ case: label, status: 'skipped', blocked_by: blockedBy, reason: 'Connection prerequisite did not pass; no product coverage is claimed for this case.' });
++}
++function finalizeCoverage() {
++  const planned = [1440, 390].flatMap(width => [`connect-synthetic-only-${width}`, ...dependentCases(width)]);
++  const reached = new Set([...report.scenarios, ...report.skipped].map(item => item.case));
++  for (const label of planned) if (!reached.has(label)) report.skipped.push({ case: label, status: 'not-run', blocked_by: report.error ? 'batch-error' : 'unreached-control-flow', reason: 'Not executed; no product coverage is claimed.' });
++  report.coverage = { requested_cases: planned.length, executed_cases: report.scenarios.length, passed_cases: report.scenarios.filter(item => item.status === 'passed').length, failed_cases: report.scenarios.filter(item => item.status === 'failed').length, interrupted_cases: report.scenarios.filter(item => item.status === 'interrupted').length, skipped_cases: report.skipped.length };
++}
++async function verifyFinalIntegrity() {
++  // Always run from finally, including a failed connection or a global deadline.
++  currentCase = 'final-integrity';
++  record(report.consoleErrors.length === 0, 'No runtime exceptions or console errors', report.consoleErrors);
++  record(report.unexpectedRequests.length === 0 && report.business_write_requests === 0, 'No unknown or non-GET business requests', report.unexpectedRequests);
++  record(report.unexpectedTargets.length === 0 && report.interceptionErrors.length === 0, 'No escaped browser targets or interception errors');
++  const http = report.networkRequests.filter(request => /^https?:/.test(request.url));
++  const unintercepted = http.filter(request => !interceptedNetworkIDs.has(request.id));
++  report.observed_http_requests = http.length;
++  report.all_application_http_requests_intercepted = unintercepted.length === 0;
++  record(unintercepted.length === 0, 'Every observed application HTTP request was intercepted', unintercepted);
++  report.forwarded_requests = trace.filter(event => event.direction === 'send' && /^Fetch\.continue/.test(event.method)).length;
++  record(report.forwarded_requests === 0, 'No application request was forwarded');
++  report.frontend_requests_fulfilled_from_frozen_dist = report.staticRequests.length ? report.staticRequests.every(request => {
++    const file = request.path === '/' ? '/index.html' : decodeURIComponent(request.path);
++    const bytes = frozenDist.get(file) || (file === '/favicon.ico' ? Buffer.alloc(0) : undefined);
++    return !!bytes && request.sha256 === sha(bytes);
++  }) : null;
++  if (report.staticRequests.length) record(report.frontend_requests_fulfilled_from_frozen_dist, 'Observed frontend bytes match frozen dist');
++  for (const [label, expected, readCurrent] of [
++    ['sources', sourceManifest, () => snapshot(path.join(root, 'apps/desktop/src'), 'apps/desktop/src')],
++    ['dist', distManifest, () => snapshot(approvedDist)],
++    ['harness', harnessManifest, () => Promise.all(harnessFiles.map(async file => ({ path: file, sha256: sha(await fs.readFile(path.join(ownDirectory, file))) })))],
++  ]) {
++    try {
++      const unchanged = j(await readCurrent()) === j(expected);
++      report.fingerprint_checks[label] = { checked: true, unchanged };
++      record(unchanged, `${label}: frozen fingerprints unchanged`);
++    } catch (error) {
++      report.fingerprint_checks[label] = { checked: false, unchanged: null, error: String(error) };
++      record(false, `${label}: could not verify frozen fingerprints`, String(error));
++    }
++  }
++  const fingerprints = Object.values(report.fingerprint_checks);
++  report.fingerprints_unchanged = fingerprints.every(item => item.checked) ? fingerprints.every(item => item.unchanged) : null;
++  report.integrity_checked = true;
++}
+ async function key(name, modifiers = 0) {
+   const keys = { Tab: [9, 'Tab'], Enter: [13, 'Enter'], Space: [32, 'Space'], Escape: [27, 'Escape'], ArrowDown: [40, 'ArrowDown'], ArrowUp: [38, 'ArrowUp'], Home: [36, 'Home'], End: [35, 'End'] };
+   const [windowsVirtualKeyCode, code] = keys[name];
+@@ -181,6 +257,7 @@ async function auditDisclosures(scope, label, detailsSelector = '.help-details',
+   const count = await evaluate(`document.querySelectorAll(${j(selector)}).length`);
+   record(count >= minimum, `${label}: expected disclosure count`, { count, minimum });
+   for (let index = 0; index < count; index++) {
++    const failuresBefore = report.failures.length;
+     const expression = `document.querySelectorAll(${j(selector)})[${index}]`;
+     const initial = await evaluate(`(()=>{const d=${expression};return{label:d.querySelector(':scope > summary')?.textContent.trim(),open:d.open,body:d.querySelector(':scope > .help-details-body')?.textContent.trim()||[...d.children].filter(c=>c.tagName!=='SUMMARY').map(c=>c.textContent).join(' ').trim()}})()`);
+     record(!initial.open, `${label}/${initial.label}: default closed`);
+@@ -193,8 +270,10 @@ async function auditDisclosures(scope, label, detailsSelector = '.help-details',
+     }
+     const summary = `(${expression}).querySelector(':scope > summary')`;
+     await focus(summary);
+-    await key('Tab', 1); await key('Tab');
+-    assert.equal(await check(`document.activeElement===${summary}`, `${label}/${initial.label}: reachable through native Tab order`), true, 'Stop before sending activation keys to the wrong control');
++    // CDP modifier bits: Alt=1, Ctrl=2, Meta=4, Shift=8.
++    await key('Tab', 8); await key('Tab');
++    const focusEvidence = await evaluate(`({expected:(${summary}).textContent.trim(),actual:document.activeElement?.outerHTML?.slice(0,600)})`);
++    assert.equal(record(await evaluatePredicate(`document.activeElement===${summary}`), `${label}/${initial.label}: reachable through native Tab order`, focusEvidence), true, 'Stop before sending activation keys to the wrong control');
+     if (await evaluate(`(${expression}).open`)) { await key('Enter'); await settle(); }
+     await check(`![...(${expression}).children].filter(c=>c.tagName!=='SUMMARY').some(c=>(${visible})(c))`, `${label}/${initial.label}: closed content hidden`);
+     await key('Enter'); await settle();
+@@ -210,7 +289,7 @@ async function auditDisclosures(scope, label, detailsSelector = '.help-details',
+     for (const ancestor of ancestors.reverse()) {
+       await focus(`document.querySelectorAll('details')[${ancestor}].querySelector(':scope > summary')`); await key('Enter'); await settle();
+     }
+-    report.disclosures.push({ case: currentCase, scope: label, label: initial.label, default_closed: !initial.open, native_keyboard_tested: true });
++    report.disclosures.push({ case: currentCase, scope: label, label: initial.label, default_closed: !initial.open, native_keyboard_tested: true, all_assertions_passed: report.failures.length === failuresBefore });
+   }
+ }
+ async function accessibility(scope, label) {
+@@ -519,7 +598,7 @@ async function assistantBatch(width) {
+ try {
+   await fs.mkdir(profile, { recursive: true });
+   child = spawn(browser, [
+-    '--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
++    '--headless=new', '--window-size=1440,1000', '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
+     '--disable-sync', '--disable-component-update', '--disable-default-apps', '--disable-extensions',
+     '--disable-features=MediaRouter,OptimizationHints,AutofillServerCommunication', '--metrics-recording-only',
+     '--no-pings', '--remote-debugging-address=127.0.0.1', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank',
+@@ -565,31 +644,44 @@ try {
+   for (const [width, height] of [[1440, 1000], [390, 844]]) {
+     Object.assign(state, { digest: 'succeeded', feishu: 'ready', sources: 'ready', milkyVerify: 'ok', holdMilkyVerify: false });
+     touchInput = width < 500;
++    expectedViewport = { width, height, touch: touchInput };
+     await command('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+     await command('Emulation.setTouchEmulationEnabled', { enabled: touchInput });
+-    await scenario(`connect-synthetic-only-${width}`, async () => {
++    const connection = { width, height, initial_remember_checked: null, native_unchecked: false, hard_asserted_unchecked: false, connected: false };
++    report.connection_safety.push(connection);
++    const connectionCase = `connect-synthetic-only-${width}`;
++    const prerequisitePassed = await scenario(connectionCase, async () => {
+       const viewportQuery = `?synthetic_viewport=${width}`;
+       await command('Page.navigate', { url: `${frontend}/${viewportQuery}` });
+       await until(`location.search===${j(viewportQuery)}&&document.querySelector('.sidebar [aria-label=设置]')`, 'fresh frozen frontend document');
+       await navigate('设置');
+       await until('document.querySelector("#service-token")', 'connection form');
+       const rememberInitiallyChecked = await evaluate('document.querySelector(".remember-device-choice input")?.checked');
++      connection.initial_remember_checked = rememberInitiallyChecked;
+       assert.equal(typeof rememberInitiallyChecked, 'boolean', 'Remember-device control must exist');
+       if (rememberInitiallyChecked) {
+         await check(`(${visible})(document.querySelector('#remember-impact'))&&document.querySelector('#remember-impact').textContent.includes('请勿用于共享电脑')`, 'Checked remember-device keeps shared-computer impact visible');
+         await accessibility('#main-content', 'connection-remember-checked');
+         await click('.remember-device-choice input');
++        connection.native_unchecked = true;
+       }
+       // Hard safety prerequisite: not merely a recorded assertion. Never attempt enrollment.
+       assert.equal(await evaluate('document.querySelector(".remember-device-choice input")?.checked'), false, 'Abort before connecting unless remembering is disabled');
+-      passed('Remember-device explicitly unchecked by native input before connection');
++      connection.hard_asserted_unchecked = true;
++      passed('Remember-device hard-asserted unchecked before connection');
+       await check('!document.querySelector("#remember-impact")&&document.querySelector(".remember-device-choice input").getAttribute("aria-describedby")==="remember-description"', 'Unchecking removes immediate remember impact and its ARIA reference');
+       await auditDisclosures('#main-content', 'pre-connection-guidance');
+       await input('#service-token', syntheticToken);
+       await clickText('连接服务');
+       await until('document.querySelector(".service-status")?.textContent==="服务可访问"', 'critical connected state, not folded success text');
++      connection.connected = true;
+       await check('document.querySelector(".remember-device-choice input")?.checked===false', 'Synthetic credential was not remembered');
++      await screenshot(`connection-${width}.png`);
+     });
++    if (!prerequisitePassed) {
++      skipDependents(width, connectionCase);
++      continue;
++    }
+     await scenario(`overview-${width}`, async () => { await navigate('概览'); await auditDisclosures('#main-content', 'overview', '.help-details', 0); await accessibility('#main-content', 'overview'); await overflow('overview'); });
+     await settingsBatch(width);
+     await sourcesBatch(width);
+@@ -597,19 +689,6 @@ try {
+     await feishuBatch(width);
+     await assistantBatch(width);
+   }
+-  currentCase = 'final-integrity';
+-  record(report.consoleErrors.length === 0, 'No runtime exceptions or console errors', report.consoleErrors);
+-  record(report.unexpectedRequests.length === 0 && report.business_write_requests === 0, 'No unknown or non-GET business requests', report.unexpectedRequests);
+-  record(report.unexpectedTargets.length === 0 && report.interceptionErrors.length === 0, 'No escaped browser targets or interception errors');
+-  const unintercepted = report.networkRequests.filter((request) => /^https?:/.test(request.url) && !interceptedNetworkIDs.has(request.id));
+-  report.all_application_http_requests_intercepted = unintercepted.length === 0;
+-  record(unintercepted.length === 0, 'Every observed application HTTP request was intercepted', unintercepted);
+-  assert.deepEqual(await snapshot(path.join(root, 'apps/desktop/src'), 'apps/desktop/src'), sourceManifest, 'Sources changed during the frozen UI batch');
+-  assert.deepEqual(await snapshot(approvedDist), distManifest, 'Approved final build changed during the frozen UI batch');
+-  assert.deepEqual(await Promise.all(harnessFiles.map(async (file) => ({ path: file, sha256: sha(await fs.readFile(path.join(ownDirectory, file))) }))), harnessManifest, 'Harness changed during the frozen UI batch');
+-  report.fingerprints_unchanged = true;
+-  report.result = report.failures.length ? 'failed' : 'passed';
+-  if (report.failures.length) process.exitCode = 1;
+ } catch (error) {
+   report.result = 'failed'; report.error = error.stack || String(error); process.exitCode = 1;
+ } finally {
+@@ -622,6 +701,10 @@ try {
+   }
+   for (const item of pending.values()) { clearTimeout(item.timeout); item.reject(Error('Isolated browser closed')); }
+   pending.clear();
++  await verifyFinalIntegrity();
++  finalizeCoverage();
++  report.result = report.failures.length || report.error || report.skipped.length ? 'failed' : 'passed';
++  if (report.result === 'failed') process.exitCode = 1;
+   report.elapsed_ms = Date.now() - startedAt;
+   report.evidence = { manifest: 'manifest.json', protocol_trace: 'cdp-trace.jsonl', report: 'report.json', summary: 'summary.md', screenshots: report.screenshots };
+   await fs.writeFile(path.join(artifacts, 'manifest.json'), `${j({ approved_dist: approvedDist, harness: harnessManifest, sources: sourceManifest, dist: distManifest }, null, 2)}\n`);
+@@ -629,18 +712,23 @@ try {
+   await fs.writeFile(path.join(artifacts, 'report.json'), `${j(report, null, 2)}\n`);
+   const summary = [
+     '# Synthetic helper-disclosure browser batch', '',
+-    `- Result: **${report.result}**; ${report.checks.length} recorded assertions; ${report.failures.length} findings.`,
+-    '- Viewports: desktop 1440×1000 and touch-enabled 390×844.',
+-    `- Intercepted API transport requests: ${report.api.length}; forbidden business-write attempts: ${report.business_write_requests}.`,
+-    '- All frontend bytes were fulfilled from the approved in-memory frozen dist; no request was forwarded to an application server.',
+-    '- Only GET business requests and their OPTIONS preflights were permitted; all responses were synthetic. No real platform/model acceptance is claimed.',
+-    '- A fresh isolated browser profile was used. Remember-device was natively unchecked and hard-asserted before synthetic connection. No personal profile, system clipboard or production credential was used.',
+-    `- Source/dist/harness fingerprints unchanged: ${report.fingerprints_unchanged === true}.`,
+-    '- Native Enter/Space/Tab checks, computed AX names/descriptions, expanded overflow and independent unchecked consents are recorded in [report](<report.json>); protocol [trace](<cdp-trace.jsonl>) omits authorization, request bodies and fulfilled asset bodies.',
++    `- Result: **${report.result}**; ${report.checks.length} passed assertions; ${report.failures.length} findings.`,
++    `- Planned viewports: desktop 1440×1000 and touch-enabled 390×844; connected: ${report.connection_safety.filter(item => item.connected).map(item => `${item.width}×${item.height}`).join(', ') || 'none'}.`,
++    `- Cases: ${report.coverage.requested_cases} planned; ${report.coverage.executed_cases} executed (${report.coverage.passed_cases} passed, ${report.coverage.failed_cases} failed, ${report.coverage.interrupted_cases} interrupted); ${report.coverage.skipped_cases} skipped/not run. Interrupted cases do not imply completion of their remaining checks.`,
++    `- Intercepted synthetic business GETs: ${report.api.filter(item => item.method === 'GET').length}; OPTIONS preflights: ${report.api.filter(item => item.method === 'OPTIONS').length}; forbidden business-write attempts: ${report.business_write_requests}.`,
++    `- Frontend responses: ${report.staticRequests.length}; observed bytes match frozen dist: ${report.frontend_requests_fulfilled_from_frozen_dist ?? 'not observed'}; every observed HTTP request intercepted: ${report.all_application_http_requests_intercepted ?? 'not checked'}; forwarding commands: ${report.forwarded_requests ?? 'not checked'}.`,
++    '- Safety policy allowed only synthetic GET business responses and their OPTIONS preflights. No real platform/model acceptance is claimed. No personal profile, clipboard or production credential was used.',
++    ...report.connection_safety.map(item => `- Connection ${item.width}: remember initially checked=${item.initial_remember_checked ?? 'not inspected'}; native uncheck=${item.native_unchecked}; hard-asserted unchecked before connection=${item.hard_asserted_unchecked}; connected=${item.connected}.`),
++    `- Final integrity check executed: ${report.integrity_checked}; source/dist/harness fingerprints unchanged: ${report.fingerprints_unchanged ?? 'not fully checked'}. See fingerprint_checks in the report for per-category evidence.`,
++    `- Completed native disclosure sequences: ${report.disclosures.length}; all local assertions passed in ${report.disclosures.filter(item => item.all_assertions_passed).length}. Computed AX scopes checked: ${report.accessibility.length} (${report.accessibility.filter(item => !item.failures.length).length} without findings). Only executed checks have evidence; no global keyboard/AX/consent/overflow pass is implied.`,
++    '- Actual assertions, consent checks, disclosure/AX records and screenshot geometry are in [report](<report.json>); [trace](<cdp-trace.jsonl>) omits authorization, request bodies and fulfilled asset bodies.',
+     '', '## Findings', '',
+     ...report.failures.map((finding) => `- ${finding.case}: ${finding.label}${finding.actual ? ` — ${j(finding.actual)}` : ''}${finding.error ? ` — ${finding.error}` : ''}`),
+     ...(report.error ? [`- Batch error: ${report.error}`] : []),
+     ...(!report.failures.length && !report.error ? ['- None recorded.'] : []),
++    '', '## Skipped / not run', '',
++    ...report.skipped.map(item => `- ${item.case}: ${item.status}; blocked by ${item.blocked_by}. ${item.reason}`),
++    ...(!report.skipped.length ? ['- None.'] : []),
+     '', '## Screenshots', '',
+     ...report.screenshots.map((filename) => `- [${filename}](<${filename}>)`), '',
+   ].join('\n');

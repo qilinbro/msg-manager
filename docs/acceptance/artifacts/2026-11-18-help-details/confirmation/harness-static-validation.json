@@ -1,0 +1,8 @@
+{
+  "result": "passed",
+  "checks": 14,
+  "browser_started": false,
+  "network_used": false,
+  "harness_sha256": "96e19760f1e574a9cec6b5e2d42bd74d5e14106b013c5de775c58d7a68eecf2a",
+  "scope": "Pure-memory helper regressions only; not browser, keyboard, AX or product acceptance."
+}

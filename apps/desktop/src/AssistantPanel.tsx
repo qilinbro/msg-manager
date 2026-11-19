@@ -232,6 +232,9 @@ function ActionPreview({
         <p className="assistant-note">
           服务器固定预览，仅确认此编号与模型版本；参数不可修改。
         </p>
+        <p className="assistant-note">
+          拒绝只提交此确认编号，不调用模型。通用会话发送尚未开放；仅本人飞书早晚报支持独立授权后的发送。
+        </p>
         <dl className="assistant-action-facts">
           <div>
             <dt>操作</dt>
@@ -384,9 +387,6 @@ function ActionPreview({
           拒绝
         </button>
       </div>
-      <p className="assistant-note">
-        拒绝只提交此确认编号，不调用模型。通用会话发送尚未开放；仅本人飞书早晚报支持独立授权后的发送。
-      </p>
     </section>
   );
 }
@@ -793,16 +793,19 @@ export function AssistantPanel({
         hasUnresolved || sessionExpired,
       )
     : null;
+  const helpDraftDescription =
+    '只更新助手草稿，不会自动提交。提交前仍需核对内容并授权。';
   const preparedTask = preparedHelp ? (
     <section className="assistant-help" aria-labelledby="assistant-help-title">
       <h2 id="assistant-help-title">带入{preparedHelp.source}？</h2>
+      <span id="assistant-help-note" className="help-accessible-description">
+        {helpDraftDescription}
+      </span>
       <details className="assistant-help-details">
         <summary>查看带入内容</summary>
         <p className="assistant-help-prompt">{`来源：${preparedHelp.source}\n${preparedHelp.prompt}`}</p>
+        <p className="assistant-note">{helpDraftDescription}</p>
       </details>
-      <p className="assistant-note" id="assistant-help-note">
-        只更新助手草稿，不会自动提交。提交前仍需核对内容并授权。
-      </p>
       {hasUnresolved || sessionExpired ? (
         <p className="assistant-warning">
           请先核实当前运行；带入不会清空它或重放请求。
@@ -949,9 +952,7 @@ export function AssistantPanel({
                   <h3>你</h3>
                   <p>{turn.prompt}</p>
                 </div>
-              ) : (
-                <p className="assistant-note">已读取原运行，不会重新执行。</p>
-              )}
+              ) : null}
               <div className="assistant-reply">
                 <div className="assistant-reply-heading">
                   <h3>助手</h3>
@@ -1244,6 +1245,9 @@ export function AssistantPanel({
                 第 {index + 1} 轮运行与审计
                 {turn.run ? ` · ${turn.run.tool_results.length} 项` : ''}
               </summary>
+              {turn.prompt === null ? (
+                <p className="assistant-note">已读取原运行，不会重新执行。</p>
+              ) : null}
               {turn.runID ? (
                 <p className="assistant-run-id">
                   运行编号 <code>{turn.runID}</code>

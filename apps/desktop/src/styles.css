@@ -673,6 +673,67 @@ summary {
   padding-block: 5px;
   cursor: pointer;
 }
+.help-details-with-descriptions {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+/* Keep referenced text accessible without making optional fine print persistent. */
+.help-accessible-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+details.help-details {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--secondary);
+  background: transparent;
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.help-details > summary {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 38px;
+  padding: 7px 0;
+  border-radius: 4px;
+  color: var(--secondary);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  list-style-position: inside;
+}
+.help-details > summary:hover {
+  color: var(--ink);
+}
+.help-details > .help-details-body {
+  display: grid;
+  gap: 8px;
+  max-width: 85ch;
+  padding-block: 4px 12px;
+}
+.help-details-body > p {
+  margin: 0;
+}
+.help-details-body > :last-child {
+  margin-block-end: 0;
+}
+@media (pointer: coarse), (max-width: 600px) {
+  .help-details > summary {
+    min-height: 44px;
+    padding-block: 10px;
+  }
+}
 .development-details dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

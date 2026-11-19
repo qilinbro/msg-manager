@@ -1,0 +1,40 @@
+{
+  "checked_at": "2026-11-19T10:49:38.1095818+08:00",
+  "build_scope": "After the 10 aria-describedby source corrections; static bytes only, not browser, AX or keyboard acceptance.",
+  "base_url": "http://127.0.0.1:1420",
+  "exact_static_gets": 3,
+  "redirects_followed": 0,
+  "javascript_executed": false,
+  "business_api_requests": 0,
+  "real_model_or_platform_requests": 0,
+  "server_restarted": false,
+  "records": [
+    {
+      "path": "/",
+      "local_file": "apps/desktop/dist/index.html",
+      "status": 200,
+      "bytes": 588,
+      "served_sha256": "870930e503f3bc4dd3ecdb19fed3d3de956a5b057b02dd03214b95d72935e3b1",
+      "local_sha256": "870930e503f3bc4dd3ecdb19fed3d3de956a5b057b02dd03214b95d72935e3b1",
+      "matches_final_build": true
+    },
+    {
+      "path": "/assets/index-GfP84JgX.js",
+      "local_file": "apps/desktop/dist/assets/index-GfP84JgX.js",
+      "status": 200,
+      "bytes": 522673,
+      "served_sha256": "4d7562f35359097066f9556282ff1c6f343bb77ed7b5d9d0c364996588692f3c",
+      "local_sha256": "4d7562f35359097066f9556282ff1c6f343bb77ed7b5d9d0c364996588692f3c",
+      "matches_final_build": true
+    },
+    {
+      "path": "/assets/index-ByOR5dor.css",
+      "local_file": "apps/desktop/dist/assets/index-ByOR5dor.css",
+      "status": 200,
+      "bytes": 58982,
+      "served_sha256": "3292c59154589784ea7c04140402ec16b0ec76f461e38a2c7ce64c5aa764fefd",
+      "local_sha256": "3292c59154589784ea7c04140402ec16b0ec76f461e38a2c7ce64c5aa764fefd",
+      "matches_final_build": true
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Icon, type IconName } from './Icon';
+import { HelpDetails } from './HelpDetails';
 import { getCollection, SERVICE, ServiceError } from './api';
 import type { Connector, SystemStatus } from './api';
 import Inbox from './Inbox';
@@ -106,7 +107,11 @@ function Heading({
   return (
     <div className="page-heading">
       <h1>{title}</h1>
-      {description ? <p className="page-description">{description}</p> : null}
+      {description ? (
+        <HelpDetails label="页面说明">
+          <p className="page-description">{description}</p>
+        </HelpDetails>
+      ) : null}
     </div>
   );
 }
@@ -120,6 +125,14 @@ function ConnectorCard({
 }) {
   const connected = verified && connector.status === 'connected';
   const identityVerified = verified && connector.status === 'identity_verified';
+  const needsAttention =
+    verified &&
+    ![
+      'not_configured',
+      'configured',
+      'identity_verified',
+      'connected',
+    ].includes(connector.status);
   const labels: Record<string, string> = {
     not_configured: '尚未配置',
     configured: '待核验',
@@ -135,7 +148,7 @@ function ConnectorCard({
     <article className="connector-card">
       <div className="connector-copy">
         <h3>{connector.display_name}</h3>
-        <p>{verified ? connector.description : '连接本地服务后查看接入状态'}</p>
+        {needsAttention ? <p role="alert">{connector.description}</p> : null}
         {identityVerified ? (
           <p className="connector-boundary">尚未启用消息接收与发送</p>
         ) : null}
@@ -218,13 +231,15 @@ function Overview({
             </dd>
           </div>
         </dl>
-        <p className="section-footnote">
-          {system?.storage.configured
-            ? '可导入已有记录。实时接收需单独配置；仅飞书本人早晚报支持独立授权后的摘要发送。'
-            : system
-              ? '在后台配置加密消息存储后，即可导入并整理已有记录。'
-              : '在设置中授权本地服务后读取实际状态。主令牌仅保留在当前页面内存中。'}
-        </p>
+        <HelpDetails label="工作台说明">
+          <p className="section-footnote">
+            {system?.storage.configured
+              ? '可导入已有记录。实时接收需单独配置；仅飞书本人早晚报支持独立授权后的摘要发送。'
+              : system
+                ? '在后台配置加密消息存储后，即可导入并整理已有记录。'
+                : '在设置中授权本地服务后读取实际状态。主令牌仅保留在当前页面内存中。'}
+          </p>
+        </HelpDetails>
       </section>
       <section aria-labelledby="platform-title">
         <div className="section-heading">
@@ -249,11 +264,19 @@ function Overview({
             />
           ))}
         </div>
-        <p className="section-footnote">
-          {system
-            ? '状态来自当前服务。账号核验、历史导入与持续接收是不同能力。'
-            : '以下为接入目录，连接服务后查看真实配置与可用能力。'}
-        </p>
+        <HelpDetails label="平台接入说明">
+          <p className="section-footnote">
+            {system
+              ? '状态来自当前服务。账号核验、历史导入与持续接收是不同能力。'
+              : '以下为接入目录，连接服务后查看真实配置与可用能力。'}
+          </p>
+          {connectors.map((connector) => (
+            <p key={connector.id}>
+              <strong>{connector.display_name}</strong>：
+              {system ? connector.description : '连接本地服务后查看接入状态'}
+            </p>
+          ))}
+        </HelpDetails>
       </section>
     </>
   );
@@ -416,6 +439,11 @@ function Settings({
   onAuthFailure: () => void;
 }) {
   const connecting = session.status === 'connecting';
+  const tokenDescription = remembered
+    ? `已记住此浏览器，关闭页面后可自动恢复。${deviceExpiresAt ? `有效期至 ${new Date(deviceExpiresAt).toLocaleDateString('zh-CN')}。` : '授权最长 90 天。'}`
+    : '未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。';
+  const rememberDescription =
+    '浏览器保存不可导出的签名密钥，而非主令牌。请勿在共享电脑上勾选；清除站点数据或更换地址后需重新授权。';
   return (
     <>
       <Heading title="连接与设置" />
@@ -428,7 +456,6 @@ function Settings({
             <h2 id="service-settings-title" className="icon-label">
               <Icon name="plug" /> 本地服务
             </h2>
-            <p>首次使用主令牌授权，再读取本地服务的运行状态。</p>
           </div>
         </div>
         <form onSubmit={onConnect} className="connection-form">
@@ -449,17 +476,6 @@ function Settings({
             disabled={connecting || forgetting}
             aria-describedby="token-description"
           />
-          <p id="token-description" className="input-help">
-            <Icon name="lock" size={14} />
-            <span>
-              {remembered
-                ? `已记住此浏览器，关闭页面后可自动恢复。${deviceExpiresAt ? `有效期至 ${new Date(deviceExpiresAt).toLocaleDateString('zh-CN')}。` : '授权最长 90 天。'}`
-                : '未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。'}
-              {!storageAvailable
-                ? ' 无法清理旧版连接记录，请手动清除此站点数据；不会读取或恢复旧令牌。'
-                : ''}
-            </span>
-          </p>
           {!remembered || tokenDraft.trim() ? (
             <div className="remember-device">
               <label className="remember-device-choice">
@@ -468,15 +484,44 @@ function Settings({
                   checked={rememberDevice}
                   onChange={(event) => onRememberChange(event.target.checked)}
                   disabled={connecting || forgetting}
-                  aria-describedby="remember-description"
+                  aria-describedby={
+                    rememberDevice
+                      ? 'remember-impact remember-description'
+                      : 'remember-description'
+                  }
                 />
                 <span>记住这台可信任的电脑（90 天）</span>
               </label>
-              <p id="remember-description">
-                浏览器保存不可导出的签名密钥，而非主令牌。请勿在共享电脑上勾选；清除站点数据或更换地址后需重新授权。
-              </p>
+              {rememberDevice ? (
+                <p id="remember-impact">
+                  将在此电脑保留连接授权；请勿用于共享电脑。
+                </p>
+              ) : null}
             </div>
           ) : null}
+          {!storageAvailable ? (
+            <p className="connection-notice" role="alert">
+              无法清理旧版连接记录，请手动清除此站点数据；不会读取或恢复旧令牌。
+            </p>
+          ) : null}
+          <HelpDetails
+            label="连接与授权说明"
+            descriptions={[
+              { id: 'token-description', text: tokenDescription },
+              ...(!remembered || tokenDraft.trim()
+                ? [{ id: 'remember-description', text: rememberDescription }]
+                : []),
+            ]}
+          >
+            <p>首次使用主令牌授权，再读取本地服务的运行状态。</p>
+            <p className="input-help">
+              <Icon name="lock" size={14} />
+              <span>{tokenDescription}</span>
+            </p>
+            {!remembered || tokenDraft.trim() ? (
+              <p>{rememberDescription}</p>
+            ) : null}
+          </HelpDetails>
           <div className="form-actions">
             <button
               className="button button-primary"
@@ -523,11 +568,13 @@ function Settings({
                 {SERVICE.error ?? session.error}
               </p>
             ) : session.status === 'connected' ? (
-              <p className="form-message success-message">
-                <Icon name="check" size={16} />
-                服务可访问，状态已更新。
-                {session.checkedAt ? `检查于 ${session.checkedAt}` : ''}
-              </p>
+              <HelpDetails label="连接记录">
+                <p className="form-message success-message">
+                  <Icon name="check" size={16} />
+                  服务可访问，状态已更新。
+                  {session.checkedAt ? `检查于 ${session.checkedAt}` : ''}
+                </p>
+              </HelpDetails>
             ) : null}
             {persistenceNotice ? (
               <p className="connection-notice">{persistenceNotice}</p>
@@ -562,9 +609,6 @@ function Settings({
         <div className="settings-row">
           <div>
             <h3>通用自动发送</h3>
-            <p>
-              默认关闭，通用会话发送尚未开放；飞书本人早晚报使用独立授权与计划。
-            </p>
           </div>
           <span className="label label-neutral">
             {session.system
@@ -577,9 +621,6 @@ function Settings({
         <div className="settings-row">
           <div>
             <h3>后台自动化</h3>
-            <p>
-              暂停状态约束后台分析与整理；平台接收需单独开启。飞书本人早晚报需在独立页面授权。
-            </p>
           </div>
           <span className="subtle-note">
             {session.system
@@ -589,6 +630,14 @@ function Settings({
               : '等待检查'}
           </span>
         </div>
+        <HelpDetails label="自动化权限说明">
+          <p>
+            默认关闭，通用会话发送尚未开放；飞书本人早晚报使用独立授权与计划。
+          </p>
+          <p>
+            暂停状态约束后台分析与整理；平台接收需单独开启。飞书本人早晚报需在独立页面授权。
+          </p>
+        </HelpDetails>
       </section>
       <details className="development-details">
         <summary>开发状态与服务信息</summary>

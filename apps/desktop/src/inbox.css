@@ -504,7 +504,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px;
+  padding: 0 16px;
   border-top: 1px solid var(--border);
   font-size: 0.75rem;
   color: var(--inbox-muted);

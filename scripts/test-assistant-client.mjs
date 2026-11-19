@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 
 // Execute the shipped clients, transport and React components with synthetic
 // browser APIs. This is not a browser, real-model, real-account or Tauri test.
@@ -659,6 +660,7 @@ function componentHarness(file, name, bindings, props, browser) {
       jsx,
       Fragment: 'fragment',
       Icon: loadIcon(jsx),
+      HelpDetails: loadHelpDetails(jsx),
       ServiceError,
       AbortController,
       Date,

@@ -1,0 +1,498 @@
+{
+  "synthetic_only": true,
+  "server_started": false,
+  "logical_frontend": "http://127.0.0.1:1420",
+  "frontend_requests_fulfilled_from_frozen_dist": true,
+  "all_application_http_requests_intercepted": false,
+  "actual_platform_or_model_calls": 0,
+  "business_write_requests": 0,
+  "remembered_credential": false,
+  "checks": [
+    "overview-1440: overview: expected disclosure count",
+    "overview-1440: overview/工作台说明: default closed",
+    "overview-1440: overview/工作台说明: summary and recoverable content exist",
+    "overview-390: overview: expected disclosure count",
+    "overview-390: overview/工作台说明: default closed",
+    "overview-390: overview/工作台说明: summary and recoverable content exist"
+  ],
+  "failures": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"code\":-32000,\"message\":\"Object reference chain is too long\"}\n    at WebSocket.<anonymous> (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:542:35)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:848:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:789:26)\n    at fireEvent (node:internal/deps/undici/undici:14438:14)\n    at #onMessage (node:internal/deps/undici/undici:15762:9)\n    at Object.onMessage (node:internal/deps/undici/undici:15469:76)\n    at websocketMessageReceived (node:internal/deps/undici/undici:14442:15)\n    at node:internal/deps/undici/undici:15171:21\n    at node:internal/deps/undici/undici:14951:11\n    at afterWrite (node:internal/streams/writable:712:5)",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n概览\n服务未连接\n页面求助\n概览\n工作台状态\n连接本地服务\n消息存储\n尚未读取\n后台自动化\n尚未读取\n通用自动发送\n默认关闭\n工作台说明\n平台接入\nQQ 个人号（Milky）\n等待检查\n微信 ClawBot\n等待检查\nTelegram Bot\n等待检查\n平台接入说明"
+    },
+    {
+      "case": "overview-1440",
+      "label": "overview/工作台说明: reachable through native Tab order"
+    },
+    {
+      "case": "overview-1440",
+      "label": "Scenario interrupted",
+      "error": "AssertionError [ERR_ASSERTION]: Stop before sending activation keys to the wrong control\n\nfalse !== true\n\n    at auditDisclosures (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:197:12)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:593:77\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:593:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n概览\n服务未连接\n页面求助\n概览\n工作台状态\n连接本地服务\n消息存储\n尚未读取\n后台自动化\n尚未读取\n通用自动发送\n默认关闭\n工作台说明\n平台接入\nQQ 个人号（Milky）\n等待检查\n微信 ClawBot\n等待检查\nTelegram Bot\n等待检查\n平台接入说明"
+    },
+    {
+      "case": "settings-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic model config\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:313:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:311:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "milky-get-busy-success-error-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":1,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":180,\"scriptId\":\"19\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"19\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":186},{\"functionName\":\"\",\"scriptId\":\"19\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":629}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled 核验账号与版本\\n    at <anonymous>:1:187\\n    at <anonymous>:1:630\",\"objectId\":\"-4566056277685542913.2.2\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async clickText (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:151:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:326:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:324:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "digest-running-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":2,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":129,\"scriptId\":\"20\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":135},{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":704}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled section[aria-labelledby=\\\"digest-title\\\"] [aria-label=\\\"读取实际计划与最近摘要\\\"]\\n    at <anonymous>:1:136\\n    at <anonymous>:1:705\",\"objectId\":\"-4566056277685542913.2.4\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async click (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:149:34)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:341:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:339:63)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "digest-unknown-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":3,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":129,\"scriptId\":\"20\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":135},{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":704}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled section[aria-labelledby=\\\"digest-title\\\"] [aria-label=\\\"读取实际计划与最近摘要\\\"]\\n    at <anonymous>:1:136\\n    at <anonymous>:1:705\",\"objectId\":\"-4566056277685542913.2.6\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async click (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:149:34)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:341:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:339:63)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "digest-failed-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":4,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":129,\"scriptId\":\"20\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":135},{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":704}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled section[aria-labelledby=\\\"digest-title\\\"] [aria-label=\\\"读取实际计划与最近摘要\\\"]\\n    at <anonymous>:1:136\\n    at <anonymous>:1:705\",\"objectId\":\"-4566056277685542913.2.8\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async click (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:149:34)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:341:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:339:63)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "sources-ready-and-dirty-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:359:30\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:358:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "wechat-stop-get-and-late-response-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:384:30\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:383:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-limited-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-skipped-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-monitor-error-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-error-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-unconfigured-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "inbox-ai-profile-import-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:436:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async inboxPanelsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:435:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:596:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "feishu-ready-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-sent-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-running-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-failed-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-report-unknown-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-unknown-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "assistant-1440",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: native assistant modal\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:495:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async assistantBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:493:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:598:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n工作空间\n/\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复\nAgent 助手\n关闭后返回原页面，不取消已提交的运行。\nAgent 助手\n\n请先连接本地服务。\n\n去设置"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"code\":-32000,\"message\":\"Object reference chain is too long\"}\n    at WebSocket.<anonymous> (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:542:35)\n    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:848:20)\n    at WebSocket.dispatchEvent (node:internal/event_target:789:26)\n    at fireEvent (node:internal/deps/undici/undici:14438:14)\n    at #onMessage (node:internal/deps/undici/undici:15762:9)\n    at Object.onMessage (node:internal/deps/undici/undici:15469:76)\n    at websocketMessageReceived (node:internal/deps/undici/undici:14442:15)\n    at node:internal/deps/undici/undici:15171:21\n    at node:internal/deps/undici/undici:14951:11\n    at afterWrite (node:internal/streams/writable:712:5)",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n概览\n服务未连接\n页面求助\n概览\n工作台状态\n连接本地服务\n消息存储\n尚未读取\n后台自动化\n尚未读取\n通用自动发送\n默认关闭\n工作台说明\n平台接入\nQQ 个人号（Milky）\n等待检查\n微信 ClawBot\n等待检查\nTelegram Bot\n等待检查\n平台接入说明"
+    },
+    {
+      "case": "overview-390",
+      "label": "overview/工作台说明: reachable through native Tab order"
+    },
+    {
+      "case": "overview-390",
+      "label": "Scenario interrupted",
+      "error": "AssertionError [ERR_ASSERTION]: Stop before sending activation keys to the wrong control\n\nfalse !== true\n\n    at auditDisclosures (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:197:12)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:593:77\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:593:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n概览\n服务未连接\n页面求助\n概览\n工作台状态\n连接本地服务\n消息存储\n尚未读取\n后台自动化\n尚未读取\n通用自动发送\n默认关闭\n工作台说明\n平台接入\nQQ 个人号（Milky）\n等待检查\n微信 ClawBot\n等待检查\nTelegram Bot\n等待检查\n平台接入说明"
+    },
+    {
+      "case": "settings-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic model config\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:313:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:311:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "milky-get-busy-success-error-390",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":5,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":180,\"scriptId\":\"19\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"19\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":186},{\"functionName\":\"\",\"scriptId\":\"19\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":629}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled 核验账号与版本\\n    at <anonymous>:1:187\\n    at <anonymous>:1:630\",\"objectId\":\"-4566056277685542913.4.2\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async clickText (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:151:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:326:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:324:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "digest-running-390",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":6,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":129,\"scriptId\":\"20\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":135},{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":704}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled section[aria-labelledby=\\\"digest-title\\\"] [aria-label=\\\"读取实际计划与最近摘要\\\"]\\n    at <anonymous>:1:136\\n    at <anonymous>:1:705\",\"objectId\":\"-4566056277685542913.4.4\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async click (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:149:34)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:341:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:339:63)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "digest-unknown-390",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":7,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":129,\"scriptId\":\"20\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":135},{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":704}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled section[aria-labelledby=\\\"digest-title\\\"] [aria-label=\\\"读取实际计划与最近摘要\\\"]\\n    at <anonymous>:1:136\\n    at <anonymous>:1:705\",\"objectId\":\"-4566056277685542913.4.6\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async click (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:149:34)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:341:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:339:63)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "digest-failed-390",
+      "label": "Scenario interrupted",
+      "error": "Error: {\"exceptionId\":8,\"text\":\"Uncaught\",\"lineNumber\":0,\"columnNumber\":129,\"scriptId\":\"20\",\"stackTrace\":{\"callFrames\":[{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":135},{\"functionName\":\"\",\"scriptId\":\"20\",\"url\":\"\",\"lineNumber\":0,\"columnNumber\":704}]},\"exception\":{\"type\":\"object\",\"subtype\":\"error\",\"className\":\"Error\",\"description\":\"Error: Missing/disabled section[aria-labelledby=\\\"digest-title\\\"] [aria-label=\\\"读取实际计划与最近摘要\\\"]\\n    at <anonymous>:1:136\\n    at <anonymous>:1:705\",\"objectId\":\"-4566056277685542913.4.8\"}}\n    at evaluate (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:82:38)\n    at async pointClick (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:138:17)\n    at async click (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:149:34)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:341:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async settingsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:339:63)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:594:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n设置\n服务未连接\n页面求助\n连接与设置\n本地服务\n主令牌\n记住这台可信任的电脑（90 天）\n\n将在此电脑保留连接授权；请勿用于共享电脑。\n\n连接与授权说明\n连接服务\n清除令牌与连接\nQQ 个人号（Milky）\n接入说明\n连接状态\n读取中…\nQQ 账号\n—\n后台接收\n默认关闭\n跳过 / 缺口\n—\n核验记录\n核验账号与版本\n同步历史的联系人 QQ 号\n同步说明\n同步一页历史\n后台接收的私聊 QQ 号（逗号分隔，最多 20 个）\n接收说明\n开启后台接收\n\n请先连接上方的本地服务，再使用 QQ Milky 功能。\n\nAI 模型配置\n请先连接服务\n模型配置说明\n配置预设\n选择预设，或手动填写\n服务地址\n模型 ID\nAPI 密钥\n每日调用上限\n我已核对模型服务地址与名称，确认保存。\n保存模型配置\n每日消息整理\n请先连接服务\n\n整理未暂停会话过去 24 小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。\n\n摘要说明\n每日时间（Asia/Shanghai）\n我同意启用 / 更新每日计划：今后每天 08:00（Asia/Shanghai）将上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用。此持续授权仅绑定展示的目标与版本，保存后本次勾选会清除。\n启用每日计划\n今日摘要\n我同意仅本次把上述未暂停会话的摘要所需文本交给 尚未读取的模型目标 处理，可能产生费用；不改变每日计划。\n生成 / 读取今日摘要\n自动化权限\n只读状态\n通用自动发送\n默认关闭\n后台自动化\n等待检查\n自动化权限说明\n开发状态与服务信息"
+    },
+    {
+      "case": "sources-ready-and-dirty-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:359:30\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:358:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "wechat-stop-get-and-late-response-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:384:30\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:383:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-limited-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-skipped-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-monitor-error-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-error-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "sources-unconfigured-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:405:34\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async sourcesBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:404:95)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:595:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "inbox-ai-profile-import-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic inbox\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async sourcePage (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:352:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:436:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async inboxPanelsBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:435:3)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:596:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n消息\n服务未连接\n消息\n导入消息\n全部类型\n私聊\n群聊\nAgent 帮我\n先连接你的消息工作台\n\n连接本地服务后，就能导入社交记录，按需读取微信并整理邮件。\n\n前往连接设置"
+    },
+    {
+      "case": "feishu-ready-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-sent-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-running-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-failed-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    },
+    {
+      "case": "feishu-report-unknown-390",
+      "label": "Scenario interrupted",
+      "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+      "body": "跳到主要内容\n消息工作台\n概览\n消息\n联系人\n待审批\nAgent 助手\n飞书早晚报\n设置\n飞书早晚报\n服务未连接\n页面求助\n飞书早晚报\n早晚报运行说明\n\n连接本地服务后读取真实配置。不要把应用密钥或 Open ID 发给 Agent。\n\n连接本地服务\n本人应用与收件人\n服务未连接\n已保存 App ID\n—\n固定私聊目标\n—\n本人归属核验\n未通过平台核验；配置仅记录本人的声明。\n本机凭据 / 配置版本\n未读取或未保存密钥 / —\n目标绑定\n—\n人工配置自建应用与本人 Open ID\n凭据与字段填写说明\n保存到本机，不执行联网核验\n应用与本人私聊标识\nApp ID（必填）\nApp Secret（必填）\n本人的应用内 Open ID（必填）\n仅沿用该 App ID 已保存在本机的密钥（不会取回或显示密钥）。\n我已确认 Open ID 属于本人，同意把以上应用凭据与目标保存在本机；知道这不是联网验证，并会关闭原计划。\n保存本机配置\n清除本机飞书配置\n固定早晚报计划\n尚未读取\n下次窗口结束\n—\n最近处理窗口结束\n—\n计划版本\n—\n当前模型\n未就绪 · —\n模型绑定 / 版本\n— / —\n今日共享模型额度\n尚未读取\n\n配置可用模型后才能生成预览或启用计划；关闭与清除不依赖模型。\n\n分别同意模型数据处理与飞书持续发送\n我同意后续每个固定窗口，将相关已入库、未暂停的私聊与群聊内容持续发送给当前模型 （未就绪）（—），可能产生费用；同意绑定上述模型 ID 与版本。\n我另行同意持续向已保存的本人飞书私聊 （未配置） 自动发送摘要与待核对待办；启用后不会逐次询问，知道主机离线不补发，平台接受不等于手机通知。\n启用固定早晚报\n我确认关闭早晚报计划，停止/取消后续处理；理解不能保证撤回在途请求或平台已接受的消息。\n关闭后续计划\n生成并核对预览\n只生成，不发送\n\n最近一个已完整结束的窗口：[2026/11/18 08:00, 2026/11/18 20:00)（北京时间），不是滚动过去 24 小时；以后台时钟为准。\n\n预览与发送说明\n我同意仅本次把该完整窗口内相关已入库、未暂停的私聊与群聊内容发送给上述模型（ID — / 版本 —），可能产生费用；这不授权发送到飞书。\n生成最近完整窗口预览\n\n尚无可展示的报告。请只读获取已有报告，或在同意范围后生成最近完整窗口的预览。\n\n按记录编号只读恢复"
+    }
+  ],
+  "screenshots": [
+    "failure-connect-synthetic-only-1440.png",
+    "failure-overview-1440.png",
+    "failure-settings-1440.png",
+    "failure-milky-get-busy-success-error-1440.png",
+    "failure-digest-running-1440.png",
+    "failure-digest-unknown-1440.png",
+    "failure-digest-failed-1440.png",
+    "failure-sources-ready-and-dirty-1440.png",
+    "failure-wechat-stop-get-and-late-response-1440.png",
+    "failure-sources-limited-1440.png",
+    "failure-sources-skipped-1440.png",
+    "failure-sources-monitor-error-1440.png",
+    "failure-sources-error-1440.png",
+    "failure-sources-unconfigured-1440.png",
+    "failure-inbox-ai-profile-import-1440.png",
+    "failure-feishu-ready-1440.png",
+    "failure-feishu-sent-1440.png",
+    "failure-feishu-running-1440.png",
+    "failure-feishu-failed-1440.png",
+    "failure-feishu-report-unknown-1440.png",
+    "failure-feishu-unknown-1440.png",
+    "failure-assistant-1440.png",
+    "failure-connect-synthetic-only-390.png",
+    "failure-overview-390.png",
+    "failure-settings-390.png",
+    "failure-milky-get-busy-success-error-390.png",
+    "failure-digest-running-390.png",
+    "failure-digest-unknown-390.png",
+    "failure-digest-failed-390.png",
+    "failure-sources-ready-and-dirty-390.png",
+    "failure-wechat-stop-get-and-late-response-390.png",
+    "failure-sources-limited-390.png",
+    "failure-sources-skipped-390.png",
+    "failure-sources-monitor-error-390.png",
+    "failure-sources-error-390.png",
+    "failure-sources-unconfigured-390.png",
+    "failure-inbox-ai-profile-import-390.png",
+    "failure-feishu-ready-390.png",
+    "failure-feishu-sent-390.png",
+    "failure-feishu-running-390.png",
+    "failure-feishu-failed-390.png",
+    "failure-feishu-report-unknown-390.png"
+  ],
+  "api": [],
+  "staticRequests": [
+    {
+      "method": "GET",
+      "path": "/",
+      "sha256": "fe7709b666eeed5fae87e9fb7babb93adbc87d556c612c12a0ad5aedeba9c147"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-BkCWQrlE.js",
+      "sha256": "a90af1c60ecb0e829b0300bdb4e4c8d42d6a3a968296c08e801729995300ae92"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-CgfJYSPE.css",
+      "sha256": "c5b63c9bd43b314e11e514efbcef74f0b41b9fb191039909c81744c30fd5253e"
+    },
+    {
+      "method": "GET",
+      "path": "/favicon.ico",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "sha256": "fe7709b666eeed5fae87e9fb7babb93adbc87d556c612c12a0ad5aedeba9c147"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-BkCWQrlE.js",
+      "sha256": "a90af1c60ecb0e829b0300bdb4e4c8d42d6a3a968296c08e801729995300ae92"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-CgfJYSPE.css",
+      "sha256": "c5b63c9bd43b314e11e514efbcef74f0b41b9fb191039909c81744c30fd5253e"
+    },
+    {
+      "method": "GET",
+      "path": "/favicon.ico",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "networkRequests": [
+    {
+      "id": "7D78FA4748946C7A4E8F9438DE60B458",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/?synthetic_viewport=1440"
+    },
+    {
+      "id": "39272.2",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-BkCWQrlE.js"
+    },
+    {
+      "id": "39272.3",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-CgfJYSPE.css"
+    },
+    {
+      "id": "39272.6",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/favicon.ico"
+    },
+    {
+      "id": "39272.7",
+      "method": "GET",
+      "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTEuOTkgMkM2LjQ3IDIgMiA2LjQ4IDIgMTJzNC40NyAxMCA5Ljk5IDEwQzE3LjUyIDIyIDIyIDE3LjUyIDIyIDEyUzE3LjUyIDIgMTEuOTkgMnpNMTIgMjBjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTIuNSA3SDExdjZsNS4yNSAzLjE1Ljc1LTEuMjMtNC41LTIuNjd6Ii8+PC9zdmc+"
+    },
+    {
+      "id": "4F6BEC6DEF6D430859FD6CFC1E909163",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/?synthetic_viewport=390"
+    },
+    {
+      "id": "39272.9",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-BkCWQrlE.js"
+    },
+    {
+      "id": "39272.10",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-CgfJYSPE.css"
+    },
+    {
+      "id": "39272.13",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/favicon.ico"
+    },
+    {
+      "id": "39272.14",
+      "method": "GET",
+      "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTEuOTkgMkM2LjQ3IDIgMiA2LjQ4IDIgMTJzNC40NyAxMCA5Ljk5IDEwQzE3LjUyIDIyIDIyIDE3LjUyIDIyIDEyUzE3LjUyIDIgMTEuOTkgMnpNMTIgMjBjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTIuNSA3SDExdjZsNS4yNSAzLjE1Ljc1LTEuMjMtNC41LTIuNjd6Ii8+PC9zdmc+"
+    }
+  ],
+  "unexpectedRequests": [],
+  "unexpectedTargets": [],
+  "consoleErrors": [],
+  "interceptionErrors": [],
+  "accessibility": [],
+  "disclosures": [],
+  "controlled_gets": [
+    {
+      "case": "milky-get-busy-success-error-1440",
+      "pathname": "/api/v1/connections/qq-milky/verify",
+      "paused": false,
+      "settled": false,
+      "expected_abort": false,
+      "browser_canceled": false,
+      "late_fulfillment_rejected": false
+    },
+    {
+      "case": "milky-get-busy-success-error-390",
+      "pathname": "/api/v1/connections/qq-milky/verify",
+      "paused": false,
+      "settled": false,
+      "expected_abort": false,
+      "browser_canceled": false,
+      "late_fulfillment_rejected": false
+    }
+  ],
+  "result": "failed",
+  "error": "Error: Timed out: synthetic frozen Feishu report\n    at until (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:93:9)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:469:5\n    at async scenario (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:113:9)\n    at async feishuBatch (file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:466:98)\n    at async file:///D:/msg_manager/.runtime/main-push-20261116/repo/.runtime/T08-helper-details-20261118/synthetic-browser.mjs:597:5",
+  "elapsed_ms": 300223,
+  "evidence": {
+    "manifest": "manifest.json",
+    "protocol_trace": "cdp-trace.jsonl",
+    "report": "report.json",
+    "summary": "summary.md",
+    "screenshots": [
+      "failure-connect-synthetic-only-1440.png",
+      "failure-overview-1440.png",
+      "failure-settings-1440.png",
+      "failure-milky-get-busy-success-error-1440.png",
+      "failure-digest-running-1440.png",
+      "failure-digest-unknown-1440.png",
+      "failure-digest-failed-1440.png",
+      "failure-sources-ready-and-dirty-1440.png",
+      "failure-wechat-stop-get-and-late-response-1440.png",
+      "failure-sources-limited-1440.png",
+      "failure-sources-skipped-1440.png",
+      "failure-sources-monitor-error-1440.png",
+      "failure-sources-error-1440.png",
+      "failure-sources-unconfigured-1440.png",
+      "failure-inbox-ai-profile-import-1440.png",
+      "failure-feishu-ready-1440.png",
+      "failure-feishu-sent-1440.png",
+      "failure-feishu-running-1440.png",
+      "failure-feishu-failed-1440.png",
+      "failure-feishu-report-unknown-1440.png",
+      "failure-feishu-unknown-1440.png",
+      "failure-assistant-1440.png",
+      "failure-connect-synthetic-only-390.png",
+      "failure-overview-390.png",
+      "failure-settings-390.png",
+      "failure-milky-get-busy-success-error-390.png",
+      "failure-digest-running-390.png",
+      "failure-digest-unknown-390.png",
+      "failure-digest-failed-390.png",
+      "failure-sources-ready-and-dirty-390.png",
+      "failure-wechat-stop-get-and-late-response-390.png",
+      "failure-sources-limited-390.png",
+      "failure-sources-skipped-390.png",
+      "failure-sources-monitor-error-390.png",
+      "failure-sources-error-390.png",
+      "failure-sources-unconfigured-390.png",
+      "failure-inbox-ai-profile-import-390.png",
+      "failure-feishu-ready-390.png",
+      "failure-feishu-sent-390.png",
+      "failure-feishu-running-390.png",
+      "failure-feishu-failed-390.png",
+      "failure-feishu-report-unknown-390.png"
+    ]
+  }
+}

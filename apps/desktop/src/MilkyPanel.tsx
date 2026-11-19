@@ -6,6 +6,7 @@ import {
   type ChangeEvent,
 } from 'react';
 import { getSystem, ServiceError, type SystemStatus } from './api';
+import { HelpDetails } from './HelpDetails';
 import {
   configureMilkyMonitor,
   getMilkyStatus,
@@ -160,35 +161,37 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           <h2 id="milky-title">QQ 个人号（Milky）</h2>
         </div>
       </div>
-      <p className="qq-intro">
-        连接你自己部署的 Milky 1.3 协议端，核验本人 QQ
-        账号，按联系人同步好友私聊历史，并可显式开启后台接收。
-        协议端是独立进程（Lagrange.Milky，GPL-3.0），本产品不分发其程序、不代替你登录。自动发送始终关闭。
-      </p>
-      <div className="qq-configuration">
-        <p>在启动本地服务前，由技术开发在后台环境配置：</p>
-        <dl>
-          <div>
-            <dt>
-              <code>QQ_MILKY_URL</code>
-            </dt>
-            <dd>本机协议端地址，例如 http://127.0.0.1:3000</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_MILKY_ACCESS_TOKEN</code>
-            </dt>
-            <dd>协议端访问令牌，仅保留在服务端环境</dd>
-          </div>
-          <div>
-            <dt>
-              <code>QQ_MILKY_ACCOUNT_ID</code>
-            </dt>
-            <dd>预期登录的本人 QQ 号</dd>
-          </div>
-        </dl>
-        <p>工作台不收集 QQ 密码、协议端令牌或地址，令牌不进入 URL。</p>
-      </div>
+      <HelpDetails label="接入说明">
+        <p className="qq-intro">
+          连接你自己部署的 Milky 1.3 协议端，核验本人 QQ
+          账号，按联系人同步好友私聊历史，并可显式开启后台接收。
+          协议端是独立进程（Lagrange.Milky，GPL-3.0），本产品不分发其程序、不代替你登录。自动发送始终关闭。
+        </p>
+        <div className="qq-configuration">
+          <p>在启动本地服务前，由技术开发在后台环境配置：</p>
+          <dl>
+            <div>
+              <dt>
+                <code>QQ_MILKY_URL</code>
+              </dt>
+              <dd>本机协议端地址，例如 http://127.0.0.1:3000</dd>
+            </div>
+            <div>
+              <dt>
+                <code>QQ_MILKY_ACCESS_TOKEN</code>
+              </dt>
+              <dd>协议端访问令牌，仅保留在服务端环境</dd>
+            </div>
+            <div>
+              <dt>
+                <code>QQ_MILKY_ACCOUNT_ID</code>
+              </dt>
+              <dd>预期登录的本人 QQ 号</dd>
+            </div>
+          </dl>
+          <p>工作台不收集 QQ 密码、协议端令牌或地址，令牌不进入 URL。</p>
+        </div>
+      </HelpDetails>
 
       <div className="qq-result" aria-live="polite">
         <dl>
@@ -209,14 +212,6 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
             <dd>{status?.account_id || '—'}</dd>
           </div>
           <div>
-            <dt>协议版本</dt>
-            <dd>{status?.milky_version || '锁定 1.3'}</dd>
-          </div>
-          <div>
-            <dt>最近核验</dt>
-            <dd>{status?.checked_at || '尚未核验'}</dd>
-          </div>
-          <div>
             <dt>后台接收</dt>
             <dd>
               {monitorRunning
@@ -235,9 +230,18 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
             </dd>
           </div>
         </dl>
-        <p>
-          一次核验只说明最近一次检测成功，不等于持续在线。事件流没有补发机制，断线会记录缺口并用历史接口有界补查，不能承诺取回全部历史。
-        </p>
+        <HelpDetails label="核验记录">
+          <dl>
+            <div>
+              <dt>协议版本</dt>
+              <dd>{status?.milky_version || '锁定 1.3'}</dd>
+            </div>
+            <div>
+              <dt>最近核验</dt>
+              <dd>{status?.checked_at || '尚未核验'}</dd>
+            </div>
+          </dl>
+        </HelpDetails>
       </div>
 
       <div className="form-actions">
@@ -262,10 +266,12 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           onChange={onPeerChange}
           placeholder="例如 987654321"
         />
-        <p className="input-help">
-          首版仅好友私聊纯文本，单次最多 30
-          条；媒体与不支持场景记录跳过原因，不上传模型。
-        </p>
+        <HelpDetails label="同步说明">
+          <p className="input-help">
+            首版仅好友私聊纯文本，单次最多 30
+            条；媒体与不支持场景记录跳过原因，不上传模型。
+          </p>
+        </HelpDetails>
       </div>
       <div className="form-actions">
         <button
@@ -295,9 +301,14 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           onChange={onPeersChange}
           placeholder="仅填写你明确授权的私聊"
         />
-        <p className="input-help">
-          默认关闭，需先核验。已开启的联系人名单会加密保存；服务重启后需重新核验协议端，核验成功后恢复后台接收。
-        </p>
+        <HelpDetails label="接收说明">
+          <p className="input-help">
+            默认关闭，需先核验。已开启的联系人名单会加密保存；服务重启后需重新核验协议端，核验成功后恢复后台接收。
+          </p>
+          <p className="input-help">
+            一次核验只说明最近一次检测成功，不等于持续在线。事件流没有补发机制，断线会记录缺口并用历史接口有界补查，不能承诺取回全部历史。
+          </p>
+        </HelpDetails>
       </div>
       <div className="form-actions">
         {monitorSaved ? (
@@ -333,7 +344,9 @@ export function MilkyPanel({ token, onSystemUpdate, onAuthFailure }: Props) {
           </p>
         ) : null}
         {notice ? (
-          <p className="form-message success-message">{notice}</p>
+          <HelpDetails label="操作结果">
+            <p className="form-message success-message">{notice}</p>
+          </HelpDetails>
         ) : null}
       </div>
       {!token ? (

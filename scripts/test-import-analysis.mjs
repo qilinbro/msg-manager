@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -49,16 +50,25 @@ function harness() {
   const component = { exports: {} };
   const jsx = (type, supplied, ...children) => {
     const props = { ...(supplied ?? {}), children };
-    return typeof type === 'function' && type === Icon ? type(props) : { type, props };
+    return typeof type === 'function' && (type === Icon || type === HelpDetails) ? type(props) : { type, props };
   };
   const Icon = loadIcon(jsx);
-  runInNewContext(compiled.code + '\nmodule.exports=ImportPanel;', { ...actualClient, ...hooks, useLayoutEffect: hooks.useEffect, Error, ServiceError, AbortController, jsx, Icon, Fragment: 'fragment', module: component,
+  const HelpDetails = loadHelpDetails(jsx);
+  runInNewContext(compiled.code + '\nmodule.exports=ImportPanel;', { ...actualClient, ...hooks, useLayoutEffect: hooks.useEffect, Error, ServiceError, AbortController, jsx, Icon, HelpDetails, Fragment: 'fragment', module: component,
     getProfileStatus: async () => structuredClone(currentModel),
   });
   return { get tree() { return tree; }, async flush() { for (let pass = 0; pass < 25; pass++) { if (dirty) { cursor = 0; dirty = false; tree = component.exports(props); const ready = effects; effects = []; for (const effect of ready) effect(); } await Promise.resolve(); } }, unmount() { for (const slot of slots) slot?.cleanup?.(); unmounted = true; } };
 }
 function nodes(value) { return value && typeof value === 'object' ? [value, ...value.props.children.flat(Infinity).flatMap(nodes)] : []; }
 function text(value) { if (Array.isArray(value)) return value.map(text).join(''); return value && typeof value === 'object' ? value.props.children.map(text).join('') : String(value ?? ''); }
+function defaultClosedText(value) {
+  if (Array.isArray(value)) return value.map(defaultClosedText).join('');
+  if (!value || typeof value !== 'object') return String(value ?? '');
+  const children = value.props.children.flat(Infinity);
+  return value.type === 'details' && !value.props.open
+    ? children.filter((node) => node?.type === 'summary').map(text).join('')
+    : children.map(defaultClosedText).join('');
+}
 function find(panel, match) { const result = nodes(panel.tree).find(match); assert.ok(result, 'import control missing'); return result; }
 async function preview(panel) {
   await panel.flush();
@@ -79,6 +89,9 @@ await confirm(manual).props.onClick();
 await manual.flush();
 assert.equal(requests.length, beforeManual + 1);
 assert.equal(JSON.parse(requests.at(-1).body).ai_organize, undefined, 'manual imports must not authorize AI');
+assert.ok(text(manual.tree).includes('已导入 1 条'), 'import counts remain available on demand');
+assert.ok(!defaultClosedText(manual.tree).includes('已导入 1 条'), 'successful import counts start folded');
+assert.ok(!defaultClosedText(manual.tree).includes('AI 整理已排队'), 'manual import must not imply background AI work');
 manual.unmount();
 
 const panel = harness();
@@ -95,7 +108,20 @@ assert.equal(requests.at(-1).url.endsWith('/imports/messages'), true);
 assert.equal(requests.at(-1).headers.Authorization, 'Bearer synthetic-local-token');
 assert.deepEqual(JSON.parse(requests.at(-1).body).ai_organize, { confirmed: true, model_config_id: configured.model_config_id });
 assert.ok(text(panel.tree).includes('1 个会话的后台分析任务'));
+assert.ok(defaultClosedText(panel.tree).includes('AI 整理已排队：1 个会话；进度见联系人档案。'), 'queued AI work remains visible outside successful import details');
+assert.ok(!defaultClosedText(panel.tree).includes('后台会分批读取完整历史'), 'supplementary processing guidance remains on demand');
 panel.unmount();
+
+const zeroQueue = harness();
+await preview(zeroQueue);
+checkbox(zeroQueue).props.onChange({ target: { checked: true } });
+await zeroQueue.flush();
+response = { ...response, ai_queued: 0 };
+await confirm(zeroQueue).props.onClick();
+await zeroQueue.flush();
+assert.ok(text(zeroQueue.tree).includes('0 个会话的后台分析任务'));
+assert.ok(!defaultClosedText(zeroQueue.tree).includes('AI 整理已排队'), 'zero queued tasks must not claim pending work');
+zeroQueue.unmount();
 
 const stale = harness();
 await preview(stale);

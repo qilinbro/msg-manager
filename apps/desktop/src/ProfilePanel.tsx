@@ -23,6 +23,7 @@ import type {
 } from './profile-api';
 import './profile.css';
 import ProfileLinksPanel from './ProfileLinksPanel';
+import { HelpDetails } from './HelpDetails';
 
 const EMPTY: ProfileSettings = {
   public_name: '',
@@ -83,7 +84,7 @@ function UnattendedReceipt({
   const jobs = [...profile.jobs].sort(
     (left, right) => Date.parse(right.updated_at) - Date.parse(left.updated_at),
   );
-  const latest = jobs[0] ?? null;
+  const latest = jobs.at(0) ?? null;
   const active = jobs.find((job) => ['queued', 'running'].includes(job.state));
   const state = profile.ai_paused
     ? 'paused'
@@ -117,19 +118,8 @@ function UnattendedReceipt({
             : profile.auto_organize
               ? '新消息会按授权继续进入后台整理。'
               : '当前没有持续任务；如需离场整理，请明确开启授权。';
-  return (
-    <section
-      className="unattended-receipt"
-      aria-labelledby="unattended-receipt-title"
-    >
-      <div className="unattended-receipt-heading">
-        <div>
-          <h4 id="unattended-receipt-title">不在场回执</h4>
-        </div>
-        <span className={`unattended-state is-${state}`}>
-          {stateLabel[state]}
-        </span>
-      </div>
+  const details = (
+    <>
       <div className="unattended-receipt-grid">
         <div>
           <span className="unattended-label">离开期间做了什么</span>
@@ -154,11 +144,6 @@ function UnattendedReceipt({
           </strong>
         </div>
       </div>
-      {latest?.last_error_code ? (
-        <p className="unattended-error">
-          {profileJobError(latest.last_error_code)}
-        </p>
-      ) : null}
       <p className="unattended-next">
         <strong>下一步：</strong>
         {nextStep}
@@ -168,6 +153,34 @@ function UnattendedReceipt({
         {status?.model_configured ? (status.model ?? '已配置') : '未配置'} ·
         发送：关闭
       </p>
+    </>
+  );
+  return (
+    <section
+      className="unattended-receipt"
+      aria-labelledby="unattended-receipt-title"
+    >
+      <div className="unattended-receipt-heading">
+        <div>
+          <h4 id="unattended-receipt-title">不在场回执</h4>
+        </div>
+        <span className={`unattended-state is-${state}`}>
+          {stateLabel[state]}
+        </span>
+      </div>
+      {state === 'idle' ||
+      (state === 'succeeded' &&
+        !latest?.last_error_code &&
+        (!hasProgress || processed >= total)) ? (
+        <HelpDetails label="后台处理记录">{details}</HelpDetails>
+      ) : (
+        details
+      )}
+      {latest?.last_error_code ? (
+        <p className="unattended-error">
+          {profileJobError(latest.last_error_code)}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -196,7 +209,10 @@ export default function ProfilePanel({
   const [readError, setReadError] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'success' | 'visible';
+    text: string;
+  } | null>(null);
   const [uncertain, setUncertain] = useState(false);
   const [reload, setReload] = useState(0);
   const mounted = useRef(false);
@@ -368,9 +384,10 @@ export default function ProfilePanel({
         return;
       if ('facts' in value) {
         accept(value, kind === 'save');
-        setNotice(
-          kind === 'save' ? '档案设置已保存。' : '已记录你的核实结果。',
-        );
+        setNotice({
+          kind: 'success',
+          text: kind === 'save' ? '档案设置已保存。' : '已记录你的核实结果。',
+        });
         onChangedRef.current();
       } else {
         setProfile((previous) =>
@@ -384,7 +401,10 @@ export default function ProfilePanel({
               }
             : previous,
         );
-        setNotice('任务已交给后台。离开页面后会继续，可稍后回来查看结果。');
+        setNotice({
+          kind: 'visible',
+          text: '任务已交给后台。离开页面后会继续，可稍后回来查看结果。',
+        });
       }
     } catch (failure: unknown) {
       if (
@@ -597,7 +617,6 @@ export default function ProfilePanel({
           <h3 id={`profile-title-${conversationId}`}>
             {displayName}的个人档案
           </h3>
-          <p>专属文档保存在本地加密库，聊天整理与公开资料分开核对。</p>
         </div>
         <div className="profile-inline-actions">
           <button
@@ -618,6 +637,25 @@ export default function ProfilePanel({
           </button>
         </div>
       </div>
+      <HelpDetails label="档案使用说明">
+        <p>专属文档保存在本地加密库，聊天整理与公开资料分开核对。</p>
+        <p className="profile-muted">
+          公开搜索姓名需要你明确填写，不会将平台账号自动当作真实姓名。
+        </p>
+        <p className="profile-muted">
+          手工分类优先，AI
+          不会覆盖。请简短填写姓名、公司和职位，较长资料可放入备注。
+        </p>
+        <p className="profile-muted">
+          摘要和分类是 AI 建议，已确认事实单独列在下方。
+        </p>
+        <p className="profile-muted">
+          来源存在不代表已确认属于此人，请核对姓名、公司和原文。
+        </p>
+        <p className="profile-muted">
+          任务由独立后台执行，离开页面不会取消；电脑及后台需要保持运行。额度不足时会等待，暂停后可继续。
+        </p>
+      </HelpDetails>
       {loading && !profile ? (
         <p className="profile-muted" role="status">
           正在读取个人档案…
@@ -632,10 +670,15 @@ export default function ProfilePanel({
         <>
           <UnattendedReceipt profile={profile} status={status} />
           <div className="profile-category-line">
-            {profile.auto_organize && profile.analysis_total !== undefined ? (
+            {profile.auto_organize &&
+            profile.analysis_total !== undefined &&
+            ((profile.analysis_processed ?? 0) < profile.analysis_total ||
+              profile.jobs.some((job) =>
+                ['queued', 'running'].includes(job.state),
+              )) ? (
               <p role="status">
                 全历史整理：已处理 {profile.analysis_processed ?? 0} /{' '}
-                {profile.analysis_total} 条。额度不足时会等待，暂停后可继续。
+                {profile.analysis_total} 条。
               </p>
             ) : null}
             <span>
@@ -661,9 +704,6 @@ export default function ProfilePanel({
           <form className="profile-settings" onSubmit={save}>
             <fieldset disabled={Boolean(busy)}>
               <legend>你提供的资料</legend>
-              <p className="profile-muted">
-                公开搜索姓名需要你明确填写，不会将平台账号自动当作真实姓名。
-              </p>
               <div className="profile-field-grid">
                 <label>
                   公开搜索姓名
@@ -725,10 +765,6 @@ export default function ProfilePanel({
                   }
                 />
               </label>
-              <p className="profile-muted">
-                手工分类优先，AI
-                不会覆盖。请简短填写姓名、公司和职位，较长资料可放入备注。
-              </p>
             </fieldset>
             <fieldset
               className="profile-authorization"
@@ -843,9 +879,7 @@ export default function ProfilePanel({
               {profile.summary ||
                 '还没有整理摘要。确认发送范围后，可手动整理本次聊天。'}
             </p>
-            <p className="profile-muted">
-              摘要和分类是 AI 建议，已确认事实单独列在下方。
-            </p>
+
             {profile.tags.length ? (
               <div className="profile-tags">
                 {profile.tags.map((tag) => (
@@ -913,9 +947,6 @@ export default function ProfilePanel({
           </section>
           <section className="profile-section">
             <h4>公开来源</h4>
-            <p className="profile-muted">
-              来源存在不代表已确认属于此人，请核对姓名、公司和原文。
-            </p>
             {profile.sources.length ? (
               <ul className="profile-sources">
                 {profile.sources.map((source) => {
@@ -943,38 +974,69 @@ export default function ProfilePanel({
           </section>
           <section className="profile-section">
             <h4>后台任务</h4>
-            {profile.jobs.length ? (
+            {profile.jobs.some(
+              (job) => job.state !== 'succeeded' || job.last_error_code,
+            ) ? (
               <ul className="profile-jobs">
-                {profile.jobs.map((job) => (
-                  <li key={job.id}>
-                    <div>
-                      <strong>
-                        {job.kind === 'enrich'
-                          ? '公开资料检索'
-                          : '聊天档案整理'}
-                      </strong>
-                      <span>{JOB_STATES[job.state]}</span>
-                    </div>
-                    <p>
-                      更新于 {dateText(job.updated_at)}
-                      {job.attempts ? ` · 已尝试${job.attempts}次` : ''}
-                    </p>
-                    {job.last_error_code ? (
-                      <p className="profile-feedback is-error">
-                        {profileJobError(job.last_error_code)}
+                {profile.jobs
+                  .filter(
+                    (job) => job.state !== 'succeeded' || job.last_error_code,
+                  )
+                  .map((job) => (
+                    <li key={job.id}>
+                      <div>
+                        <strong>
+                          {job.kind === 'enrich'
+                            ? '公开资料检索'
+                            : '聊天档案整理'}
+                        </strong>
+                        <span>{JOB_STATES[job.state]}</span>
+                      </div>
+                      <p>
+                        更新于 {dateText(job.updated_at)}
+                        {job.attempts ? ` · 已尝试${job.attempts}次` : ''}
                       </p>
-                    ) : null}
-                  </li>
-                ))}
+                      {job.last_error_code ? (
+                        <p className="profile-feedback is-error">
+                          {profileJobError(job.last_error_code)}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
               </ul>
-            ) : (
-              <p className="profile-muted">
-                暂无任务。启用后台整理或手动提交后可在这里查看。
-              </p>
-            )}
-            <p className="profile-muted">
-              任务由独立后台执行，离开页面不会取消；电脑及后台需要保持运行。
-            </p>
+            ) : null}
+            {profile.jobs.some(
+              (job) => job.state === 'succeeded' && !job.last_error_code,
+            ) ? (
+              <HelpDetails label="已完成任务记录">
+                <ul className="profile-jobs">
+                  {profile.jobs
+                    .filter(
+                      (job) =>
+                        job.state === 'succeeded' && !job.last_error_code,
+                    )
+                    .map((job) => (
+                      <li key={job.id}>
+                        <div>
+                          <strong>
+                            {job.kind === 'enrich'
+                              ? '公开资料检索'
+                              : '聊天档案整理'}
+                          </strong>
+                          <span>{JOB_STATES[job.state]}</span>
+                        </div>
+                        <p>
+                          更新于 {dateText(job.updated_at)}
+                          {job.attempts ? ` · 已尝试${job.attempts}次` : ''}
+                        </p>
+                      </li>
+                    ))}
+                </ul>
+              </HelpDetails>
+            ) : null}
+            {!profile.jobs.length ? (
+              <p className="profile-muted">暂无后台任务。</p>
+            ) : null}
           </section>
           <ProfileLinksPanel
             key={`${token}:${conversationId}`}
@@ -990,9 +1052,17 @@ export default function ProfilePanel({
       ) : null}
       <div aria-live="polite" aria-atomic="true">
         {notice ? (
-          <p className="profile-feedback" role="status">
-            {notice}
-          </p>
+          notice.kind === 'success' ? (
+            <HelpDetails label="档案操作记录">
+              <p className="profile-feedback" role="status">
+                {notice.text}
+              </p>
+            </HelpDetails>
+          ) : (
+            <p className="profile-feedback" role="status">
+              {notice.text}
+            </p>
+          )
         ) : null}
         {error ? (
           <p className="profile-feedback is-error" role="alert">

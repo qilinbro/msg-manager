@@ -8,7 +8,11 @@ import {
   type ModelPresets,
 } from './model-config-api';
 import { Icon } from './Icon';
+import { HelpDetails } from './HelpDetails';
 import './model-config.css';
+
+const PRESET_DESCRIPTION =
+  '预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。';
 
 export function AIModelPanel({
   token,
@@ -184,10 +188,21 @@ export function AIModelPanel({
               : '请先连接服务'}
         </span>
       </div>
-      <p className="input-help">
-        OpenAI Chat Completions 兼容接口；Assistant 还需原生
-        tools。密钥加密保存，不会返回页面。
-      </p>
+      <HelpDetails
+        label="模型配置说明"
+        descriptions={[
+          { id: 'ai-model-preset-help', text: PRESET_DESCRIPTION },
+        ]}
+      >
+        <p className="input-help">
+          OpenAI Chat Completions 兼容接口；Assistant 还需原生
+          tools。密钥加密保存，不会返回页面。
+        </p>
+        <p className="input-help">{PRESET_DESCRIPTION}</p>
+        <p className="input-help">
+          按上海时区自然日统计，失败调用也计入额度。保存设置不会自动分析或发送聊天。
+        </p>
+      </HelpDetails>
       <form className="connection-form ai-model-form" onSubmit={submit}>
         <label htmlFor="ai-model-preset">配置预设</label>
         <div className="ai-preset-picker">
@@ -245,10 +260,6 @@ export function AIModelPanel({
             <Icon name="refresh" />
           </button>
         </div>
-        <p className="input-help" id="ai-model-preset-help">
-          预设仅填地址，不测试连接或调用模型；请手动输入模型
-          ID。协议支持不等于服务已接通。
-        </p>
         {presetsError ? (
           <p className="form-message error-message" role="alert">
             {presetsError}
@@ -344,9 +355,6 @@ export function AIModelPanel({
           disabled={busy || !token}
           required
         />
-        <p className="input-help">
-          按上海时区自然日统计，失败调用也计入额度。保存设置不会自动分析或发送聊天。
-        </p>
         <label className="ai-model-consent">
           <input
             type="checkbox"
@@ -391,7 +399,9 @@ export function AIModelPanel({
           </p>
         ) : null}
         {notice ? (
-          <p className="form-message success-message">{notice}</p>
+          <HelpDetails label="保存记录">
+            <p className="form-message success-message">{notice}</p>
+          </HelpDetails>
         ) : null}
       </div>
     </section>

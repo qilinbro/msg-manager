@@ -20,6 +20,7 @@ import type {
   AIStatus,
 } from './ai-api';
 import type { InboxMessage } from './inbox-api';
+import { HelpDetails } from './HelpDetails';
 import './ai.css';
 
 const INTENTS: Record<string, string> = {
@@ -115,7 +116,10 @@ export default function AIPanel({
   const [loading, setLoading] = useState(true);
   const [readError, setReadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'success' | 'visible';
+    text: string;
+  } | null>(null);
   const [busy, setBusy] = useState<
     'preview' | 'analyze' | 'save' | 'memory' | 'settings' | null
   >(null);
@@ -305,9 +309,10 @@ export default function AIPanel({
       setData((current) => ({ ...current, analysis: result }));
       setDraft(result.draft);
       setDirty(false);
-      setNotice(
-        '分析已保存。摘要、风险判断与草稿均为 AI 建议，请核对引用后再使用。',
-      );
+      setNotice({
+        kind: 'success',
+        text: '分析已保存。摘要、风险判断与草稿均为 AI 建议，请核对引用后再使用。',
+      });
       refresh();
     });
   };
@@ -316,9 +321,10 @@ export default function AIPanel({
     pendingAction.current = null;
     invalidateRead();
     setBusy(null);
-    setNotice(
-      '已停止等待，后台可能已处理并产生费用。请先刷新结果，再决定是否重试。',
-    );
+    setNotice({
+      kind: 'visible',
+      text: '已停止等待，后台可能已处理并产生费用。请先刷新结果，再决定是否重试。',
+    });
     refresh();
   };
   const saveDraft = () => {
@@ -344,7 +350,10 @@ export default function AIPanel({
             ? { ...current.analysis, draft: body }
             : current.analysis,
       }));
-      setNotice('草稿已保存到本地，没有发送。');
+      setNotice({
+        kind: 'success',
+        text: '草稿已保存到本地，没有发送。',
+      });
       refresh();
     });
   };
@@ -353,15 +362,19 @@ export default function AIPanel({
     try {
       await navigator.clipboard.writeText(draft);
       if (mounted.current)
-        setNotice(
-          stale
+        setNotice({
+          kind: stale ? 'visible' : 'success',
+          text: stale
             ? '已复制未保存修改；对应上下文已过时，请核对新消息和事实后再使用。'
             : '草稿已复制，请核对内容后自行使用。',
-        );
+        });
     } catch {
       draftField.current?.focus();
       draftField.current?.select();
-      setNotice('未能自动复制，已选中草稿，可手动复制。');
+      setNotice({
+        kind: 'visible',
+        text: '未能自动复制，已选中草稿，可手动复制。',
+      });
     }
   };
   const changeMemory = (item: AIMemory, remove: boolean) => {
@@ -370,11 +383,12 @@ export default function AIPanel({
       if (remove) await deleteMemory(token, signal, conversationId, item.id);
       else await confirmMemory(token, signal, conversationId, item.id);
       if (signal.aborted || !mounted.current) return;
-      setNotice(
-        remove
+      setNotice({
+        kind: 'success',
+        text: remove
           ? '这条记忆已删除。'
           : '记忆已由你确认，之后可作为当前会话的上下文使用。',
-      );
+      });
       refresh();
     });
   };
@@ -384,11 +398,13 @@ export default function AIPanel({
     void run('settings', async (signal) => {
       await saveAISettings(token, signal, conversationId, settings);
       if (signal.aborted || !mounted.current) return;
-      setNotice(
-        settings.mode === 'paused'
-          ? '当前会话已暂停新的 AI 分析，已有结果仍可查看。'
-          : '当前会话的 AI 偏好已保存。',
-      );
+      setNotice({
+        kind: 'success',
+        text:
+          settings.mode === 'paused'
+            ? '当前会话已暂停新的 AI 分析，已有结果仍可查看。'
+            : '当前会话的 AI 偏好已保存。',
+      });
       refresh();
     });
   };
@@ -403,7 +419,6 @@ export default function AIPanel({
       <header className="ai-panel-heading">
         <div>
           <h3 id="ai-panel-title">AI 管理</h3>
-          <p>只处理当前会话，先核对，再使用。</p>
         </div>
         <span className="ai-mode-label">仅分析与草稿</span>
       </header>
@@ -421,11 +436,15 @@ export default function AIPanel({
           </span>
         ) : null}
       </div>
-      {!status?.configured && !loading ? (
-        <p className="ai-muted">
-          请按项目 AI 接入说明在本机配置模型服务和密钥。工作台不收集模型密钥。
-        </p>
-      ) : null}
+      <HelpDetails label="AI 处理说明">
+        <p>只处理当前会话，先核对，再使用。</p>
+        {!status?.configured && !loading ? (
+          <p className="ai-muted">
+            请按项目 AI 接入说明在本机配置模型服务和密钥。工作台不收集模型密钥。
+          </p>
+        ) : null}
+        <p>模型提取的信息先保留为待核实，只有你确认后才用于后续分析。</p>
+      </HelpDetails>
       <div className="ai-settings">
         <label>
           处理状态
@@ -585,9 +604,17 @@ export default function AIPanel({
       ) : null}
       <div aria-live="polite" aria-atomic="true">
         {notice ? (
-          <p className="ai-feedback" role="status">
-            {notice}
-          </p>
+          notice.kind === 'success' ? (
+            <HelpDetails label="操作记录">
+              <p className="ai-feedback" role="status">
+                {notice.text}
+              </p>
+            </HelpDetails>
+          ) : (
+            <p className="ai-feedback" role="status">
+              {notice.text}
+            </p>
+          )
         ) : null}
         {readError ? (
           <p className="ai-feedback is-error" role="alert">
@@ -624,11 +651,7 @@ export default function AIPanel({
                 ))}
               </ul>
             </div>
-          ) : (
-            <p className="ai-muted">
-              模型未标出风险，也请核对事实、语气与是否涉及承诺。
-            </p>
-          )}
+          ) : null}
           <Evidence ids={analysis.evidence_ids} sources={sources} />
           <label
             className="ai-draft-label"
@@ -693,12 +716,19 @@ export default function AIPanel({
                 还原修改
               </button>
             ) : null}
-            <span>仅保存在本地，不提供发送</span>
           </div>
-          <p className="ai-result-meta">
-            {analysis.model} · 输入 {analysis.usage.prompt_tokens} / 输出{' '}
-            {analysis.usage.completion_tokens} token · AI 建议，需核对
-          </p>
+          <HelpDetails label="分析记录与使用说明">
+            <p className="ai-result-meta">
+              {analysis.model} · 输入 {analysis.usage.prompt_tokens} / 输出{' '}
+              {analysis.usage.completion_tokens} token · AI 建议，需核对
+            </p>
+            {!analysis.risk_flags.length ? (
+              <p className="ai-muted">
+                模型未标出风险，也请核对事实、语气与是否涉及承诺。
+              </p>
+            ) : null}
+            <p className="ai-muted">仅保存在本地，不提供发送。</p>
+          </HelpDetails>
         </div>
       ) : !loading ? (
         <p className="ai-empty">
@@ -711,7 +741,6 @@ export default function AIPanel({
           aria-labelledby={`ai-memory-${conversationId}`}
         >
           <h4 id={`ai-memory-${conversationId}`}>这段会话的记忆</h4>
-          <p>模型提取的信息先保留为待核实，只有你确认后才用于后续分析。</p>
           <ul>
             {data.memories.map((item) => (
               <li key={item.id}>

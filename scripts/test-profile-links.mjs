@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -57,7 +58,11 @@ function createPanel(bindings) {
   const transformed = transformSync('ProfileLinksPanel.tsx', raw, { jsx: { runtime: 'classic', pragma: 'jsx', pragmaFrag: 'Fragment' } });
   assert.equal(transformed.errors.length, 0);
   const component = { exports: {} };
-  runInNewContext(transformed.code + '\nmodule.exports=ProfileLinksPanel;', { module: component, ...hooks, ...bindings, ServiceError, AbortController, PLATFORM_NAMES: { qq: 'QQ' }, Fragment: 'fragment', jsx: (type, supplied, ...children) => ({ type, props: { ...(supplied ?? {}), children } }) });
+  const jsx = (type, supplied, ...children) => {
+    const props = { ...(supplied ?? {}), children };
+    return typeof type === 'function' ? type(props) : { type, props };
+  };
+  runInNewContext(transformed.code + '\nmodule.exports=ProfileLinksPanel;', { module: component, ...hooks, ...bindings, ServiceError, AbortController, PLATFORM_NAMES: { qq: 'QQ' }, Fragment: 'fragment', jsx, HelpDetails: loadHelpDetails(jsx) });
   const props = { token: 'synthetic-token', conversationId: base.conversation_id, onAuthFailure() { throw Error('unexpected auth failure'); } };
   return { get tree() { return tree; }, async flush() { for (let i = 0; i < 30; i++) { if (dirty) { cursor = 0; dirty = false; tree = component.exports(props); const queue = effects; effects = []; for (const effect of queue) effect(); } await Promise.resolve(); } }, unmount() { for (const slot of slots) slot?.cleanup?.(); dead = true; } };
 }

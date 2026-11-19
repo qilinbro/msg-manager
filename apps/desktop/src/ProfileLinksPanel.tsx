@@ -7,6 +7,7 @@ import {
 } from './profile-links-api';
 import type { ProfileLinks } from './profile-links-api';
 import { PLATFORM_NAMES } from './inbox-api';
+import { HelpDetails } from './HelpDetails';
 
 export default function ProfileLinksPanel({
   token,
@@ -125,9 +126,11 @@ export default function ProfileLinksPanel({
       aria-labelledby={`profile-links-${conversationId}`}
     >
       <h4 id={`profile-links-${conversationId}`}>合并同一人的聊天档案</h4>
-      <p className="profile-muted">
-        确认后一起查看与导出，原聊天、事实证据和各会话AI权限独立保留。相同昵称只是建议，请先核实。
-      </p>
+      <HelpDetails label="档案关联说明">
+        <p className="profile-muted">
+          确认后一起查看与导出，原聊天、事实证据和各会话AI权限独立保留。相同昵称只是建议，请先核实。
+        </p>
+      </HelpDetails>
       <div className="profile-inline-actions">
         <button
           type="button"
@@ -224,9 +227,7 @@ export default function ProfileLinksPanel({
           </button>
         </form>
       ) : links ? (
-        <p className="profile-muted">
-          暂无姓名、昵称或同平台账号匹配的合并建议。
-        </p>
+        <p className="profile-muted">暂无合并建议。</p>
       ) : null}
       {links?.truncated ? (
         <p className="profile-muted">
@@ -240,7 +241,11 @@ export default function ProfileLinksPanel({
         </details>
       ) : null}
       <div aria-live="polite" aria-atomic="true">
-        {notice ? <p className="profile-feedback">{notice}</p> : null}
+        {notice ? (
+          <HelpDetails label="关联操作记录">
+            <p className="profile-feedback">{notice}</p>
+          </HelpDetails>
+        ) : null}
         {error ? (
           <p className="profile-feedback is-error" role="alert">
             {error}

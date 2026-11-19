@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-11-18T14:34:34.416Z",
+  "mode": "exact-static-GET-only; no script execution, credential, application API or real platform/model requests",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "bytes": 588,
+      "sha256": "fe7709b666eeed5fae87e9fb7babb93adbc87d556c612c12a0ad5aedeba9c147",
+      "matches_dist": true
+    },
+    {
+      "path": "/assets/index-BkCWQrlE.js",
+      "status": 200,
+      "bytes": 522052,
+      "sha256": "a90af1c60ecb0e829b0300bdb4e4c8d42d6a3a968296c08e801729995300ae92",
+      "matches_dist": true
+    },
+    {
+      "path": "/assets/index-CgfJYSPE.css",
+      "status": 200,
+      "bytes": 58744,
+      "sha256": "c5b63c9bd43b314e11e514efbcef74f0b41b9fb191039909c81744c30fd5253e",
+      "matches_dist": true
+    }
+  ]
+}

@@ -1,0 +1,726 @@
+{
+  "analysis_performed_at": "2026-11-18T14:46:23.459390+00:00",
+  "method": "Exact RGB comparison at first observed tile periods 758px horizontal and 426px vertical. Uses ink-mask (any channel <210) to avoid counting blank backgrounds as evidence. This is an image-artifact detector, not proof of a DOM/CSS cause.",
+  "screenshots": [
+    {
+      "file": "failure-connect-synthetic-only-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 1.0,
+          "ink_equal_fraction": 1.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 1.0,
+          "ink_equal_fraction": 1.0
+        }
+      ],
+      "repetition_detected": true
+    },
+    {
+      "file": "failure-overview-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7067536656891495,
+          "ink_equal_fraction": 0.001151208769207668
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9412202380952381,
+          "ink_equal_fraction": 0.00017873100983020553
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-settings-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6328181818181818,
+          "ink_equal_fraction": 0.004493439578215805
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.6689593012001549,
+          "ink_equal_fraction": 0.09855363024488042
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-milky-get-busy-success-error-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6328181818181818,
+          "ink_equal_fraction": 0.004493439578215805
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.6689593012001549,
+          "ink_equal_fraction": 0.09855363024488042
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-digest-running-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6328181818181818,
+          "ink_equal_fraction": 0.004493439578215805
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.6689593012001549,
+          "ink_equal_fraction": 0.09855363024488042
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-digest-unknown-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6328181818181818,
+          "ink_equal_fraction": 0.004493439578215805
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.6689593012001549,
+          "ink_equal_fraction": 0.09855363024488042
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-digest-failed-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6328181818181818,
+          "ink_equal_fraction": 0.004493439578215805
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.6689593012001549,
+          "ink_equal_fraction": 0.09855363024488042
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-ready-and-dirty-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-wechat-stop-get-and-late-response-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-limited-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-skipped-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-monitor-error-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-error-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-unconfigured-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-inbox-ai-profile-import-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.7165043988269795,
+          "ink_equal_fraction": 0.0
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.9513320267131242,
+          "ink_equal_fraction": 0.0
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-ready-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6387624633431085,
+          "ink_equal_fraction": 0.024862624988739753
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8189326848625629,
+          "ink_equal_fraction": 0.0011723329425556857
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-sent-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6387624633431085,
+          "ink_equal_fraction": 0.024862624988739753
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8189326848625629,
+          "ink_equal_fraction": 0.0011723329425556857
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-running-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6387624633431085,
+          "ink_equal_fraction": 0.024862624988739753
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8189326848625629,
+          "ink_equal_fraction": 0.0011723329425556857
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-failed-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6387624633431085,
+          "ink_equal_fraction": 0.024862624988739753
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8189326848625629,
+          "ink_equal_fraction": 0.0011723329425556857
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-report-unknown-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6387624633431085,
+          "ink_equal_fraction": 0.024862624988739753
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8189326848625629,
+          "ink_equal_fraction": 0.0011723329425556857
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-unknown-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 0.6387624633431085,
+          "ink_equal_fraction": 0.024862624988739753
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8189326848625629,
+          "ink_equal_fraction": 0.0011723329425556857
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-assistant-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "period_tests": [
+        {
+          "axis": "horizontal",
+          "offset": 758,
+          "equal_fraction": 6.744868035190616e-05,
+          "ink_equal_fraction": 0.0010124353471992957
+        },
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.8775999322493225,
+          "ink_equal_fraction": 0.013692982075430753
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-connect-synthetic-only-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.4484664458348669,
+          "ink_equal_fraction": 0.10065910632935932
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-overview-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.7739357134093976,
+          "ink_equal_fraction": 0.10479493365500603
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-settings-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.4499815973500184,
+          "ink_equal_fraction": 0.002418895845190666
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-milky-get-busy-success-error-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.4499815973500184,
+          "ink_equal_fraction": 0.002418895845190666
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-digest-running-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.4499815973500184,
+          "ink_equal_fraction": 0.002418895845190666
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-digest-unknown-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.4499815973500184,
+          "ink_equal_fraction": 0.002418895845190666
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-digest-failed-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.4499815973500184,
+          "ink_equal_fraction": 0.002418895845190666
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-ready-and-dirty-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-wechat-stop-get-and-late-response-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-limited-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-skipped-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-monitor-error-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-error-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-sources-unconfigured-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-inbox-ai-profile-import-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.5634707397865293,
+          "ink_equal_fraction": 0.00031794480478188986
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-ready-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.47069071279597596,
+          "ink_equal_fraction": 0.0005698005698005698
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-sent-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.47069071279597596,
+          "ink_equal_fraction": 0.0005698005698005698
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-running-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.47069071279597596,
+          "ink_equal_fraction": 0.0005698005698005698
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-failed-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.47069071279597596,
+          "ink_equal_fraction": 0.0005698005698005698
+        }
+      ],
+      "repetition_detected": false
+    },
+    {
+      "file": "failure-feishu-report-unknown-390.png",
+      "width": 390,
+      "height": 844,
+      "period_tests": [
+        {
+          "axis": "vertical",
+          "offset": 426,
+          "equal_fraction": 0.47069071279597596,
+          "ink_equal_fraction": 0.0005698005698005698
+        }
+      ],
+      "repetition_detected": false
+    }
+  ]
+}

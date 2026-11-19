@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -31,11 +32,12 @@ const appModule = { exports: {} };
 const MilkyPanel = () => null;
 const jsx = (type, supplied, ...children) => {
   const props = { ...supplied, children };
-  return typeof type === 'function' && type === Icon ? type(props) : { type, props };
+  return typeof type === 'function' && (type === Icon || type === HelpDetails) ? type(props) : { type, props };
 };
 const Icon = loadIcon(jsx);
+const HelpDetails = loadHelpDetails(jsx);
 runInNewContext(transformedApp.code + '\nmodule.exports={Settings,PLANNED_CONNECTORS};', {
-  module: appModule, jsx, Icon, Fragment: 'fragment',
+  module: appModule, jsx, Icon, HelpDetails, Fragment: 'fragment',
   MilkyPanel, AIModelPanel: () => null, DigestPanel: () => null,
   SERVICE: { url: 'http://127.0.0.1:17890', error: null },
 });
@@ -143,7 +145,7 @@ function monitorFixture({ enabled, state, accountState = 'identity_verified', bu
   const operations = [];
   const component = { exports: {} };
   runInNewContext(renderablePanel.code + '\nmodule.exports=MilkyPanel;', {
-    module: component, jsx, AbortController,
+    module: component, jsx, HelpDetails, AbortController,
     useState(initialValue) {
       const index = stateIndex++;
       if (!(index in values)) values[index] = initialValue;

@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 
 // Synthetic, in-memory execution of shipped code. Not a browser/AT/native-form,
 // real-account, model, platform, scheduler-runtime or Tauri acceptance test.
@@ -445,7 +446,7 @@ export function componentHarness(
     ),
     bindings,
     hooks,
-    { jsx, Fragment: 'fragment', Icon: loadIcon(jsx) },
+    { jsx, Fragment: 'fragment', Icon: loadIcon(jsx), HelpDetails: loadHelpDetails(jsx) },
   );
   const component = runInNewContext(
     `(function(){${transpile(file)}; return ${name};})()`,

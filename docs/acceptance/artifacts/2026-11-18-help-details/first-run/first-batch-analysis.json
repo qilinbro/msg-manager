@@ -1,0 +1,56 @@
+{
+  "evidence_run": "D:\\msg_manager\\.runtime\\main-push-20261116\\repo\\.runtime\\T08-helper-details-20261118\\run-EDGU0c",
+  "evidence_preserved_unmodified": true,
+  "analysis_performed_at": "2026-11-18T14:46:18.787Z",
+  "original_result": "failed",
+  "original_check_count": 6,
+  "original_findings": 44,
+  "original_screenshot_count": 42,
+  "actual_ui_coverage": "No connected-product coverage: both connection prerequisites failed before any synthetic API GET. Six disconnected overview observations are not acceptance.",
+  "original_summary_corrections": [
+    "Remember-device uncheck/connection was not reached. The first summary unconditionally claimed otherwise; no enrollment POST or synthetic API request occurred.",
+    "fingerprints_unchanged was absent, not false: the end-of-try verification was not reached. This separate analysis checks original saved fingerprints, not a successful browser run.",
+    "all_application_http_requests_intercepted=false was the initial value, not a discovered bypass; the following reconstruction compares every observed HTTP ID with Fetch interception events.",
+    "Native keyboard/AX/consent/overflow acceptance was not completed. The first summary coverage wording described intent, not passed coverage."
+  ],
+  "first_cause": {
+    "case": "connect-synthetic-only-1440",
+    "error": "Object reference chain is too long",
+    "explanation": "until passed a React-attached DOM element to Runtime.evaluate(returnByValue:true) rather than Boolean(predicate)."
+  },
+  "second_cause": {
+    "case": "overview-1440",
+    "explanation": "CDP modifiers=1 means Alt, not Shift=8; the intended Shift+Tab moved forward, followed by another Tab. The focus safety assertion prevented activation of the wrong control."
+  },
+  "application_get_options": 0,
+  "forbidden_business_writes": 0,
+  "continued_application_requests": 0,
+  "observed_http_requests": 8,
+  "all_observed_http_ids_intercepted": true,
+  "unintercepted_http": [],
+  "source_fingerprints_after_run": {
+    "count": 40,
+    "matches": true,
+    "mismatches": []
+  },
+  "dist_fingerprints_after_run": {
+    "count": 5,
+    "matches": true,
+    "mismatches": []
+  },
+  "preserved_first_harness_fingerprints": {
+    "count": 2,
+    "matches": true,
+    "mismatches": []
+  },
+  "failed_connect_body_brand_occurrences": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "occurrences": 1
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "occurrences": 1
+    }
+  ]
+}

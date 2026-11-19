@@ -5,6 +5,7 @@ import type { AssistantHelpRequest } from './assistant-help';
 import type { ConversationKind } from './inbox-api';
 import { ConversationKindSelect } from './ConversationKindSelect';
 import { Icon } from './Icon';
+import { HelpDetails } from './HelpDetails';
 import { asciiFold } from './keyword-search';
 import {
   getWechatSessions,
@@ -18,6 +19,15 @@ import type {
   WechatSession,
   WechatStatus,
 } from './wechat-api';
+
+const READ_DATA_NOTICE =
+  '已授权的自动整理或日报可能将入库内容发给所配置模型并产生费用；读取不新增这些授权。';
+const READ_DESCRIPTION =
+  '读取微信 Windows 4.x 本机已有的私聊与群聊文本；源库只读、不发送聊天消息。' +
+  READ_DATA_NOTICE +
+  '每次只读取最近一批记录，暂停、离线或超出窗口时可能无法补齐历史。';
+const MONITOR_DESCRIPTION =
+  '间隔10至300秒。 设置保存在本机，重启后台后恢复已开启的读取。';
 
 const MONITOR_NAMES = {
   disabled: '后台读取已暂停',
@@ -112,7 +122,10 @@ export default function WechatPanel({
   const monitorDirtyRef = useRef(false);
   const [uncertain, setUncertain] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    text: string;
+    kind: 'success' | 'warning';
+  } | null>(null);
   const statusRequest = useRef<AbortController | null>(null);
   const operation = useRef<AbortController | null>(null);
   const statusEpoch = useRef(0);
@@ -306,11 +319,12 @@ export default function WechatPanel({
       setMonitorDirty(false);
       monitorDirtyRef.current = false;
       setUncertain(false);
-      setNotice(
-        enabled
+      setNotice({
+        kind: 'success',
+        text: enabled
           ? `已开启 ${value.peer_ids.length} 个私聊或群聊的后台读取。关闭页面后，后台服务仍按设置继续读取。`
           : '后台读取已暂停，已保存的消息会继续保留。',
-      );
+      });
     } catch (failure: unknown) {
       if (controller.signal.aborted || !mounted.current) return;
       if (failure instanceof ServiceError && failure.status === 401) {
@@ -375,9 +389,10 @@ export default function WechatPanel({
       const keywordNotice = keyword.trim()
         ? `关键词“${keyword.trim()}”已在本次读取窗口内筛选。`
         : '';
-      setNotice(
-        `本次保存 ${result.inserted} 条，重复 ${result.duplicates} 条，跳过 ${result.skipped} 条。${keywordNotice}已保存的消息可在下方微信筛选中查看。`,
-      );
+      setNotice({
+        kind: 'success',
+        text: `本次保存 ${result.inserted} 条，重复 ${result.duplicates} 条，跳过 ${result.skipped} 条。${keywordNotice}已保存的消息可在下方微信筛选中查看。`,
+      });
       onSyncedRef.current();
     } catch (failure: unknown) {
       if (controller.signal.aborted || !mounted.current) return;
@@ -396,9 +411,10 @@ export default function WechatPanel({
     setBusy(null);
     setUncertain(true);
     setError(null);
-    setNotice(
-      '已停止等待，后台可能仍在读取。请先更新状态并查看消息，再决定是否重试。',
-    );
+    setNotice({
+      kind: 'warning',
+      text: '已停止等待，后台可能仍在读取。请先更新状态并查看消息，再决定是否重试。',
+    });
     clearSessions();
     onSyncedRef.current();
   };
@@ -416,6 +432,9 @@ export default function WechatPanel({
   const monitor = status?.monitor;
   const requiresAttention =
     Boolean(statusError || error || uncertain || monitor?.last_error_code) ||
+    notice?.kind === 'warning' ||
+    Boolean(visibleResult?.limited || monitor?.last_result?.limited) ||
+    monitorDirty ||
     monitor?.state === 'error' ||
     (status?.configured === true &&
       [
@@ -444,7 +463,6 @@ export default function WechatPanel({
           <Icon name="message" size={22} />
           <div>
             <h2 id="wechat-panel-title">读取本机微信消息</h2>
-            <p>按需保存私聊与群聊，或授权后台定时读取。</p>
           </div>
         </div>
         <div className="email-panel-actions">
@@ -510,11 +528,6 @@ export default function WechatPanel({
           只读 · 发送关闭
         </span>
       </div>
-      {status && !status.configured ? (
-        <p className="email-panel-note">
-          按微信接入说明，在本机配置数据库路径、账号标识与数据库密钥后重启服务。此处不填写微信密码或密钥。
-        </p>
-      ) : null}
       {!storageEnabled ? (
         <p className="email-panel-note">
           本地加密存储尚未启用，可以先读取会话列表，启用存储后再保存消息。
@@ -622,11 +635,19 @@ export default function WechatPanel({
               仅筛选本次读取的消息。
             </span>
           </details>
+          {selectedVisible ? (
+            <p className="wechat-session-result" id="wechat-action-impact">
+              {READ_DATA_NOTICE}
+            </p>
+          ) : null}
           <div className="wechat-read-actions">
             <button
               className="button button-secondary"
               type="submit"
               disabled={blocked || !storageEnabled || !selectedVisible}
+              aria-describedby={
+                selectedVisible ? 'wechat-action-impact' : undefined
+              }
             >
               <Icon name="download" />
               {busy === 'read' ? '正在读取并保存…' : '读取并保存消息'}
@@ -688,12 +709,20 @@ export default function WechatPanel({
           </p>
         ) : (
           <>
-            <p className="email-panel-note">
-              {monitor.enabled
-                ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊或群聊。`
-                : '先读取会话列表，选择私聊或群聊并点击“加入后台读取”，再开启。最多选择20个会话。'}
-              关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。
-            </p>
+            <HelpDetails
+              label="后台读取说明"
+              descriptions={[
+                { id: 'wechat-monitor-help', text: MONITOR_DESCRIPTION },
+              ]}
+            >
+              <p className="email-panel-note">
+                {monitor.enabled
+                  ? `当前每 ${monitor.interval_seconds} 秒读取 ${monitor.peer_ids.length} 个私聊或群聊。`
+                  : '先读取会话列表，选择私聊或群聊并点击“加入后台读取”，再开启。最多选择20个会话。'}
+                关闭页面后继续运行；电脑需保持开机，后台服务需保持运行。
+              </p>
+              <p className="email-panel-note">{MONITOR_DESCRIPTION}</p>
+            </HelpDetails>
             {monitorPeers.length ? (
               <ul
                 className="wechat-monitor-peers"
@@ -722,6 +751,11 @@ export default function WechatPanel({
                   </li>
                 ))}
               </ul>
+            ) : null}
+            {monitorPeers.length > 0 && (!monitor.enabled || monitorDirty) ? (
+              <p className="email-panel-note" id="wechat-monitor-impact">
+                {READ_DATA_NOTICE}
+              </p>
             ) : null}
             <div className="wechat-monitor-controls">
               <label htmlFor="wechat-monitor-interval">
@@ -755,6 +789,11 @@ export default function WechatPanel({
                   !validInterval ||
                   (monitor.enabled && !monitorDirty)
                 }
+                aria-describedby={
+                  monitorPeers.length > 0 && (!monitor.enabled || monitorDirty)
+                    ? 'wechat-monitor-impact'
+                    : undefined
+                }
                 onClick={() => void changeMonitor(true)}
               >
                 <Icon name={monitor.enabled ? 'save' : 'play'} />
@@ -774,13 +813,57 @@ export default function WechatPanel({
                 暂停后台读取
               </button>
             </div>
-            <p className="email-panel-note" id="wechat-monitor-help">
-              间隔10至300秒。
-              {monitorDirty
-                ? '选择或频率已修改，保存后才会生效。'
-                : '设置保存在本机，重启后台后恢复已开启的读取。'}
-            </p>
-            {monitor.last_cycle_at ? (
+            {!validInterval ? (
+              <p className="email-feedback is-error" role="alert">
+                读取间隔请输入10至300之间的整数。
+              </p>
+            ) : monitorDirty ? (
+              <p className="email-panel-note" role="status">
+                选择或频率已修改，保存后才会生效。
+              </p>
+            ) : null}
+            {monitor.last_result?.limited ? (
+              <p className="email-panel-note" role="status">
+                后台读取已达到窗口上限，可能存在未读取记录。
+              </p>
+            ) : null}
+            {monitor.last_error_code ? (
+              <p className="email-feedback is-error" role="status">
+                {wechatMonitorError(monitor.last_error_code)}
+              </p>
+            ) : null}
+          </>
+        )}
+      </section>
+      <HelpDetails
+        label="微信读取说明"
+        descriptions={[{ id: 'wechat-read-help', text: READ_DESCRIPTION }]}
+      >
+        <p>按需保存私聊与群聊，或授权后台定时读取。</p>
+        <p className="email-panel-note">{READ_DESCRIPTION}</p>
+        {status && !status.configured ? (
+          <p className="email-panel-note">
+            按微信接入说明，在本机配置数据库路径、账号标识与数据库密钥后重启服务。此处不填写微信密码或密钥。
+          </p>
+        ) : null}
+      </HelpDetails>
+      <div aria-live="polite" aria-atomic="true">
+        {visibleResult ||
+        monitor?.last_cycle_at ||
+        notice?.kind === 'success' ? (
+          <HelpDetails label="微信操作记录">
+            {visibleResult ? (
+              <p className="email-last-result">
+                最近一次成功读取{' '}
+                <time dateTime={visibleResult.read_at}>
+                  {dateText(visibleResult.read_at)}
+                </time>
+                {' · '}保存 {visibleResult.inserted} 条 · 重复{' '}
+                {visibleResult.duplicates} 条 · 跳过 {visibleResult.skipped} 条
+                {visibleResult.limited ? ' · 本次已达到读取上限' : ''}
+              </p>
+            ) : null}
+            {monitor?.last_cycle_at ? (
               <p className="email-last-result">
                 上次后台检查{' '}
                 <time dateTime={monitor.last_cycle_at}>
@@ -794,35 +877,21 @@ export default function WechatPanel({
                   : ''}
               </p>
             ) : null}
-            {monitor.last_error_code ? (
-              <p className="email-feedback is-error" role="status">
-                {wechatMonitorError(monitor.last_error_code)}
+            {notice?.kind === 'success' ? (
+              <p className="email-feedback" role="status">
+                {notice.text}
               </p>
             ) : null}
-          </>
-        )}
-      </section>
-      <p className="email-panel-note" id="wechat-read-help">
-        读取微信 Windows 4.x
-        本机已有的私聊与群聊文本；源库只读、不发送聊天消息。
-        已授权的自动整理或日报可能将入库内容发给所配置模型并产生费用；读取不新增这些授权。
-        每次只读取最近一批记录，暂停、离线或超出窗口时可能无法补齐历史。
-      </p>
-      {visibleResult ? (
-        <p className="email-last-result">
-          最近一次成功读取{' '}
-          <time dateTime={visibleResult.read_at}>
-            {dateText(visibleResult.read_at)}
-          </time>
-          {' · '}保存 {visibleResult.inserted} 条 · 重复{' '}
-          {visibleResult.duplicates} 条 · 跳过 {visibleResult.skipped} 条
-          {visibleResult.limited ? ' · 本次已达到读取上限' : ''}
-        </p>
-      ) : null}
-      <div aria-live="polite" aria-atomic="true">
-        {notice ? (
-          <p className="email-feedback" role="status">
-            {notice}
+          </HelpDetails>
+        ) : null}
+        {notice?.kind === 'warning' ? (
+          <p className="email-panel-note" role="status">
+            {notice.text}
+          </p>
+        ) : null}
+        {visibleResult?.limited ? (
+          <p className="email-panel-note" role="status">
+            本次已达到读取窗口上限，可能仍有未读取消息。
           </p>
         ) : null}
         {uncertain ? (

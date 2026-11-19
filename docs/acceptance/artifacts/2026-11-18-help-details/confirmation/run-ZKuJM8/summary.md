@@ -1,0 +1,116 @@
+# Synthetic helper-disclosure browser batch
+
+- Result: **failed**; 119 passed assertions; 50 findings.
+- Planned viewports: desktop 1440×1000 and touch-enabled 390×844; connected: 1440×1000, 390×844.
+- Cases: 44 planned; 2 executed (0 passed, 2 failed, 0 interrupted); 42 skipped/not run. Interrupted cases do not imply completion of their remaining checks.
+- Intercepted synthetic business GETs: 14; OPTIONS preflights: 14; forbidden business-write attempts: 0.
+- Frontend responses: 8; observed bytes match frozen dist: true; every observed HTTP request intercepted: true; forwarding commands: 0.
+- Safety policy allowed only synthetic GET business responses and their OPTIONS preflights. No real platform/model acceptance is claimed. No personal profile, clipboard or production credential was used.
+- Connection 1440: remember initially checked=true; native uncheck=true; hard-asserted unchecked before connection=true; connected=true.
+- Connection 390: remember initially checked=true; native uncheck=true; hard-asserted unchecked before connection=true; connected=true.
+- Final integrity check executed: true; source/dist/harness fingerprints unchanged: true. See fingerprint_checks in the report for per-category evidence.
+- Completed native disclosure sequences: 16; all local assertions passed in 0. Computed AX scopes checked: 2 (0 without findings). Only executed checks have evidence; no global keyboard/AX/consent/overflow pass is implied.
+- Actual assertions, consent checks, disclosure/AX records and screenshot geometry are in [report](<report.json>); [trace](<cdp-trace.jsonl>) omits authorization, request bodies and fulfilled asset bodies.
+
+## Findings
+
+- connect-synthetic-only-1440: connection-remember-checked: computed accessible names and referenced descriptions preserved — [{"visible":true,"tag":"INPUT","id":"service-token","describedBy":"token-description","descriptionText":"未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。","missingDescriptionID":false,"issue":"Missing referenced/computed description"},{"visible":true,"tag":"SELECT","id":"ai-model-preset","describedBy":"ai-model-preset-help","descriptionText":"预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。","missingDescriptionID":false,"issue":"Missing referenced/computed description"}]
+- connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/接入说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/接入说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/接入说明: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/核验记录: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/核验记录: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/核验记录: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/同步说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/同步说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/同步说明: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/接收说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/接收说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/接收说明: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/摘要说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/摘要说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/摘要说明: Space reopens original content
+- connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: Enter expands content
+- connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: Space closes and retains focus
+- connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: Space reopens original content
+- connect-synthetic-only-390: connection-remember-checked: computed accessible names and referenced descriptions preserved — [{"visible":true,"tag":"INPUT","id":"service-token","describedBy":"token-description","descriptionText":"未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。","missingDescriptionID":false,"issue":"Missing referenced/computed description"},{"visible":true,"tag":"SELECT","id":"ai-model-preset","describedBy":"ai-model-preset-help","descriptionText":"预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。","missingDescriptionID":false,"issue":"Missing referenced/computed description"}]
+- connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/接入说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/接入说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/接入说明: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/核验记录: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/核验记录: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/核验记录: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/同步说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/同步说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/同步说明: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/接收说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/接收说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/接收说明: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/模型配置说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/模型配置说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/模型配置说明: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/摘要说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/摘要说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/摘要说明: Space reopens original content
+- connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: Enter expands content
+- connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: Space closes and retains focus
+- connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: Space reopens original content
+
+## Skipped / not run
+
+- overview-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- settings-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- milky-get-busy-success-error-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- digest-running-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- digest-unknown-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- digest-failed-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-ready-and-dirty-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- wechat-stop-get-refresh-late-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-limited-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-skipped-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-monitor-error-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-error-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-unconfigured-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- inbox-ai-profile-import-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-ready-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-sent-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-running-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-failed-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-report-unknown-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-unknown-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- assistant-disclosures-1440: skipped; blocked by connect-synthetic-only-1440. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- overview-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- settings-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- milky-get-busy-success-error-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- digest-running-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- digest-unknown-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- digest-failed-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-ready-and-dirty-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- wechat-stop-get-refresh-late-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-limited-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-skipped-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-monitor-error-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-error-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- sources-unconfigured-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- inbox-ai-profile-import-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-ready-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-sent-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-running-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-failed-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-report-unknown-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- feishu-unknown-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+- assistant-disclosures-390: skipped; blocked by connect-synthetic-only-390. Connection prerequisite did not pass; no product coverage is claimed for this case.
+
+## Screenshots
+
+- [connection-1440.png](<connection-1440.png>)
+- [connection-390.png](<connection-390.png>)

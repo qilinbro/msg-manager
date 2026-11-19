@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { deviceAuthSource } from './frontend-auth-test-loader.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 import { readFileSync } from 'node:fs';
 import { stripTypeScriptTypes } from 'node:module';
 import { runInNewContext } from 'node:vm';
@@ -85,7 +86,7 @@ function harness(bindings = {}, initialProps = {}) {
   };
   const component = { exports: {} };
   runInNewContext(transformed.code + '\nmodule.exports=AIModelPanel;', {
-    module: component, ...hooks, ServiceError, AbortController, Icon, jsx, Fragment: 'fragment',
+    module: component, ...hooks, ServiceError, AbortController, Icon, HelpDetails: loadHelpDetails(jsx), jsx, Fragment: 'fragment',
     getModelConfig: async (token, signal) => { reads.push({ kind: 'config', token, signal }); return structuredClone(value); },
     getModelPresets: async (token, signal) => { reads.push({ kind: 'presets', token, signal }); return structuredClone(presetValue); },
     saveModelConfig: async (token, signal, input) => {

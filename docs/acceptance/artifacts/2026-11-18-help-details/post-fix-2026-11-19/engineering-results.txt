@@ -1,0 +1,97 @@
+Offline frontend verification; no browser or service API calls. Started: 2026-11-19T10:45:03.0497327+08:00
+CHECK=profile-links
+Profile link client/component checks passed: scoped transport, explicit identity confirmation, reversible association, preserved source permissions, and unmount guards. Synthetic data only.
+(node:41524) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=import-analysis
+Import analysis synthetic checks passed: explicit model-bound scope, default-off consent, one atomic request, visible queue result, no stale retry, and model-change reconfirmation.
+(node:39252) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=ai-model-client
+AI model checks passed: authenticated GET/PATCH, strict write-only secret/CAS, independent read-only presets, manual model IDs, no auto-save/probe, target isolation, consent reset, error/retry, stale/abort/unmount and real Lucide rendering. Synthetic data only.
+(node:41864) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=model-presets-client
+Model preset API checks passed: six static references, strict schema/provenance, authenticated GET-only transport, no credential serialization, failure/cancellation/timeout safety, and legacy config GET/PATCH. Synthetic data only.
+(node:40008) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=ui-icons
+UI icon checks passed: 49 pinned upstream SVGs, 50 real rendered aliases, 29 control icons, exact geometry/hash, full ISC+Feather MIT notices, offline copies and safe decorative SVG semantics. No network IO.
+CHECK=help-details
+Help disclosure regressions passed: shipped native details/summary, closed independent defaults, intact content, React escaping, 10 outside-description source guards with escaped SSR mirrors, no persistence/global hiding, 11 shared-helper modules and existing closed Assistant disclosures. Offline rendering/source checks only; not browser AX acceptance.
+CHECK=milky-client
+Milky client checks passed: single QQ catalog/settings integration, one state-aware monitor action, visible guarded stop during in-flight requests, pending clear without re-verification, persisted peers, safe payloads, and component compilation. Synthetic data only.
+(node:44148) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=profiles
+Profile client/component synthetic checks passed: scoped authenticated APIs, explicit consent, candidate confirmation, safe sources, unknown results, categories, dirty preservation, paused manual edits and background-job lifecycle.
+(node:43572) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=service-session
+Service session synthetic checks passed (11 groups): exact-URL page-memory cache, no Web Storage reads/writes, legacy-master purge without migration, reload requires reconnect, verified same-page restoration, metadata-only focus recovery, transient retention, 401/clear invalidation, stale/unmounted callbacks, same-token epochs, StrictMode replay, draft preservation, cleanup denial and actual app navigation.
+CHECK=device-auth
+Device auth synthetic checks passed (31 groups): real P-256/WebCrypto + nonextractable structured-clone keys, strict audience/proof, restore/restart, one fresh-challenge proof retry with nonterminal ambiguous 401s, singleflight/consumer abort/late-401, stable identity/drafts, bounded read retry, never-replayed writes through all nine domain clients, no Web Storage bearers, safe replacement/rollback including actual hook fallback, truthful forget, clear/cross-tab/StrictMode races and actual App/Settings controls. Browser/Tauri acceptance remains pending.
+CHECK=assistant-client
+Assistant and digest synthetic client/component checks passed: real authorized transport, revision-zero environment binding, request allowlists, nonterminal 202, immutable per-action consent, actual tool audit, no mutation replay, local-stop/unknown recovery, isolated assistant expiry, memory-only navigation state, digest CAS and separate daily/immediate consent. No real service, model, account, browser or Tauri was used.
+CHECK=assistant-help
+Assistant-help synthetic checks passed (9 groups): allowlisted visible context, stable business shell, explicit fill/append without overwrite or truncation, exact Chinese/emoji UTF-8 boundaries and NUL rejection, current-draft submit guards, no automatic submit/consent, unresolved/expired protection, GET-only recovery, fresh immutable-action acknowledgments, close-during-flight preservation and manual configuration. Native dialog, layout, scroll, real models/accounts and Tauri remain separate acceptance checks.
+CHECK=chat-discovery
+Chat discovery synthetic regressions passed: conversation type selects, one search field with independent scopes, query URLs, bounded snippets, literal highlights, 256-byte/NUL guards, pagination, empty states, safe UI-only help, explicit source actions, and stale response cancellation. Synthetic data only.
+CHECK=feishu-client
+Feishu synthetic client/panel checks passed: ten API methods, DTO/calendar/binding validation, write-only credentials, independent consent, fixed 12-hour windows, 202/unknown/no replay, GET-only recovery, withdrawn stale content, exact local auth mapping and lifecycle cleanup. No real credentials, model, platform, backend or enabled schedule.
+CHECK=feishu-assistant
+Feishu synthetic Assistant checks passed: independent unchecked sending consent for enable/send, model-only preview, explicit disable risks, immutable full report preview and existing confirmation body, reread/version/remount consent reset, conservative aliases, no unknown replay, and model-independent rejection. No real model, account, platform, backend or enabled schedule.
+CHECK=wechat-monitor
+WeChat monitor client/component, inbox soft-refresh and disclosure checks passed: authenticated transport, old service compatibility, cached polling, settings preservation, result deduplication, focus recovery, pause/unmount, reading/editor preservation, folded successful counts, visible limited history and persistent stop warnings after uncertainty clears (WeChat and email). Synthetic data only.
+(node:33452) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+CHECK=inbox-import
+Inbox import regression checks passed: mail metadata and read flags are preserved.
+(node:40928) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Checking formatting...
+All matched files use Prettier code style!
+vite v8.3.8 building client environment for production...
+transforming...
+✓ 53 modules transformed.
+rendering chunks...
+computing gzip size...
+apps/desktop/dist/index.html                   0.58 kB │ gzip:   0.37 kB
+apps/desktop/dist/assets/index-ByOR5dor.css   58.98 kB │ gzip:  10.42 kB
+apps/desktop/dist/assets/index-GfP84JgX.js   522.67 kB │ gzip: 152.68 kB
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.39s
+warning: in the working copy of 'apps/desktop/src/AIModelPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/AIPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/App.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/AssistantPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/DigestPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/EmailPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/FeishuPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/Inbox.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/MilkyPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/ProfileLinksPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/ProfilePanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/WechatPanel.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/inbox.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/desktop/src/styles.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'feat.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/check.ps1', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/feishu-test-harness.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-ai-model-client.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-assistant-client.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-chat-discovery.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-import-analysis.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-milky-client.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-profile-links.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-profiles.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-service-session.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/test-wechat-monitor.mjs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '任务规划.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '技术文档.md', LF will be replaced by CRLF the next time Git touches it
+ALL_ENGINEERING_CHECKS_PASSED at 2026-11-19T10:45:11.6084964+08:00

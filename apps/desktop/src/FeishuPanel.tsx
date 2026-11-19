@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Icon } from './Icon';
+import { HelpDetails } from './HelpDetails';
 import {
   clearFeishuConfig,
   FeishuRequestError,
@@ -24,6 +25,15 @@ import type {
   FeishuStatus,
 } from './feishu-api';
 import './feishu.css';
+
+const CONFIG_HELP = {
+  credentials:
+    '密钥和原始 Open ID 仅在本表单内存中保留。配置提交结束（含失败或未知）、重新读取或离开页面会清空；不会发给模型或写入浏览器存储。每次保存都撤销原计划授权。',
+  appID: 'App ID：飞书自建应用标识，以 cli_ 开头。',
+  appSecret: 'App Secret：仅用于本机后端获取应用访问令牌，不发给模型。',
+  openID:
+    '本人 Open ID：以 ou_ 开头；不是群 ID、手机号或任意收件人。每次保存都需人工填写完整值。',
+};
 
 type Mutation = 'save' | 'clear' | 'enable' | 'disable' | 'preview' | 'send';
 export interface FeishuRecovery {
@@ -92,6 +102,67 @@ const failureMessage = (failure: unknown): string =>
     : '无法完成本次操作，请只读核实状态。';
 
 function Receipt({ delivery }: { delivery: FeishuDelivery }) {
+  const facts = (
+    <dl className="feishu-facts">
+      <div>
+        <dt>投递编号</dt>
+        <dd>
+          <code>{delivery.id}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>报告编号</dt>
+        <dd>
+          <code>{delivery.report_id}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>内容窗口（北京时间）</dt>
+        <dd>
+          [{formatTime(delivery.window_start)},{' '}
+          {formatTime(delivery.window_end)})
+        </dd>
+      </div>
+      <div>
+        <dt>平台消息编号</dt>
+        <dd>
+          <code>{delivery.message_id || '尚无平台接受凭据'}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>开始 / 完成</dt>
+        <dd>
+          {formatTime(delivery.created_at)} /{' '}
+          {formatTime(delivery.completed_at)}
+        </dd>
+      </div>
+      <div>
+        <dt>错误码</dt>
+        <dd>
+          <code>{delivery.error_code || '—'}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>目标绑定 / 配置版本</dt>
+        <dd>
+          <code>{delivery.target_binding_id}</code> / {delivery.config_revision}
+        </dd>
+      </div>
+      <div>
+        <dt>模型绑定 / 版本</dt>
+        <dd>
+          <code>{delivery.model_config_id}</code> /{' '}
+          {delivery.model_config_revision}
+        </dd>
+      </div>
+      <div className="feishu-wide">
+        <dt>冻结报告 SHA-256（含窗口与绑定）</dt>
+        <dd>
+          <code>{delivery.content_hash}</code>
+        </dd>
+      </div>
+    </dl>
+  );
   return (
     <section className="feishu-receipt" aria-labelledby="feishu-receipt-title">
       <h3 id="feishu-receipt-title">投递回执</h3>
@@ -113,66 +184,11 @@ function Receipt({ delivery }: { delivery: FeishuDelivery }) {
               ? '。本窗口不提供再次发送。'
               : '，不代表手机系统已通知或已读。'}
       </p>
-      <dl className="feishu-facts">
-        <div>
-          <dt>投递编号</dt>
-          <dd>
-            <code>{delivery.id}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>报告编号</dt>
-          <dd>
-            <code>{delivery.report_id}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>内容窗口（北京时间）</dt>
-          <dd>
-            [{formatTime(delivery.window_start)},{' '}
-            {formatTime(delivery.window_end)})
-          </dd>
-        </div>
-        <div>
-          <dt>平台消息编号</dt>
-          <dd>
-            <code>{delivery.message_id || '尚无平台接受凭据'}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>开始 / 完成</dt>
-          <dd>
-            {formatTime(delivery.created_at)} /{' '}
-            {formatTime(delivery.completed_at)}
-          </dd>
-        </div>
-        <div>
-          <dt>错误码</dt>
-          <dd>
-            <code>{delivery.error_code || '—'}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>目标绑定 / 配置版本</dt>
-          <dd>
-            <code>{delivery.target_binding_id}</code> /{' '}
-            {delivery.config_revision}
-          </dd>
-        </div>
-        <div>
-          <dt>模型绑定 / 版本</dt>
-          <dd>
-            <code>{delivery.model_config_id}</code> /{' '}
-            {delivery.model_config_revision}
-          </dd>
-        </div>
-        <div className="feishu-wide">
-          <dt>冻结报告 SHA-256（含窗口与绑定）</dt>
-          <dd>
-            <code>{delivery.content_hash}</code>
-          </dd>
-        </div>
-      </dl>
+      {delivery.state === 'succeeded' && !delivery.error_code ? (
+        <HelpDetails label="投递回执明细">{facts}</HelpDetails>
+      ) : (
+        facts
+      )}
     </section>
   );
 }
@@ -195,7 +211,10 @@ export function FeishuPanel({
   const [delivery, setDelivery] = useState<FeishuDelivery | null>(null);
   const [busy, setBusy] = useState<Mutation | 'read' | 'stopping' | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'success' | 'visible';
+    text: string;
+  } | null>(null);
   const [now, setNow] = useState(Date.now());
   const [appID, setAppID] = useState('');
   const [retainSecret, setRetainSecret] = useState(false);
@@ -482,9 +501,10 @@ export function FeishuPanel({
         if (businessFailure?.status === 'rejected')
           setError(failureMessage(businessFailure.reason));
         else
-          setNotice(
-            '已只读获取当前状态；没有调用模型或发送消息。所有同意均需重新勾选。',
-          );
+          setNotice({
+            kind: 'success',
+            text: '已只读获取当前状态；没有调用模型或发送消息。所有同意均需重新勾选。',
+          });
         setNow(Date.now());
       } finally {
         if (mounted.current && active.current?.controller === controller) {
@@ -662,9 +682,10 @@ export function FeishuPanel({
         setAppID(next.app_id);
         setRetainSecret(false);
         setConfigDirty(false);
-        setNotice(
-          '已保存到本机并关闭原周期计划。尚未联网验证应用、收件人本人身份或手机通知；启用或发送需另行同意。',
-        );
+        setNotice({
+          kind: 'success',
+          text: '已保存到本机并关闭原周期计划。尚未联网验证应用、收件人本人身份或手机通知；启用或发送需另行同意。',
+        });
         return null;
       },
     );
@@ -684,9 +705,10 @@ export function FeishuPanel({
         setAppID('');
         setRetainSecret(false);
         setConfigDirty(false);
-        setNotice(
-          '已清除本机应用凭据与目标并关闭计划；历史回执保留。后台停止/取消后续处理，但不能保证撤回在途请求或平台已接受的消息。',
-        );
+        setNotice({
+          kind: 'success',
+          text: '已清除本机应用凭据与目标并关闭计划；历史回执保留。后台停止/取消后续处理，但不能保证撤回在途请求或平台已接受的消息。',
+        });
         return null;
       },
     );
@@ -722,11 +744,12 @@ export function FeishuPanel({
         ),
       (next) => {
         setStatus({ ...status, schedule: next });
-        setNotice(
-          next.enabled
+        setNotice({
+          kind: 'success',
+          text: next.enabled
             ? '已在本机启用固定早晚报，从未来时点开始；不补发离线窗口。需主机与后台保持运行和联网。'
             : '已关闭早晚报计划并停止/取消后续处理；不能保证撤回在途请求或平台已接受的消息。',
-        );
+        });
         return null;
       },
     );
@@ -747,11 +770,13 @@ export function FeishuPanel({
       (next, item) => {
         setReport(next);
         setDelivery(next.delivery);
-        setNotice(
-          next.state === 'succeeded'
-            ? '已生成服务器固定预览，尚未发送。发送前请核对完整正文并另行同意。'
-            : `生成记录：${STATES[next.state]}。只读取该记录，不会再次调用模型。`,
-        );
+        setNotice({
+          kind: next.state === 'succeeded' ? 'success' : 'visible',
+          text:
+            next.state === 'succeeded'
+              ? '已生成服务器固定预览，尚未发送。发送前请核对完整正文并另行同意。'
+              : `生成记录：${STATES[next.state]}。只读取该记录，不会再次调用模型。`,
+        });
         return {
           ...item,
           windowEnd: next.window_end,
@@ -774,11 +799,13 @@ export function FeishuPanel({
       (next, item) => {
         setDelivery(next);
         setReport({ ...report, delivery: next });
-        setNotice(
-          next.state === 'succeeded'
-            ? '飞书平台已接受；这不是手机系统通知或已读证明。'
-            : `投递记录：${STATES[next.state]}。请只读核实；本窗口不提供再次发送。`,
-        );
+        setNotice({
+          kind: next.state === 'succeeded' ? 'success' : 'visible',
+          text:
+            next.state === 'succeeded'
+              ? '飞书平台已接受；这不是手机系统通知或已读证明。'
+              : `投递记录：${STATES[next.state]}。请只读核实；本窗口不提供再次发送。`,
+        });
         return terminal(next.state)
           ? null
           : { ...item, reportId: next.report_id, deliveryId: next.id };
@@ -791,13 +818,38 @@ export function FeishuPanel({
     active.current.controller.abort();
     setBusy('stopping');
     resetConsents();
-    setNotice(
-      mutation
+    setNotice({
+      kind: 'visible',
+      text: mutation
         ? '仅停止本地等待，未取消后台操作；结果未知。请重新读取，勿重复提交。'
         : '正在停止本地读取。',
-    );
+    });
   };
 
+  const reportDetails = report ? (
+    <dl className="feishu-facts">
+      <div>
+        <dt>报告编号</dt>
+        <dd>
+          <code>{report.id}</code>
+        </dd>
+      </div>
+      <div>
+        <dt>涉及会话 / 有限截取</dt>
+        <dd>
+          {report.conversation_count} /{' '}
+          {report.truncated ? '是，未覆盖全部候选内容' : '否'}
+        </dd>
+      </div>
+      <div>
+        <dt>生成时间 / 错误码</dt>
+        <dd>
+          {formatTime(report.generated_at)} /{' '}
+          <code>{report.error_code || '—'}</code>
+        </dd>
+      </div>
+    </dl>
+  ) : null;
   return (
     <div className="feishu-page">
       <div className="page-heading">
@@ -805,15 +857,24 @@ export function FeishuPanel({
           <Icon name="calendar" size={22} />
           飞书早晚报
         </h1>
-        <p className="page-description">
-          自建应用机器人，仅发送到你本人的飞书私聊；不是群机器人 Webhook。
-        </p>
       </div>
       <div className="feishu-toolbar">
-        <p>
-          北京时间（Asia/Shanghai）每天 <strong>08:00 / 20:00</strong>
-          ，相邻时点的 12 小时半开窗口 [开始, 结束)。
-        </p>
+        <HelpDetails label="早晚报运行说明">
+          <p className="page-description">
+            自建应用机器人，仅发送到你本人的飞书私聊；不是群机器人 Webhook。
+          </p>
+          <p>
+            北京时间（Asia/Shanghai）每天 <strong>08:00 / 20:00</strong>
+            ，相邻时点的 12 小时半开窗口 [开始, 结束)。
+          </p>
+          <p>
+            08:00 汇总前一天 20:00 至当天 08:00；20:00 汇总当天 08:00 至
+            20:00，均不含结束时点。只选已入库、未暂停且符合相关性规则的私聊与群聊文本，不代表覆盖所有重要消息。
+          </p>
+          <p className="feishu-note">
+            主机与后台须持续运行和联网；休眠、关机不保证执行，也不离线补发。平台接受消息不代表手机系统通知或已读。
+          </p>
+        </HelpDetails>
         <div className="feishu-actions">
           <button
             type="button"
@@ -838,9 +899,6 @@ export function FeishuPanel({
           ) : null}
         </div>
       </div>
-      <p className="feishu-note">
-        主机与后台须持续运行和联网；休眠、关机不保证执行，也不离线补发。平台接受消息不代表手机系统通知或已读。
-      </p>
       {!token ? (
         <div className="feishu-empty">
           <p>
@@ -860,7 +918,13 @@ export function FeishuPanel({
         {error ? (
           <p className="feishu-error">{error}</p>
         ) : notice ? (
-          <p>{notice}</p>
+          notice.kind === 'success' ? (
+            <HelpDetails label="读取与操作记录">
+              <p>{notice.text}</p>
+            </HelpDetails>
+          ) : (
+            <p>{notice.text}</p>
+          )
         ) : busy ? (
           <p>
             正在
@@ -919,11 +983,7 @@ export function FeishuPanel({
                 : '服务未连接'}
           </span>
         </div>
-        <p className="feishu-note">
-          仅支持飞书自建应用机器人；最小发信权限
-          im:message:send_as_bot。请自行核对应用内 Open ID
-          确属本人，本页不会验证这一身份。
-        </p>
+
         <dl className="feishu-facts">
           <div>
             <dt>已保存 App ID</dt>
@@ -958,10 +1018,25 @@ export function FeishuPanel({
         </dl>
         <details className="feishu-config-editor" open={!status?.configured}>
           <summary>人工配置自建应用与本人 Open ID</summary>
-          <p id="feishu-credentials-help" className="feishu-note">
-            密钥和原始 Open ID
-            仅在本表单内存中保留。配置提交结束（含失败或未知）、重新读取或离开页面会清空；不会发给模型或写入浏览器存储。每次保存都撤销原计划授权。
-          </p>
+          <HelpDetails
+            label="凭据与字段填写说明"
+            descriptions={[
+              { id: 'feishu-credentials-help', text: CONFIG_HELP.credentials },
+              { id: 'feishu-app-id-hint', text: CONFIG_HELP.appID },
+              { id: 'feishu-app-secret-hint', text: CONFIG_HELP.appSecret },
+              { id: 'feishu-open-id-hint', text: CONFIG_HELP.openID },
+            ]}
+          >
+            <p className="feishu-note">
+              仅支持飞书自建应用机器人；最小发信权限
+              im:message:send_as_bot。请自行核对应用内 Open ID
+              确属本人，本页不会验证这一身份。
+            </p>
+            <p className="feishu-note">{CONFIG_HELP.credentials}</p>
+            <p className="feishu-note">{CONFIG_HELP.appID}</p>
+            <p className="feishu-note">{CONFIG_HELP.appSecret}</p>
+            <p className="feishu-note">{CONFIG_HELP.openID}</p>
+          </HelpDetails>
           <form
             method="post"
             aria-labelledby="feishu-config-form-title"
@@ -974,9 +1049,7 @@ export function FeishuPanel({
               <div className="feishu-form-grid">
                 <div className="feishu-field">
                   <label htmlFor="feishu-app-id">App ID（必填）</label>
-                  <span id="feishu-app-id-hint" className="feishu-note">
-                    飞书自建应用标识，以 cli_ 开头。
-                  </span>
+
                   <input
                     id="feishu-app-id"
                     name="app_id"
@@ -999,9 +1072,7 @@ export function FeishuPanel({
                   <label htmlFor="feishu-app-secret">
                     App Secret{retainSecret ? '（使用已保存密钥）' : '（必填）'}
                   </label>
-                  <span id="feishu-app-secret-hint" className="feishu-note">
-                    仅用于本机后端获取应用访问令牌，不发给模型。
-                  </span>
+
                   <input
                     ref={secretInput}
                     id="feishu-app-secret"
@@ -1025,10 +1096,7 @@ export function FeishuPanel({
                   <label htmlFor="feishu-open-id">
                     本人的应用内 Open ID（必填）
                   </label>
-                  <span id="feishu-open-id-hint" className="feishu-note">
-                    以 ou_ 开头；不是群
-                    ID、手机号或任意收件人。每次保存都需人工填写完整值。
-                  </span>
+
                   <input
                     ref={openIDInput}
                     id="feishu-open-id"
@@ -1135,10 +1203,7 @@ export function FeishuPanel({
               : '尚未读取'}
           </span>
         </div>
-        <p>
-          08:00 汇总前一天 20:00 至当天 08:00；20:00 汇总当天 08:00 至
-          20:00，均不含结束时点。只选已入库、未暂停且符合相关性规则的私聊与群聊文本，不代表覆盖所有重要消息。
-        </p>
+
         <dl className="feishu-facts">
           <div>
             <dt>下次窗口结束</dt>
@@ -1288,10 +1353,20 @@ export function FeishuPanel({
           </strong>
           （北京时间），不是滚动过去 24 小时；以后台时钟为准。
         </p>
-        <p className="feishu-note">
-          每个窗口只允许一次生成尝试，任何运行中、成功、失败或未知记录都不会重做；没有
-          force 或失败后重试。发送有效期截止下一固定时点。
-        </p>
+        <HelpDetails label="预览与发送说明">
+          <p className="feishu-note">
+            每个窗口只允许一次生成尝试，任何运行中、成功、失败或未知记录都不会重做；没有
+            force 或失败后重试。发送有效期截止下一固定时点。
+          </p>
+          <p className="feishu-note">
+            仅服务器冻结正文可被发送，不能另选收件人或修改文本。待办为证据生成的候选，须人工核对，不是已执行事项。
+          </p>
+        </HelpDetails>
+        {targetReady && !quotaExhausted && !hasWindowReport ? (
+          <p className="feishu-note">
+            本窗口仅一次生成机会；失败或未知也不可重试。
+          </p>
+        ) : null}
         <label className="feishu-check">
           <input
             id="feishu-preview-consent"
@@ -1335,35 +1410,17 @@ export function FeishuPanel({
               </h3>
               <span className="label">{STATES[report.state]}</span>
             </div>
-            <dl className="feishu-facts">
-              <div>
-                <dt>报告编号</dt>
-                <dd>
-                  <code>{report.id}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>窗口（北京时间）</dt>
-                <dd>
-                  [{formatTime(report.window_start)},{' '}
-                  {formatTime(report.window_end)})
-                </dd>
-              </div>
-              <div>
-                <dt>涉及会话 / 有限截取</dt>
-                <dd>
-                  {report.conversation_count} /{' '}
-                  {report.truncated ? '是，未覆盖全部候选内容' : '否'}
-                </dd>
-              </div>
-              <div>
-                <dt>生成时间 / 错误码</dt>
-                <dd>
-                  {formatTime(report.generated_at)} /{' '}
-                  <code>{report.error_code || '—'}</code>
-                </dd>
-              </div>
-            </dl>
+            <p>
+              窗口（北京时间）：[{formatTime(report.window_start)},{' '}
+              {formatTime(report.window_end)})
+            </p>
+            {report.state === 'succeeded' &&
+            !report.truncated &&
+            !report.error_code ? (
+              <HelpDetails label="报告生成明细">{reportDetails}</HelpDetails>
+            ) : (
+              reportDetails
+            )}
             {report.state === 'succeeded' ? (
               <>
                 <h4 id="feishu-frozen-text-title">将实际发送的完整正文</h4>
@@ -1374,9 +1431,7 @@ export function FeishuPanel({
                 >
                   {report.text}
                 </pre>
-                <p className="feishu-note">
-                  仅服务器冻结正文可被发送，不能另选收件人或修改文本。待办为证据生成的候选，须人工核对，不是已执行事项。
-                </p>
+
                 <dl className="feishu-facts">
                   <div>
                     <dt>固定目标（当前已保存）</dt>

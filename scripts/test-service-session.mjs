@@ -4,6 +4,7 @@ import { runInNewContext } from 'node:vm';
 import { pathToFileURL } from 'node:url';
 import { transformSync } from '../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs';
 import { loadIcon } from './frontend-icon-test-loader.mjs';
+import { loadHelpDetails } from './frontend-help-test-loader.mjs';
 
 // Execute the shipped storage, connection hook, API client and app with fake
 // browser APIs. No real service, browser storage, credentials or chat is used.
@@ -63,12 +64,13 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   const sameDeps = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
   const addListener = (event, callback) => { if (!listeners.has(event)) listeners.set(event, new Set()); listeners.get(event).add(callback); };
   const removeListener = (event, callback) => listeners.get(event)?.delete(callback);
-  // Expand the real decorative SVGs without mounting the existing child stubs.
+  // Expand shipped pure icons/disclosures without mounting other child stubs.
   const jsx = (type, supplied, ...children) => {
     const props = { ...(supplied ?? {}), children };
-    return typeof type === 'function' && type === Icon ? type(props) : { type, props };
+    return typeof type === 'function' && (type === Icon || type === HelpDetails) ? type(props) : { type, props };
   };
   const Icon = loadIcon(jsx);
+  const HelpDetails = loadHelpDetails(jsx);
   const hooks = {
     useState(initial) {
       const index = cursor++;
@@ -115,7 +117,7 @@ function browserHarness({ storage = syntheticStorage(), mode = 'hook', autoReply
   const fakeDocument = { visibilityState: 'visible', addEventListener: addListener, removeEventListener: removeListener };
   const environment = {
     ...(authBrowser?.globals ?? {}),
-    ...hooks, jsx, Icon, Fragment: 'fragment',
+    ...hooks, jsx, Icon, HelpDetails, Fragment: 'fragment',
     MilkyPanel: 'MilkyPanelStub', AIModelPanel: 'AIModelPanelStub', DigestPanel: 'DigestPanelStub', AssistantPanel: 'AssistantPanelStub',
     module: { exports: {} },
     window: fakeWindow, document: fakeDocument,

@@ -10,6 +10,7 @@ import {
   saveDigestSchedule,
 } from './digest-api';
 import type { DigestReport, DigestSchedule } from './digest-api';
+import { HelpDetails } from './HelpDetails';
 import { Icon } from './Icon';
 import './profile.css';
 
@@ -42,7 +43,10 @@ export function DigestPanel({
     null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    kind: 'success' | 'visible';
+    text: string;
+  } | null>(null);
   const [unverified, setUnverified] = useState(() =>
     unresolvedIdentities.has(token),
   );
@@ -183,11 +187,12 @@ export function DigestPanel({
         if (!previouslyUnverified) unresolvedIdentities.delete(token);
         setSchedule(next);
         setTime(next.local_time);
-        setNotice(
-          next.enabled
+        setNotice({
+          kind: 'success',
+          text: next.enabled
             ? `后台已保存每日 ${next.local_time}（Asia/Shanghai）的计划。需后台与电脑保持运行，不承诺休眠或关机后执行。`
             : '每日摘要计划已暂停；不会取消已经开始的处理。',
-        );
+        });
       } else if (model) {
         const next = await runDigestNow(
           token,
@@ -211,12 +216,16 @@ export function DigestPanel({
           !previouslyUnverified
         )
           unresolvedIdentities.delete(token);
-        if (next.state === 'succeeded')
-          setNotice('后台记录本次摘要已完成，提醒仅显示在工作台。');
+        if (next.state === 'succeeded' && !next.error_code)
+          setNotice({
+            kind: 'success',
+            text: '后台记录本次摘要已完成，提醒仅显示在工作台。',
+          });
         else {
-          setNotice(
-            `后台记录本次状态：${Object.hasOwn(REPORT_LABELS, next.state) ? REPORT_LABELS[next.state] : next.state}。请核对最近摘要，不会自动重试。`,
-          );
+          setNotice({
+            kind: 'visible',
+            text: `后台记录本次状态：${Object.hasOwn(REPORT_LABELS, next.state) ? REPORT_LABELS[next.state] : next.state}。请核对最近摘要，不会自动重试。`,
+          });
           if (next.state === 'unknown' || next.state === 'running') {
             setUnverified(true);
             setReadAfterIssue(false);
@@ -249,9 +258,10 @@ export function DigestPanel({
         active.current = null;
         setBusy(null);
         if (refreshChangedTarget) {
-          setNotice(
-            '目标或计划版本已变化，正在重新读取。请按新的实际状态重新核对，不会重放提交。',
-          );
+          setNotice({
+            kind: 'visible',
+            text: '目标或计划版本已变化，正在重新读取。请按新的实际状态重新核对，不会重放提交。',
+          });
           void reload();
         }
       }
@@ -263,11 +273,16 @@ export function DigestPanel({
     if (pending.mutation) {
       setUnverified(true);
       setReadAfterIssue(false);
-      setNotice(
-        '已停止本地等待，不代表后台取消。请先读取计划及最近摘要，并核实可能的费用或写入。',
-      );
+      setNotice({
+        kind: 'visible',
+        text: '已停止本地等待，不代表后台取消。请先读取计划及最近摘要，并核实可能的费用或写入。',
+      });
     }
-    if (!pending.mutation) setNotice('已停止本地读取，未取消或更改后台处理。');
+    if (!pending.mutation)
+      setNotice({
+        kind: 'visible',
+        text: '已停止本地读取，未取消或更改后台处理。',
+      });
     setBusy('stopping');
     pending.controller.abort();
   };
@@ -279,6 +294,49 @@ export function DigestPanel({
   ) : (
     <>尚未读取的模型目标</>
   );
+  const reportMetadata = report ? (
+    <p className="profile-muted">
+      涉及 {report.conversation_count} 个会话
+      {report.generated_at
+        ? ` · 记录时间 ${new Date(report.generated_at).toLocaleString('zh-CN', { hour12: false })}`
+        : ''}
+      {report.error_code ? ` · ${report.error_code}` : ''}
+    </p>
+  ) : null;
+  const reportDetails = report ? (
+    <>
+      <p>{report.summary || '暂无摘要正文。'}</p>
+      {report.state === 'succeeded' && !report.error_code ? (
+        <HelpDetails label="摘要记录">{reportMetadata}</HelpDetails>
+      ) : (
+        reportMetadata
+      )}
+      {report.reminders.length ? (
+        <ul>
+          {report.reminders.map((item, index) => (
+            <li key={`${report.id}:${index}:${item.conversation_id}`}>
+              <b>{item.title}</b> · {item.reason}
+              {item.evidence_ids.length ? (
+                <p className="profile-muted">
+                  证据编号：{item.evidence_ids.join('、')}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="profile-muted">
+          本记录没有提醒条目；不代表所有会话均已处理。
+        </p>
+      )}
+      {report.evidence_ids.length ? (
+        <details>
+          <summary>摘要证据编号</summary>
+          <p>{report.evidence_ids.join('、')}</p>
+        </details>
+      ) : null}
+    </>
+  ) : null;
   return (
     <section className="settings-panel" aria-labelledby="digest-title">
       <div className="section-heading">
@@ -302,13 +360,18 @@ export function DigestPanel({
         整理未暂停会话过去 24
         小时内达到相关性阈值的已入库文本，生成工作台摘要与证据提醒。不保证覆盖未接入的消息，也不会自动发消息。
       </p>
-      <p className="profile-muted">
-        模型目标：{consentTarget}。
-        {model
-          ? `最近读取的共享今日用量 ${model.used_today} / ${model.daily_limit} 次。`
-          : '刷新后核对配置与额度。'}
-        修改模型配置会暂停旧计划，需要重新授权。
-      </p>
+      <HelpDetails label="摘要说明">
+        <p className="profile-muted">
+          模型目标：{consentTarget}。
+          {model
+            ? `最近读取的共享今日用量 ${model.used_today} / ${model.daily_limit} 次。`
+            : '刷新后核对配置与额度。'}
+          修改模型配置会暂停旧计划，需要重新授权。
+        </p>
+        <p className="profile-muted">
+          同一日期已有报告时，后台返回该记录；失败或未知记录也不会被强制重跑。只有后台实际执行新的模型调用才可能产生新的费用。
+        </p>
+      </HelpDetails>
       {schedule?.enabled ? (
         <p className="profile-muted">
           当前每日计划：{schedule.local_time}（Asia/Shanghai），绑定{' '}
@@ -387,9 +450,6 @@ export function DigestPanel({
           <Icon name="file" />
           今日摘要
         </h3>
-        <p className="profile-muted">
-          同一日期已有报告时，后台返回该记录；失败或未知记录也不会被强制重跑。只有后台实际执行新的模型调用才可能产生新的费用。
-        </p>
         <label className="assistant-check">
           <input
             type="checkbox"
@@ -487,44 +547,21 @@ export function DigestPanel({
               ? REPORT_LABELS[report.state]
               : `未知状态（${report.state}）`}
           </strong>
-          <p>{report.summary || '暂无摘要正文。'}</p>
-          <p className="profile-muted">
-            涉及 {report.conversation_count} 个会话
-            {report.generated_at
-              ? ` · 记录时间 ${new Date(report.generated_at).toLocaleString('zh-CN', { hour12: false })}`
-              : ''}
-            {report.error_code ? ` · ${report.error_code}` : ''}
-          </p>
-          {report.reminders.length ? (
-            <ul>
-              {report.reminders.map((item, index) => (
-                <li key={`${report.id}:${index}:${item.conversation_id}`}>
-                  <b>{item.title}</b> · {item.reason}
-                  {item.evidence_ids.length ? (
-                    <p className="profile-muted">
-                      证据编号：{item.evidence_ids.join('、')}
-                    </p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="profile-muted">
-              本记录没有提醒条目；不代表所有会话均已处理。
-            </p>
-          )}
-          {report.evidence_ids.length ? (
-            <details>
-              <summary>摘要证据编号</summary>
-              <p>{report.evidence_ids.join('、')}</p>
-            </details>
-          ) : null}
+          {reportDetails}
         </section>
       ) : !busy && token ? (
         <p className="profile-muted">尚未读取到摘要记录。</p>
       ) : null}
       <div aria-live="polite">
-        {notice ? <p className="profile-feedback">{notice}</p> : null}
+        {notice ? (
+          notice.kind === 'success' ? (
+            <HelpDetails label="操作结果">
+              <p className="profile-feedback">{notice.text}</p>
+            </HelpDetails>
+          ) : (
+            <p className="profile-feedback">{notice.text}</p>
+          )
+        ) : null}
         {error ? (
           <p className="profile-feedback is-error" role="alert">
             {error}

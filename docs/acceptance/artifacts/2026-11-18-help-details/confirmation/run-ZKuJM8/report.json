@@ -1,0 +1,1380 @@
+{
+  "synthetic_only": true,
+  "server_started": false,
+  "logical_frontend": "http://127.0.0.1:1420",
+  "frontend_requests_fulfilled_from_frozen_dist": true,
+  "all_application_http_requests_intercepted": true,
+  "actual_platform_or_model_calls": 0,
+  "business_write_requests": 0,
+  "remembered_credential": false,
+  "fingerprints_unchanged": true,
+  "integrity_checked": true,
+  "checks": [
+    "connect-synthetic-only-1440: Checked remember-device keeps shared-computer impact visible",
+    "connect-synthetic-only-1440: connection-remember-checked: no details nested in a label",
+    "connect-synthetic-only-1440: Remember-device hard-asserted unchecked before connection",
+    "connect-synthetic-only-1440: Unchecking removes immediate remember impact and its ARIA reference",
+    "connect-synthetic-only-1440: pre-connection-guidance: expected disclosure count",
+    "connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/连接与授权说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/接入说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/接入说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/接入说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/接入说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/接入说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/接入说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/核验记录: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/核验记录: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/核验记录: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/核验记录: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/核验记录 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/核验记录: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/同步说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/同步说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/同步说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/同步说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/同步说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/同步说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/接收说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/接收说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/接收说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/接收说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/接收说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/接收说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/模型配置说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/模型配置说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/摘要说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/摘要说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/摘要说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/摘要说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/摘要说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/摘要说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: default closed",
+    "connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: summary and recoverable content exist",
+    "connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: reachable through native Tab order",
+    "connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: closed content hidden",
+    "connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-1440: pre-connection-guidance/自动化权限说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-1440: Synthetic credential was not remembered",
+    "connect-synthetic-only-1440: connection-1440.png: single app root and expected layout viewport",
+    "connect-synthetic-only-390: Checked remember-device keeps shared-computer impact visible",
+    "connect-synthetic-only-390: connection-remember-checked: no details nested in a label",
+    "connect-synthetic-only-390: Remember-device hard-asserted unchecked before connection",
+    "connect-synthetic-only-390: Unchecking removes immediate remember impact and its ARIA reference",
+    "connect-synthetic-only-390: pre-connection-guidance: expected disclosure count",
+    "connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/连接与授权说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/连接与授权说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/接入说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/接入说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/接入说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/接入说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/接入说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/接入说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/核验记录: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/核验记录: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/核验记录: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/核验记录: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/核验记录 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/核验记录: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/同步说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/同步说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/同步说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/同步说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/同步说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/同步说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/接收说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/接收说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/接收说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/接收说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/接收说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/接收说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/模型配置说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/模型配置说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/模型配置说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/模型配置说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/模型配置说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/模型配置说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/摘要说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/摘要说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/摘要说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/摘要说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/摘要说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/摘要说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: default closed",
+    "connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: summary and recoverable content exist",
+    "connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: reachable through native Tab order",
+    "connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: closed content hidden",
+    "connect-synthetic-only-390: pre-connection-guidance/自动化权限说明 expanded: no horizontal viewport overflow",
+    "connect-synthetic-only-390: pre-connection-guidance/自动化权限说明: Enter closes; hidden descendants excluded from Tab",
+    "connect-synthetic-only-390: Synthetic credential was not remembered",
+    "connect-synthetic-only-390: connection-390.png: single app root and expected layout viewport",
+    "final-integrity: No runtime exceptions or console errors",
+    "final-integrity: No unknown or non-GET business requests",
+    "final-integrity: No escaped browser targets or interception errors",
+    "final-integrity: Every observed application HTTP request was intercepted",
+    "final-integrity: No application request was forwarded",
+    "final-integrity: Observed frontend bytes match frozen dist",
+    "final-integrity: sources: frozen fingerprints unchanged",
+    "final-integrity: dist: frozen fingerprints unchanged",
+    "final-integrity: harness: frozen fingerprints unchanged"
+  ],
+  "failures": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "connection-remember-checked: computed accessible names and referenced descriptions preserved",
+      "actual": [
+        {
+          "visible": true,
+          "tag": "INPUT",
+          "id": "service-token",
+          "describedBy": "token-description",
+          "descriptionText": "未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        },
+        {
+          "visible": true,
+          "tag": "SELECT",
+          "id": "ai-model-preset",
+          "describedBy": "ai-model-preset-help",
+          "descriptionText": "预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        }
+      ]
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/连接与授权说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/连接与授权说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/连接与授权说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/接入说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/接入说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/接入说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/核验记录: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/核验记录: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/核验记录: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/同步说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/同步说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/同步说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/接收说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/接收说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/接收说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/模型配置说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/模型配置说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/模型配置说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/摘要说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/摘要说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/摘要说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/自动化权限说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/自动化权限说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "pre-connection-guidance/自动化权限说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "connection-remember-checked: computed accessible names and referenced descriptions preserved",
+      "actual": [
+        {
+          "visible": true,
+          "tag": "INPUT",
+          "id": "service-token",
+          "describedBy": "token-description",
+          "descriptionText": "未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        },
+        {
+          "visible": true,
+          "tag": "SELECT",
+          "id": "ai-model-preset",
+          "describedBy": "ai-model-preset-help",
+          "descriptionText": "预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        }
+      ]
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/连接与授权说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/连接与授权说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/连接与授权说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/接入说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/接入说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/接入说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/核验记录: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/核验记录: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/核验记录: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/同步说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/同步说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/同步说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/接收说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/接收说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/接收说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/模型配置说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/模型配置说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/模型配置说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/摘要说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/摘要说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/摘要说明: Space reopens original content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/自动化权限说明: Enter expands content"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/自动化权限说明: Space closes and retains focus"
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "pre-connection-guidance/自动化权限说明: Space reopens original content"
+    }
+  ],
+  "screenshots": [
+    "connection-1440.png",
+    "connection-390.png"
+  ],
+  "screenshot_metadata": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "name": "connection-1440.png",
+      "expected": {
+        "width": 1440,
+        "height": 1000,
+        "touch": false
+      },
+      "dom": {
+        "innerWidth": 1440,
+        "innerHeight": 1000,
+        "outerWidth": 1440,
+        "outerHeight": 1000,
+        "clientWidth": 1425,
+        "clientHeight": 1000,
+        "dpr": 1,
+        "root_count": 1,
+        "sidebar_count": 1,
+        "visual": {
+          "width": 1425,
+          "height": 1000,
+          "scale": 1,
+          "pageX": 0,
+          "pageY": 0
+        }
+      },
+      "cssLayoutViewport": {
+        "pageX": 0,
+        "pageY": 0,
+        "clientWidth": 1425,
+        "clientHeight": 1000
+      },
+      "cssVisualViewport": {
+        "offsetX": 0,
+        "offsetY": 0,
+        "pageX": 0,
+        "pageY": 0,
+        "clientWidth": 1425,
+        "clientHeight": 1000,
+        "scale": 1,
+        "zoom": 1
+      },
+      "cssContentSize": {
+        "x": 0,
+        "y": 0,
+        "width": 1425,
+        "height": 3127
+      }
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "name": "connection-390.png",
+      "expected": {
+        "width": 390,
+        "height": 844,
+        "touch": true
+      },
+      "dom": {
+        "innerWidth": 390,
+        "innerHeight": 844,
+        "outerWidth": 1440,
+        "outerHeight": 1000,
+        "clientWidth": 375,
+        "clientHeight": 844,
+        "dpr": 1,
+        "root_count": 1,
+        "sidebar_count": 1,
+        "visual": {
+          "width": 375,
+          "height": 844,
+          "scale": 1,
+          "pageX": 0,
+          "pageY": 213
+        }
+      },
+      "cssLayoutViewport": {
+        "pageX": 0,
+        "pageY": 213,
+        "clientWidth": 375,
+        "clientHeight": 844
+      },
+      "cssVisualViewport": {
+        "offsetX": 0,
+        "offsetY": 0,
+        "pageX": 0,
+        "pageY": 213,
+        "clientWidth": 375,
+        "clientHeight": 844,
+        "scale": 1,
+        "zoom": 1
+      },
+      "cssContentSize": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 3760
+      }
+    }
+  ],
+  "api": [
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/qq-milky/status",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-config",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-presets",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/qq-milky/status",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/schedule",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/latest",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-config",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/status",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-presets",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/schedule",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/latest",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/status",
+      "status": 200,
+      "case": "connect-synthetic-only-1440"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/system",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/connections/qq-milky/status",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-config",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/model-presets",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/schedule",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/digest/latest",
+      "status": 204
+    },
+    {
+      "method": "OPTIONS",
+      "path": "/api/v1/ai/status",
+      "status": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/connections/qq-milky/status",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-config",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/model-presets",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/schedule",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/digest/latest",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/status",
+      "status": 200,
+      "case": "connect-synthetic-only-390"
+    }
+  ],
+  "staticRequests": [
+    {
+      "method": "GET",
+      "path": "/",
+      "sha256": "fe7709b666eeed5fae87e9fb7babb93adbc87d556c612c12a0ad5aedeba9c147"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-BkCWQrlE.js",
+      "sha256": "a90af1c60ecb0e829b0300bdb4e4c8d42d6a3a968296c08e801729995300ae92"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-CgfJYSPE.css",
+      "sha256": "c5b63c9bd43b314e11e514efbcef74f0b41b9fb191039909c81744c30fd5253e"
+    },
+    {
+      "method": "GET",
+      "path": "/favicon.ico",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "sha256": "fe7709b666eeed5fae87e9fb7babb93adbc87d556c612c12a0ad5aedeba9c147"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-BkCWQrlE.js",
+      "sha256": "a90af1c60ecb0e829b0300bdb4e4c8d42d6a3a968296c08e801729995300ae92"
+    },
+    {
+      "method": "GET",
+      "path": "/assets/index-CgfJYSPE.css",
+      "sha256": "c5b63c9bd43b314e11e514efbcef74f0b41b9fb191039909c81744c30fd5253e"
+    },
+    {
+      "method": "GET",
+      "path": "/favicon.ico",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scenarios": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "status": "failed",
+      "assertions_before": 0,
+      "assertions_recorded": 55,
+      "findings_recorded": 25
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "status": "failed",
+      "assertions_before": 55,
+      "assertions_recorded": 55,
+      "findings_recorded": 25
+    }
+  ],
+  "skipped": [
+    {
+      "case": "overview-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "settings-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "milky-get-busy-success-error-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-running-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-unknown-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-failed-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-ready-and-dirty-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "wechat-stop-get-refresh-late-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-limited-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-skipped-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-monitor-error-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-error-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-unconfigured-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "inbox-ai-profile-import-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-ready-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-sent-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-running-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-failed-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-report-unknown-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-unknown-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "assistant-disclosures-1440",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-1440",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "overview-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "settings-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "milky-get-busy-success-error-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-running-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-unknown-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "digest-failed-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-ready-and-dirty-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "wechat-stop-get-refresh-late-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-limited-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-skipped-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-monitor-error-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-error-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "sources-unconfigured-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "inbox-ai-profile-import-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-ready-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-sent-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-running-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-failed-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-report-unknown-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "feishu-unknown-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    },
+    {
+      "case": "assistant-disclosures-390",
+      "status": "skipped",
+      "blocked_by": "connect-synthetic-only-390",
+      "reason": "Connection prerequisite did not pass; no product coverage is claimed for this case."
+    }
+  ],
+  "connection_safety": [
+    {
+      "width": 1440,
+      "height": 1000,
+      "initial_remember_checked": true,
+      "native_unchecked": true,
+      "hard_asserted_unchecked": true,
+      "connected": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "initial_remember_checked": true,
+      "native_unchecked": true,
+      "hard_asserted_unchecked": true,
+      "connected": true
+    }
+  ],
+  "fingerprint_checks": {
+    "sources": {
+      "checked": true,
+      "unchanged": true
+    },
+    "dist": {
+      "checked": true,
+      "unchanged": true
+    },
+    "harness": {
+      "checked": true,
+      "unchanged": true
+    }
+  },
+  "networkRequests": [
+    {
+      "id": "FEC8EED053875CD5AAE43B8CB5716184",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/?synthetic_viewport=1440"
+    },
+    {
+      "id": "40932.2",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-BkCWQrlE.js"
+    },
+    {
+      "id": "40932.3",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-CgfJYSPE.css"
+    },
+    {
+      "id": "40932.6",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/favicon.ico"
+    },
+    {
+      "id": "40932.7",
+      "method": "GET",
+      "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTEuOTkgMkM2LjQ3IDIgMiA2LjQ4IDIgMTJzNC40NyAxMCA5Ljk5IDEwQzE3LjUyIDIyIDIyIDE3LjUyIDIyIDEyUzE3LjUyIDIgMTEuOTkgMnpNMTIgMjBjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTIuNSA3SDExdjZsNS4yNSAzLjE1Ljc1LTEuMjMtNC41LTIuNjd6Ii8+PC9zdmc+"
+    },
+    {
+      "id": "A10CF7CE55F6EFC177F364D1A6A7698A",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/system"
+    },
+    {
+      "id": "40932.8",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/system"
+    },
+    {
+      "id": "9330B22AF45208CAC50E5109A5EF3A16",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status"
+    },
+    {
+      "id": "7A02684D50C058DB78C8AD6822223547",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config"
+    },
+    {
+      "id": "0C79C5E67FD0CEAECC6BFC48B4672A5D",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-presets"
+    },
+    {
+      "id": "8F5DB4E49E3B6F76AFD4B4FB35B3CB9A",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule"
+    },
+    {
+      "id": "F500CDA5DF8C387026AB8DEC232A24A4",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest"
+    },
+    {
+      "id": "40932.9",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status"
+    },
+    {
+      "id": "40932.10",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config"
+    },
+    {
+      "id": "915D673AE42AF0117351DB34C62381EB",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status"
+    },
+    {
+      "id": "40932.11",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-presets"
+    },
+    {
+      "id": "40932.12",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule"
+    },
+    {
+      "id": "40932.13",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest"
+    },
+    {
+      "id": "40932.14",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status"
+    },
+    {
+      "id": "8BC0F459FFBFF1194C84F9F591A07D37",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/?synthetic_viewport=390"
+    },
+    {
+      "id": "40932.16",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-BkCWQrlE.js"
+    },
+    {
+      "id": "40932.17",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/assets/index-CgfJYSPE.css"
+    },
+    {
+      "id": "40932.20",
+      "method": "GET",
+      "url": "http://127.0.0.1:1420/favicon.ico"
+    },
+    {
+      "id": "40932.21",
+      "method": "GET",
+      "url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTEuOTkgMkM2LjQ3IDIgMiA2LjQ4IDIgMTJzNC40NyAxMCA5Ljk5IDEwQzE3LjUyIDIyIDIyIDE3LjUyIDIyIDEyUzE3LjUyIDIgMTEuOTkgMnpNMTIgMjBjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBmaWxsPSJXaW5kb3dUZXh0IiBkPSJNMTIuNSA3SDExdjZsNS4yNSAzLjE1Ljc1LTEuMjMtNC41LTIuNjd6Ii8+PC9zdmc+"
+    },
+    {
+      "id": "E7D63C1D60DBD65E48450215C6A2E58A",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/system"
+    },
+    {
+      "id": "40932.22",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/system"
+    },
+    {
+      "id": "868BCA3181BEA357B51B5CB76B97C0C4",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status"
+    },
+    {
+      "id": "6A7F1978EB82A04A6B4DD227CA064BC9",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config"
+    },
+    {
+      "id": "C1C6F1443F8A38EB31AF894C622AEF90",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-presets"
+    },
+    {
+      "id": "261E73C5B06F9878416DF2CA39C999DA",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule"
+    },
+    {
+      "id": "84F7952ABC0480759BE952E2EDD5333F",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest"
+    },
+    {
+      "id": "40932.23",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/connections/qq-milky/status"
+    },
+    {
+      "id": "40932.24",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-config"
+    },
+    {
+      "id": "40932.25",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/model-presets"
+    },
+    {
+      "id": "DA6BE84EF967EFE2D61737927E927E34",
+      "method": "OPTIONS",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status"
+    },
+    {
+      "id": "40932.26",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/schedule"
+    },
+    {
+      "id": "40932.27",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/digest/latest"
+    },
+    {
+      "id": "40932.28",
+      "method": "GET",
+      "url": "http://127.0.0.1:17890/api/v1/ai/status"
+    }
+  ],
+  "unexpectedRequests": [],
+  "unexpectedTargets": [],
+  "consoleErrors": [],
+  "interceptionErrors": [],
+  "accessibility": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "label": "connection-remember-checked",
+      "visible_controls": 33,
+      "failures": [
+        {
+          "visible": true,
+          "tag": "INPUT",
+          "id": "service-token",
+          "describedBy": "token-description",
+          "descriptionText": "未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        },
+        {
+          "visible": true,
+          "tag": "SELECT",
+          "id": "ai-model-preset",
+          "describedBy": "ai-model-preset-help",
+          "descriptionText": "预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        }
+      ]
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "label": "connection-remember-checked",
+      "visible_controls": 33,
+      "failures": [
+        {
+          "visible": true,
+          "tag": "INPUT",
+          "id": "service-token",
+          "describedBy": "token-description",
+          "descriptionText": "未记住时，连接仅在当前页面内存中保留；刷新后需重新连接。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        },
+        {
+          "visible": true,
+          "tag": "SELECT",
+          "id": "ai-model-preset",
+          "describedBy": "ai-model-preset-help",
+          "descriptionText": "预设仅填地址，不测试连接或调用模型；请手动输入模型 ID。协议支持不等于服务已接通。",
+          "missingDescriptionID": false,
+          "issue": "Missing referenced/computed description"
+        }
+      ]
+    }
+  ],
+  "disclosures": [
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "连接与授权说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "接入说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "核验记录",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "同步说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "接收说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "模型配置说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "摘要说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-1440",
+      "scope": "pre-connection-guidance",
+      "label": "自动化权限说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "连接与授权说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "接入说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "核验记录",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "同步说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "接收说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "模型配置说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "摘要说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    },
+    {
+      "case": "connect-synthetic-only-390",
+      "scope": "pre-connection-guidance",
+      "label": "自动化权限说明",
+      "default_closed": true,
+      "native_keyboard_tested": true,
+      "all_assertions_passed": false
+    }
+  ],
+  "controlled_gets": [],
+  "observed_http_requests": 36,
+  "forwarded_requests": 0,
+  "coverage": {
+    "requested_cases": 44,
+    "executed_cases": 2,
+    "passed_cases": 0,
+    "failed_cases": 2,
+    "interrupted_cases": 0,
+    "skipped_cases": 42
+  },
+  "result": "failed",
+  "elapsed_ms": 2411,
+  "evidence": {
+    "manifest": "manifest.json",
+    "protocol_trace": "cdp-trace.jsonl",
+    "report": "report.json",
+    "summary": "summary.md",
+    "screenshots": [
+      "connection-1440.png",
+      "connection-390.png"
+    ]
+  }
+}

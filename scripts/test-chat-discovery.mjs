@@ -4,6 +4,7 @@ import { runInNewContext } from "node:vm";
 import { transformSync } from "../apps/desktop/node_modules/rolldown/dist/experimental-index.mjs";
 import { deviceAuthSource } from "./frontend-auth-test-loader.mjs";
 import { loadIcon } from "./frontend-icon-test-loader.mjs";
+import { loadHelpDetails } from "./frontend-help-test-loader.mjs";
 
 // Standalone, synthetic-only regression: no server, account, browser profile,
 // database, platform connection or model. All fetches terminate in the fake below.
@@ -303,6 +304,7 @@ function environment(responder) {
     DOMException,
     jsx,
     Icon,
+    HelpDetails: loadHelpDetails(jsx),
     Fragment: "fragment",
     console,
     async fetch(input, init = {}) {

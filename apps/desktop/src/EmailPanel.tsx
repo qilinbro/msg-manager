@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ServiceError } from './api';
+import { HelpDetails } from './HelpDetails';
 import { getEmailStatus, syncEmail } from './email-api';
 import type { EmailResult, EmailStatus } from './email-api';
 
@@ -59,11 +60,17 @@ export default function EmailPanel({
   const [syncing, setSyncing] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    text: string;
+    kind: 'success' | 'warning';
+  } | null>(null);
   const [uncertain, setUncertain] = useState(false);
   const [statusRevision, setStatusRevision] = useState(0);
   const requiresAttention =
     Boolean(statusError || syncError || uncertain) ||
+    notice?.kind === 'warning' ||
+    Boolean(status?.last_result?.limited) ||
+    (status?.last_result?.skipped ?? 0) > 0 ||
     (status?.configured === true &&
       ['auth_failed', 'unreachable', 'protocol_error'].includes(status.state));
   useEffect(() => {
@@ -159,9 +166,10 @@ export default function EmailPanel({
             }
           : previous,
       );
-      setNotice(
-        `本次保存 ${result.inserted} 封，重复 ${result.duplicates} 封，跳过 ${result.skipped} 封。${result.limited ? '本次仅处理最近一批邮件，并未完整收取历史。' : ''}`,
-      );
+      setNotice({
+        kind: 'success',
+        text: `本次保存 ${result.inserted} 封，重复 ${result.duplicates} 封，跳过 ${result.skipped} 封。${result.limited ? '本次仅处理最近一批邮件，并未完整收取历史。' : ''}`,
+      });
       onSyncedRef.current();
     } catch (failure: unknown) {
       if (controller.signal.aborted || !mounted.current) return;
@@ -194,9 +202,10 @@ export default function EmailPanel({
     pendingSync.current = null;
     setSyncing(false);
     setUncertain(true);
-    setNotice(
-      '已停止等待，后台可能仍在处理邮件。请先更新状态并查看消息，再决定是否重试。',
-    );
+    setNotice({
+      kind: 'warning',
+      text: '已停止等待，后台可能仍在处理邮件。请先更新状态并查看消息，再决定是否重试。',
+    });
     onSyncedRef.current();
   };
   const backendBusy = status?.state === 'syncing';
@@ -222,7 +231,6 @@ export default function EmailPanel({
           </svg>
           <div>
             <h2 id="email-panel-title">邮箱，也整理在这里</h2>
-            <p>按需收取最近邮件到本地，保留原邮箱状态。暂不支持发信。</p>
           </div>
         </div>
         <div className="email-panel-actions">
@@ -268,39 +276,71 @@ export default function EmailPanel({
           <span className="email-account">{status.account}</span>
         ) : null}
         {status?.folder ? <span>文件夹：{status.folder}</span> : null}
-        {status?.last_synced_at ? (
-          <span>
-            最近成功同步{' '}
-            <time dateTime={status.last_synced_at}>
-              {dateText(status.last_synced_at)}
-            </time>
-          </span>
-        ) : null}
       </div>
       {!storageEnabled ? (
-        <p className="email-panel-note">
-          先启用本地加密存储，再同步邮箱中的邮件。
+        <p className="email-panel-note" role="status">
+          本地加密存储尚未启用。
         </p>
-      ) : status && !status.configured ? (
-        <p className="email-panel-note">
-          请按项目的邮箱接入说明，在本机配置账号与授权码后重启服务。工作台不会收集你的邮箱密码。
+      ) : null}
+      <HelpDetails label="邮箱同步说明">
+        <p>按需收取最近邮件到本地，保留原邮箱状态。暂不支持发信。</p>
+        {!storageEnabled ? (
+          <p className="email-panel-note">
+            先启用本地加密存储，再同步邮箱中的邮件。
+          </p>
+        ) : status && !status.configured ? (
+          <p className="email-panel-note">
+            请按项目的邮箱接入说明，在本机配置账号与授权码后重启服务。工作台不会收集你的邮箱密码。
+          </p>
+        ) : (
+          <p className="email-panel-note">
+            同步是一次主动读取，不会持续自动抓取。已读、置顶和归档仅在本地工作台生效。
+          </p>
+        )}
+      </HelpDetails>
+      {status?.last_result?.limited ? (
+        <p className="email-panel-note" role="status">
+          本次仅处理最近一批邮件，未完整收取历史。
         </p>
-      ) : (
-        <p className="email-panel-note">
-          同步是一次主动读取，不会持续自动抓取。已读、置顶和归档仅在本地工作台生效。
-        </p>
-      )}
-      {status?.last_result ? (
-        <p className="email-last-result">
-          上次保存 {status.last_result.inserted} 封 · 重复{' '}
-          {status.last_result.duplicates} 封 · 跳过 {status.last_result.skipped}{' '}
-          封{status.last_result.limited ? ' · 最近一批，未包含全部历史' : ''}
+      ) : null}
+      {status?.last_result && status.last_result.skipped > 0 ? (
+        <p className="email-panel-note" role="status">
+          上次同步跳过 {status.last_result.skipped} 封邮件，结果不完整。
         </p>
       ) : null}
       <div aria-live="polite" aria-atomic="true">
-        {notice ? (
-          <p className="email-feedback" role="status">
-            {notice}
+        {status?.last_synced_at ||
+        status?.last_result ||
+        notice?.kind === 'success' ? (
+          <HelpDetails label="邮箱同步记录">
+            {status?.last_synced_at ? (
+              <p>
+                最近成功同步{' '}
+                <time dateTime={status.last_synced_at}>
+                  {dateText(status.last_synced_at)}
+                </time>
+              </p>
+            ) : null}
+            {status?.last_result ? (
+              <p className="email-last-result">
+                上次保存 {status.last_result.inserted} 封 · 重复{' '}
+                {status.last_result.duplicates} 封 · 跳过{' '}
+                {status.last_result.skipped} 封
+                {status.last_result.limited
+                  ? ' · 最近一批，未包含全部历史'
+                  : ''}
+              </p>
+            ) : null}
+            {notice?.kind === 'success' ? (
+              <p className="email-feedback" role="status">
+                {notice.text}
+              </p>
+            ) : null}
+          </HelpDetails>
+        ) : null}
+        {notice?.kind === 'warning' ? (
+          <p className="email-panel-note" role="status">
+            {notice.text}
           </p>
         ) : null}
         {statusError ? (

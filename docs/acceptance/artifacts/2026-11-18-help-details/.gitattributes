@@ -1,0 +1,7 @@
+# Preserve exact as-executed evidence bytes and recorded SHA-256 values.
+* -text whitespace=trailing-space,space-before-tab,cr-at-eol
+# Preserve ANSI alignment whitespace in the two original terminal logs.
+post-fix-2026-11-19/engineering-first-attempt.txt -whitespace
+post-fix-2026-11-19/engineering-results.txt -whitespace
+# Preserve blank context lines in the original generated patch.
+confirmation/harness-revision-1.diff -whitespace

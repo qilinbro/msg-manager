@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Icon } from './Icon';
+import { HelpDetails } from './HelpDetails';
 import type { IconName } from './Icon';
 import { ServiceError } from './api';
 import {
@@ -117,7 +118,10 @@ function ImportPanel({
   >('editing');
   const [result, setResult] = useState<ImportResult | null>(null);
   const [analyzeImported, setAnalyzeImported] = useState(false);
-  const [analysisNotice, setAnalysisNotice] = useState<string | null>(null);
+  const [analysisNotice, setAnalysisNotice] = useState<{
+    queued: number;
+    text: string;
+  } | null>(null);
   const [modelStatus, setModelStatus] = useState<ProfileStatus | null>(null);
   const [modelError, setModelError] = useState<string | null>(null);
   const [modelRefresh, setModelRefresh] = useState(0);
@@ -274,9 +278,10 @@ function ImportPanel({
             });
       if (controller.signal.aborted) return;
       if (analyzeImported) {
-        setAnalysisNotice(
-          `已保存本次导入及 ${response.ai_queued ?? 0} 个会话的后台分析任务。后台会分批读取完整历史，结果可在联系人档案查看；额度用尽会等待次日继续。`,
-        );
+        setAnalysisNotice({
+          queued: response.ai_queued ?? 0,
+          text: `已保存本次导入及 ${response.ai_queued ?? 0} 个会话的后台分析任务。后台会分批读取完整历史，结果可在联系人档案查看；额度用尽会等待次日继续。`,
+        });
       }
       setResult(response);
       setPreview(null);
@@ -318,7 +323,6 @@ function ImportPanel({
             <Icon name="import" size={20} />
             导入已有消息
           </h2>
-          <p>仅导入你有权使用的记录；这不会向任何联系人发送消息。</p>
         </div>
         <button
           className="inbox-icon-button"
@@ -404,36 +408,38 @@ function ImportPanel({
                 setFile(event.target.files?.[0] ?? null);
               }}
             />
-            <span>
-              最多 8 MiB、{Math.min(limit, 1000)} 条记录；正文每条最多 16,000
-              UTF-8 字节。
-            </span>
           </label>
         </fieldset>
-        {format === 'standard' ? (
-          <details className="inbox-format-help">
-            <summary>查看统一导入格式</summary>
-            <p>
-              上传 messages 数组时使用上方来源；也可上传包含
-              platform、account_id、account_name、messages
-              的完整对象，确认页会展示文件内来源。
-            </p>
-            <pre>
-              {
-                '[{\n  "external_id": "原平台消息ID",\n  "peer_id": "对方账号ID",\n  "peer_name": "联系人名称",\n  "direction": "incoming",\n  "body": "消息正文",\n  "occurred_at": "2026-11-12T08:00:00+08:00"\n}]'
-              }
-            </pre>
-            <p>
-              direction 仅支持 incoming /
-              outgoing；时间必须包含时区。相同平台、账号、消息标识用于检查重复。原始文件只在本机解析，只有明确勾选AI整理才提交会话内容。
-            </p>
-          </details>
-        ) : (
-          <p className="inbox-form-note">
-            仅支持 Telegram Desktop 单个私聊的 JSON
-            导出。附件、服务消息及不支持记录的跳过数量，会在导入结果中列出。
+        <HelpDetails label="导入说明与格式" className="inbox-format-help">
+          <p>仅导入你有权使用的记录；这不会向任何联系人发送消息。</p>
+          <p>
+            最多 8 MiB、{Math.min(limit, 1000)} 条记录；正文每条最多 16,000
+            UTF-8 字节。
           </p>
-        )}
+          {format === 'standard' ? (
+            <>
+              <p>
+                上传 messages 数组时使用上方来源；也可上传包含
+                platform、account_id、account_name、messages
+                的完整对象，确认页会展示文件内来源。
+              </p>
+              <pre>
+                {
+                  '[{\n  "external_id": "原平台消息ID",\n  "peer_id": "对方账号ID",\n  "peer_name": "联系人名称",\n  "direction": "incoming",\n  "body": "消息正文",\n  "occurred_at": "2026-11-12T08:00:00+08:00"\n}]'
+                }
+              </pre>
+              <p>
+                direction 仅支持 incoming /
+                outgoing；时间必须包含时区。相同平台、账号、消息标识用于检查重复。原始文件只在本机解析，只有明确勾选AI整理才提交会话内容。
+              </p>
+            </>
+          ) : (
+            <p className="inbox-form-note">
+              仅支持 Telegram Desktop 单个私聊的 JSON
+              导出。附件、服务消息及不支持记录的跳过数量，会在导入结果中列出。
+            </p>
+          )}
+        </HelpDetails>
         {!preview && state !== 'done' ? (
           <button
             type="submit"
@@ -538,17 +544,26 @@ function ImportPanel({
             {error}
           </p>
         ) : null}
-        {result ? (
-          <p className="inbox-feedback is-success">
-            已导入 {result.inserted} 条，重复 {result.duplicates} 条，涉及{' '}
-            {result.conversations} 个会话。
-            {result.skipped !== undefined
-              ? `跳过 ${result.skipped} 条附件或不支持记录。`
-              : ''}
-          </p>
+        {result || analysisNotice ? (
+          <HelpDetails label="导入结果">
+            {result ? (
+              <p className="inbox-feedback is-success">
+                已导入 {result.inserted} 条，重复 {result.duplicates} 条，涉及{' '}
+                {result.conversations} 个会话。
+                {result.skipped !== undefined
+                  ? `跳过 ${result.skipped} 条附件或不支持记录。`
+                  : ''}
+              </p>
+            ) : null}
+            {analysisNotice ? (
+              <p className="inbox-feedback is-success">{analysisNotice.text}</p>
+            ) : null}
+          </HelpDetails>
         ) : null}
-        {analysisNotice ? (
-          <p className="inbox-feedback is-success">{analysisNotice}</p>
+        {analysisNotice && analysisNotice.queued > 0 ? (
+          <p className="inbox-feedback" role="status">
+            AI 整理已排队：{analysisNotice.queued} 个会话；进度见联系人档案。
+          </p>
         ) : null}
       </div>
     </section>
@@ -600,7 +615,10 @@ export default function Inbox({
   const [messageCursor, setMessageCursor] = useState<string | null>(null);
   const [historyMore, setHistoryMore] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{
+    text: string;
+    kind: 'info' | 'success' | 'error';
+  } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [revision, setRevision] = useState(0);
   const [backgroundPending, setBackgroundPending] = useState(false);
@@ -994,7 +1012,7 @@ export default function Inbox({
         failure.code === 'INVALID_CURSOR'
       ) {
         refresh();
-        setNotice('数据已变化，已重新读取第一页。');
+        setNotice({ kind: 'info', text: '数据已变化，已重新读取第一页。' });
       } else setListError(messageOf(failure));
     } finally {
       if (!controller.signal.aborted) setListMore(false);
@@ -1034,7 +1052,7 @@ export default function Inbox({
         failure.code === 'INVALID_CURSOR'
       ) {
         refresh();
-        setNotice('消息已变化，已重新读取最新一页。');
+        setNotice({ kind: 'info', text: '消息已变化，已重新读取最新一页。' });
       } else setMessageError(messageOf(failure));
     } finally {
       if (!controller.signal.aborted) setHistoryMore(false);
@@ -1056,19 +1074,21 @@ export default function Inbox({
       if (controller.signal.aborted) return;
       if (changes.archived !== undefined)
         setSelected((latest) => (latest?.id === current.id ? null : latest));
-      setNotice(
-        changes.read !== undefined
-          ? changes.read
-            ? '已标为已读。'
-            : '已标为未读。'
-          : changes.pinned !== undefined
-            ? changes.pinned
-              ? '会话已置顶。'
-              : '已取消置顶。'
-            : changes.archived
-              ? '会话已归档，可在“已归档”中查看。'
-              : '会话已移回收件箱。',
-      );
+      setNotice({
+        kind: 'success',
+        text:
+          changes.read !== undefined
+            ? changes.read
+              ? '已标为已读。'
+              : '已标为未读。'
+            : changes.pinned !== undefined
+              ? changes.pinned
+                ? '会话已置顶。'
+                : '已取消置顶。'
+              : changes.archived
+                ? '会话已归档，可在“已归档”中查看。'
+                : '会话已移回收件箱。',
+      });
       refresh();
     } catch (failure: unknown) {
       if (controller.signal.aborted) return;
@@ -1076,7 +1096,7 @@ export default function Inbox({
         onAuthFailure();
         return;
       }
-      setNotice(messageOf(failure));
+      setNotice({ kind: 'error', text: messageOf(failure) });
     } finally {
       if (actionRequest.current === controller) {
         actionRequest.current = null;
@@ -1280,9 +1300,26 @@ export default function Inbox({
           <p>后台已有新记录，可刷新查看。</p>
         </div>
       ) : null}
-      {notice ? (
-        <div className="inbox-notice" role="status">
-          <p>{notice}</p>
+      {notice?.kind === 'success' ? (
+        <HelpDetails label="会话操作记录">
+          <div className="inbox-notice" role="status">
+            <p>{notice.text}</p>
+            <button
+              className="inbox-icon-button"
+              title="关闭提示"
+              aria-label="关闭提示"
+              onClick={() => setNotice(null)}
+            >
+              <Icon name="close" size={15} />
+            </button>
+          </div>
+        </HelpDetails>
+      ) : notice ? (
+        <div
+          className="inbox-notice"
+          role={notice.kind === 'error' ? 'alert' : 'status'}
+        >
+          <p>{notice.text}</p>
           <button
             className="inbox-icon-button"
             title="关闭提示"
@@ -1799,12 +1836,16 @@ export default function Inbox({
                   )}
                 </div>
                 <footer className="inbox-detail-footer">
-                  <Icon name="lock" />
-                  <span>
-                    {selected.platform === 'email'
-                      ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
-                      : '本地已入库消息；来源以记录为准，当前不提供消息发送。'}
-                  </span>
+                  <HelpDetails label="本地消息说明">
+                    <p className="icon-label">
+                      <Icon name="lock" />
+                      <span>
+                        {selected.platform === 'email'
+                          ? '邮件正文保存在本地；已读、置顶和归档不改变原邮箱，暂不支持发信。'
+                          : '本地已入库消息；来源以记录为准，当前不提供消息发送。'}
+                      </span>
+                    </p>
+                  </HelpDetails>
                 </footer>
               </>
             ) : (
