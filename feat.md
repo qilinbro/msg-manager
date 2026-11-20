@@ -28,11 +28,11 @@
 | feat | 任务 / 模块 | 负责人 | 审查岗位 | 状态 | 计划开始 | 计划完成 | 实际完成 | 最新变更 / 验收证据 |
 |---|---|---|---|---|---|---|---|---|
 | FEAT-T01 | T01 项目管理 | kirinbao（产品 / 交付） | angjustinl（技术审阅）、joey（前端与 UI 审阅） | 进行中 | 2026-11-13 | 2026-11-13 | — | CHG-T01-004；公开协作标识隐私修订 |
-| FEAT-T02 | T02 QQ 个人号适配 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-13 | 2026-11-16 | — | CHG-T02-005；支持显式 1.2/1.3，验收仍因签名服务 401 阻塞 |
+| FEAT-T02 | T02 QQ 个人号适配 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-13 | 2026-11-16 | — | CHG-T02-006；OneBot 真实只读身份核验子项通过，收发与整项未完成 |
 | FEAT-T03 | T03 存储与加密 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 待审查 | 2026-11-13 | 2026-11-16 | — | CHG-T03-001；原型检查通过，待joey审查 |
 | FEAT-T04 | T04 工程基础 | angjustinl（后端工程）、joey（前端 / 桌面 / UI） | joey 审后端，angjustinl审前端；仅审非本人模块 | 进行中 | 2026-11-16 | 2026-11-17 | — | CHG-T04-004；全部已实现功能整合main |
 | FEAT-T05 | T05 数据模型 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-17 | 2026-11-18 | — | CHG-T05-004；联系人档案/作业加密迁移子项检查通过，待指定审查/真实验收 |
-| FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-008；工程检查/本机会话元数据复测通过，待指定审查及私聊验收 |
+| FEAT-T06 | T06 消息接收 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-19 | — | CHG-T06-009；OneBot 好友私聊历史只读同步/轮询实现，真实链路与合成入库通过，整项指标未追求 |
 | FEAT-T07 | T07 联系人与导入 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-18 | 2026-11-20 | — | CHG-T07-001；1000条合成记录验证通过 |
 | FEAT-T08 | T08 消息工作台 | joey（前端 / 桌面 / UI） | angjustinl（代码审查），kirinbao（交互验收） | 进行中 | 2026-11-17 | 2026-11-20 | — | CHG-T08-004；11组会话回归/前端检查通过，待指定审查/真实页面验收 |
 | FEAT-T09 | T09 长期记忆 | angjustinl（后端 / AI） | joey（后端代码交叉审查） | 进行中 | 2026-11-23 | 2026-11-24 | — | CHG-T09-002；专属档案、分类和事实证据子项检查通过，待指定审查/真实验收 |
@@ -66,6 +66,23 @@
 | FEAT-E05 | E05 阶段复盘 | kirinbao（阶段验收 / 交付） | angjustinl（后端复核）、joey（前端复核） | 未开始 | 2026-12-23 | 2026-12-24 | — | — |
 
 ## 5. 真实变更日志
+
+### CHG-T06-009｜OneBot 好友私聊历史只读接收
+
+- 日期：2026-11-20；关联 FEAT-T06；用户明确本次「通过 OB11 获取 QQ 消息，不追求 100 条/1000 次重放验收」。
+- 实现：`onebot.Client.Call`/`FriendHistory`/`NormalizeHistory` 与 `store.ImportOneBotContext`；`qq_onebot_monitor.go` 提供手动同步、显式开启/停止的后台历史轮询、状态与缺口记录、cancel/join 生命周期；OpenAPI 与前端设置面板同步。好友私聊纯文本入库，自发送、媒体、非好友跳过或拒绝；来源前缀 `onebot:friend:` 由服务端生成，大整数 ID 不经过 float64。
+- 真实链路：用户 nimbus（账号 858494731）产品 API 同步返回 `inserted=0, duplicates=0, skipped=1, source_kind=onebot_sync, sending_enabled=false`；当前历史仅含协议端自己发出的消息，被回环守卫正确跳过，未污染消息中心。
+- 合成验证：真实 SQLCipher 临时库集成测试覆盖入站文本入库、会话列表可见与重复去重；单测覆盖历史参数边界、ID 安全、跳过原因、自发送回环与来源前缀保护。全仓 Go 测试/vet、契约、四组前端回归、格式/类型/构建通过。
+- 边界：不执行 100 条/1000 次重放指标；非 WS 实时事件，按 30 秒周期只读拉取；后台设置不持久化；好友真实入站消息需对方实际发送后核对；发送仍关闭，T15 可靠恢复与审批/发件箱未完成。joey 审查与 kirinbao 验收待进行，完成统计不变。
+
+### CHG-T02-006｜OneBot 真实只读身份核验子项通过
+
+- 日期：2026-11-20；关联 FEAT-T02；不新增任务编号，完成统计不变。
+- 用户部署 `nimbus-docker-test`（`127.0.0.1:3211`，OneBot v11 HTTP 桥，账号 858494731 / widemiao～）。直连 `get_login_info` 返回 `user_id=858494731`、`nickname=widemiao～`、`retcode=0`；`get_status` 返回 `online=true`、`good=true`、`retcode=0`。
+- 从容器本机配置读取 `BRIDGE_TOKEN`，只注入临时 sociald 进程环境；真实调用产品 `GET /api/v1/connections/qq-onebot/verify` 返回 `state=identity_verified`、`account_id=858494731`、`nickname=widemiao～`、`online=true`、`checked_at=2026-11-20T11:39:37Z`、`receiving_enabled=false`、`sending_enabled=false`。
+- 能力边界复核：`/api/v1/system` 的 `qq-onebot` 能力全 false，`/health/ready` 503，`/api/v1/events` 501，`POST /api/v1/send` 501。临时 sociald、临时密钥与数据库已清理，令牌未进入仓库或文档。
+- 结论：T02 步骤 2 的**真实只读身份核验子项通过**，可作为 T06/T17 的平台前置之一；但不是 T02 整体完成，未验证持续收发、10 次真实收发或非作者审查，实际完成日期仍 —，MVP 0/27、扩展 0/5 不变。
+- 验收：kirinbao 于 2026-11-20 接受该真实只读身份核验子项（同意上述证据与能力边界）；仅子项通过，T02 整项仍待 10 次真实收发、joey 正式代码审查及最终产品签收。
 
 ### CHG-T02-005｜支持 Milky 1.2 与 1.3 显式版本适配
 

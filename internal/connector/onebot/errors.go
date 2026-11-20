@@ -11,6 +11,7 @@ const (
 	AuthFailed       Kind = "auth_failed"
 	IdentityMismatch Kind = "identity_mismatch"
 	LoggedOut        Kind = "logged_out"
+	Unsupported      Kind = "unsupported"
 	ProtocolError    Kind = "protocol_error"
 )
 
@@ -34,6 +35,8 @@ func (e *Error) Error() string {
 		return "OneBot account does not match the expected account"
 	case LoggedOut:
 		return "OneBot account is not online and healthy"
+	case Unsupported:
+		return "OneBot action or transport is not supported"
 	default:
 		return "OneBot response did not match the supported protocol"
 	}

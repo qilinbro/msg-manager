@@ -103,11 +103,55 @@ func (c *Client) dialContext(ctx context.Context, network, _ string) (net.Conn, 
 	return dialer.DialContext(ctx, "tcp", net.JoinHostPort(c.config.dialHost, c.config.port))
 }
 
+// Call performs one read-only OneBot action with caller-supplied parameters.
+// The destination, credentials and transport boundaries remain private.
+func (c *Client) Call(ctx context.Context, action string, params any) (json.RawMessage, error) {
+	if c == nil || c.config.url == nil {
+		return nil, failure(NotConfigured)
+	}
+	if c.config.url.Scheme != "http" {
+		return nil, failure(Unsupported)
+	}
+	if !validActionName(action) {
+		return nil, failure(InvalidConfig)
+	}
+	body := []byte("{}")
+	if params != nil {
+		encoded, err := json.Marshal(params)
+		if err != nil {
+			return nil, failure(InvalidConfig)
+		}
+		body = encoded
+	}
+	ctx, cancel := context.WithTimeout(ctx, c.timeout)
+	defer cancel()
+	transport := &http.Transport{DialContext: c.dialContext, Proxy: nil, DisableKeepAlives: true, MaxResponseHeaderBytes: 32 << 10, ResponseHeaderTimeout: c.timeout}
+	defer transport.CloseIdleConnections()
+	client := &http.Client{Transport: transport, Timeout: c.timeout, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	return c.callHTTPBody(ctx, client, action, body)
+}
+
+func validActionName(action string) bool {
+	if action == "" || len(action) > 64 {
+		return false
+	}
+	for _, ch := range action {
+		if !(ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9' || ch == '_') {
+			return false
+		}
+	}
+	return true
+}
+
 func (c *Client) callHTTP(ctx context.Context, client *http.Client, action string) (json.RawMessage, error) {
+	return c.callHTTPBody(ctx, client, action, []byte("{}"))
+}
+
+func (c *Client) callHTTPBody(ctx context.Context, client *http.Client, action string, body []byte) (json.RawMessage, error) {
 	u := *c.config.url
 	u.Path = strings.TrimRight(u.Path, "/") + "/" + action
 	u.RawPath = ""
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewBufferString("{}"))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewReader(body))
 	if err != nil {
 		return nil, failure(InvalidConfig)
 	}

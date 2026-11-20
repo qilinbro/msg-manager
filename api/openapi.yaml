@@ -3787,6 +3787,185 @@
           }
         }
       }
+    },
+    "/api/v1/connections/qq-onebot/receive-status": {
+      "get": {
+        "operationId": "getOneBotReceiveStatus",
+        "summary": "读取 QQ OneBot 接收状态",
+        "description": "只读缓存，不触发协议端网络调用；默认关闭，发送保持关闭。",
+        "responses": {
+          "200": {
+            "description": "当前接收状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OneBotReceiveStatus"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "本机令牌无效。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源或工作区拒绝。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/qq-onebot/receive": {
+      "post": {
+        "operationId": "syncOneBotMessages",
+        "summary": "按联系人同步一页 OneBot 好友私聊历史",
+        "description": "只读调用 get_friend_msg_history；服务端限定来源前缀、跳过自己发出的消息与非文本，事务加密入库。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OneBotSyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "同步结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OneBotSyncResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数不合法。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "本机令牌无效。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源或工作区拒绝。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "协议端不可用或存储未启用。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/connections/qq-onebot/monitor": {
+      "post": {
+        "operationId": "configureOneBotMonitor",
+        "summary": "显式开启或停止 OneBot 后台历史轮询",
+        "description": "默认关闭；须选择最多 20 个明确授权的私聊，按固定周期只读拉取最近消息并去重。",
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OneBotMonitorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新后状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OneBotReceiveStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数不合法。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "本机令牌无效。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "来源或工作区拒绝。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "未配置或后台正在停止。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6309,6 +6488,174 @@
             "type": "boolean",
             "const": false,
             "description": "平台发送保持关闭"
+          }
+        }
+      },
+      "OneBotMonitor": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "state",
+          "peer_ids",
+          "read_only",
+          "last_error"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "running"
+            ]
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
+          },
+          "read_only": {
+            "type": "boolean",
+            "const": true
+          },
+          "last_error": {
+            "type": "string"
+          }
+        }
+      },
+      "OneBotReceiveStatus": {
+        "type": "object",
+        "required": [
+          "configured",
+          "state",
+          "account_id",
+          "checked_at",
+          "receiving",
+          "sending",
+          "last_poll_at",
+          "last_result",
+          "skipped",
+          "gaps",
+          "monitor"
+        ],
+        "properties": {
+          "configured": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "account_id": {
+            "type": "string"
+          },
+          "checked_at": {
+            "type": "string"
+          },
+          "receiving": {
+            "type": "boolean"
+          },
+          "sending": {
+            "type": "boolean",
+            "const": false
+          },
+          "last_poll_at": {
+            "type": "string"
+          },
+          "last_result": {
+            "type": "string"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "gaps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "at": {
+                  "type": "integer"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "monitor": {
+            "$ref": "#/components/schemas/OneBotMonitor"
+          }
+        }
+      },
+      "OneBotSyncRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "peer_id"
+        ],
+        "properties": {
+          "peer_id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 150
+          }
+        }
+      },
+      "OneBotSyncResult": {
+        "type": "object",
+        "required": [
+          "inserted",
+          "duplicates",
+          "skipped",
+          "source_kind",
+          "sending_enabled"
+        ],
+        "properties": {
+          "inserted": {
+            "type": "integer"
+          },
+          "duplicates": {
+            "type": "integer"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "source_kind": {
+            "type": "string",
+            "const": "onebot_sync"
+          },
+          "sending_enabled": {
+            "type": "boolean",
+            "const": false
+          }
+        }
+      },
+      "OneBotMonitorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "peer_ids"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "peer_ids": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]*$"
+            }
           }
         }
       }

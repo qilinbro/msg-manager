@@ -18,6 +18,7 @@ type qqProber interface {
 
 type qqConnection struct {
 	client qqProber
+	raw    *onebot.Client
 	gate   chan struct{}
 	mu     sync.RWMutex
 	state  string
@@ -34,6 +35,7 @@ func newQQConnection(cfg onebot.Config) (*qqConnection, error) {
 		return nil, errors.New("QQ_ONEBOT configuration is invalid; check the local URL, access token and expected account ID")
 	}
 	q.client = client
+	q.raw = client
 	q.state = "configured"
 	return q, nil
 }
@@ -46,8 +48,12 @@ func (h *handler) connections() []connector.Descriptor {
 	for i := range items {
 		if items[i].ID == "qq-onebot" {
 			items[i].Status = state
+			h.onebotReceive.mu.RLock()
+			items[i].Capabilities.ReceiveText = h.onebotReceive.status.Receiving && h.inbox != nil
+			h.onebotReceive.mu.RUnlock()
+			items[i].Capabilities.HistoryImport = h.qq.raw != nil && h.inbox != nil
 			if state == "identity_verified" {
-				items[i].Description = "上次检测已核验 QQ 账号；这不是持续在线状态。消息入库、持续接收和发送仍未启用。"
+				items[i].Description = "已核验 QQ 账号；这不是持续在线状态。历史同步需显式选择联系人，后台接收默认关闭，发送未启用。"
 			}
 		}
 	}

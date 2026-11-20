@@ -63,6 +63,21 @@ func (s *Store) ImportMilkyContext(ctx context.Context, req ImportRequest) (Impo
 	return s.importBatchContext(ctx, req, "import")
 }
 
+// ImportOneBotContext is reserved for the server-configured QQ OneBot
+// connector. Like Milky, provenance is server-controlled: the browser cannot
+// set or promote it, and external IDs carry the "onebot:friend:" prefix.
+func (s *Store) ImportOneBotContext(ctx context.Context, req ImportRequest) (ImportResult, error) {
+	if req.Platform != "qq" {
+		return ImportResult{}, ErrInvalidInput
+	}
+	for _, message := range req.Messages {
+		if !strings.HasPrefix(message.ExternalID, "onebot:friend:") || message.Email != nil {
+			return ImportResult{}, ErrInvalidInput
+		}
+	}
+	return s.importBatchContext(ctx, req, "import")
+}
+
 func (s *Store) importBatch(req ImportRequest, source string) (ImportResult, error) {
 	return s.importBatchContext(context.Background(), req, source)
 }

@@ -48,6 +48,8 @@ assert.deepEqual(implementedMutations.sort(), [
   'post /api/v1/connections/wechat-db/monitor',
   'post /api/v1/connections/qq-milky/sync',
   'post /api/v1/connections/qq-milky/monitor',
+  'post /api/v1/connections/qq-onebot/receive',
+  'post /api/v1/connections/qq-onebot/monitor',
   'post /api/v1/conversations/{conversation_id}/analyze',
   'patch /api/v1/conversations/{conversation_id}/draft',
   'patch /api/v1/conversations/{conversation_id}/ai-settings',
@@ -90,4 +92,12 @@ assert.equal(spec.components.schemas.MilkyMonitor.properties.read_only.const, tr
 assert.equal(spec.components.schemas.MilkySyncRequest.properties.limit.maximum, 30);
 assert.equal(spec.components.schemas.MilkyMonitorRequest.properties.peer_ids.maxItems, 20);
 assert.ok(spec.paths['/api/v1/connections/qq-milky/verify'].get.responses['200']);
+assert.equal(spec.components.schemas.OneBotReceiveStatus.properties.sending.const, false);
+assert.equal(spec.components.schemas.OneBotReceiveStatus.properties.monitor.$ref, '#/components/schemas/OneBotMonitor');
+assert.equal(spec.components.schemas.OneBotMonitor.properties.read_only.const, true);
+assert.equal(spec.components.schemas.OneBotSyncResult.properties.sending_enabled.const, false);
+assert.equal(spec.components.schemas.OneBotSyncResult.properties.source_kind.const, 'onebot_sync');
+assert.equal(spec.components.schemas.OneBotSyncRequest.properties.count.maximum, 150);
+assert.equal(spec.components.schemas.OneBotMonitorRequest.properties.peer_ids.maxItems, 20);
+assert.ok(spec.paths['/api/v1/connections/qq-onebot/receive-status'].get.responses['200']);
 console.log('API contract references, inbox routes and disabled sender boundaries verified.');

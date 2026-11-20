@@ -10,6 +10,7 @@ import {
 import type { Connector, QQVerification, SystemStatus } from './api';
 import Inbox from './Inbox';
 import { MilkyPanel } from './MilkyPanel';
+import { OneBotReceivePanel } from './OneBotReceivePanel';
 import type { AIDraftBuffer } from './ai-api';
 import { useServiceSession } from './useServiceSession';
 import type { ServiceSession as Session } from './useServiceSession';
@@ -849,6 +850,12 @@ function Settings({
       />
       <MilkyPanel
         key={`milky-${activeToken}`}
+        token={activeToken}
+        onSystemUpdate={onSystemUpdate}
+        onAuthFailure={onAuthFailure}
+      />
+      <OneBotReceivePanel
+        key={`onebot-receive-${activeToken}`}
         token={activeToken}
         onSystemUpdate={onSystemUpdate}
         onAuthFailure={onAuthFailure}

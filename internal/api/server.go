@@ -19,16 +19,17 @@ import (
 )
 
 type handler struct {
-	tokenHash [32]byte
-	port      string
-	sequence  atomic.Uint64
-	qq        *qqConnection
-	milky     *milkyConnection
-	inbox     *store.Store
-	email     *emailConnection
-	ai        *aiConnection
-	wechat    *wechatConnection
-	profiles  *profileWorker
+	tokenHash     [32]byte
+	port          string
+	sequence      atomic.Uint64
+	qq            *qqConnection
+	onebotReceive *onebotConnection
+	milky         *milkyConnection
+	inbox         *store.Store
+	email         *emailConnection
+	ai            *aiConnection
+	wechat        *wechatConnection
+	profiles      *profileWorker
 }
 
 func NewHandler(cfg config.Config) (http.Handler, error) {
@@ -43,6 +44,17 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 	milky, err := newMilkyConnection(cfg.QQMilky)
 	if err != nil {
 		return nil, err
+	}
+	onebotReceive := &onebotConnection{
+		gate: make(chan struct{}, 1), client: qq.raw,
+		status: OneBotReceiveStatus{
+			State: "not_configured", Sending: false,
+			Gaps: []milkyGap{}, Monitor: OneBotMonitor{State: "disabled", PeerIDs: []string{}, ReadOnly: true},
+		},
+	}
+	if qq.client != nil {
+		onebotReceive.status.Configured = true
+		onebotReceive.status.State = "configured"
 	}
 	email, err := newEmailConnection(cfg.Email)
 	if err != nil {
@@ -63,7 +75,7 @@ func NewHandler(cfg config.Config) (http.Handler, error) {
 			return nil, fmt.Errorf("encrypted inbox could not be opened; check local database configuration")
 		}
 	}
-	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
+	h := &handler{tokenHash: sha256.Sum256([]byte(cfg.APIToken)), port: port, qq: qq, onebotReceive: onebotReceive, milky: milky, inbox: inbox, email: email, ai: ai, wechat: wechat}
 	var search publicinfo.Provider
 	if cfg.PublicSearch.APIKey != "" {
 		search, err = publicinfo.NewClient(cfg.PublicSearch)
@@ -86,6 +98,7 @@ func (h *handler) Close() error {
 	}
 	h.closeWechatMonitor()
 	h.closeMilkyMonitor()
+	h.closeOnebotMonitor()
 	if h.inbox != nil {
 		return h.inbox.Close()
 	}
@@ -153,6 +166,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				h.readWechat(w, r, traceID)
 				return
 			}
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/qq-onebot/receive" {
+				h.syncOnebotReceive(w, r, traceID)
+				return
+			}
+			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/qq-onebot/monitor" {
+				h.configureOnebotMonitor(w, r, traceID)
+				return
+			}
 			if r.Method == http.MethodPost && r.URL.Path == "/api/v1/connections/qq-milky/sync" {
 				h.syncMilky(w, r, traceID)
 				return
@@ -212,6 +233,8 @@ func (h *handler) serveRead(w http.ResponseWriter, r *http.Request, traceID stri
 		writeJSON(w, http.StatusOK, ListResponse[connector.Descriptor]{Items: h.connections()})
 	case "/api/v1/connections/qq-onebot/verify":
 		h.verifyQQ(w, r, traceID)
+	case "/api/v1/connections/qq-onebot/receive-status":
+		h.onebotReceiveStatus(w)
 	case "/api/v1/connections/qq-milky/verify":
 		h.verifyMilky(w, r, traceID)
 	case "/api/v1/connections/qq-milky/status":
